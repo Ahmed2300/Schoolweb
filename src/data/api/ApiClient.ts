@@ -1,0 +1,94 @@
+import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+
+// API configuration - Use environment variable or default to the backend IP
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://192.168.100.11:8000';
+
+// Token storage keys
+const TOKEN_KEY = 'auth_token';
+const REFRESH_TOKEN_KEY = 'refresh_token';
+
+// Create axios instance
+const apiClient: AxiosInstance = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+    },
+    timeout: 30000,
+});
+
+// Request interceptor - add auth token
+apiClient.interceptors.request.use(
+    (config: InternalAxiosRequestConfig) => {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (token && config.headers) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+
+        // Add language header for i18n
+        const language = localStorage.getItem('language') || 'ar';
+        if (config.headers) {
+            config.headers['Accept-Language'] = language;
+        }
+
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+// Response interceptor - handle errors and token refresh
+apiClient.interceptors.response.use(
+    (response) => response,
+    async (error: AxiosError) => {
+        const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+        // Handle 401 - try to refresh token
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+
+            try {
+                const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+                if (refreshToken) {
+                    const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+                        refresh_token: refreshToken,
+                    });
+
+                    const { token, refresh_token } = response.data;
+                    localStorage.setItem(TOKEN_KEY, token);
+                    localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token);
+
+                    if (originalRequest.headers) {
+                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                    }
+                    return apiClient(originalRequest);
+                }
+            } catch (refreshError) {
+                // Refresh failed - clear tokens and redirect to login
+                localStorage.removeItem(TOKEN_KEY);
+                localStorage.removeItem(REFRESH_TOKEN_KEY);
+                window.location.href = '/login';
+                return Promise.reject(refreshError);
+            }
+        }
+
+        // Handle other errors
+        const message = (error.response?.data as { message?: string })?.message || error.message;
+        return Promise.reject(new Error(message));
+    }
+);
+
+// Token management utilities
+export const setTokens = (token: string, refreshToken: string) => {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+};
+
+export const clearTokens = () => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+};
+
+export const getToken = () => localStorage.getItem(TOKEN_KEY);
+export const getRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY);
+
+export default apiClient;
