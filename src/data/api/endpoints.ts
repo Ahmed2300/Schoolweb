@@ -52,4 +52,30 @@ export const endpoints = {
         countries: '/api/countries',
         cities: (countryId: number) => `/api/countries/${countryId}/cities`,
     },
+
+    // Courses
+    courses: {
+        list: '/api/v1/courses',
+        detail: (id: string) => `/api/v1/courses/${id}`,
+        enrolled: '/api/v1/courses/enrolled',
+        featured: '/api/v1/courses/featured',
+        recommended: '/api/v1/courses/recommended',
+        search: '/api/v1/courses/search',
+        create: '/api/v1/courses',
+        update: (id: string) => `/api/v1/courses/${id}`,
+        delete: (id: string) => `/api/v1/courses/${id}`,
+        publish: (id: string) => `/api/v1/courses/${id}/publish`,
+    },
+
+    // Subscriptions
+    subscriptions: {
+        list: '/api/v1/subscriptions',
+        detail: (id: string) => `/api/v1/subscriptions/${id}`,
+        checkAccess: '/api/v1/subscriptions/check-access',
+        request: '/api/v1/subscriptions/request',
+        cancel: (id: string) => `/api/v1/subscriptions/${id}/cancel`,
+        pending: '/api/v1/subscriptions/pending',
+        approve: (id: string) => `/api/v1/subscriptions/${id}/approve`,
+        reject: (id: string) => `/api/v1/subscriptions/${id}/reject`,
+    },
 } as const;
