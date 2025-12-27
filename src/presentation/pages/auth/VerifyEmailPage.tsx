@@ -148,7 +148,7 @@ export function VerifyEmailPage() {
     }, [email, navigate]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="min-h-screen bg-gradient-to-br from-soft-cloud to-red-50" dir={isRTL ? 'rtl' : 'ltr'}>
             <AuthNavbar />
 
             <div className="pt-[72px] min-h-screen flex items-center justify-center p-8">
@@ -157,16 +157,16 @@ export function VerifyEmailPage() {
                     <div className="glass-panel p-8">
                         {/* Header */}
                         <div className="text-center mb-8">
-                            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <EmailIcon sx={{ fontSize: 40, color: '#3B82F6' }} />
+                            <div className="w-20 h-20 bg-shibl-crimson/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <EmailIcon sx={{ fontSize: 40, color: '#AF0C15' }} />
                             </div>
-                            <h1 className="text-2xl font-extrabold text-slate-900 mb-2">
+                            <h1 className="text-2xl font-extrabold text-charcoal mb-2">
                                 تحقق من بريدك الإلكتروني
                             </h1>
-                            <p className="text-slate-500">
+                            <p className="text-slate-grey">
                                 أرسلنا رمز تحقق مكون من 6 أرقام إلى
                             </p>
-                            <p className="text-blue-600 font-bold mt-1 dir-ltr">{email}</p>
+                            <p className="text-shibl-crimson font-bold mt-1 dir-ltr">{email}</p>
                         </div>
 
                         {/* Error/Success Messages */}
@@ -195,7 +195,7 @@ export function VerifyEmailPage() {
                                         onChange={(e) => handleOtpChange(index, e.target.value)}
                                         onKeyDown={(e) => handleKeyDown(index, e)}
                                         onPaste={handlePaste}
-                                        className="w-12 h-14 text-center text-2xl font-bold border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                                        className="w-12 h-14 text-center text-2xl font-bold border-2 border-slate-200 rounded-xl focus:border-shibl-crimson focus:ring-2 focus:ring-shibl-crimson/20 outline-none transition-all"
                                     />
                                 ))}
                             </div>
@@ -219,11 +219,11 @@ export function VerifyEmailPage() {
 
                         {/* Resend OTP */}
                         <div className="mt-6 text-center">
-                            <p className="text-slate-500 mb-2">لم تستلم الرمز؟</p>
+                            <p className="text-slate-grey mb-2">لم تستلم الرمز؟</p>
                             <button
                                 onClick={handleResendOtp}
                                 disabled={countdown > 0 || isResending}
-                                className={`inline-flex items-center gap-2 font-bold ${countdown > 0 ? 'text-slate-400' : 'text-blue-600 hover:underline'
+                                className={`inline-flex items-center gap-2 font-bold ${countdown > 0 ? 'text-slate-400' : 'text-shibl-crimson hover:underline'
                                     }`}
                             >
                                 {isResending ? (
@@ -243,7 +243,7 @@ export function VerifyEmailPage() {
                         <div className="mt-8 text-center">
                             <Link
                                 to={ROUTES.LOGIN}
-                                className="inline-flex items-center gap-2 text-slate-500 hover:text-blue-600"
+                                className="inline-flex items-center gap-2 text-slate-grey hover:text-shibl-crimson"
                             >
                                 <ArrowBackIcon sx={{ fontSize: 18, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
                                 <span>العودة لتسجيل الدخول</span>

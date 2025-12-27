@@ -41,7 +41,7 @@ export interface ResetPasswordRequest {
 
 export interface AuthResponse {
     success: boolean;
-    message: string;
+    message?: string;
     data?: {
         student?: UserData;
         parent?: UserData;
@@ -101,38 +101,76 @@ export const authService = {
     // Parent Authentication
     parentLogin: async (data: LoginRequest): Promise<AuthResponse> => {
         const response = await apiClient.post(endpoints.parentAuth.login, data);
-        if (response.data.data?.token) {
-            setTokens(response.data.data.token, '');
+        // Transform backend response { token, parent } to expected format
+        const backendData = response.data;
+        if (backendData.token) {
+            setTokens(backendData.token, '');
         }
-        return response.data;
+        return {
+            success: true,
+            message: 'Login successful',
+            data: {
+                parent: backendData.parent,
+                token: backendData.token,
+            },
+        };
     },
 
     parentRegister: async (data: ParentRegisterRequest): Promise<AuthResponse> => {
         const response = await apiClient.post(endpoints.parentAuth.register, data);
-        return response.data;
+        // Transform backend response { message, parent } to expected format
+        const backendData = response.data;
+        return {
+            success: true,
+            message: backendData.message,
+            data: {
+                parent: backendData.parent,
+            },
+        };
     },
 
     parentVerifyEmail: async (data: VerifyEmailRequest): Promise<AuthResponse> => {
         const response = await apiClient.post(endpoints.parentAuth.verifyEmail, data);
-        if (response.data.data?.token) {
-            setTokens(response.data.data.token, '');
+        // Transform backend response { message } to expected format
+        const backendData = response.data;
+        if (backendData.token) {
+            setTokens(backendData.token, '');
         }
-        return response.data;
+        return {
+            success: true,
+            message: backendData.message,
+            data: {
+                parent: backendData.parent,
+                token: backendData.token,
+            },
+        };
     },
 
     parentResendOtp: async (email: string): Promise<AuthResponse> => {
         const response = await apiClient.post(endpoints.parentAuth.resendOtp, { email });
-        return response.data;
+        // Transform backend response { message } to expected format
+        return {
+            success: true,
+            message: response.data.message,
+        };
     },
 
     parentForgotPassword: async (email: string): Promise<AuthResponse> => {
         const response = await apiClient.post(endpoints.parentAuth.forgotPassword, { email });
-        return response.data;
+        // Transform backend response { message } to expected format
+        return {
+            success: true,
+            message: response.data.message,
+        };
     },
 
     parentResetPassword: async (data: ResetPasswordRequest): Promise<AuthResponse> => {
         const response = await apiClient.post(endpoints.parentAuth.resetPassword, data);
-        return response.data;
+        // Transform backend response { message } to expected format
+        return {
+            success: true,
+            message: response.data.message,
+        };
     },
 
     // Common
@@ -149,6 +187,15 @@ export const authService = {
             ? endpoints.studentAuth.me
             : endpoints.parentAuth.me;
         const response = await apiClient.get(endpoint);
+        // Transform parent response which returns user directly (not wrapped in data)
+        if (userType === 'parent') {
+            return {
+                success: true,
+                data: {
+                    parent: response.data,
+                },
+            };
+        }
         return response.data;
     },
 };

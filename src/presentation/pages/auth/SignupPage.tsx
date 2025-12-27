@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../hooks';
 import { AuthNavbar } from '../../components';
 import { ROUTES } from '../../../shared/constants';
 import { authService } from '../../../data/api';
+import apiClient from '../../../data/api/ApiClient';
+import { endpoints } from '../../../data/api/endpoints';
 
 // Material Icons
 import PersonIcon from '@mui/icons-material/Person';
@@ -20,15 +22,35 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import StarIcon from '@mui/icons-material/Star';
 import FlagIcon from '@mui/icons-material/Flag';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import LocationCityIcon from '@mui/icons-material/LocationCity';
 
 type UserType = 'student' | 'parent';
 
-// Country mapping for registration
-const countryMap: Record<string, number> = {
-    'مصر': 1,
-    'السعودية': 2,
-    'الإمارات': 3,
-    'الكويت': 4,
+// Types for API responses
+interface LocalizedName {
+    en?: string;
+    ar?: string;
+    [key: string]: string | undefined;
+}
+
+interface Country {
+    id: number;
+    name: string | LocalizedName;
+    code?: string;
+}
+
+interface City {
+    id: number;
+    name: string | LocalizedName;
+    country_id: number;
+}
+
+// Helper function to get the name string from localized object or string
+const getLocalizedName = (name: string | LocalizedName | undefined, lang: string = 'ar'): string => {
+    if (!name) return '';
+    if (typeof name === 'string') return name;
+    // Try requested language first, then fallback to 'en', then first available
+    return name[lang] || name.en || name.ar || Object.values(name).find(v => v) || '';
 };
 
 export function SignupPage() {
@@ -43,15 +65,71 @@ export function SignupPage() {
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
+    // Countries and cities state
+    const [countries, setCountries] = useState<Country[]>([]);
+    const [cities, setCities] = useState<City[]>([]);
+    const [loadingCountries, setLoadingCountries] = useState(false);
+    const [loadingCities, setLoadingCities] = useState(false);
+
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         phone: '',
         countryCode: '+20',
-        country: 'مصر',
+        countryId: 0,
+        cityId: 0,
         password: '',
         confirmPassword: '',
     });
+
+    // Fetch countries on mount
+    useEffect(() => {
+        const fetchCountries = async () => {
+            setLoadingCountries(true);
+            try {
+                const response = await apiClient.get(endpoints.locations.countries);
+                const countryData = response.data.data || response.data;
+                setCountries(countryData);
+                // Set default country if available
+                if (countryData.length > 0) {
+                    setFormData(prev => ({ ...prev, countryId: countryData[0].id }));
+                }
+            } catch (err) {
+                console.error('Failed to fetch countries:', err);
+            } finally {
+                setLoadingCountries(false);
+            }
+        };
+        fetchCountries();
+    }, []);
+
+    // Fetch cities when country changes
+    useEffect(() => {
+        const fetchCities = async () => {
+            if (!formData.countryId) {
+                setCities([]);
+                return;
+            }
+            setLoadingCities(true);
+            try {
+                const response = await apiClient.get(endpoints.locations.cities(formData.countryId));
+                const cityData = response.data.data || response.data;
+                setCities(cityData);
+                // Set default city if available
+                if (cityData.length > 0) {
+                    setFormData(prev => ({ ...prev, cityId: cityData[0].id }));
+                } else {
+                    setFormData(prev => ({ ...prev, cityId: 0 }));
+                }
+            } catch (err) {
+                console.error('Failed to fetch cities:', err);
+                setCities([]);
+            } finally {
+                setLoadingCities(false);
+            }
+        };
+        fetchCities();
+    }, [formData.countryId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -100,8 +178,8 @@ export function SignupPage() {
                     email: formData.email,
                     password: formData.password,
                     password_confirmation: formData.confirmPassword,
-                    country_id: countryMap[formData.country] || 1,
-                    city_id: 1, // Default to first city, can be improved later
+                    country_id: formData.countryId,
+                    city_id: formData.cityId,
                 });
             } else {
                 await authService.parentRegister({
@@ -135,12 +213,12 @@ export function SignupPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="min-h-screen bg-soft-cloud" dir={isRTL ? 'rtl' : 'ltr'}>
             <AuthNavbar />
 
             <div className="pt-[72px] min-h-screen grid lg:grid-cols-2">
                 {/* Visual Section - Order 1 on desktop makes it appear on LEFT in RTL */}
-                <div className="hidden lg:flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-12 relative overflow-hidden lg:order-1">
+                <div className="hidden lg:flex items-center justify-center bg-gradient-to-br from-red-50 via-rose-50 to-orange-50 p-12 relative overflow-hidden lg:order-1">
                     {/* Floating Card - Top Left (corner, in empty space) */}
                     {userType === 'parent' && (
                         <div className="absolute top-8 left-8 floating-card-success p-4 flex items-center gap-3 animate-float z-10">
@@ -172,14 +250,14 @@ export function SignupPage() {
                                         <StarIcon key={i} sx={{ fontSize: 18, color: '#F59E0B' }} />
                                     ))}
                                 </div>
-                                <p className="text-[15px] leading-relaxed text-slate-700 mb-4">
+                                <p className="text-[15px] leading-relaxed text-charcoal mb-4">
                                     "أفضل منصة ساعدت ابني على التفوق، الدروس مشروحة بطريقة مبسطة ورائعة!"
                                 </p>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-xl">👩</div>
+                                    <div className="w-10 h-10 rounded-full bg-shibl-crimson/10 flex items-center justify-center text-xl">👩</div>
                                     <div className="flex flex-col">
-                                        <span className="font-semibold text-slate-900 text-[15px]">سارة الأحمد</span>
-                                        <span className="text-xs text-slate-500">ولية أمر</span>
+                                        <span className="font-semibold text-charcoal text-[15px]">سارة الأحمد</span>
+                                        <span className="text-xs text-slate-grey">ولية أمر</span>
                                     </div>
                                 </div>
                             </div>
@@ -194,7 +272,7 @@ export function SignupPage() {
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-white font-extrabold text-lg">مستوى متقدم</span>
-                                <span className="text-amber-300 text-sm">⭐ أداء ممتاز</span>
+                                <span className="text-white/90 text-sm">⭐ أداء ممتاز</span>
                             </div>
                         </div>
                     )}
@@ -205,16 +283,16 @@ export function SignupPage() {
                     <div className="w-full max-w-[420px]">
                         {/* Logo */}
                         <div className="flex items-center gap-2 mb-8 justify-center lg:justify-start">
-                            <VerifiedIcon sx={{ fontSize: 36, color: '#3B82F6' }} />
-                            <span className="text-2xl font-bold text-blue-600">تعليم</span>
+                            <img src="/images/subol-red.png" alt="سُبُل" className="w-8 h-8 lg:w-9 lg:h-9" />
+                            <span className="text-2xl lg:text-3xl font-extrabold text-shibl-crimson">سُبُل</span>
                         </div>
 
                         {/* Header */}
                         <div className="mb-6 text-center lg:text-right">
-                            <h1 className="text-3xl font-extrabold text-slate-900 mb-2">
+                            <h1 className="text-3xl font-extrabold text-charcoal mb-2">
                                 {userType === 'student' ? 'إنشاء حساب جديد' : 'إنشاء حساب ولي أمر'}
                             </h1>
-                            <p className="text-slate-500">
+                            <p className="text-slate-grey">
                                 {userType === 'student'
                                     ? 'انضم إلى مجتمعنا التعليمي اليوم.'
                                     : 'تابع مستوى أبنائك الدراسي لحظة بلحظة.'
@@ -232,8 +310,8 @@ export function SignupPage() {
                         <div className="flex bg-slate-100/50 p-1.5 rounded-2xl gap-2 mb-8">
                             <button
                                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${userType === 'student'
-                                    ? 'bg-white text-blue-600 shadow-md shadow-blue-100'
-                                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                                    ? 'bg-white text-shibl-crimson shadow-md shadow-shibl-crimson/10'
+                                    : 'text-slate-grey hover:text-charcoal hover:bg-slate-50'
                                     }`}
                                 onClick={() => setUserType('student')}
                             >
@@ -242,8 +320,8 @@ export function SignupPage() {
                             </button>
                             <button
                                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${userType === 'parent'
-                                    ? 'bg-white text-blue-600 shadow-md shadow-blue-100'
-                                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                                    ? 'bg-white text-shibl-crimson shadow-md shadow-shibl-crimson/10'
+                                    : 'text-slate-grey hover:text-charcoal hover:bg-slate-50'
                                     }`}
                                 onClick={() => setUserType('parent')}
                             >
@@ -316,22 +394,64 @@ export function SignupPage() {
 
                             {/* Country (Student only) */}
                             {userType === 'student' && (
-                                <div className="form-control w-full">
-                                    <label className="label pb-1">
-                                        <span className="label-text font-bold text-slate-700">الدولة</span>
-                                    </label>
-                                    <select
-                                        className="input-pro pr-4"
-                                        value={formData.country}
-                                        onChange={(e) => handleChange('country', e.target.value)}
-                                        dir="rtl"
-                                    >
-                                        <option value="مصر">🇪🇬 مصر</option>
-                                        <option value="السعودية">🇸🇦 السعودية</option>
-                                        <option value="الإمارات">🇦🇪 الإمارات</option>
-                                        <option value="الكويت">🇰🇼 الكويت</option>
-                                    </select>
-                                </div>
+                                <>
+                                    <div className="form-control w-full">
+                                        <label className="label pb-1">
+                                            <span className="label-text font-bold text-slate-700">الدولة</span>
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                className="input-pro pr-12"
+                                                value={formData.countryId}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, countryId: Number(e.target.value), cityId: 0 }))}
+                                                dir="rtl"
+                                                disabled={loadingCountries}
+                                            >
+                                                {loadingCountries ? (
+                                                    <option value="0">جاري التحميل...</option>
+                                                ) : countries.length === 0 ? (
+                                                    <option value="0">لا توجد دول متاحة</option>
+                                                ) : (
+                                                    countries.map((country) => (
+                                                        <option key={country.id} value={country.id}>
+                                                            {getLocalizedName(country.name, isRTL ? 'ar' : 'en')}
+                                                        </option>
+                                                    ))
+                                                )}
+                                            </select>
+                                            <FlagIcon sx={{ fontSize: 20 }} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                        </div>
+                                    </div>
+
+                                    {/* City */}
+                                    <div className="form-control w-full">
+                                        <label className="label pb-1">
+                                            <span className="label-text font-bold text-slate-700">المدينة</span>
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                className="input-pro pr-12"
+                                                value={formData.cityId}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, cityId: Number(e.target.value) }))}
+                                                dir="rtl"
+                                                disabled={loadingCities || !formData.countryId}
+                                            >
+                                                {loadingCities ? (
+                                                    <option value="0">جاري التحميل...</option>
+                                                ) : cities.length === 0 ? (
+                                                    <option value="0">اختر الدولة أولاً</option>
+                                                ) : (
+                                                    cities.map((city) => (
+                                                        <option key={city.id} value={city.id}>
+                                                            {getLocalizedName(city.name, isRTL ? 'ar' : 'en')}
+                                                        </option>
+                                                    ))
+                                                )}
+                                            </select>
+                                            <LocationCityIcon sx={{ fontSize: 20 }} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                        </div>
+                                    </div>
+                                </>
                             )}
 
                             {/* Password */}
@@ -376,7 +496,7 @@ export function SignupPage() {
                                     <LockIcon sx={{ fontSize: 20 }} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                     <button
                                         type="button"
-                                        className="absolute left-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-blue-500"
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-shibl-crimson"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                     >
                                         {showConfirmPassword ? <VisibilityOffIcon sx={{ fontSize: 20 }} /> : <VisibilityIcon sx={{ fontSize: 20 }} />}
@@ -393,8 +513,8 @@ export function SignupPage() {
                                         checked={agreeTerms}
                                         onChange={(e) => setAgreeTerms(e.target.checked)}
                                     />
-                                    <span className="label-text text-slate-600 text-sm">
-                                        أوافق على <a href="#" className="text-blue-600 font-bold hover:underline">الشروط والأحكام</a>
+                                    <span className="label-text text-slate-grey text-sm">
+                                        أوافق على <a href="#" className="text-shibl-crimson font-bold hover:underline">الشروط والأحكام</a>
                                     </span>
                                 </label>
                             </div>
@@ -403,8 +523,8 @@ export function SignupPage() {
                             <button
                                 type="submit"
                                 className={`w-full mt-2 h-14 rounded-2xl text-lg font-bold gap-3 flex items-center justify-center transition-all duration-300 ${(isLoading || !agreeTerms)
-                                        ? 'bg-slate-100 text-slate-400 border-2 border-slate-100 cursor-not-allowed'
-                                        : 'btn-primary-pro text-white'
+                                    ? 'bg-slate-100 text-slate-400 border-2 border-slate-100 cursor-not-allowed'
+                                    : 'btn-primary-pro text-white'
                                     }`}
                                 disabled={isLoading || !agreeTerms}
                             >
@@ -419,9 +539,9 @@ export function SignupPage() {
                             </button>
                         </form>
 
-                        <p className="mt-8 text-center text-slate-500">
+                        <p className="mt-8 text-center text-slate-grey">
                             لديك حساب بالفعل؟{' '}
-                            <Link to={ROUTES.LOGIN} className="text-blue-600 font-bold hover:underline">تسجيل الدخول</Link>
+                            <Link to={ROUTES.LOGIN} className="text-shibl-crimson font-bold hover:underline">تسجيل الدخول</Link>
                         </p>
                     </div>
                 </div>

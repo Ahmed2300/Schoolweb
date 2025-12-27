@@ -49,8 +49,8 @@ export const endpoints = {
 
     // Countries & Cities (for registration)
     locations: {
-        countries: '/api/countries',
-        cities: (countryId: number) => `/api/countries/${countryId}/cities`,
+        countries: '/api/v1/countries',
+        cities: (countryId: number) => `/api/v1/countries/${countryId}/cities`,
     },
 
     // Courses

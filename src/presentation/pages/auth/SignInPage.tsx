@@ -114,7 +114,7 @@ export function SignInPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="min-h-screen bg-soft-cloud" dir={isRTL ? 'rtl' : 'ltr'}>
             <AuthNavbar />
 
             <div className="pt-[72px] min-h-screen grid lg:grid-cols-2">
@@ -123,14 +123,14 @@ export function SignInPage() {
                     <div className="w-full max-w-[420px]">
                         {/* Logo */}
                         <div className="flex items-center gap-2 mb-10 justify-center lg:justify-start">
-                            <VerifiedIcon sx={{ fontSize: 36, color: '#3B82F6' }} />
-                            <span className="text-2xl font-bold text-blue-600">تعليم</span>
+                            <img src="/images/subol-red.png" alt="سُبُل" className="w-8 h-8 lg:w-9 lg:h-9" />
+                            <span className="text-2xl lg:text-3xl font-extrabold text-shibl-crimson">سُبُل</span>
                         </div>
 
                         {/* Header */}
                         <div className="mb-8 text-center lg:text-right">
-                            <h1 className="text-4xl font-extrabold text-slate-900 mb-3">تسجيل الدخول</h1>
-                            <p className="text-slate-500">أهلاً بك! يرجى إدخال بياناتك للمتابعة.</p>
+                            <h1 className="text-4xl font-extrabold text-charcoal mb-3">تسجيل الدخول</h1>
+                            <p className="text-slate-grey">أهلاً بك! يرجى إدخال بياناتك للمتابعة.</p>
                         </div>
 
                         {/* Error Message */}
@@ -143,8 +143,8 @@ export function SignInPage() {
                         <div className="flex bg-slate-100/50 p-1.5 rounded-2xl mb-8">
                             <button
                                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${userType === 'student'
-                                        ? 'bg-white text-blue-600 shadow-md shadow-blue-100'
-                                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                                    ? 'bg-white text-shibl-crimson shadow-md shadow-shibl-crimson/10'
+                                    : 'text-slate-grey hover:text-charcoal hover:bg-slate-50'
                                     }`}
                                 onClick={() => setUserType('student')}
                             >
@@ -153,8 +153,8 @@ export function SignInPage() {
                             </button>
                             <button
                                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${userType === 'parent'
-                                        ? 'bg-white text-blue-600 shadow-md shadow-blue-100'
-                                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                                    ? 'bg-white text-shibl-crimson shadow-md shadow-shibl-crimson/10'
+                                    : 'text-slate-grey hover:text-charcoal hover:bg-slate-50'
                                     }`}
                                 onClick={() => setUserType('parent')}
                             >
@@ -192,7 +192,7 @@ export function SignInPage() {
                             <div className="form-control w-full">
                                 <label className="label pb-1 flex justify-between">
                                     <span className="label-text font-bold text-slate-700">كلمة المرور</span>
-                                    <Link to={ROUTES.FORGOT_PASSWORD} className="text-sm font-bold text-blue-600 hover:underline">نسيت كلمة المرور؟</Link>
+                                    <Link to={ROUTES.FORGOT_PASSWORD} className="text-sm font-bold text-shibl-crimson hover:underline">نسيت كلمة المرور؟</Link>
                                 </label>
                                 <div className="relative">
                                     <input
@@ -206,7 +206,7 @@ export function SignInPage() {
                                     <LockIcon sx={{ fontSize: 20 }} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.password ? 'text-red-400' : 'text-slate-400'}`} />
                                     <button
                                         type="button"
-                                        className="absolute left-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-blue-500"
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-shibl-crimson"
                                         onClick={() => setShowPassword(!showPassword)}
                                     >
                                         {showPassword ? <VisibilityOffIcon sx={{ fontSize: 20 }} /> : <VisibilityIcon sx={{ fontSize: 20 }} />}
@@ -249,15 +249,15 @@ export function SignInPage() {
                             </button>
                         </form>
 
-                        <p className="mt-8 text-center text-slate-500">
+                        <p className="mt-8 text-center text-slate-grey">
                             ليس لديك حساب؟{' '}
-                            <Link to={ROUTES.REGISTER} className="text-blue-600 font-bold hover:underline">أنشئ حساباً الآن</Link>
+                            <Link to={ROUTES.REGISTER} className="text-shibl-crimson font-bold hover:underline">أنشئ حساباً الآن</Link>
                         </p>
                     </div>
                 </div>
 
                 {/* Visual Section - Order 1 on desktop makes it appear on LEFT in RTL */}
-                <div className="hidden lg:flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-12 relative overflow-hidden lg:order-1">
+                <div className="hidden lg:flex items-center justify-center bg-gradient-to-br from-red-50 via-rose-50 to-orange-50 p-12 relative overflow-hidden lg:order-1">
                     {/* Floating Card - Top Left (corner, in empty space) */}
                     <div className="absolute top-8 left-8 floating-card-success p-4 flex items-center gap-3 animate-float z-10">
                         <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center">
@@ -270,19 +270,25 @@ export function SignInPage() {
                     </div>
 
                     <div className="relative w-full max-w-lg flex flex-col items-center gap-8">
-                        {/* Main Image */}
+                        {/* Main Image - Changes based on user type */}
                         <div className="relative w-full max-w-[380px]">
                             <img
-                                src="/images/signin-student.png"
-                                alt="Illustration"
-                                className="w-full h-auto rounded-3xl drop-shadow-2xl"
+                                src={userType === 'student' ? '/images/signin-student.png' : '/images/signin-parent.png'}
+                                alt={userType === 'student' ? 'طالب' : 'ولي أمر'}
+                                className="w-full h-auto rounded-3xl drop-shadow-2xl transition-all duration-500"
                             />
                         </div>
 
-                        {/* Caption */}
+                        {/* Caption - Changes based on user type */}
                         <div className="text-center mt-4">
-                            <h2 className="text-2xl font-extrabold text-slate-800 mb-2">مرحباً بك مجدداً</h2>
-                            <p className="text-slate-500 max-w-sm">تابع رحلتك التعليمية واستمتع بأفضل تجربة تعلم تفاعلية.</p>
+                            <h2 className="text-2xl font-extrabold text-charcoal mb-2">
+                                {userType === 'student' ? 'مرحباً بك مجدداً' : 'مرحباً ولي الأمر'}
+                            </h2>
+                            <p className="text-slate-grey max-w-sm">
+                                {userType === 'student'
+                                    ? 'تابع رحلتك التعليمية واستمتع بأفضل تجربة تعلم تفاعلية.'
+                                    : 'تابع تقدم أبنائك واحصل على تقارير مفصلة عن أدائهم.'}
+                            </p>
                         </div>
                     </div>
 

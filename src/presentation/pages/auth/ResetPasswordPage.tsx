@@ -115,24 +115,24 @@ export function ResetPasswordPage() {
     }, [email, navigate]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="min-h-screen bg-gradient-to-br from-soft-cloud to-red-50" dir={isRTL ? 'rtl' : 'ltr'}>
             <AuthNavbar />
 
             <div className="pt-[72px] min-h-screen flex items-center justify-center p-8">
                 <div className="w-full max-w-md">
                     {/* Card */}
-                    <div className="bg-white rounded-3xl shadow-xl p-8">
+                    <div className="bg-white rounded-3xl shadow-card p-8">
                         {!success ? (
                             <>
                                 {/* Header */}
                                 <div className="text-center mb-8">
-                                    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <LockResetIcon sx={{ fontSize: 40, color: '#3B82F6' }} />
+                                    <div className="w-20 h-20 bg-shibl-crimson/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <LockResetIcon sx={{ fontSize: 40, color: '#AF0C15' }} />
                                     </div>
-                                    <h1 className="text-2xl font-extrabold text-slate-900 mb-2">
+                                    <h1 className="text-2xl font-extrabold text-charcoal mb-2">
                                         إعادة تعيين كلمة المرور
                                     </h1>
-                                    <p className="text-slate-500">
+                                    <p className="text-slate-grey">
                                         أدخل رمز التحقق وكلمة المرور الجديدة
                                     </p>
                                 </div>
@@ -163,7 +163,7 @@ export function ResetPasswordPage() {
                                                     onChange={(e) => handleOtpChange(index, e.target.value)}
                                                     onKeyDown={(e) => handleKeyDown(index, e)}
                                                     onPaste={handlePaste}
-                                                    className="w-11 h-12 text-center text-xl font-bold border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                                                    className="w-11 h-12 text-center text-xl font-bold border-2 border-slate-200 rounded-xl focus:border-shibl-crimson focus:ring-2 focus:ring-shibl-crimson/20 outline-none transition-all"
                                                 />
                                             ))}
                                         </div>
@@ -224,8 +224,7 @@ export function ResetPasswordPage() {
                                     {/* Submit Button */}
                                     <button
                                         type="submit"
-                                        className="btn w-full h-14 rounded-xl text-lg font-bold gap-3 border-none"
-                                        style={{ backgroundColor: '#2563EB', color: '#FFFFFF' }}
+                                        className="btn-primary-pro w-full h-14 text-lg gap-3"
                                         disabled={isLoading}
                                     >
                                         {isLoading ? (
@@ -242,21 +241,20 @@ export function ResetPasswordPage() {
                         ) : (
                             /* Success State */
                             <div className="text-center">
-                                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <CheckCircleIcon sx={{ fontSize: 40, color: '#22C55E' }} />
+                                <div className="w-20 h-20 bg-success-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <CheckCircleIcon sx={{ fontSize: 40, color: '#27AE60' }} />
                                 </div>
-                                <h2 className="text-2xl font-extrabold text-slate-900 mb-2">
+                                <h2 className="text-2xl font-extrabold text-charcoal mb-2">
                                     تم بنجاح!
                                 </h2>
-                                <p className="text-slate-500 mb-6">
+                                <p className="text-slate-grey mb-6">
                                     تم إعادة تعيين كلمة المرور بنجاح.
                                     <br />
                                     يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.
                                 </p>
                                 <Link
                                     to={ROUTES.LOGIN}
-                                    className="btn w-full h-14 rounded-xl text-lg font-bold gap-3 border-none"
-                                    style={{ backgroundColor: '#2563EB', color: '#FFFFFF' }}
+                                    className="btn-primary-pro w-full h-14 text-lg gap-3"
                                 >
                                     <span>تسجيل الدخول</span>
                                     <ArrowBackIcon sx={{ fontSize: 20, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
@@ -269,7 +267,7 @@ export function ResetPasswordPage() {
                             <div className="mt-8 text-center">
                                 <Link
                                     to={ROUTES.FORGOT_PASSWORD}
-                                    className="inline-flex items-center gap-2 text-slate-500 hover:text-blue-600"
+                                    className="inline-flex items-center gap-2 text-slate-grey hover:text-shibl-crimson"
                                 >
                                     <ArrowBackIcon sx={{ fontSize: 18, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
                                     <span>العودة</span>

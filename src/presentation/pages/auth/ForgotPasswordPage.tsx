@@ -56,13 +56,13 @@ export function ForgotPasswordPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="min-h-screen bg-gradient-to-br from-soft-cloud to-red-50" dir={isRTL ? 'rtl' : 'ltr'}>
             <AuthNavbar />
 
             <div className="pt-[72px] min-h-screen flex items-center justify-center p-8">
                 <div className="w-full max-w-md">
                     {/* Card */}
-                    <div className="bg-white rounded-3xl shadow-xl p-8">
+                    <div className="bg-white rounded-3xl shadow-card p-8">
                         {!success ? (
                             <>
                                 {/* Header */}
@@ -70,10 +70,10 @@ export function ForgotPasswordPage() {
                                     <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <EmailIcon sx={{ fontSize: 40, color: '#F59E0B' }} />
                                     </div>
-                                    <h1 className="text-2xl font-extrabold text-slate-900 mb-2">
+                                    <h1 className="text-2xl font-extrabold text-charcoal mb-2">
                                         نسيت كلمة المرور؟
                                     </h1>
-                                    <p className="text-slate-500">
+                                    <p className="text-slate-grey">
                                         لا تقلق! أدخل بريدك الإلكتروني وسنرسل لك رمز إعادة تعيين كلمة المرور
                                     </p>
                                 </div>
@@ -91,8 +91,8 @@ export function ForgotPasswordPage() {
                                         type="button"
                                         onClick={() => setUserType('student')}
                                         className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-bold transition-all ${userType === 'student'
-                                                ? 'bg-white shadow-sm text-blue-600'
-                                                : 'text-slate-500 hover:text-slate-700'
+                                            ? 'bg-white shadow-sm text-shibl-crimson'
+                                            : 'text-slate-grey hover:text-charcoal'
                                             }`}
                                     >
                                         <SchoolIcon sx={{ fontSize: 20 }} />
@@ -102,8 +102,8 @@ export function ForgotPasswordPage() {
                                         type="button"
                                         onClick={() => setUserType('parent')}
                                         className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-bold transition-all ${userType === 'parent'
-                                                ? 'bg-white shadow-sm text-blue-600'
-                                                : 'text-slate-500 hover:text-slate-700'
+                                            ? 'bg-white shadow-sm text-shibl-crimson'
+                                            : 'text-slate-grey hover:text-charcoal'
                                             }`}
                                     >
                                         <SupervisorAccountIcon sx={{ fontSize: 20 }} />
@@ -137,8 +137,7 @@ export function ForgotPasswordPage() {
                                     {/* Submit Button */}
                                     <button
                                         type="submit"
-                                        className="btn w-full h-14 rounded-xl text-lg font-bold gap-3 border-none"
-                                        style={{ backgroundColor: '#2563EB', color: '#FFFFFF' }}
+                                        className="btn-primary-pro w-full h-14 text-lg gap-3"
                                         disabled={isLoading}
                                     >
                                         {isLoading ? (
@@ -155,21 +154,20 @@ export function ForgotPasswordPage() {
                         ) : (
                             /* Success State */
                             <div className="text-center">
-                                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <SendIcon sx={{ fontSize: 40, color: '#22C55E' }} />
+                                <div className="w-20 h-20 bg-success-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <SendIcon sx={{ fontSize: 40, color: '#27AE60' }} />
                                 </div>
-                                <h2 className="text-2xl font-extrabold text-slate-900 mb-2">
+                                <h2 className="text-2xl font-extrabold text-charcoal mb-2">
                                     تم الإرسال!
                                 </h2>
-                                <p className="text-slate-500 mb-6">
+                                <p className="text-slate-grey mb-6">
                                     تم إرسال رمز إعادة تعيين كلمة المرور إلى
                                     <br />
-                                    <span className="text-blue-600 font-bold dir-ltr">{email}</span>
+                                    <span className="text-shibl-crimson font-bold dir-ltr">{email}</span>
                                 </p>
                                 <button
                                     onClick={handleContinue}
-                                    className="btn w-full h-14 rounded-xl text-lg font-bold gap-3 border-none"
-                                    style={{ backgroundColor: '#2563EB', color: '#FFFFFF' }}
+                                    className="btn-primary-pro w-full h-14 text-lg gap-3"
                                 >
                                     <span>متابعة</span>
                                     <ArrowBackIcon sx={{ fontSize: 20, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
@@ -181,7 +179,7 @@ export function ForgotPasswordPage() {
                         <div className="mt-8 text-center">
                             <Link
                                 to={ROUTES.LOGIN}
-                                className="inline-flex items-center gap-2 text-slate-500 hover:text-blue-600"
+                                className="inline-flex items-center gap-2 text-slate-grey hover:text-shibl-crimson"
                             >
                                 <ArrowBackIcon sx={{ fontSize: 18, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
                                 <span>العودة لتسجيل الدخول</span>
