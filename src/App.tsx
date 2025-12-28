@@ -6,8 +6,10 @@ import {
   SignupPage,
   VerifyEmailPage,
   ForgotPasswordPage,
-  ResetPasswordPage
+  ResetPasswordPage,
+  StudentDashboard
 } from './presentation/pages';
+import { ProtectedRoute } from './presentation/components/auth';
 import { ROUTES } from './shared/constants';
 import './shared/i18n';
 import './index.css';
@@ -35,6 +37,16 @@ function App() {
           <Route path={ROUTES.VERIFY_EMAIL} element={<VerifyEmailPage />} />
           <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
           <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
+
+          {/* Protected Student Dashboard */}
+          <Route
+            path={ROUTES.DASHBOARD}
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentDashboard />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Add more routes here as you build pages */}
         </Routes>

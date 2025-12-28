@@ -3,25 +3,27 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '../../hooks';
 import { ROUTES } from '../../../shared/constants';
 
-// Material Icons
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
-import LiveTvIcon from '@mui/icons-material/LiveTv';
-import QuizIcon from '@mui/icons-material/Quiz';
-import InsightsIcon from '@mui/icons-material/Insights';
-import BackpackIcon from '@mui/icons-material/Backpack';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
-import SchoolIcon from '@mui/icons-material/School';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import VerifiedIcon from '@mui/icons-material/Verified';
-import LanguageIcon from '@mui/icons-material/Language';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import LoginIcon from '@mui/icons-material/Login';
-import MenuIcon from '@mui/icons-material/Menu';
-import CloseIcon from '@mui/icons-material/Close';
+// Lucide Icons
+import {
+    CheckCircle,
+    Play,
+    ArrowLeft,
+    Trophy,
+    Video,
+    Radio,
+    FileQuestion,
+    LineChart,
+    Backpack,
+    BookOpen,
+    GraduationCap,
+    Building2,
+    BadgeCheck,
+    Globe,
+    UserPlus,
+    LogIn,
+    Menu,
+    X
+} from 'lucide-react';
 
 export function LandingPage() {
     const { isRTL, language, toggleLanguage } = useLanguage();
@@ -55,15 +57,15 @@ export function LandingPage() {
                             className="btn-secondary-pro flex items-center gap-1.5 lg:gap-2 px-3 lg:px-4 shadow-sm text-sm lg:text-base"
                             onClick={toggleLanguage}
                         >
-                            <LanguageIcon sx={{ fontSize: { xs: 16, lg: 18 } }} />
+                            <Globe size={18} />
                             <span>{language === 'ar' ? 'EN' : 'عربي'}</span>
                         </button>
                         <Link to={ROUTES.LOGIN} className="btn-secondary-pro flex items-center gap-1.5 lg:gap-2 px-4 lg:px-6 text-sm lg:text-base">
-                            <LoginIcon sx={{ fontSize: { xs: 16, lg: 18 } }} />
+                            <LogIn size={18} />
                             <span className="hidden sm:inline">تسجيل الدخول</span>
                         </Link>
                         <Link to={ROUTES.REGISTER} className="btn-primary-pro flex items-center gap-1.5 lg:gap-2 px-4 lg:px-6 text-sm lg:text-base">
-                            <PersonAddIcon sx={{ fontSize: { xs: 16, lg: 18 } }} />
+                            <UserPlus size={18} />
                             <span className="hidden xl:inline">إنشاء حساب جديد</span>
                             <span className="xl:hidden">حساب جديد</span>
                         </Link>
@@ -75,7 +77,7 @@ export function LandingPage() {
                             className="btn-secondary-pro flex items-center gap-1 px-2 py-2 shadow-sm text-xs"
                             onClick={toggleLanguage}
                         >
-                            <LanguageIcon sx={{ fontSize: 16 }} />
+                            <Globe size={16} />
                             <span>{language === 'ar' ? 'EN' : 'ع'}</span>
                         </button>
                         <button
@@ -84,9 +86,9 @@ export function LandingPage() {
                             aria-label="Toggle menu"
                         >
                             {isMobileMenuOpen ? (
-                                <CloseIcon sx={{ fontSize: 28, color: '#1e293b' }} />
+                                <X size={28} className="text-slate-800" />
                             ) : (
-                                <MenuIcon sx={{ fontSize: 28, color: '#1e293b' }} />
+                                <Menu size={28} className="text-slate-800" />
                             )}
                         </button>
                     </div>
@@ -114,11 +116,11 @@ export function LandingPage() {
                         </ul>
                         <div className="border-t border-slate-200 pt-4 flex flex-col gap-3">
                             <Link to={ROUTES.LOGIN} onClick={closeMobileMenu} className="btn-secondary-pro w-full flex items-center justify-center gap-2 py-3">
-                                <LoginIcon sx={{ fontSize: 18 }} />
+                                <LogIn size={18} />
                                 تسجيل الدخول
                             </Link>
                             <Link to={ROUTES.REGISTER} onClick={closeMobileMenu} className="btn-primary-pro w-full flex items-center justify-center gap-2 py-3">
-                                <PersonAddIcon sx={{ fontSize: 18 }} />
+                                <UserPlus size={18} />
                                 إنشاء حساب جديد
                             </Link>
                         </div>
@@ -136,7 +138,7 @@ export function LandingPage() {
                     />
                     {/* Navigation Arrows (optional) */}
                     <button className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all">
-                        <ArrowBackIcon sx={{ fontSize: 20, color: '#1F1F1F' }} />
+                        <ArrowLeft size={20} className="text-charcoal" style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
                     </button>
                 </div>
             </section>
@@ -146,7 +148,7 @@ export function LandingPage() {
                 {/* Text Content */}
                 <div className="flex flex-col items-center lg:items-start text-center lg:text-right order-2 lg:order-1">
                     <div className="inline-flex items-center gap-2 bg-shibl-crimson/10 text-shibl-crimson px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-bold text-xs sm:text-sm mb-4 sm:mb-6 md:mb-8">
-                        <CheckCircleIcon sx={{ fontSize: { xs: 16, sm: 20 } }} />
+                        <CheckCircle size={20} />
                         <span>المنصة التعليمية الأولى في المنطقة</span>
                     </div>
 
@@ -164,11 +166,11 @@ export function LandingPage() {
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto mb-8 sm:mb-10 md:mb-12 px-2 sm:px-0">
                         <Link to={ROUTES.REGISTER} className="btn-primary-pro btn-lg h-12 sm:h-14 md:h-16 px-6 sm:px-8 text-base sm:text-lg md:text-xl shadow-crimson-lg hover:shadow-crimson justify-center">
                             <span>ابدأ رحلتك الآن</span>
-                            <ArrowBackIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 }, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                            <ArrowLeft size={24} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
                         </Link>
                         <button className="btn-secondary-pro btn-lg h-12 sm:h-14 md:h-16 px-4 sm:px-6 md:px-8 text-sm sm:text-base md:text-lg text-slate-grey hover:text-shibl-crimson flex items-center gap-3 justify-center">
                             <span className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-shibl-crimson/10 text-shibl-crimson flex items-center justify-center flex-shrink-0">
-                                <PlayArrowIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }} />
+                                <Play size={24} />
                             </span>
                             <span className="whitespace-nowrap pb-1">شاهد الفيديو التعريفي</span>
                         </button>
@@ -202,7 +204,7 @@ export function LandingPage() {
                     {/* Floating Card - Top Right (Grade/Success - Green) */}
                     <div className="absolute -top-2 sm:top-0 right-0 sm:right-4 md:right-0 p-2 sm:p-3 md:p-4 flex items-center gap-2 sm:gap-3 animate-float z-10 scale-75 sm:scale-90 md:scale-100 origin-top-right backdrop-blur-xl border border-white/20 shadow-2xl text-white rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.95) 0%, rgba(22, 163, 74, 0.95) 100%)' }}>
                         <div className="w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center">
-                            <CheckCircleIcon sx={{ fontSize: { xs: 18, sm: 22, md: 28 }, color: '#FFFFFF' }} />
+                            <CheckCircle size={28} className="text-white" />
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[10px] sm:text-xs text-white/80 font-bold uppercase tracking-wider">النتيجة</span>
@@ -213,7 +215,7 @@ export function LandingPage() {
                     {/* Floating Card - Bottom Left (Achievement - Amber/Gold) */}
                     <div className="absolute -bottom-2 sm:bottom-0 left-0 sm:left-4 md:left-0 p-2 sm:p-3 md:p-5 flex items-center gap-2 sm:gap-3 md:gap-4 animate-float animation-delay-3000 z-10 scale-75 sm:scale-90 md:scale-100 origin-bottom-left backdrop-blur-xl border border-white/20 shadow-2xl text-white rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.95) 0%, rgba(217, 119, 6, 0.95) 100%)' }}>
                         <div className="w-10 sm:w-12 md:w-14 h-10 sm:h-12 md:h-14 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center">
-                            <EmojiEventsIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#FFFFFF' }} />
+                            <Trophy size={32} className="text-white" />
                         </div>
                         <div className="flex flex-col">
                             <span className="text-white font-extrabold text-sm sm:text-base md:text-lg">إنجاز جديد!</span>
@@ -234,10 +236,10 @@ export function LandingPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
                         {[
-                            { icon: <VideoLibraryIcon sx={{ fontSize: { xs: 28, sm: 32, md: 36 } }} />, title: 'محتوى فيديو متميز', desc: 'دروس مسجلة بأعلى جودة مع إمكانية المشاهدة في أي وقت', color: 'text-shibl-crimson' },
-                            { icon: <LiveTvIcon sx={{ fontSize: { xs: 28, sm: 32, md: 36 } }} />, title: 'حصص مباشرة تفاعلية', desc: 'تواصل مباشر مع المعلمين عبر Zoom وBigBlueButton', color: 'text-shibl-crimson' },
-                            { icon: <QuizIcon sx={{ fontSize: { xs: 28, sm: 32, md: 36 } }} />, title: 'اختبارات ذكية', desc: 'اختبارات MCQ مع تصحيح تلقائي وتقييم فوري', color: 'text-shibl-crimson-dark' },
-                            { icon: <InsightsIcon sx={{ fontSize: { xs: 28, sm: 32, md: 36 } }} />, title: 'متابعة دقيقة', desc: 'تقارير مفصلة لأولياء الأمور عن تقدم الأبناء', color: 'text-shibl-crimson-dark' },
+                            { icon: <Video size={36} />, title: 'محتوى فيديو متميز', desc: 'دروس مسجلة بأعلى جودة مع إمكانية المشاهدة في أي وقت', color: 'text-shibl-crimson' },
+                            { icon: <Radio size={36} />, title: 'حصص مباشرة تفاعلية', desc: 'تواصل مباشر مع المعلمين عبر Zoom وBigBlueButton', color: 'text-shibl-crimson' },
+                            { icon: <FileQuestion size={36} />, title: 'اختبارات ذكية', desc: 'اختبارات MCQ مع تصحيح تلقائي وتقييم فوري', color: 'text-shibl-crimson-dark' },
+                            { icon: <LineChart size={36} />, title: 'متابعة دقيقة', desc: 'تقارير مفصلة لأولياء الأمور عن تقدم الأبناء', color: 'text-shibl-crimson-dark' },
                         ].map((feature, idx) => (
                             <div key={idx} className="bg-soft-cloud border border-slate-100 p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl group hover:border-shibl-crimson hover:bg-white transition-all cursor-default">
                                 <div className={`${feature.color} mb-4 sm:mb-5 md:mb-6 bg-white w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform`}>
@@ -261,10 +263,10 @@ export function LandingPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
                         {[
-                            { icon: <BackpackIcon sx={{ fontSize: { xs: 36, sm: 42, md: 48 } }} />, title: 'المرحلة الابتدائية', desc: 'تأسيس قوي للمهارات الأساسية', color: 'from-red-50 to-rose-50', iconColor: 'text-shibl-crimson' },
-                            { icon: <MenuBookIcon sx={{ fontSize: { xs: 36, sm: 42, md: 48 } }} />, title: 'المرحلة الإعدادية', desc: 'تطوير المفاهيم والمهارات', color: 'from-rose-50 to-red-50', iconColor: 'text-shibl-crimson' },
-                            { icon: <SchoolIcon sx={{ fontSize: { xs: 36, sm: 42, md: 48 } }} />, title: 'المرحلة الثانوية', desc: 'تحضير شامل للجامعة', color: 'from-red-50 to-rose-100', iconColor: 'text-shibl-crimson-dark' },
-                            { icon: <AccountBalanceIcon sx={{ fontSize: { xs: 36, sm: 42, md: 48 } }} />, title: 'المرحلة الجامعية', desc: 'دورات متخصصة ومتقدمة', color: 'from-rose-100 to-red-50', iconColor: 'text-shibl-crimson-dark' },
+                            { icon: <Backpack size={48} />, title: 'الدورة الأولى', desc: 'تأسيس قوي للمهارات الأساسية', color: 'from-red-50 to-rose-50', iconColor: 'text-shibl-crimson' },
+                            { icon: <BookOpen size={48} />, title: 'الدورة الثانية', desc: 'تطوير المفاهيم والمهارات', color: 'from-rose-50 to-red-50', iconColor: 'text-shibl-crimson' },
+                            { icon: <GraduationCap size={48} />, title: 'الدورة الثالثة', desc: 'تحضير شامل للجامعة', color: 'from-red-50 to-rose-100', iconColor: 'text-shibl-crimson-dark' },
+                            { icon: <Building2 size={48} />, title: 'المرحلة الجامعية', desc: 'دورات متخصصة ومتقدمة', color: 'from-rose-100 to-red-50', iconColor: 'text-shibl-crimson-dark' },
                         ].map((stage, idx) => (
                             <div key={idx} className={`p-5 sm:p-6 md:p-8 rounded-3xl sm:rounded-[32px] md:rounded-[40px] bg-gradient-to-br ${stage.color} border border-white flex flex-col items-center text-center group hover:-translate-y-2 transition-transform shadow-sm`}>
                                 <div className={`${stage.iconColor} mb-4 sm:mb-6 md:mb-8 group-hover:scale-110 transition-transform`}>
@@ -272,9 +274,10 @@ export function LandingPage() {
                                 </div>
                                 <h3 className="text-lg sm:text-xl md:text-2xl font-extrabold text-charcoal mb-2 sm:mb-3">{stage.title}</h3>
                                 <p className="text-slate-grey font-bold mb-4 sm:mb-5 md:mb-6 opacity-80 text-sm sm:text-base">{stage.desc}</p>
-                                <button className="btn btn-sm btn-ghost gap-1.5 sm:gap-2 font-extrabold text-charcoal text-sm sm:text-base">
-                                    تصفح الدورات <ArrowBackIcon sx={{ fontSize: { xs: 14, sm: 16 }, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
-                                </button>
+                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full font-extrabold text-charcoal text-sm sm:text-base cursor-pointer hover:bg-white/50 transition-colors" style={{ lineHeight: 1 }}>
+                                    <span style={{ display: 'flex', alignItems: 'center' }}>تصفح الدورات</span>
+                                    <ArrowLeft size={16} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -289,7 +292,7 @@ export function LandingPage() {
                         <p className="text-white/80 max-w-2xl text-sm sm:text-base md:text-lg lg:text-xl mb-6 sm:mb-8 md:mb-10 lg:mb-12 px-4">انضم لآلاف الطلاب الناجحين واحصل على تجربة تعليمية استثنائية</p>
                         <Link to={ROUTES.REGISTER} className="btn bg-white text-shibl-crimson hover:bg-red-50 px-6 sm:px-8 md:px-10 lg:px-12 h-12 sm:h-14 md:h-16 lg:h-20 rounded-xl sm:rounded-2xl text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold gap-2 sm:gap-3 md:gap-4 shadow-2xl hover:scale-105 transition-transform">
                             سجل مجاناً الآن
-                            <ArrowBackIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22, lg: 24 }, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                            <ArrowLeft size={24} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
                         </Link>
                     </div>
                 </div>

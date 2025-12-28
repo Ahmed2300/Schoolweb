@@ -5,12 +5,8 @@ import { AuthNavbar } from '../../components';
 import { ROUTES } from '../../../shared/constants';
 import { authService } from '../../../data/api';
 
-// Material Icons
-import EmailIcon from '@mui/icons-material/Email';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import SendIcon from '@mui/icons-material/Send';
-import SchoolIcon from '@mui/icons-material/School';
-import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+// Lucide Icons
+import { Mail, ArrowLeft, Send, GraduationCap, Users } from 'lucide-react';
 
 type UserType = 'student' | 'parent';
 
@@ -68,7 +64,7 @@ export function ForgotPasswordPage() {
                                 {/* Header */}
                                 <div className="text-center mb-8">
                                     <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <EmailIcon sx={{ fontSize: 40, color: '#F59E0B' }} />
+                                        <Mail size={40} className="text-amber-500" />
                                     </div>
                                     <h1 className="text-2xl font-extrabold text-charcoal mb-2">
                                         نسيت كلمة المرور؟
@@ -95,7 +91,7 @@ export function ForgotPasswordPage() {
                                             : 'text-slate-grey hover:text-charcoal'
                                             }`}
                                     >
-                                        <SchoolIcon sx={{ fontSize: 20 }} />
+                                        <GraduationCap size={20} />
                                         <span>طالب</span>
                                     </button>
                                     <button
@@ -106,7 +102,7 @@ export function ForgotPasswordPage() {
                                             : 'text-slate-grey hover:text-charcoal'
                                             }`}
                                     >
-                                        <SupervisorAccountIcon sx={{ fontSize: 20 }} />
+                                        <Users size={20} />
                                         <span>ولي أمر</span>
                                     </button>
                                 </div>
@@ -130,7 +126,7 @@ export function ForgotPasswordPage() {
                                                 dir="ltr"
                                                 required
                                             />
-                                            <EmailIcon sx={{ fontSize: 20 }} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                            <Mail size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                         </div>
                                     </div>
 
@@ -144,7 +140,7 @@ export function ForgotPasswordPage() {
                                             <span className="loading loading-spinner"></span>
                                         ) : (
                                             <>
-                                                <SendIcon sx={{ fontSize: 20 }} />
+                                                <Send size={20} />
                                                 <span>إرسال رمز التحقق</span>
                                             </>
                                         )}
@@ -155,7 +151,7 @@ export function ForgotPasswordPage() {
                             /* Success State */
                             <div className="text-center">
                                 <div className="w-20 h-20 bg-success-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <SendIcon sx={{ fontSize: 40, color: '#27AE60' }} />
+                                    <Send size={40} className="text-success-green" />
                                 </div>
                                 <h2 className="text-2xl font-extrabold text-charcoal mb-2">
                                     تم الإرسال!
@@ -170,7 +166,7 @@ export function ForgotPasswordPage() {
                                     className="btn-primary-pro w-full h-14 text-lg gap-3"
                                 >
                                     <span>متابعة</span>
-                                    <ArrowBackIcon sx={{ fontSize: 20, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                                    <ArrowLeft size={20} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
                                 </button>
                             </div>
                         )}
@@ -181,7 +177,7 @@ export function ForgotPasswordPage() {
                                 to={ROUTES.LOGIN}
                                 className="inline-flex items-center gap-2 text-slate-grey hover:text-shibl-crimson"
                             >
-                                <ArrowBackIcon sx={{ fontSize: 18, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                                <ArrowLeft size={18} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
                                 <span>العودة لتسجيل الدخول</span>
                             </Link>
                         </div>

@@ -6,17 +6,19 @@ import { AuthNavbar } from '../../components';
 import { ROUTES } from '../../../shared/constants';
 import { authService } from '../../../data/api';
 
-// Material Icons
-import EmailIcon from '@mui/icons-material/Email';
-import LockIcon from '@mui/icons-material/Lock';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import SchoolIcon from '@mui/icons-material/School';
-import PeopleIcon from '@mui/icons-material/People';
-import VerifiedIcon from '@mui/icons-material/Verified';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import AutoGraphIcon from '@mui/icons-material/AutoGraph';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+// Lucide Icons
+import {
+    Mail,
+    Lock,
+    Eye,
+    EyeOff,
+    GraduationCap,
+    Users,
+    BadgeCheck,
+    CheckCircle,
+    TrendingUp,
+    ArrowLeft
+} from 'lucide-react';
 
 type UserType = 'student' | 'parent';
 
@@ -83,8 +85,20 @@ export function SignInPage() {
                         return;
                     }
 
-                    setUser(userData as any);
-                    navigate(ROUTES.DASHBOARD);
+                    // Add role based on userType for session management
+                    const userWithRole = {
+                        ...userData,
+                        role: userType as 'student' | 'parent',
+                    };
+
+                    setUser(userWithRole as any);
+
+                    // Navigate based on user role
+                    if (userType === 'student') {
+                        navigate(ROUTES.DASHBOARD);
+                    } else {
+                        navigate(ROUTES.PARENT_DASHBOARD);
+                    }
                 }
             }
         } catch (err: any) {
@@ -148,7 +162,7 @@ export function SignInPage() {
                                     }`}
                                 onClick={() => setUserType('student')}
                             >
-                                <SchoolIcon sx={{ fontSize: 20 }} />
+                                <GraduationCap size={20} />
                                 <span>طالب</span>
                             </button>
                             <button
@@ -158,7 +172,7 @@ export function SignInPage() {
                                     }`}
                                 onClick={() => setUserType('parent')}
                             >
-                                <PeopleIcon sx={{ fontSize: 20 }} />
+                                <Users size={20} />
                                 <span>ولي أمر</span>
                             </button>
                         </div>
@@ -179,7 +193,7 @@ export function SignInPage() {
                                         onChange={(e) => handleChange('email', e.target.value)}
                                         dir="rtl"
                                     />
-                                    <EmailIcon sx={{ fontSize: 20 }} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.email ? 'text-red-400' : 'text-slate-400'}`} />
+                                    <Mail size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.email ? 'text-red-400' : 'text-slate-400'}`} />
                                 </div>
                                 {fieldErrors.email && (
                                     <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
@@ -203,13 +217,13 @@ export function SignInPage() {
                                         onChange={(e) => handleChange('password', e.target.value)}
                                         dir="rtl"
                                     />
-                                    <LockIcon sx={{ fontSize: 20 }} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.password ? 'text-red-400' : 'text-slate-400'}`} />
+                                    <Lock size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.password ? 'text-red-400' : 'text-slate-400'}`} />
                                     <button
                                         type="button"
                                         className="absolute left-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-shibl-crimson"
                                         onClick={() => setShowPassword(!showPassword)}
                                     >
-                                        {showPassword ? <VisibilityOffIcon sx={{ fontSize: 20 }} /> : <VisibilityIcon sx={{ fontSize: 20 }} />}
+                                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
                                 </div>
                                 {fieldErrors.password && (
@@ -243,7 +257,7 @@ export function SignInPage() {
                                 ) : (
                                     <>
                                         <span>تسجيل الدخول</span>
-                                        <ArrowBackIcon sx={{ fontSize: 20, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                                        <ArrowLeft size={20} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
                                     </>
                                 )}
                             </button>
@@ -261,7 +275,7 @@ export function SignInPage() {
                     {/* Floating Card - Top Left (corner, in empty space) */}
                     <div className="absolute top-8 left-8 floating-card-success p-4 flex items-center gap-3 animate-float z-10">
                         <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center">
-                            <CheckCircleIcon sx={{ fontSize: 24, color: '#FFFFFF' }} />
+                            <CheckCircle size={24} className="text-white" />
                         </div>
                         <div className="flex flex-col">
                             <span className="text-white font-bold text-sm">تم تسجيل الحضور</span>
@@ -295,7 +309,7 @@ export function SignInPage() {
                     {/* Floating Card - Bottom Right (corner, in empty space) */}
                     <div className="absolute bottom-8 right-8 floating-card p-5 flex items-center gap-4 animate-float animation-delay-3000 z-10">
                         <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                            <AutoGraphIcon sx={{ fontSize: 28, color: '#FFFFFF' }} />
+                            <TrendingUp size={28} className="text-white" />
                         </div>
                         <div className="flex flex-col">
                             <span className="text-white font-extrabold text-lg">أداء متميز</span>

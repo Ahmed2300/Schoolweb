@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '../../hooks';
 import { ROUTES } from '../../../shared/constants';
 
-// Material Icons
-import LanguageIcon from '@mui/icons-material/Language';
+// Lucide Icons
+import { Globe } from 'lucide-react';
 
 export function AuthNavbar() {
     const { language, toggleLanguage, isRTL } = useLanguage();
@@ -20,7 +20,7 @@ export function AuthNavbar() {
                     className="btn-secondary-pro flex items-center gap-2 px-4 shadow-sm"
                     onClick={toggleLanguage}
                 >
-                    <LanguageIcon sx={{ fontSize: 18 }} />
+                    <Globe size={18} />
                     <span>{language === 'ar' ? 'English' : 'عربي'}</span>
                 </button>
             </nav>

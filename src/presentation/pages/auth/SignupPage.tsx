@@ -7,22 +7,24 @@ import { authService } from '../../../data/api';
 import apiClient from '../../../data/api/ApiClient';
 import { endpoints } from '../../../data/api/endpoints';
 
-// Material Icons
-import PersonIcon from '@mui/icons-material/Person';
-import EmailIcon from '@mui/icons-material/Email';
-import PhoneIcon from '@mui/icons-material/Phone';
-import LockIcon from '@mui/icons-material/Lock';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import SchoolIcon from '@mui/icons-material/School';
-import PeopleIcon from '@mui/icons-material/People';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import StarIcon from '@mui/icons-material/Star';
-import FlagIcon from '@mui/icons-material/Flag';
-import VerifiedIcon from '@mui/icons-material/Verified';
-import LocationCityIcon from '@mui/icons-material/LocationCity';
+// Lucide Icons
+import {
+    User,
+    Mail,
+    Phone,
+    Lock,
+    Eye,
+    EyeOff,
+    ArrowLeft,
+    GraduationCap,
+    Users,
+    CheckCircle,
+    BarChart3,
+    Star,
+    Flag,
+    BadgeCheck,
+    Building
+} from 'lucide-react';
 
 type UserType = 'student' | 'parent';
 
@@ -223,7 +225,7 @@ export function SignupPage() {
                     {userType === 'parent' && (
                         <div className="absolute top-8 left-8 floating-card-success p-4 flex items-center gap-3 animate-float z-10">
                             <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center">
-                                <CheckCircleIcon sx={{ fontSize: 24, color: '#FFFFFF' }} />
+                                <CheckCircle size={24} className="text-white" />
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-white/90 font-medium text-sm">إشعار جديد</span>
@@ -247,7 +249,7 @@ export function SignupPage() {
                             <div className="bg-white rounded-3xl p-6 shadow-xl max-w-xs">
                                 <div className="flex gap-1 mb-3">
                                     {[1, 2, 3, 4, 5].map(i => (
-                                        <StarIcon key={i} sx={{ fontSize: 18, color: '#F59E0B' }} />
+                                        <Star key={i} size={18} className="text-amber-500" fill="#F59E0B" />
                                     ))}
                                 </div>
                                 <p className="text-[15px] leading-relaxed text-charcoal mb-4">
@@ -268,7 +270,7 @@ export function SignupPage() {
                     {userType === 'parent' && (
                         <div className="absolute bottom-8 right-8 floating-card p-4 flex items-center gap-3 animate-float animation-delay-3000 z-10">
                             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                                <BarChartIcon sx={{ fontSize: 28, color: '#FFFFFF' }} />
+                                <BarChart3 size={28} className="text-white" />
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-white font-extrabold text-lg">مستوى متقدم</span>
@@ -315,7 +317,7 @@ export function SignupPage() {
                                     }`}
                                 onClick={() => setUserType('student')}
                             >
-                                <SchoolIcon sx={{ fontSize: 20 }} />
+                                <GraduationCap size={20} />
                                 <span>طالب</span>
                             </button>
                             <button
@@ -325,7 +327,7 @@ export function SignupPage() {
                                     }`}
                                 onClick={() => setUserType('parent')}
                             >
-                                <PeopleIcon sx={{ fontSize: 20 }} />
+                                <Users size={20} />
                                 <span>ولي أمر</span>
                             </button>
                         </div>
@@ -346,7 +348,7 @@ export function SignupPage() {
                                         onChange={(e) => handleChange('name', e.target.value)}
                                         dir="rtl"
                                     />
-                                    <PersonIcon sx={{ fontSize: 20 }} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.name ? 'text-red-400' : 'text-slate-400'}`} />
+                                    <User size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.name ? 'text-red-400' : 'text-slate-400'}`} />
                                 </div>
                                 {fieldErrors.name && <p className="text-red-500 text-sm mt-1">⚠ {fieldErrors.name}</p>}
                             </div>
@@ -365,7 +367,7 @@ export function SignupPage() {
                                         onChange={(e) => handleChange('email', e.target.value)}
                                         dir="rtl"
                                     />
-                                    <EmailIcon sx={{ fontSize: 20 }} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.email ? 'text-red-400' : 'text-slate-400'}`} />
+                                    <Mail size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.email ? 'text-red-400' : 'text-slate-400'}`} />
                                 </div>
                                 {fieldErrors.email && <p className="text-red-500 text-sm mt-1">⚠ {fieldErrors.email}</p>}
                             </div>
@@ -384,9 +386,9 @@ export function SignupPage() {
                                         onChange={(e) => handleChange('phone', e.target.value)}
                                         dir="rtl"
                                     />
-                                    <PhoneIcon sx={{ fontSize: 20 }} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <User size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                     <div className="absolute left-0 top-0 bottom-0 flex items-center gap-1.5 px-4 bg-slate-50 border-r border-slate-200 rounded-l-lg text-slate-700 font-bold text-sm">
-                                        <FlagIcon sx={{ fontSize: 16 }} />
+                                        <Flag size={16} />
                                         <span>{formData.countryCode}</span>
                                     </div>
                                 </div>
@@ -419,7 +421,7 @@ export function SignupPage() {
                                                     ))
                                                 )}
                                             </select>
-                                            <FlagIcon sx={{ fontSize: 20 }} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                            <Flag size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                         </div>
                                     </div>
 
@@ -448,7 +450,7 @@ export function SignupPage() {
                                                     ))
                                                 )}
                                             </select>
-                                            <LocationCityIcon sx={{ fontSize: 20 }} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                            <Building size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                         </div>
                                     </div>
                                 </>
@@ -468,13 +470,13 @@ export function SignupPage() {
                                         onChange={(e) => handleChange('password', e.target.value)}
                                         dir="rtl"
                                     />
-                                    <LockIcon sx={{ fontSize: 20 }} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <Lock size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                     <button
                                         type="button"
                                         className="absolute left-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-blue-500"
                                         onClick={() => setShowPassword(!showPassword)}
                                     >
-                                        {showPassword ? <VisibilityOffIcon sx={{ fontSize: 20 }} /> : <VisibilityIcon sx={{ fontSize: 20 }} />}
+                                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
                                 </div>
                             </div>
@@ -493,13 +495,13 @@ export function SignupPage() {
                                         onChange={(e) => handleChange('confirmPassword', e.target.value)}
                                         dir="rtl"
                                     />
-                                    <LockIcon sx={{ fontSize: 20 }} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <Lock size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                     <button
                                         type="button"
                                         className="absolute left-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-shibl-crimson"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                     >
-                                        {showConfirmPassword ? <VisibilityOffIcon sx={{ fontSize: 20 }} /> : <VisibilityIcon sx={{ fontSize: 20 }} />}
+                                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
                                 </div>
                             </div>
@@ -533,7 +535,7 @@ export function SignupPage() {
                                 ) : (
                                     <>
                                         <span>{userType === 'student' ? 'إنشاء حساب' : 'تسجيل كولي أمر'}</span>
-                                        <ArrowBackIcon sx={{ fontSize: 20, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                                        <ArrowLeft size={20} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
                                     </>
                                 )}
                             </button>

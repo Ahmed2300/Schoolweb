@@ -5,13 +5,8 @@ import { AuthNavbar } from '../../components';
 import { ROUTES } from '../../../shared/constants';
 import { authService } from '../../../data/api';
 
-// Material Icons
-import LockResetIcon from '@mui/icons-material/LockReset';
-import LockIcon from '@mui/icons-material/Lock';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+// Lucide Icons
+import { KeyRound, Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react';
 
 type UserType = 'student' | 'parent';
 
@@ -127,7 +122,7 @@ export function ResetPasswordPage() {
                                 {/* Header */}
                                 <div className="text-center mb-8">
                                     <div className="w-20 h-20 bg-shibl-crimson/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <LockResetIcon sx={{ fontSize: 40, color: '#AF0C15' }} />
+                                        <KeyRound size={40} className="text-shibl-crimson" />
                                     </div>
                                     <h1 className="text-2xl font-extrabold text-charcoal mb-2">
                                         إعادة تعيين كلمة المرور
@@ -184,13 +179,13 @@ export function ResetPasswordPage() {
                                                 minLength={8}
                                                 required
                                             />
-                                            <LockIcon sx={{ fontSize: 20 }} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                            <Lock size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
                                                 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                                             >
-                                                {showPassword ? <VisibilityOffIcon sx={{ fontSize: 20 }} /> : <VisibilityIcon sx={{ fontSize: 20 }} />}
+                                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                             </button>
                                         </div>
                                     </div>
@@ -210,13 +205,13 @@ export function ResetPasswordPage() {
                                                 minLength={8}
                                                 required
                                             />
-                                            <LockIcon sx={{ fontSize: 20 }} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                            <Lock size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                             <button
                                                 type="button"
                                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                                 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                                             >
-                                                {showConfirmPassword ? <VisibilityOffIcon sx={{ fontSize: 20 }} /> : <VisibilityIcon sx={{ fontSize: 20 }} />}
+                                                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                             </button>
                                         </div>
                                     </div>
@@ -231,7 +226,7 @@ export function ResetPasswordPage() {
                                             <span className="loading loading-spinner"></span>
                                         ) : (
                                             <>
-                                                <LockResetIcon sx={{ fontSize: 20 }} />
+                                                <KeyRound size={20} />
                                                 <span>إعادة تعيين كلمة المرور</span>
                                             </>
                                         )}
@@ -242,7 +237,7 @@ export function ResetPasswordPage() {
                             /* Success State */
                             <div className="text-center">
                                 <div className="w-20 h-20 bg-success-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <CheckCircleIcon sx={{ fontSize: 40, color: '#27AE60' }} />
+                                    <CheckCircle size={40} className="text-success-green" />
                                 </div>
                                 <h2 className="text-2xl font-extrabold text-charcoal mb-2">
                                     تم بنجاح!
@@ -257,7 +252,7 @@ export function ResetPasswordPage() {
                                     className="btn-primary-pro w-full h-14 text-lg gap-3"
                                 >
                                     <span>تسجيل الدخول</span>
-                                    <ArrowBackIcon sx={{ fontSize: 20, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                                    <ArrowLeft size={20} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
                                 </Link>
                             </div>
                         )}
@@ -269,7 +264,7 @@ export function ResetPasswordPage() {
                                     to={ROUTES.FORGOT_PASSWORD}
                                     className="inline-flex items-center gap-2 text-slate-grey hover:text-shibl-crimson"
                                 >
-                                    <ArrowBackIcon sx={{ fontSize: 18, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                                    <ArrowLeft size={18} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
                                     <span>العودة</span>
                                 </Link>
                             </div>
