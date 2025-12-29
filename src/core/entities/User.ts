@@ -6,7 +6,8 @@ export interface User {
   name: string;
   role: UserRole;
   avatar?: string;
-  createdAt: Date;
+  phoneNumber?: string;
+  gradeId?: number;
   updatedAt: Date;
 }
 
@@ -14,7 +15,7 @@ export type UserRole = 'student' | 'parent' | 'teacher' | 'admin';
 
 export interface Student extends User {
   role: 'student';
-  gradeId?: string;
+  gradeId?: number;
   termId?: string;
   parentId?: string;
   studentCode: string;

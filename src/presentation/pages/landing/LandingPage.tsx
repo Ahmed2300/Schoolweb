@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../hooks';
 import { ROUTES } from '../../../shared/constants';
 
@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 
 export function LandingPage() {
+    const navigate = useNavigate();
     const { isRTL, language, toggleLanguage } = useLanguage();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -38,7 +39,11 @@ export function LandingPage() {
             <header className="fixed top-0 left-0 right-0 z-[1000] bg-white/90 backdrop-blur-md border-b border-slate-200">
                 <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
                     {/* Logo */}
-                    <div className="flex items-center gap-2 sm:gap-3">
+                    <div
+                        className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none transition-opacity hover:opacity-80"
+                        onDoubleClick={() => navigate(ROUTES.ADMIN_LOGIN)}
+                        title="Double tap for admin access"
+                    >
                         <img src="/images/subol-red.png" alt="سُبُل" className="w-6 h-6 sm:w-8 sm:h-8" />
                         <span className="text-base sm:text-xl font-extrabold text-charcoal whitespace-nowrap">سُبُل</span>
                     </div>

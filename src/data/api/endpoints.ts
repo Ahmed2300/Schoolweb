@@ -32,7 +32,7 @@ export const endpoints = {
 
     // Admin Auth
     adminAuth: {
-        login: '/api/v1/admins/auth/login',
+        login: '/api/v1/admin/auth/login',
     },
 
     // Grades

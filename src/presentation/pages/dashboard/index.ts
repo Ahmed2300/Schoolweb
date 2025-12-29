@@ -1,1 +1,12 @@
-export { StudentDashboard } from './StudentDashboard';
+export { StudentLayout } from './StudentLayout';
+export { StudentHomePage } from './StudentHomePage';
+export { StudentSchedulePage } from './StudentSchedulePage';
+export { StudentQuizzesPage } from './StudentQuizzesPage';
+export { StudentLivePage } from './StudentLivePage';
+export { StudentProfilePage } from './StudentProfilePage';
+
+export { ParentLayout } from './ParentLayout';
+export { ParentHomePage } from './ParentHomePage';
+export { ParentChildrenPage } from './ParentChildrenPage';
+export { ParentFinancePage } from './ParentFinancePage';
+export { ParentSettingsPage } from './ParentSettingsPage';

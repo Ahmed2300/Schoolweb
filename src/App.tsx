@@ -7,8 +7,28 @@ import {
   VerifyEmailPage,
   ForgotPasswordPage,
   ResetPasswordPage,
-  StudentDashboard
+
+  AdminLoginPage,
+  AdminDashboard,
+  AdminUsersPage,
+  AdminCoursesPage,
+  AdminTeachersPage,
+  AdminSubscriptionsPage,
+  AdminReportsPage,
+  AdminSettingsPage,
+  StudentLayout,
+  StudentHomePage,
+  StudentSchedulePage,
+  StudentQuizzesPage,
+  StudentLivePage,
+  StudentProfilePage,
+  ParentLayout,
+  ParentHomePage,
+  ParentChildrenPage,
+  ParentFinancePage,
+  ParentSettingsPage
 } from './presentation/pages';
+import { AdminLayout } from './presentation/components/admin';
 import { ProtectedRoute } from './presentation/components/auth';
 import { ROUTES } from './shared/constants';
 import './shared/i18n';
@@ -37,18 +57,51 @@ function App() {
           <Route path={ROUTES.VERIFY_EMAIL} element={<VerifyEmailPage />} />
           <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
           <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
+          <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLoginPage />} />
 
           {/* Protected Student Dashboard */}
           <Route
             path={ROUTES.DASHBOARD}
             element={
               <ProtectedRoute allowedRoles={['student']}>
-                <StudentDashboard />
+                <StudentLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<StudentHomePage />} />
+            <Route path="schedule" element={<StudentSchedulePage />} />
+            <Route path="quizzes" element={<StudentQuizzesPage />} />
+            <Route path="live" element={<StudentLivePage />} />
+            <Route path="profile" element={<StudentProfilePage />} />
+          </Route>
 
-          {/* Add more routes here as you build pages */}
+          {/* Protected Parent Dashboard */}
+          <Route
+            path="/parent"
+            element={
+              <ProtectedRoute allowedRoles={['parent']}>
+                <ParentLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<ParentHomePage />} />
+            <Route path="children" element={<ParentChildrenPage />} />
+            <Route path="finance" element={<ParentFinancePage />} />
+            <Route path="settings" element={<ParentSettingsPage />} />
+          </Route>
+
+          {/* Admin Routes - Nested under AdminLayout */}
+          {/* Sidebar & Header render ONCE, only content changes on navigation */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="courses" element={<AdminCoursesPage />} />
+            <Route path="teachers" element={<AdminTeachersPage />} />
+            <Route path="subscriptions" element={<AdminSubscriptionsPage />} />
+            <Route path="reports" element={<AdminReportsPage />} />
+            <Route path="settings" element={<AdminSettingsPage />} />
+          </Route>
+
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
