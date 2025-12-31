@@ -102,11 +102,28 @@ export function VerifyEmailPage() {
             if (response.success) {
                 const userData = response.data?.student || response.data?.parent;
                 if (userData) {
-                    setUser(userData as any);
+                    // Merge preserved registration data if available (since backend doesn't return it)
+                    const preservedData = location.state as any || {};
+                    const enrichedUser = {
+                        ...userData,
+                        // CRITICAL: Set the role based on userType so ProtectedRoute works correctly
+                        role: userType,
+                        phone: preservedData.phone || (userData as any).phone,
+                        phoneNumber: preservedData.phone || (userData as any).phoneNumber,
+                        // Add validation/extra fields if your User entity supports them, 
+                        // or just rely on 'as any' for now if they are custom fields
+                        parent_phone: preservedData.parentPhone,
+                        how_do_you_know_us: preservedData.howDidYouKnowUs
+                    };
+                    setUser(enrichedUser as any);
                 }
                 setSuccess('تم التحقق من البريد الإلكتروني بنجاح!');
                 setTimeout(() => {
-                    navigate(ROUTES.DASHBOARD);
+                    // Navigate to the correct dashboard based on user type
+                    const dashboardRoute = userType === 'parent'
+                        ? ROUTES.PARENT_DASHBOARD
+                        : ROUTES.DASHBOARD;
+                    navigate(dashboardRoute, { replace: true });
                 }, 1500);
             }
         } catch (err: any) {

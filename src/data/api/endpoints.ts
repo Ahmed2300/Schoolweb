@@ -2,32 +2,36 @@
 export const endpoints = {
     // Student Auth
     studentAuth: {
-        register: '/api/v1/students/auth/register',
-        login: '/api/v1/students/auth/login',
-        verifyEmail: '/api/v1/students/auth/verify-email',
-        resendOtp: '/api/v1/students/auth/resend-otp',
+        // Public routes
+        register: '/api/v1/auth/students/register',
+        login: '/api/v1/auth/students/login',
+        verifyEmail: '/api/v1/auth/students/verify-email',
+        resendOtp: '/api/v1/auth/students/resend-otp',
+        forgotPassword: '/api/v1/auth/students/forgot-password',
+        resetPassword: '/api/v1/auth/students/reset-password',
+        // Protected routes
         me: '/api/v1/students/auth/me',
+        updateProfile: '/api/v1/students/auth/me',
         refresh: '/api/v1/students/auth/refresh',
         changePassword: '/api/v1/students/auth/change-password',
-        forgotPassword: '/api/v1/students/auth/forgot-password',
-        resetPassword: '/api/v1/students/auth/reset-password',
         logout: '/api/v1/students/auth/logout',
         logoutAll: '/api/v1/students/auth/logout-all',
     },
 
     // Parent Auth
     parentAuth: {
-        register: '/v1/api/auth/parents/register',
-        login: '/v1/api/auth/parents/login',
-        verifyEmail: '/v1/api/auth/parents/verify-email',
-        resendOtp: '/v1/api/auth/parents/resend-otp',
-        me: '/v1/api/auth/parents/me',
-        refresh: '/v1/api/auth/parents/refresh',
-        changePassword: '/v1/api/auth/parents/change-password',
-        forgotPassword: '/v1/api/auth/parents/forgot-password',
-        resetPassword: '/v1/api/auth/parents/reset-password',
-        logout: '/v1/api/auth/parents/logout',
-        logoutAll: '/v1/api/auth/parents/logout-all',
+        register: '/api/v1/auth/parents/register',
+        login: '/api/v1/auth/parents/login',
+        verifyEmail: '/api/v1/auth/parents/verify-email',
+        resendOtp: '/api/v1/auth/parents/resend-otp',
+        me: '/api/v1/auth/parents/me',
+        updateProfile: '/api/v1/auth/parents/me',
+        refresh: '/api/v1/auth/parents/refresh',
+        changePassword: '/api/v1/auth/parents/change-password',
+        forgotPassword: '/api/v1/auth/parents/forgot-password',
+        resetPassword: '/api/v1/auth/parents/reset-password',
+        logout: '/api/v1/auth/parents/logout',
+        logoutAll: '/api/v1/auth/parents/logout-all',
     },
 
     // Admin Auth
@@ -35,10 +39,60 @@ export const endpoints = {
         login: '/api/v1/admin/auth/login',
     },
 
-    // Grades
+    // Admin - User Management
+    admin: {
+        // Students
+        students: {
+            list: '/api/v1/admin/students',
+            create: '/api/v1/admin/students',
+            show: (id: number) => `/api/v1/admin/students/${id}`,
+            update: (id: number) => `/api/v1/admin/students/${id}`,
+            delete: (id: number) => `/api/v1/admin/students/${id}`,
+        },
+        // Parents
+        parents: {
+            list: '/api/v1/admin/parents',
+            create: '/api/v1/admin/parents',
+            show: (id: number) => `/api/v1/admin/parents/${id}`,
+            update: (id: number) => `/api/v1/admin/parents/${id}`,
+            delete: (id: number) => `/api/v1/admin/parents/${id}`,
+        },
+        // Teachers
+        teachers: {
+            list: '/api/v1/admin/teachers',
+            create: '/api/v1/admin/teachers',
+            show: (id: number) => `/api/v1/admin/teachers/${id}`,
+            update: (id: number) => `/api/v1/admin/teachers/${id}`,
+            delete: (id: number) => `/api/v1/admin/teachers/${id}`,
+        },
+        // Admins
+        admins: {
+            list: '/api/v1/admin/admins',
+            create: '/api/v1/admin/admins',
+            show: (id: number) => `/api/v1/admin/admins/${id}`,
+            update: (id: number) => `/api/v1/admin/admins/${id}/update`,
+            delete: (id: number) => `/api/v1/admin/admins/delete/${id}`,
+        },
+        // Courses
+        courses: {
+            list: '/api/v1/admin/courses',
+        },
+        // Grades
+        grades: {
+            list: '/api/v1/admin/grades',
+        },
+    },
+
+    // Grades (authenticated)
     grades: {
-        list: '/api/grades',
-        detail: (id: string) => `/api/grades/${id}`,
+        list: '/api/v1/grades',
+        detail: (id: number) => `/api/v1/grades/${id}`,
+    },
+
+    // Semesters (authenticated)
+    semesters: {
+        list: '/api/v1/semesters',
+        detail: (id: number) => `/api/v1/semesters/${id}`,
     },
 
     // Lectures

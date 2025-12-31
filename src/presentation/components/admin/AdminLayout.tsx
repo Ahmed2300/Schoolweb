@@ -4,6 +4,7 @@ import { AdminSidebar } from './AdminSidebar';
 import { useLanguage } from '../../hooks';
 import { Bell, Search } from 'lucide-react';
 import { useAuthStore } from '../../store';
+import { SessionManager } from './SessionManager';
 
 export function AdminLayout() {
     const { isRTL } = useLanguage();
@@ -12,6 +13,13 @@ export function AdminLayout() {
 
     return (
         <div className="min-h-screen bg-soft-cloud" dir={isRTL ? 'rtl' : 'ltr'}>
+            {/* Session Management - Tracks inactivity and shows warning before logout */}
+            <SessionManager
+                enabled={true}
+                timeoutMinutes={30}    // Session expires after 30 min of inactivity
+                warningSeconds={120}   // Show warning 2 minutes before expiration
+            />
+
             {/* Sidebar - Fixed, doesn't re-render on route change */}
             <AdminSidebar
                 isCollapsed={isSidebarCollapsed}

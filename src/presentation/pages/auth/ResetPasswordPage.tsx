@@ -6,7 +6,7 @@ import { ROUTES } from '../../../shared/constants';
 import { authService } from '../../../data/api';
 
 // Lucide Icons
-import { KeyRound, Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react';
+import { KeyRound, Lock, Eye, EyeOff, ArrowLeft, CheckCircle, RefreshCw } from 'lucide-react';
 
 type UserType = 'student' | 'parent';
 
@@ -25,9 +25,20 @@ export function ResetPasswordPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isResending, setIsResending] = useState(false);
+    const [countdown, setCountdown] = useState(60);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [resendSuccess, setResendSuccess] = useState('');
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+    // Countdown timer
+    useEffect(() => {
+        if (countdown > 0) {
+            const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [countdown]);
 
     // Handle OTP input
     const handleOtpChange = (index: number, value: string) => {
@@ -58,6 +69,34 @@ export function ResetPasswordPage() {
             if (i < 6) newOtp[i] = char;
         });
         setOtp(newOtp);
+        if (pastedData.length === 6) {
+            inputRefs.current[5]?.focus();
+        }
+    };
+
+    const handleResendOtp = async () => {
+        if (countdown > 0) return;
+
+        setIsResending(true);
+        setError('');
+        setResendSuccess('');
+
+        try {
+            const forgotFn = userType === 'student'
+                ? authService.studentForgotPassword
+                : authService.parentForgotPassword;
+
+            // Re-call forgot password to generate new token
+            await forgotFn(email);
+
+            setResendSuccess('تم إعادة إرسال الرمز بنجاح');
+            setCountdown(60);
+            setTimeout(() => setResendSuccess(''), 3000);
+        } catch (err: any) {
+            setError(err.message || 'فشل إعادة إرسال الرمز');
+        } finally {
+            setIsResending(false);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -130,12 +169,18 @@ export function ResetPasswordPage() {
                                     <p className="text-slate-grey">
                                         أدخل رمز التحقق وكلمة المرور الجديدة
                                     </p>
+                                    <p className="text-sm text-slate-400 mt-2 dir-ltr">{email}</p>
                                 </div>
 
-                                {/* Error Message */}
+                                {/* Messages */}
                                 {error && (
-                                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-center">
+                                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-center text-sm">
                                         {error}
+                                    </div>
+                                )}
+                                {resendSuccess && (
+                                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-600 text-center text-sm">
+                                        {resendSuccess}
                                     </div>
                                 )}
 
@@ -146,7 +191,7 @@ export function ResetPasswordPage() {
                                         <label className="block text-sm font-bold text-slate-700 mb-2 text-center">
                                             رمز التحقق
                                         </label>
-                                        <div className="flex justify-center gap-3 dir-ltr">
+                                        <div className="flex justify-center gap-3 dir-ltr mb-4">
                                             {otp.map((digit, index) => (
                                                 <input
                                                     key={index}
@@ -161,6 +206,27 @@ export function ResetPasswordPage() {
                                                     className="w-11 h-12 text-center text-xl font-bold border-2 border-slate-200 rounded-xl focus:border-shibl-crimson focus:ring-2 focus:ring-shibl-crimson/20 outline-none transition-all"
                                                 />
                                             ))}
+                                        </div>
+
+                                        {/* Resend Link */}
+                                        <div className="text-center">
+                                            <button
+                                                type="button"
+                                                onClick={handleResendOtp}
+                                                disabled={countdown > 0 || isResending}
+                                                className={`text-sm font-bold inline-flex items-center gap-1 transition-colors ${countdown > 0 ? 'text-slate-400 cursor-not-allowed' : 'text-shibl-crimson hover:underline'
+                                                    }`}
+                                            >
+                                                {isResending ? (
+                                                    <span className="loading loading-spinner loading-xs"></span>
+                                                ) : (
+                                                    <RefreshCw size={14} />
+                                                )}
+                                                {countdown > 0
+                                                    ? `إعادة الإرسال بعد ${countdown} ثانية`
+                                                    : 'إعادة إرسال الرمز'
+                                                }
+                                            </button>
                                         </div>
                                     </div>
 

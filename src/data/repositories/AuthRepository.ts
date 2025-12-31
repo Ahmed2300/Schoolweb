@@ -68,12 +68,9 @@ export class AuthRepository implements IAuthRepository {
     }
 
     async updateProfile(data: Partial<User>): Promise<User> {
-        // Note: updateProfile is not explicitly in endpoints.ts studentAuth yet. 
-        // Assuming it might be a PUT to 'me' or similar. 
-        // For now commenting out or mapping to something existing to pass build, 
-        // but 'updateProfile' key was missing in endpoints.studentAuth too.
-        // Let's assume it's PUT /me for now.
+        // PUT /api/v1/students/auth/me - Backend returns { success: true, data: {...} }
         const response = await apiClient.put(endpoints.studentAuth.me, data);
-        return response.data.user;
+        // Backend returns: { success: true, message: '...', data: { user data } }
+        return response.data.data || response.data.user || response.data;
     }
 }

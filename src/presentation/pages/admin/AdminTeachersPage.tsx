@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
     Search,
-    Plus,
     GraduationCap,
     Lightbulb,
     Users,
@@ -18,6 +17,7 @@ import {
     ChevronUp,
     DollarSign
 } from 'lucide-react';
+import { AddTeacherModal } from '../../components/admin/AddTeacherModal';
 
 // Types
 type MainTab = 'teachers' | 'instructors';
@@ -95,6 +95,7 @@ export function AdminTeachersPage() {
     const [activeTab, setActiveTab] = useState<MainTab>('teachers');
     const [searchQuery, setSearchQuery] = useState('');
     const [showPendingRequests, setShowPendingRequests] = useState(true);
+    const [showAddTeacherModal, setShowAddTeacherModal] = useState(false);
 
     return (
         <>
@@ -116,8 +117,11 @@ export function AdminTeachersPage() {
                     </div>
 
                     {/* Add Button */}
-                    <button className="h-11 px-6 rounded-pill bg-shibl-crimson hover:bg-shibl-crimson-dark text-white font-bold text-sm shadow-crimson transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2">
-                        <Plus size={18} />
+                    <button
+                        onClick={() => setShowAddTeacherModal(true)}
+                        className="h-11 px-6 rounded-pill bg-shibl-crimson hover:bg-shibl-crimson-dark text-white font-bold text-sm shadow-crimson transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
+                    >
+                        <GraduationCap size={18} />
                         <span>إضافة مدرس/مدرب</span>
                     </button>
                 </div>
@@ -128,8 +132,8 @@ export function AdminTeachersPage() {
                 <button
                     onClick={() => setActiveTab('teachers')}
                     className={`flex items-center gap-3 px-6 py-3.5 rounded-[16px] font-bold text-sm transition-all duration-300 ${activeTab === 'teachers'
-                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
-                            : 'bg-white text-slate-600 hover:bg-blue-50 border border-slate-200'
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
+                        : 'bg-white text-slate-600 hover:bg-blue-50 border border-slate-200'
                         }`}
                 >
                     <GraduationCap size={20} />
@@ -138,8 +142,8 @@ export function AdminTeachersPage() {
                 <button
                     onClick={() => setActiveTab('instructors')}
                     className={`flex items-center gap-3 px-6 py-3.5 rounded-[16px] font-bold text-sm transition-all duration-300 ${activeTab === 'instructors'
-                            ? 'bg-green-600 text-white shadow-lg shadow-green-600/25'
-                            : 'bg-white text-slate-600 hover:bg-green-50 border border-slate-200'
+                        ? 'bg-green-600 text-white shadow-lg shadow-green-600/25'
+                        : 'bg-white text-slate-600 hover:bg-green-50 border border-slate-200'
                         }`}
                 >
                     <Lightbulb size={20} />
@@ -340,6 +344,16 @@ export function AdminTeachersPage() {
                     </div>
                 )}
             </div>
+
+            {/* Add Teacher Modal */}
+            <AddTeacherModal
+                isOpen={showAddTeacherModal}
+                onClose={() => setShowAddTeacherModal(false)}
+                onSuccess={() => {
+                    setShowAddTeacherModal(false);
+                    // TODO: Refresh teachers list when connected to real data
+                }}
+            />
         </>
     );
 }

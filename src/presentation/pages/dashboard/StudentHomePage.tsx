@@ -1,38 +1,71 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store';
+import { studentService, Course, getLocalizedName } from '../../../data/api/studentService';
 import {
     GraduationCap,
     TrendingUp,
     Clock,
-    CheckCircle2
+    CheckCircle2,
+    Loader2,
+    AlertCircle,
+    RefreshCw,
+    BookOpen
 } from 'lucide-react';
-
-// Mock data
-const mockCourses = [
-    { id: 1, title: 'الرياضيات - الجبر', teacher: 'د. محمد علي', progress: 60, image: '/images/signin-student.png', category: 'academic' },
-    { id: 2, title: 'الفيزياء - الميكانيكا', teacher: 'أ. فاطمة حسن', progress: 45, image: '/images/signup-student.png', category: 'academic' },
-    { id: 3, title: 'التاريخ - العصر الحديث', teacher: 'د. عمر خالد', progress: 80, image: '/images/hero-student.png', category: 'academic' },
-    { id: 4, title: 'اللغة العربية - النحو', teacher: 'أ. سارة أحمد', progress: 30, image: '/images/signup-parent.png', category: 'academic' },
-    { id: 5, title: 'القرآن الكريم - جزء عم', teacher: 'الشيخ أحمد', progress: 90, image: '/images/signin-parent.png', category: 'skills' },
-    { id: 6, title: 'الفقه الإسلامي', teacher: 'الشيخ سالم', progress: 55, image: '/images/hero-student.png', category: 'skills' },
-];
 
 export function StudentHomePage() {
     const { user } = useAuthStore();
     const [activeTab, setActiveTab] = useState<'academic' | 'skills'>('academic');
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // Stats
-    const mockStats = {
-        activeCourses: mockCourses.length,
-        overallProgress: Math.round(mockCourses.reduce((acc, c) => acc + c.progress, 0) / mockCourses.length),
-        upcomingSessions: 2,
+    // Fetch courses from API
+    const fetchCourses = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await studentService.getCourses({ per_page: 50 });
+            setCourses(response.data);
+        } catch (err: any) {
+            console.error('Error fetching courses:', err);
+            setError('فشل في تحميل الدورات');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const filteredCourses = mockCourses.filter(course =>
-        activeTab === 'academic' ? course.category === 'academic' : course.category === 'skills'
-    );
+    useEffect(() => {
+        fetchCourses();
+    }, []);
+
+    // Calculate stats from courses
+    const stats = {
+        activeCourses: courses.filter(c => c.is_active).length,
+        // TODO: Backend needs progress tracking for accurate percentage
+        overallProgress: 60, // Placeholder until backend adds progress
+        upcomingSessions: 2, // Placeholder until backend adds live sessions
+    };
+
+    // Filter courses by category
+    // TODO: Backend needs course_type field to properly distinguish academic vs skills
+    // For now, we show all courses in the academic tab
+    const filteredCourses = courses.filter(c => c.is_active);
 
     const displayName = user?.name?.split(' ')[0] || 'طالب';
+
+    // Loading skeleton for courses
+    const CourseCardSkeleton = () => (
+        <div className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm flex animate-pulse">
+            <div className="w-32 h-32 flex-shrink-0 bg-slate-200"></div>
+            <div className="flex-1 p-4 flex flex-col justify-between">
+                <div className="space-y-2">
+                    <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+                    <div className="h-3 bg-slate-100 rounded w-1/2"></div>
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full"></div>
+            </div>
+        </div>
+    );
 
     return (
         <div className="p-6">
@@ -49,7 +82,11 @@ export function StudentHomePage() {
                                     <GraduationCap size={16} />
                                 </div>
                                 <div>
-                                    <p className="text-lg font-extrabold">{mockStats.activeCourses}</p>
+                                    {loading ? (
+                                        <div className="h-5 w-6 bg-white/30 rounded animate-pulse"></div>
+                                    ) : (
+                                        <p className="text-lg font-extrabold">{stats.activeCourses}</p>
+                                    )}
                                     <p className="text-[10px] text-white/70">دورات نشطة</p>
                                 </div>
                             </div>
@@ -59,7 +96,7 @@ export function StudentHomePage() {
                                     <TrendingUp size={16} />
                                 </div>
                                 <div>
-                                    <p className="text-lg font-extrabold">{mockStats.overallProgress}%</p>
+                                    <p className="text-lg font-extrabold">{stats.overallProgress}%</p>
                                     <p className="text-[10px] text-white/70">التقدم</p>
                                 </div>
                             </div>
@@ -69,7 +106,7 @@ export function StudentHomePage() {
                                     <Clock size={16} />
                                 </div>
                                 <div>
-                                    <p className="text-lg font-extrabold">{mockStats.upcomingSessions}</p>
+                                    <p className="text-lg font-extrabold">{stats.upcomingSessions}</p>
                                     <p className="text-[10px] text-white/70">حصص قادمة</p>
                                 </div>
                             </div>
@@ -99,50 +136,113 @@ export function StudentHomePage() {
                         ? 'bg-shibl-crimson text-white shadow-lg'
                         : 'text-slate-500 hover:text-charcoal'
                         }`}
+                    title="قريباً - يتطلب تحديث من الخادم"
                 >
                     المهارات
                 </button>
             </div>
 
-            {/* Content Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredCourses.map(course => (
-                    <div
-                        key={course.id}
-                        className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex cursor-pointer group"
+            {/* Error State */}
+            {error && (
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center mb-6">
+                    <AlertCircle className="mx-auto mb-2 text-red-500" size={32} />
+                    <p className="text-red-600 font-medium mb-3">{error}</p>
+                    <button
+                        onClick={fetchCourses}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
                     >
-                        <div className="w-32 h-32 flex-shrink-0 overflow-hidden">
-                            <img
-                                src={course.image}
-                                alt={course.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                        </div>
+                        <RefreshCw size={16} />
+                        إعادة المحاولة
+                    </button>
+                </div>
+            )}
 
-                        <div className="flex-1 p-4 flex flex-col justify-between">
-                            <div>
-                                <h3 className="font-bold text-charcoal mb-1 text-sm">{course.title}</h3>
-                                <p className="text-slate-400 text-xs">{course.teacher}</p>
-                            </div>
+            {/* Loading State */}
+            {loading && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[1, 2, 3, 4].map(i => (
+                        <CourseCardSkeleton key={i} />
+                    ))}
+                </div>
+            )}
 
-                            <div className="flex items-center gap-2">
-                                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-shibl-crimson rounded-full transition-all"
-                                        style={{ width: `${course.progress}%` }}
-                                    ></div>
-                                </div>
-                                <div className="flex items-center gap-1 text-xs">
-                                    {course.progress >= 50 && (
-                                        <CheckCircle2 size={14} className="text-shibl-crimson" />
-                                    )}
-                                    <span className="text-slate-500 font-medium">{course.progress}% مكتمل</span>
-                                </div>
-                            </div>
-                        </div>
+            {/* Empty State */}
+            {!loading && !error && filteredCourses.length === 0 && (
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-12 text-center">
+                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <BookOpen size={32} className="text-slate-400" />
                     </div>
-                ))}
-            </div>
+                    <h3 className="text-lg font-bold text-charcoal mb-2">لا توجد دورات حالياً</h3>
+                    <p className="text-slate-500 text-sm">سيتم عرض الدورات المتاحة هنا بمجرد إضافتها.</p>
+                </div>
+            )}
+
+            {/* Content Grid */}
+            {!loading && !error && filteredCourses.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filteredCourses.map(course => {
+                        // Get localized course name and description
+                        const courseName = getLocalizedName(course.name, 'دورة بدون اسم');
+                        const teacherName = course.teacher?.name || 'مدرس غير محدد';
+
+                        // TODO: Backend needs progress tracking per student/course
+                        // Using a placeholder random progress for visual demonstration
+                        const progress = Math.floor(Math.random() * 60) + 20;
+
+                        return (
+                            <div
+                                key={course.id}
+                                className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex cursor-pointer group"
+                            >
+                                {/* Course Image */}
+                                <div className="w-32 h-32 flex-shrink-0 overflow-hidden bg-gradient-to-br from-shibl-crimson/10 to-shibl-crimson/5 flex items-center justify-center">
+                                    {/* Placeholder for course image - backend needs course images */}
+                                    <GraduationCap size={40} className="text-shibl-crimson/40" />
+                                </div>
+
+                                <div className="flex-1 p-4 flex flex-col justify-between">
+                                    <div>
+                                        <h3 className="font-bold text-charcoal mb-1 text-sm line-clamp-1">{courseName}</h3>
+                                        <p className="text-slate-400 text-xs">{teacherName}</p>
+                                        {course.code && (
+                                            <span className="inline-block mt-1 px-2 py-0.5 bg-slate-100 text-slate-500 text-[10px] rounded font-mono">
+                                                {course.code}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-shibl-crimson rounded-full transition-all"
+                                                style={{ width: `${progress}%` }}
+                                            ></div>
+                                        </div>
+                                        <div className="flex items-center gap-1 text-xs">
+                                            {progress >= 50 && (
+                                                <CheckCircle2 size={14} className="text-shibl-crimson" />
+                                            )}
+                                            <span className="text-slate-500 font-medium">{progress}% مكتمل</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            {/* Developer Notice - Only shown in development */}
+            {import.meta.env.DEV && !loading && (
+                <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
+                    <strong>📋 ملاحظة للمطورين:</strong>
+                    <ul className="mt-1 list-disc list-inside space-y-0.5">
+                        <li>نسبة التقدم عشوائية - يتطلب تتبع تقدم الطالب من الخادم</li>
+                        <li>تصنيف أكاديمي/مهارات غير مفعل - يتطلب حقل course_type</li>
+                        <li>الحصص القادمة ثابتة - يتطلب نظام الجلسات المباشرة</li>
+                    </ul>
+                </div>
+            )}
         </div>
     );
 }

@@ -1,7 +1,22 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-// API configuration - Use environment variable or default to the backend IP
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://192.168.100.11:8000';
+// API configuration - Dynamically detect the backend URL based on current hostname
+// This allows the app to work across different networks without manual IP changes
+const getApiBaseUrl = (): string => {
+    // First check for explicit environment variable
+    if (import.meta.env.VITE_API_URL) {
+        return import.meta.env.VITE_API_URL;
+    }
+
+    // Get the current hostname (works for both localhost and network IPs)
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+
+    // Use the same hostname as the frontend but with backend port (8000)
+    return `${protocol}//${hostname}:8000`;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Token storage keys
 const TOKEN_KEY = 'auth_token';
@@ -42,8 +57,29 @@ apiClient.interceptors.response.use(
     async (error: AxiosError) => {
         const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-        // Handle 401 - try to refresh token
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        // List of public auth endpoints that should NOT trigger auto-redirect on 401
+        // These endpoints handle their own 401 errors (e.g., invalid OTP, wrong password)
+        const publicAuthEndpoints = [
+            '/auth/students/verify-email',
+            '/auth/students/login',
+            '/auth/students/register',
+            '/auth/students/resend-otp',
+            '/auth/students/forgot-password',
+            '/auth/students/reset-password',
+            '/auth/parents/verify-email',
+            '/auth/parents/login',
+            '/auth/parents/register',
+            '/auth/parents/resend-otp',
+            '/auth/parents/forgot-password',
+            '/auth/parents/reset-password',
+        ];
+
+        const isPublicAuthEndpoint = publicAuthEndpoints.some(
+            endpoint => originalRequest.url?.includes(endpoint)
+        );
+
+        // Handle 401 - try to refresh token (but NOT for public auth endpoints)
+        if (error.response?.status === 401 && !originalRequest._retry && !isPublicAuthEndpoint) {
             originalRequest._retry = true;
 
             try {

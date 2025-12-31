@@ -19,12 +19,47 @@ import {
     GraduationCap,
     Users,
     CheckCircle,
-    BarChart3,
+    Activity,
     Star,
     Flag,
     BadgeCheck,
-    Building
+    Building,
+    MessageCircle,
+    Instagram,
+    Twitter,
+    Facebook,
+    Ghost,
+    PhoneCall,
+    FileText,
+    ChevronDown,
+    X
 } from 'lucide-react';
+
+// How did you know us options with icons
+const HOW_DID_YOU_KNOW_US_OPTIONS = [
+    { value: 'instagram', label: 'انستجرام', Icon: Instagram, color: 'text-pink-600' },
+    { value: 'twitter', label: 'تويتر', Icon: Twitter, color: 'text-sky-500' },
+    { value: 'snapchat', label: 'سناب شات', Icon: Ghost, color: 'text-yellow-500' },
+    { value: 'facebook', label: 'فيسبوك', Icon: Facebook, color: 'text-blue-600' },
+    { value: 'whatsapp', label: 'واتس', Icon: MessageCircle, color: 'text-green-500' },
+    { value: 'phone_call', label: 'مكالمة هاتفية', Icon: PhoneCall, color: 'text-purple-500' },
+    { value: 'friend', label: 'صديق', Icon: Users, color: 'text-indigo-500' },
+    { value: 'other', label: 'أخرى', Icon: FileText, color: 'text-slate-500' },
+];
+
+// Omani Governorates / Cities (matching backend seeder)
+const OMAN_GOVERNORATES = [
+    { id: 0, name: 'اختر الولاية' },
+    { id: 1, name: 'مسقط' },
+    { id: 2, name: 'صلالة' },
+    { id: 3, name: 'صحار' },
+    { id: 4, name: 'نزوى' },
+    { id: 5, name: 'صور' },
+    { id: 6, name: 'عبري' },
+    { id: 7, name: 'بوشر' },
+    { id: 8, name: 'السيب' },
+    { id: 9, name: 'العامرات' },
+];
 
 type UserType = 'student' | 'parent';
 
@@ -77,27 +112,69 @@ export function SignupPage() {
         name: '',
         email: '',
         phone: '',
-        countryCode: '+20',
+        countryCode: '+968', // Oman country code
         countryId: 0,
         cityId: 0,
         password: '',
         confirmPassword: '',
+        parentPhone: '', // New field
+        howDidYouKnowUs: '', // New field
+        howDidYouKnowUsOther: '', // Text for 'other' option
     });
 
-    // Fetch countries on mount
+    // Dropdown state
+    const [isHowDidYouKnowUsOpen, setIsHowDidYouKnowUsOpen] = useState(false);
+
+    // Fallback countries for when API is unavailable
+    const FALLBACK_COUNTRIES: Country[] = [
+        { id: 1, name: 'عمان' },
+        { id: 2, name: 'السعودية' },
+        { id: 3, name: 'الإمارات' },
+        { id: 4, name: 'الكويت' },
+        { id: 5, name: 'البحرين' },
+        { id: 6, name: 'قطر' },
+    ];
+
+    // Fallback cities for Oman
+    const FALLBACK_CITIES: City[] = [
+        { id: 1, name: 'مسقط', country_id: 1 },
+        { id: 2, name: 'صلالة', country_id: 1 },
+        { id: 3, name: 'صحار', country_id: 1 },
+        { id: 4, name: 'نزوى', country_id: 1 },
+        { id: 5, name: 'صور', country_id: 1 },
+    ];
+
+    // Fetch countries on mount and auto-select Oman
     useEffect(() => {
         const fetchCountries = async () => {
             setLoadingCountries(true);
             try {
                 const response = await apiClient.get(endpoints.locations.countries);
                 const countryData = response.data.data || response.data;
-                setCountries(countryData);
-                // Set default country if available
-                if (countryData.length > 0) {
-                    setFormData(prev => ({ ...prev, countryId: countryData[0].id }));
+                if (countryData && countryData.length > 0) {
+                    setCountries(countryData);
+
+                    // Auto-select Oman as default country
+                    const omanCountry = countryData.find((c: Country) => {
+                        const name = getLocalizedName(c.name, 'en');
+                        return name.toLowerCase() === 'oman' || name === 'عمان';
+                    });
+
+                    if (omanCountry) {
+                        setFormData(prev => ({ ...prev, countryId: omanCountry.id }));
+                    } else if (countryData.length > 0) {
+                        setFormData(prev => ({ ...prev, countryId: countryData[0].id }));
+                    }
+                } else {
+                    // Use fallback if no data returned
+                    setCountries(FALLBACK_COUNTRIES);
+                    setFormData(prev => ({ ...prev, countryId: 1 })); // Oman
                 }
             } catch (err) {
-                console.error('Failed to fetch countries:', err);
+                console.error('Failed to fetch countries, using fallback:', err);
+                // Use fallback countries
+                setCountries(FALLBACK_COUNTRIES);
+                setFormData(prev => ({ ...prev, countryId: 1 })); // Default to Oman
             } finally {
                 setLoadingCountries(false);
             }
@@ -116,16 +193,30 @@ export function SignupPage() {
             try {
                 const response = await apiClient.get(endpoints.locations.cities(formData.countryId));
                 const cityData = response.data.data || response.data;
-                setCities(cityData);
-                // Set default city if available
-                if (cityData.length > 0) {
+                if (cityData && cityData.length > 0) {
+                    setCities(cityData);
+                    // Set default city if available
                     setFormData(prev => ({ ...prev, cityId: cityData[0].id }));
                 } else {
-                    setFormData(prev => ({ ...prev, cityId: 0 }));
+                    // Use fallback cities for Oman if API returns empty
+                    if (formData.countryId === 1) {
+                        setCities(FALLBACK_CITIES);
+                        setFormData(prev => ({ ...prev, cityId: 1 })); // Muscat
+                    } else {
+                        setCities([]);
+                        setFormData(prev => ({ ...prev, cityId: 0 }));
+                    }
                 }
             } catch (err) {
-                console.error('Failed to fetch cities:', err);
-                setCities([]);
+                console.error('Failed to fetch cities, using fallback:', err);
+                // Use fallback cities for Oman
+                if (formData.countryId === 1) {
+                    setCities(FALLBACK_CITIES);
+                    setFormData(prev => ({ ...prev, cityId: 1 })); // Default to Muscat
+                } else {
+                    setCities([]);
+                    setFormData(prev => ({ ...prev, cityId: 0 }));
+                }
             } finally {
                 setLoadingCities(false);
             }
@@ -182,6 +273,10 @@ export function SignupPage() {
                     password_confirmation: formData.confirmPassword,
                     country_id: formData.countryId,
                     city_id: formData.cityId,
+                    parent_phone: formData.parentPhone || undefined,
+                    how_do_you_know_us: formData.howDidYouKnowUs === 'other'
+                        ? formData.howDidYouKnowUsOther
+                        : (formData.howDidYouKnowUs || undefined),
                 });
             } else {
                 await authService.parentRegister({
@@ -192,9 +287,17 @@ export function SignupPage() {
                 });
             }
 
-            // Navigate to email verification page
+            // Navigate to email verification page with additional data to preserve it across the session
+            // (since backend StudentResource doesn't return these fields on login/verify)
             navigate(ROUTES.VERIFY_EMAIL, {
-                state: { email: formData.email, userType }
+                state: {
+                    email: formData.email,
+                    userType,
+                    // Pass additional fields to merge after verification
+                    phone: formData.phone,
+                    parentPhone: formData.parentPhone,
+                    howDidYouKnowUs: formData.howDidYouKnowUs === 'other' ? formData.howDidYouKnowUsOther : formData.howDidYouKnowUs
+                }
             });
         } catch (err: any) {
             // Handle validation errors
@@ -270,7 +373,7 @@ export function SignupPage() {
                     {userType === 'parent' && (
                         <div className="absolute bottom-8 right-8 floating-card p-4 flex items-center gap-3 animate-float animation-delay-3000 z-10">
                             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                                <BarChart3 size={28} className="text-white" />
+                                <Activity size={28} className="text-white" />
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-white font-extrabold text-lg">مستوى متقدم</span>
@@ -394,64 +497,132 @@ export function SignupPage() {
                                 </div>
                             </div>
 
-                            {/* Country (Student only) */}
+                            {/* Location - Fixed Country (Oman) with Governorate dropdown - Both Student and Parent */}
+                            <>
+                                {/* Fixed Country - Oman */}
+                                <div className="form-control w-full">
+                                    <label className="label pb-1">
+                                        <span className="label-text font-bold text-slate-700">الدولة</span>
+                                    </label>
+                                    <div className="bg-slate-100 px-4 py-3 rounded-xl flex items-center gap-3">
+                                        <span className="text-xl">🇴🇲</span>
+                                        <span className="font-bold text-slate-700">سلطنة عمان</span>
+                                        <span className="text-xs text-slate-400 mr-auto">(ثابت)</span>
+                                    </div>
+                                </div>
+
+                                {/* Governorate / City */}
+                                <div className="form-control w-full">
+                                    <label className="label pb-1">
+                                        <span className="label-text font-bold text-slate-700">الولاية</span>
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            className="input-pro pr-12"
+                                            value={formData.cityId}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, cityId: Number(e.target.value) }))}
+                                            dir="rtl"
+                                        >
+                                            {OMAN_GOVERNORATES.map((gov) => (
+                                                <option key={gov.id} value={gov.id}>
+                                                    {gov.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <Building size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    </div>
+                                </div>
+                            </>
+
+                            {/* Student-only fields */}
                             {userType === 'student' && (
                                 <>
+                                    {/* Parent Phone (Optional) */}
                                     <div className="form-control w-full">
                                         <label className="label pb-1">
-                                            <span className="label-text font-bold text-slate-700">الدولة</span>
+                                            <span className="label-text font-bold text-slate-700">هاتف ولي الأمر (اختياري)</span>
                                         </label>
                                         <div className="relative">
-                                            <select
-                                                className="input-pro pr-12"
-                                                value={formData.countryId}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, countryId: Number(e.target.value), cityId: 0 }))}
-                                                dir="rtl"
-                                                disabled={loadingCountries}
-                                            >
-                                                {loadingCountries ? (
-                                                    <option value="0">جاري التحميل...</option>
-                                                ) : countries.length === 0 ? (
-                                                    <option value="0">لا توجد دول متاحة</option>
-                                                ) : (
-                                                    countries.map((country) => (
-                                                        <option key={country.id} value={country.id}>
-                                                            {getLocalizedName(country.name, isRTL ? 'ar' : 'en')}
-                                                        </option>
-                                                    ))
-                                                )}
-                                            </select>
-                                            <Flag size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                            <input
+                                                type="tel"
+                                                placeholder="9xxxxxxxx"
+                                                className="input-pro pr-12 pl-24"
+                                                value={formData.parentPhone}
+                                                onChange={(e) => handleChange('parentPhone', e.target.value)}
+                                                dir="ltr"
+                                            />
+                                            <Phone size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                            <div className="absolute left-0 top-0 bottom-0 flex items-center gap-1.5 px-4 bg-slate-50 border-r border-slate-200 rounded-l-lg text-slate-700 font-bold text-sm">
+                                                <Flag size={16} />
+                                                <span>+968</span>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    {/* City */}
-                                    <div className="form-control w-full">
+                                    {/* How Did You Know Us - Custom Dropdown */}
+                                    <div className="form-control w-full relative">
                                         <label className="label pb-1">
-                                            <span className="label-text font-bold text-slate-700">المدينة</span>
+                                            <span className="label-text font-bold text-slate-700">كيف عرفت عنا؟</span>
                                         </label>
+
                                         <div className="relative">
-                                            <select
-                                                className="input-pro pr-12"
-                                                value={formData.cityId}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, cityId: Number(e.target.value) }))}
-                                                dir="rtl"
-                                                disabled={loadingCities || !formData.countryId}
+                                            <button
+                                                type="button"
+                                                className={`input-pro w-full flex items-center justify-between text-right px-4 h-12 ${isHowDidYouKnowUsOpen ? 'border-shibl-crimson ring-2 ring-shibl-crimson/20' : ''}`}
+                                                onClick={() => setIsHowDidYouKnowUsOpen(!isHowDidYouKnowUsOpen)}
                                             >
-                                                {loadingCities ? (
-                                                    <option value="0">جاري التحميل...</option>
-                                                ) : cities.length === 0 ? (
-                                                    <option value="0">اختر الدولة أولاً</option>
-                                                ) : (
-                                                    cities.map((city) => (
-                                                        <option key={city.id} value={city.id}>
-                                                            {getLocalizedName(city.name, isRTL ? 'ar' : 'en')}
-                                                        </option>
-                                                    ))
-                                                )}
-                                            </select>
-                                            <Building size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                <span className={`flex items-center gap-2 ${!formData.howDidYouKnowUs ? 'text-slate-400' : 'text-charcoal'}`}>
+                                                    {formData.howDidYouKnowUs ? (() => {
+                                                        const opt = HOW_DID_YOU_KNOW_US_OPTIONS.find(o => o.value === formData.howDidYouKnowUs);
+                                                        return opt ? (
+                                                            <>
+                                                                <opt.Icon size={18} className={opt.color} />
+                                                                <span>{opt.label}</span>
+                                                            </>
+                                                        ) : 'اختر...'
+                                                    })() : 'اختر...'}
+                                                </span>
+                                                <ChevronDown size={20} className={`text-slate-400 transition-transform ${isHowDidYouKnowUsOpen ? 'rotate-180' : ''}`} />
+                                            </button>
+
+                                            {/* Dropdown Menu */}
+                                            {isHowDidYouKnowUsOpen && (
+                                                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-100 z-50 max-h-60 overflow-y-auto">
+                                                    {HOW_DID_YOU_KNOW_US_OPTIONS.map((option) => (
+                                                        <button
+                                                            key={option.value}
+                                                            type="button"
+                                                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors text-right border-b border-slate-50 last:border-none"
+                                                            onClick={() => {
+                                                                handleChange('howDidYouKnowUs', option.value);
+                                                                setIsHowDidYouKnowUsOpen(false);
+                                                            }}
+                                                        >
+                                                            <option.Icon size={20} className={option.color} />
+                                                            <span className="font-medium text-slate-700">{option.label}</span>
+                                                            {formData.howDidYouKnowUs === option.value && (
+                                                                <CheckCircle size={16} className="mr-auto text-shibl-crimson" />
+                                                            )}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
+
+                                        {/* Show text input when 'other' is selected */}
+                                        {formData.howDidYouKnowUs === 'other' && (
+                                            <div className="relative mt-3 animate-fadeIn">
+                                                <input
+                                                    type="text"
+                                                    placeholder="يرجى تحديد كيف عرفت عنا..."
+                                                    className="input-pro pr-12"
+                                                    value={formData.howDidYouKnowUsOther}
+                                                    onChange={(e) => handleChange('howDidYouKnowUsOther', e.target.value)}
+                                                    dir="rtl"
+                                                />
+                                                <FileText size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                            </div>
+                                        )}
                                     </div>
                                 </>
                             )}

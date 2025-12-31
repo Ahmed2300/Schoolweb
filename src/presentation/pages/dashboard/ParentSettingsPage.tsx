@@ -3,27 +3,45 @@ import {
     User,
     Lock,
     Bell,
-    Globe,
     Save,
     Camera,
     Mail,
     Phone,
-    MapPin
+    MapPin,
+    Loader2,
+    Eye,
+    EyeOff
 } from 'lucide-react';
 import { useAuthStore } from '../../store';
+import { authService } from '../../../data/api';
 
 export function ParentSettingsPage() {
-    const { user } = useAuthStore();
+    const { user, setUser } = useAuthStore();
     const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications'>('profile');
 
-    // Mock States
+    // Profile State
     const [profile, setProfile] = useState({
-        name: user?.name || 'ولي أمر الطالب',
-        email: user?.email || 'parent@example.com',
-        phone: '96123456',
-        address: 'مسقط، سلطنة عمان',
-        bio: 'مهتم بمتابعة الأنشطة اللاصفية.'
+        name: user?.name || '',
+        email: user?.email || '',
+        phone: (user as { phone?: string })?.phone || '',
+        address: (user as { address?: string })?.address || '',
     });
+    const [profileLoading, setProfileLoading] = useState(false);
+    const [profileError, setProfileError] = useState<string | null>(null);
+    const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
+
+    // Password State
+    const [passwordForm, setPasswordForm] = useState({
+        old_password: '',
+        new_password: '',
+        new_password_confirmation: '',
+    });
+    const [passwordLoading, setPasswordLoading] = useState(false);
+    const [passwordError, setPasswordError] = useState<string | null>(null);
+    const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+    const [showOldPassword, setShowOldPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [notifications, setNotifications] = useState({
         email_academic: true,
@@ -31,6 +49,68 @@ export function ParentSettingsPage() {
         sms_attendance: true,
         sms_marketing: false
     });
+
+    // Profile Update Handler
+    const handleProfileSave = async () => {
+        setProfileLoading(true);
+        setProfileError(null);
+        setProfileSuccess(null);
+
+        try {
+            const response = await authService.parentUpdateProfile({
+                name: profile.name,
+                phone: profile.phone,
+                address: profile.address,
+            });
+
+            if (response.success) {
+                // Update the local profile state with the new data
+                if (response.data?.parent) {
+                    setProfile(prev => ({
+                        ...prev,
+                        name: response.data!.parent!.name || prev.name,
+                    }));
+                }
+                setProfileSuccess('تم تحديث الملف الشخصي بنجاح');
+            }
+        } catch (error) {
+            setProfileError(error instanceof Error ? error.message : 'حدث خطأ أثناء التحديث');
+        } finally {
+            setProfileLoading(false);
+        }
+    };
+
+    // Password Change Handler
+    const handlePasswordChange = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setPasswordLoading(true);
+        setPasswordError(null);
+        setPasswordSuccess(null);
+
+        if (passwordForm.new_password !== passwordForm.new_password_confirmation) {
+            setPasswordError('كلمة المرور الجديدة غير متطابقة');
+            setPasswordLoading(false);
+            return;
+        }
+
+        if (passwordForm.new_password.length < 8) {
+            setPasswordError('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+            setPasswordLoading(false);
+            return;
+        }
+
+        try {
+            const response = await authService.parentChangePassword(passwordForm);
+            if (response.success) {
+                setPasswordSuccess('تم تغيير كلمة المرور بنجاح');
+                setPasswordForm({ old_password: '', new_password: '', new_password_confirmation: '' });
+            }
+        } catch (error) {
+            setPasswordError(error instanceof Error ? error.message : 'حدث خطأ أثناء تغيير كلمة المرور');
+        } finally {
+            setPasswordLoading(false);
+        }
+    };
 
     return (
         <div className="p-6 max-w-5xl mx-auto space-y-6">
@@ -143,10 +223,35 @@ export function ParentSettingsPage() {
 
                             <hr className="border-slate-100" />
 
+                            {/* Error/Success Messages */}
+                            {profileError && (
+                                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+                                    {profileError}
+                                </div>
+                            )}
+                            {profileSuccess && (
+                                <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-xl text-sm">
+                                    {profileSuccess}
+                                </div>
+                            )}
+
                             <div className="flex justify-end">
-                                <button className="bg-charcoal text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg hover:bg-black transition-colors flex items-center gap-2">
-                                    <Save size={18} />
-                                    حفظ التغييرات
+                                <button
+                                    onClick={handleProfileSave}
+                                    disabled={profileLoading}
+                                    className="bg-charcoal text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg hover:bg-black transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {profileLoading ? (
+                                        <>
+                                            <Loader2 size={18} className="animate-spin" />
+                                            جاري الحفظ...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save size={18} />
+                                            حفظ التغييرات
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -155,21 +260,97 @@ export function ParentSettingsPage() {
                     {activeTab === 'security' && (
                         <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm p-8 space-y-6">
                             <h3 className="font-bold text-lg text-charcoal">تغيير كلمة المرور</h3>
-                            <div className="space-y-4 max-w-md">
+                            <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
+                                {/* Error/Success Messages */}
+                                {passwordError && (
+                                    <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+                                        {passwordError}
+                                    </div>
+                                )}
+                                {passwordSuccess && (
+                                    <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-xl text-sm">
+                                        {passwordSuccess}
+                                    </div>
+                                )}
+
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-slate-500">كلمة المرور الحالية</label>
-                                    <input type="password" className="w-full h-11 px-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson outline-none" />
+                                    <div className="relative">
+                                        <input
+                                            type={showOldPassword ? 'text' : 'password'}
+                                            value={passwordForm.old_password}
+                                            onChange={(e) => setPasswordForm({ ...passwordForm, old_password: e.target.value })}
+                                            className="w-full h-11 px-4 pr-12 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson outline-none"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowOldPassword(!showOldPassword)}
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        >
+                                            {showOldPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-slate-500">كلمة المرور الجديدة</label>
-                                    <input type="password" className="w-full h-11 px-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson outline-none" />
+                                    <div className="relative">
+                                        <input
+                                            type={showNewPassword ? 'text' : 'password'}
+                                            value={passwordForm.new_password}
+                                            onChange={(e) => setPasswordForm({ ...passwordForm, new_password: e.target.value })}
+                                            className="w-full h-11 px-4 pr-12 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson outline-none"
+                                            minLength={8}
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        >
+                                            {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-slate-400">يجب أن تكون 8 أحرف على الأقل</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-slate-500">تأكيد كلمة المرور الجديدة</label>
-                                    <input type="password" className="w-full h-11 px-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson outline-none" />
+                                    <div className="relative">
+                                        <input
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            value={passwordForm.new_password_confirmation}
+                                            onChange={(e) => setPasswordForm({ ...passwordForm, new_password_confirmation: e.target.value })}
+                                            className="w-full h-11 px-4 pr-12 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson outline-none"
+                                            minLength={8}
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        >
+                                            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
                                 </div>
-                                <button className="w-full bg-slate-100 text-slate-400 font-bold py-3 rounded-xl cursor-not-allowed">تحديث كلمة المرور</button>
-                            </div>
+                                <button
+                                    type="submit"
+                                    disabled={passwordLoading}
+                                    className="w-full bg-shibl-crimson text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {passwordLoading ? (
+                                        <>
+                                            <Loader2 size={18} className="animate-spin" />
+                                            جاري التحديث...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Lock size={18} />
+                                            تحديث كلمة المرور
+                                        </>
+                                    )}
+                                </button>
+                            </form>
                         </div>
                     )}
 

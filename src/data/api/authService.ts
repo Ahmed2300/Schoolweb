@@ -14,6 +14,8 @@ export interface StudentRegisterRequest {
     password_confirmation: string;
     country_id: number;
     city_id: number;
+    parent_phone?: string;
+    how_do_you_know_us?: string;
 }
 
 export interface ParentRegisterRequest {
@@ -37,6 +39,12 @@ export interface ResetPasswordRequest {
     otp: string;
     password: string;
     password_confirmation: string;
+}
+
+export interface ChangePasswordRequest {
+    old_password: string;
+    new_password: string;
+    new_password_confirmation: string;
 }
 
 export interface AuthResponse {
@@ -95,6 +103,11 @@ export const authService = {
 
     studentResetPassword: async (data: ResetPasswordRequest): Promise<AuthResponse> => {
         const response = await apiClient.post(endpoints.studentAuth.resetPassword, data);
+        return response.data;
+    },
+
+    studentChangePassword: async (data: ChangePasswordRequest): Promise<AuthResponse> => {
+        const response = await apiClient.post(endpoints.studentAuth.changePassword, data);
         return response.data;
     },
 
@@ -167,6 +180,31 @@ export const authService = {
     parentResetPassword: async (data: ResetPasswordRequest): Promise<AuthResponse> => {
         const response = await apiClient.post(endpoints.parentAuth.resetPassword, data);
         // Transform backend response { message } to expected format
+        return {
+            success: true,
+            message: response.data.message,
+        };
+    },
+
+    parentUpdateProfile: async (data: { name?: string; phone?: string; address?: string }): Promise<AuthResponse> => {
+        const response = await apiClient.put(endpoints.parentAuth.updateProfile, data);
+        return {
+            success: true,
+            message: response.data.message,
+            data: {
+                parent: response.data.parent,
+            },
+        };
+    },
+
+    parentChangePassword: async (data: ChangePasswordRequest): Promise<AuthResponse> => {
+        // Backend expects: old_password, password, password_confirmation
+        const backendData = {
+            old_password: data.old_password,
+            password: data.new_password,
+            password_confirmation: data.new_password_confirmation,
+        };
+        const response = await apiClient.post(endpoints.parentAuth.changePassword, backendData);
         return {
             success: true,
             message: response.data.message,

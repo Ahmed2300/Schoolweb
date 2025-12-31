@@ -1,45 +1,25 @@
+import { useState, useEffect } from 'react';
 import { StatCard } from '../../components/admin';
 import {
     Users,
     BookOpen,
-    DollarSign,
+    GraduationCap,
     UserPlus,
     Plus,
     FileText,
-    Clock
+    Clock,
+    Loader2,
+    UsersRound
 } from 'lucide-react';
+import { adminService } from '../../../data/api/adminService';
+import { useAuthStore } from '../../store';
 
-// Mock data - will be replaced with API calls
-const stats = [
-    {
-        icon: <Users size={28} className="text-blue-600" />,
-        iconBgColor: 'bg-blue-100',
-        label: 'إجمالي الطلاب',
-        value: '12,450',
-        trend: { value: '+4%', isPositive: true }
-    },
-    {
-        icon: <BookOpen size={28} className="text-purple-600" />,
-        iconBgColor: 'bg-purple-100',
-        label: 'الكورسات النشطة',
-        value: '34',
-        trend: { value: '+2', isPositive: true }
-    },
-    {
-        icon: <DollarSign size={28} className="text-green-600" />,
-        iconBgColor: 'bg-green-100',
-        label: 'الإيرادات',
-        value: '$10,000',
-        trend: { value: '+8%', isPositive: true }
-    },
-    {
-        icon: <UserPlus size={28} className="text-amber-600" />,
-        iconBgColor: 'bg-amber-100',
-        label: 'الاشتراكات الجديدة',
-        value: '540',
-        trend: { value: '+12%', isPositive: true }
-    },
-];
+interface DashboardStats {
+    totalStudents: number;
+    totalParents: number;
+    totalTeachers: number;
+    totalCourses: number;
+}
 
 const recentActivities = [
     {
@@ -72,6 +52,26 @@ const quickActions = [
 ];
 
 export function AdminDashboard() {
+    const { user } = useAuthStore();
+    const [stats, setStats] = useState<DashboardStats | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    // Fetch dashboard stats on mount
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                setLoading(true);
+                const data = await adminService.getDashboardStats();
+                setStats(data);
+            } catch (error) {
+                console.error('Error fetching dashboard stats:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStats();
+    }, []);
+
     // Get current date in Arabic
     const today = new Date().toLocaleDateString('ar-EG', {
         weekday: 'long',
@@ -80,19 +80,69 @@ export function AdminDashboard() {
         day: 'numeric'
     });
 
+    // Get admin name from auth store
+    const adminName = user?.name || 'أدمن';
+
+    // Stats display configuration
+    const statsDisplay = [
+        {
+            icon: <Users size={28} className="text-blue-600" />,
+            iconBgColor: 'bg-blue-100',
+            label: 'إجمالي الطلاب',
+            value: loading ? '...' : stats?.totalStudents.toLocaleString('ar-EG') || '0',
+            trend: { value: '', isPositive: true }
+        },
+        {
+            icon: <BookOpen size={28} className="text-purple-600" />,
+            iconBgColor: 'bg-purple-100',
+            label: 'الكورسات',
+            value: loading ? '...' : stats?.totalCourses.toLocaleString('ar-EG') || '0',
+            trend: { value: '', isPositive: true }
+        },
+        {
+            icon: <GraduationCap size={28} className="text-green-600" />,
+            iconBgColor: 'bg-green-100',
+            label: 'المدرسين',
+            value: loading ? '...' : stats?.totalTeachers.toLocaleString('ar-EG') || '0',
+            trend: { value: '', isPositive: true }
+        },
+        {
+            icon: <UsersRound size={28} className="text-amber-600" />,
+            iconBgColor: 'bg-amber-100',
+            label: 'أولياء الأمور',
+            value: loading ? '...' : stats?.totalParents.toLocaleString('ar-EG') || '0',
+            trend: { value: '', isPositive: true }
+        },
+    ];
+
     return (
         <>
             {/* Welcome Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-extrabold text-charcoal mb-1">مرحباً، أدمن 👋</h1>
+                <h1 className="text-3xl font-extrabold text-charcoal mb-1">مرحباً، {adminName} 👋</h1>
                 <p className="text-slate-500">{today}</p>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {stats.map((stat, index) => (
-                    <StatCard key={index} {...stat} />
-                ))}
+                {loading ? (
+                    // Loading skeleton
+                    Array.from({ length: 4 }).map((_, index) => (
+                        <div key={index} className="bg-white rounded-2xl p-6 shadow-card border border-slate-100 animate-pulse">
+                            <div className="flex items-center justify-between">
+                                <div className="w-14 h-14 rounded-xl bg-slate-200"></div>
+                                <div className="text-left">
+                                    <div className="h-4 bg-slate-200 rounded w-20 mb-2"></div>
+                                    <div className="h-8 bg-slate-200 rounded w-16"></div>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    statsDisplay.map((stat, index) => (
+                        <StatCard key={index} {...stat} />
+                    ))
+                )}
             </div>
 
             {/* Bottom Section - Activity + Quick Actions */}
@@ -144,4 +194,3 @@ export function AdminDashboard() {
         </>
     );
 }
-
