@@ -10,7 +10,8 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
-    Menu
+    Menu,
+    Shield
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -25,6 +26,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
     { icon: <LayoutDashboard size={20} />, label: 'لوحة التحكم', path: ROUTES.ADMIN_DASHBOARD },
+    { icon: <Shield size={20} />, label: 'المديرين', path: ROUTES.ADMIN_ADMINS },
     { icon: <Users size={20} />, label: 'المستخدمين', path: ROUTES.ADMIN_USERS },
     { icon: <BookOpen size={20} />, label: 'الكورسات', path: ROUTES.ADMIN_COURSES },
     { icon: <GraduationCap size={20} />, label: 'المدرسين', path: '/admin/teachers' },

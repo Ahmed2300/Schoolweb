@@ -17,7 +17,8 @@ import { adminService, UserData, UserRole, UserStatus, PaginatedResponse } from 
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { EditUserModal } from '../../components/admin/EditUserModal';
 import { ViewUserModal } from '../../components/admin/ViewUserModal';
-import { AddAdminModal } from '../../components/admin/AddAdminModal';
+import { AddStudentModal } from '../../components/admin/AddStudentModal';
+import { AddParentModal } from '../../components/admin/AddParentModal';
 
 // Types
 type FilterTab = 'all' | 'students' | 'parents';
@@ -101,8 +102,9 @@ export function AdminUsersPage() {
         user: UserData | null;
     }>({ isOpen: false, user: null });
 
-    // Add admin modal state
-    const [showAddAdminModal, setShowAddAdminModal] = useState(false);
+    // Add user modal states
+    const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+    const [showAddParentModal, setShowAddParentModal] = useState(false);
 
     // Debounced search
     const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
@@ -290,13 +292,20 @@ export function AdminUsersPage() {
                         <Filter size={18} />
                     </button>
 
-                    {/* Add Admin Button */}
+                    {/* Add User Buttons */}
                     <button
-                        onClick={() => setShowAddAdminModal(true)}
-                        className="h-11 px-5 rounded-pill bg-charcoal hover:bg-slate-800 text-white font-bold text-sm shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
+                        onClick={() => setShowAddStudentModal(true)}
+                        className="h-11 px-5 rounded-pill bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
                     >
-                        <Shield size={18} />
-                        <span>إضافة مدير</span>
+                        <UserCheck size={18} />
+                        <span>إضافة طالب</span>
+                    </button>
+                    <button
+                        onClick={() => setShowAddParentModal(true)}
+                        className="h-11 px-5 rounded-pill bg-green-600 hover:bg-green-700 text-white font-bold text-sm shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
+                    >
+                        <Users size={18} />
+                        <span>إضافة ولي أمر</span>
                     </button>
                 </div>
             </div>
@@ -505,13 +514,23 @@ export function AdminUsersPage() {
                 }}
             />
 
-            {/* Add Admin Modal */}
-            <AddAdminModal
-                isOpen={showAddAdminModal}
-                onClose={() => setShowAddAdminModal(false)}
+            {/* Add Student Modal */}
+            <AddStudentModal
+                isOpen={showAddStudentModal}
+                onClose={() => setShowAddStudentModal(false)}
                 onSuccess={() => {
-                    setShowAddAdminModal(false);
-                    // Note: Admins aren't shown in this users list, but modal closes successfully
+                    setShowAddStudentModal(false);
+                    fetchUsers();
+                }}
+            />
+
+            {/* Add Parent Modal */}
+            <AddParentModal
+                isOpen={showAddParentModal}
+                onClose={() => setShowAddParentModal(false)}
+                onSuccess={() => {
+                    setShowAddParentModal(false);
+                    fetchUsers();
                 }}
             />
         </>

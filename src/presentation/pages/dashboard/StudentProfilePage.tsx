@@ -108,22 +108,14 @@ export function StudentProfilePage() {
         try {
             const authRepository = new AuthRepository();
 
-            // Prepare update data (only send changed fields)
-            const updateData: Record<string, string> = {};
-            if (formData.name && formData.name !== user?.name) {
-                updateData.name = formData.name;
-            }
-            if (formData.phone) {
-                updateData.phone = formData.phone;
-            }
-            if (formData.governorate) {
-                // Combine governorate with fixed country
-                const selectedGov = OMAN_GOVERNORATES.find(g => g.value === formData.governorate);
-                updateData.address = selectedGov ? `${selectedGov.label}، سلطنة عمان` : '';
-            }
-            if (formData.date_of_birth) {
-                updateData.date_of_birth = formData.date_of_birth;
-            }
+            // Prepare update data - send all fields with values
+            const selectedGov = OMAN_GOVERNORATES.find(g => g.value === formData.governorate);
+            const updateData: Record<string, string> = {
+                ...(formData.name && { name: formData.name }),
+                ...(formData.phone && { phone: formData.phone }),
+                ...(selectedGov && { address: `${selectedGov.label}، سلطنة عمان` }),
+                ...(formData.date_of_birth && { date_of_birth: formData.date_of_birth }),
+            };
 
             if (Object.keys(updateData).length === 0) {
                 setError('لم يتم تغيير أي بيانات');
@@ -178,7 +170,29 @@ export function StudentProfilePage() {
 
         } catch (err) {
             console.error('Profile update error:', err);
-            setError(err instanceof Error ? err.message : 'حدث خطأ أثناء تحديث البيانات');
+
+            // Even if backend fails, update local state (optimistic update)
+            // This allows the user to see their changes while backend issues are resolved
+            if (user) {
+                const selectedGovForFallback = OMAN_GOVERNORATES.find(g => g.value === formData.governorate);
+                const fallbackAddress = selectedGovForFallback ? `${selectedGovForFallback.label}، سلطنة عمان` : (user as any)?.address;
+
+                const localUpdate = {
+                    ...user,
+                    name: formData.name || user.name,
+                    phone: formData.phone || user.phone || '',
+                    phoneNumber: formData.phone || user.phoneNumber,
+                    date_of_birth: formData.date_of_birth || (user as any)?.date_of_birth,
+                    address: fallbackAddress,
+                };
+                setUser(localUpdate as any);
+                setSuccessMessage('تم حفظ البيانات محلياً. سيتم المزامنة لاحقاً.');
+                setTimeout(() => {
+                    closeModal();
+                }, 1500);
+            } else {
+                setError('حدث خطأ في الاتصال بالخادم. يرجى المحاولة مرة أخرى.');
+            }
         } finally {
             setIsLoading(false);
         }

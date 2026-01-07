@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Search,
     GraduationCap,
@@ -15,9 +15,11 @@ import {
     X,
     ChevronDown,
     ChevronUp,
-    DollarSign
+    DollarSign,
+    Loader2
 } from 'lucide-react';
 import { AddTeacherModal } from '../../components/admin/AddTeacherModal';
+import { adminService, UserData } from '../../../data/api/adminService';
 
 // Types
 type MainTab = 'teachers' | 'instructors';
@@ -97,6 +99,54 @@ export function AdminTeachersPage() {
     const [showPendingRequests, setShowPendingRequests] = useState(true);
     const [showAddTeacherModal, setShowAddTeacherModal] = useState(false);
 
+    // Data fetching states
+    const [teachers, setTeachers] = useState<UserData[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [stats, setStats] = useState({
+        totalTeachers: 0,
+        totalInstructors: 0,
+        activeLessons: 0,
+        pendingRequests: 0,
+    });
+
+    // Fetch teachers from backend
+    const fetchTeachers = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await adminService.getTeachers({ per_page: 100 });
+            setTeachers(response.data);
+            setStats(prev => ({
+                ...prev,
+                totalTeachers: response.meta.total,
+            }));
+        } catch (err) {
+            console.error('Error fetching teachers:', err);
+            setError('فشل في تحميل بيانات المدرسين');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch on mount
+    useEffect(() => {
+        fetchTeachers();
+    }, []);
+
+    // Filter teachers based on search
+    const filteredTeachers = teachers.filter(teacher =>
+        teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        teacher.email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const statsDisplay = [
+        { icon: <GraduationCap size={22} className="text-blue-600" />, label: 'مجموع المدرسين', value: String(stats.totalTeachers), bgColor: 'bg-blue-50' },
+        { icon: <Lightbulb size={22} className="text-green-600" />, label: 'مجموع المدربين', value: String(stats.totalInstructors), bgColor: 'bg-green-50' },
+        { icon: <BookOpen size={22} className="text-purple-600" />, label: 'الدروس النشطة', value: String(stats.activeLessons), bgColor: 'bg-purple-50' },
+        { icon: <AlertCircle size={22} className="text-amber-600" />, label: 'طلبات قيد الانتظار', value: String(stats.pendingRequests), bgColor: 'bg-amber-50' },
+    ];
+
     return (
         <>
             {/* Page Header */}
@@ -153,7 +203,7 @@ export function AdminTeachersPage() {
 
             {/* Stats Mini Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                {stats.map((stat, index) => (
+                {statsDisplay.map((stat, index) => (
                     <div key={index} className="bg-white rounded-[16px] p-4 shadow-card flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-[12px] flex items-center justify-center ${stat.bgColor}`}>
                             {stat.icon}
@@ -187,55 +237,96 @@ export function AdminTeachersPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                    {mockTeachers.map((teacher) => (
-                                        <tr key={teacher.id} className="hover:bg-slate-50/50 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-sm">
-                                                        {teacher.avatar}
-                                                    </div>
-                                                    <span className="font-semibold text-charcoal">{teacher.name}</span>
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan={6} className="px-6 py-16 text-center">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <Loader2 size={40} className="animate-spin text-blue-600" />
+                                                    <p className="text-slate-600">جاري تحميل المدرسين...</p>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-wrap gap-1">
-                                                    {teacher.subjects.map((subject, idx) => (
-                                                        <span key={idx} className={`px-2 py-0.5 rounded-full text-xs font-semibold ${subjectColors[subject] || 'bg-slate-100 text-slate-600'}`}>
-                                                            {subject}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-wrap gap-1">
-                                                    {teacher.grades.map((grade, idx) => (
-                                                        <span key={idx} className="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
-                                                            {grade}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-sm font-semibold text-charcoal">{teacher.students}</td>
-                                            <td className="px-6 py-4">
-                                                <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${statusConfig[teacher.status].bgColor} ${statusConfig[teacher.status].textColor}`}>
-                                                    {statusConfig[teacher.status].label}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <button className="w-8 h-8 rounded-[8px] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors">
-                                                        <Eye size={16} />
-                                                    </button>
-                                                    <button className="w-8 h-8 rounded-[8px] bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 transition-colors">
-                                                        <Edit2 size={16} />
-                                                    </button>
-                                                    <button className="w-8 h-8 rounded-[8px] bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 transition-colors">
-                                                        <Trash2 size={16} />
+                                        </tr>
+                                    ) : error ? (
+                                        <tr>
+                                            <td colSpan={6} className="px-6 py-16 text-center">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <AlertCircle size={40} className="text-red-500" />
+                                                    <p className="text-red-600">{error}</p>
+                                                    <button
+                                                        onClick={fetchTeachers}
+                                                        className="px-6 py-2 bg-shibl-crimson text-white rounded-pill font-semibold hover:bg-shibl-crimson-dark transition-colors"
+                                                    >
+                                                        إعادة المحاولة
                                                     </button>
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))}
+                                    ) : filteredTeachers.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={6} className="px-6 py-16 text-center">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <GraduationCap size={40} className="text-slate-400" />
+                                                    <p className="text-slate-600">
+                                                        {searchQuery ? 'لا توجد نتائج للبحث' : 'لا يوجد مدرسون بعد'}
+                                                    </p>
+                                                    {!searchQuery && (
+                                                        <button
+                                                            onClick={() => setShowAddTeacherModal(true)}
+                                                            className="px-6 py-2 bg-shibl-crimson text-white rounded-pill font-semibold hover:bg-shibl-crimson-dark transition-colors"
+                                                        >
+                                                            إضافة أول مدرس
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredTeachers.map((teacher) => (
+                                            <tr key={teacher.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-sm">
+                                                            {teacher.name.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-semibold text-charcoal">{teacher.name}</span>
+                                                            <span className="text-xs text-slate-400">{teacher.email}</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className="text-sm text-slate-600">{teacher.subject || 'غير محدد'}</span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className="text-sm text-slate-600">-</span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <Users size={16} className="text-slate-400" />
+                                                        <span className="font-semibold text-charcoal">0</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${teacher.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                                                        {teacher.status === 'active' ? 'نشط' : 'غير نشط'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <button className="w-8 h-8 flex items-center justify-center rounded-[8px] hover:bg-blue-50 text-blue-600 transition-colors">
+                                                            <Eye size={16} />
+                                                        </button>
+                                                        <button className="w-8 h-8 rounded-[8px] bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 transition-colors">
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                        <button className="w-8 h-8 rounded-[8px] bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 transition-colors">
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -303,7 +394,8 @@ export function AdminTeachersPage() {
                         </div>
                     </div>
                 </>
-            )}
+            )
+            }
 
             {/* Pending Requests Section */}
             <div className="bg-white rounded-[16px] shadow-card overflow-hidden">
@@ -314,33 +406,20 @@ export function AdminTeachersPage() {
                     <div className="flex items-center gap-2">
                         <AlertCircle size={20} className="text-amber-600" />
                         <h2 className="font-bold text-charcoal">طلبات معلقة</h2>
-                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
-                            {mockPendingRequests.length}
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">
+                            قريباً
                         </span>
                     </div>
                     {showPendingRequests ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
                 </button>
 
                 {showPendingRequests && (
-                    <div className="px-6 pb-4 divide-y divide-slate-100">
-                        {mockPendingRequests.map((request) => (
-                            <div key={request.id} className="py-4 flex items-center justify-between gap-4">
-                                <div className="flex-1">
-                                    <p className="text-sm font-medium text-charcoal">{request.description}</p>
-                                    <p className="text-xs text-slate-grey mt-1">من: {request.from} • {request.time}</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <button className="py-2 px-4 rounded-[10px] bg-green-100 hover:bg-green-200 text-green-700 font-semibold text-sm transition-colors flex items-center gap-1">
-                                        <Check size={16} />
-                                        قبول
-                                    </button>
-                                    <button className="py-2 px-4 rounded-[10px] bg-red-100 hover:bg-red-200 text-red-600 font-semibold text-sm transition-colors flex items-center gap-1">
-                                        <X size={16} />
-                                        رفض
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="px-6 pb-6 pt-2">
+                        <div className="bg-slate-50 rounded-[12px] py-12 px-6 text-center">
+                            <Clock size={40} className="mx-auto mb-3 text-slate-400" />
+                            <p className="text-slate-600 font-medium mb-1">ميزة قيد التطوير</p>
+                            <p className="text-sm text-slate-400">سيتم تفعيل إدارة الطلبات المعلقة قريباً من قبل فريق Backend</p>
+                        </div>
                     </div>
                 )}
             </div>
@@ -351,7 +430,7 @@ export function AdminTeachersPage() {
                 onClose={() => setShowAddTeacherModal(false)}
                 onSuccess={() => {
                     setShowAddTeacherModal(false);
-                    // TODO: Refresh teachers list when connected to real data
+                    fetchTeachers(); // Refresh teachers list
                 }}
             />
         </>

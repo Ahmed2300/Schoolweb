@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react';
-import { X, Loader2, User, Mail, Lock, Shield, Eye, EyeOff, ChevronDown, Users, Settings, AlertCircle } from 'lucide-react';
-import { adminService, CreateAdminRequest, RoleData } from '../../../data/api/adminService';
+import { X, Loader2, User, Mail, Shield, Eye, EyeOff, ChevronDown, Users, Settings, AlertCircle } from 'lucide-react';
+import { adminService, RoleData } from '../../../data/api/adminService';
 
-interface AddAdminModalProps {
+interface EditAdminModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
+    admin: {
+        id: number;
+        name: string;
+        email: string;
+        roles?: RoleData[];
+    } | null;
 }
 
 interface FormData {
@@ -16,16 +22,14 @@ interface FormData {
     role_id: number | null;
 }
 
-const initialFormData: FormData = {
-    name: '',
-    email: '',
-    password: '',
-    password_confirmation: '',
-    role_id: null,
-};
-
-export function AddAdminModal({ isOpen, onClose, onSuccess }: AddAdminModalProps) {
-    const [formData, setFormData] = useState<FormData>(initialFormData);
+export function EditAdminModal({ isOpen, onClose, onSuccess, admin }: EditAdminModalProps) {
+    const [formData, setFormData] = useState<FormData>({
+        name: '',
+        email: '',
+        password: '',
+        password_confirmation: '',
+        role_id: null,
+    });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -58,15 +62,20 @@ export function AddAdminModal({ isOpen, onClose, onSuccess }: AddAdminModalProps
         }
     }, [isOpen, roles.length]);
 
-    // Reset form when modal opens
+    // Initialize form when admin changes
     useEffect(() => {
-        if (isOpen) {
-            setFormData(initialFormData);
+        if (isOpen && admin) {
+            setFormData({
+                name: admin.name || '',
+                email: admin.email || '',
+                password: '',
+                password_confirmation: '',
+                role_id: admin.roles?.[0]?.id || null,
+            });
             setError(null);
             setFieldErrors({});
-            setShowRoleDropdown(false);
         }
-    }, [isOpen]);
+    }, [isOpen, admin]);
 
     // Handle escape key
     useEffect(() => {
@@ -105,7 +114,7 @@ export function AddAdminModal({ isOpen, onClose, onSuccess }: AddAdminModalProps
         return () => document.removeEventListener('click', handleClickOutside);
     }, [showRoleDropdown]);
 
-    if (!isOpen) return null;
+    if (!isOpen || !admin) return null;
 
     const handleChange = (name: keyof FormData, value: string | number | null) => {
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -118,7 +127,7 @@ export function AddAdminModal({ isOpen, onClose, onSuccess }: AddAdminModalProps
         }
     };
 
-    const handleRoleSelect = (roleId: number) => {
+    const handleRoleSelect = (roleId: number | null) => {
         setFormData(prev => ({ ...prev, role_id: roleId }));
         setShowRoleDropdown(false);
     };
@@ -133,11 +142,12 @@ export function AddAdminModal({ isOpen, onClose, onSuccess }: AddAdminModalProps
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             errors.email = 'البريد الإلكتروني غير صالح';
         }
-        if (!formData.password) errors.password = 'كلمة المرور مطلوبة';
-        else if (formData.password.length < 8) {
+
+        // Password is optional for updates, but if provided must match
+        if (formData.password && formData.password.length < 8) {
             errors.password = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
         }
-        if (formData.password !== formData.password_confirmation) {
+        if (formData.password && formData.password !== formData.password_confirmation) {
             errors.password_confirmation = 'كلمة المرور غير متطابقة';
         }
 
@@ -154,19 +164,27 @@ export function AddAdminModal({ isOpen, onClose, onSuccess }: AddAdminModalProps
         setError(null);
 
         try {
-            const requestData: CreateAdminRequest = {
+            const updateData: any = {
                 name: formData.name,
                 email: formData.email,
-                password: formData.password,
-                password_confirmation: formData.password_confirmation,
-                role_id: formData.role_id || undefined,
             };
 
-            await adminService.createAdmin(requestData);
+            // Only include password if provided
+            if (formData.password) {
+                updateData.password = formData.password;
+                updateData.password_confirmation = formData.password_confirmation;
+            }
+
+            // Include role_id if set
+            if (formData.role_id) {
+                updateData.role_id = formData.role_id;
+            }
+
+            await adminService.updateAdmin(admin.id, updateData);
             onSuccess();
             onClose();
         } catch (err: any) {
-            console.error('Error creating admin:', err);
+            console.error('Error updating admin:', err);
             if (err.response?.data?.errors) {
                 const backendErrors: Record<string, string> = {};
                 Object.entries(err.response.data.errors).forEach(([key, messages]) => {
@@ -174,7 +192,7 @@ export function AddAdminModal({ isOpen, onClose, onSuccess }: AddAdminModalProps
                 });
                 setFieldErrors(backendErrors);
             } else {
-                setError(err.response?.data?.message || 'فشل في إضافة المدير');
+                setError(err.response?.data?.message || 'فشل في تحديث المدير');
             }
         } finally {
             setLoading(false);
@@ -184,7 +202,7 @@ export function AddAdminModal({ isOpen, onClose, onSuccess }: AddAdminModalProps
     const inputClass = (fieldName: string) =>
         `w-full h-12 rounded-[12px] bg-soft-cloud border transition-all outline-none text-sm ${fieldErrors[fieldName]
             ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-100'
-            : 'border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'
+            : 'border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100'
         }`;
 
     return (
@@ -198,14 +216,14 @@ export function AddAdminModal({ isOpen, onClose, onSuccess }: AddAdminModalProps
             {/* Modal */}
             <div className="relative bg-white rounded-[20px] shadow-xl w-full max-w-md mx-4 overflow-hidden animate-in zoom-in-95 fade-in duration-200 max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="sticky top-0 bg-gradient-to-br from-charcoal to-slate-800 px-6 py-5 flex items-center justify-between z-10">
+                <div className="sticky top-0 bg-gradient-to-br from-blue-600 to-blue-800 px-6 py-5 flex items-center justify-between z-10">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                            <Shield size={24} className="text-white" />
+                        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white text-xl font-bold">
+                            {admin.name.charAt(0)}
                         </div>
                         <div className="text-white">
-                            <h2 className="text-lg font-extrabold">إضافة مدير جديد</h2>
-                            <p className="text-xs text-white/80">اختر نوع المدير وصلاحياته</p>
+                            <h2 className="text-lg font-extrabold">تعديل المدير</h2>
+                            <p className="text-xs text-white/80">{admin.email}</p>
                         </div>
                     </div>
                     <button
@@ -221,123 +239,18 @@ export function AddAdminModal({ isOpen, onClose, onSuccess }: AddAdminModalProps
                 <form onSubmit={handleSubmit} className="p-6">
                     {/* Error Banner */}
                     {error && (
-                        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-[12px] text-sm">
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-[12px] text-sm flex items-center gap-2">
+                            <AlertCircle size={18} />
                             {error}
                         </div>
                     )}
 
                     {/* Form Fields */}
                     <div className="space-y-4">
-                        {/* Admin Role Selection */}
-                        <div className="role-dropdown-container">
-                            <label className="block text-sm font-semibold text-charcoal mb-2">
-                                الدور <span className="text-slate-400">(اختياري)</span>
-                            </label>
-
-                            {/* Roles Loading State */}
-                            {rolesLoading && (
-                                <div className="w-full h-12 rounded-[12px] bg-soft-cloud border border-slate-200 flex items-center justify-center gap-2 text-slate-400">
-                                    <Loader2 size={18} className="animate-spin" />
-                                    <span className="text-sm">جاري تحميل الأدوار...</span>
-                                </div>
-                            )}
-
-                            {/* Roles Error State */}
-                            {rolesError && !rolesLoading && (
-                                <div className="w-full p-3 rounded-[12px] bg-red-50 border border-red-200 flex items-center gap-2 text-red-600">
-                                    <AlertCircle size={18} />
-                                    <span className="text-sm">{rolesError}</span>
-                                </div>
-                            )}
-
-                            {/* Role Dropdown */}
-                            {!rolesLoading && !rolesError && (
-                                <div className="relative">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowRoleDropdown(!showRoleDropdown)}
-                                        className="w-full h-12 rounded-[12px] bg-soft-cloud border border-slate-200 hover:border-slate-300 transition-all outline-none text-sm px-4 flex items-center justify-between"
-                                        disabled={loading || roles.length === 0}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white">
-                                                <Shield size={18} />
-                                            </div>
-                                            <div className="text-right">
-                                                <span className="font-semibold text-charcoal">
-                                                    {selectedRole ? selectedRole.name : 'اختر الدور'}
-                                                </span>
-                                                <p className="text-xs text-slate-400">
-                                                    {selectedRole ? `Guard: ${selectedRole.guard_name}` : 'حدد صلاحيات المدير'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <ChevronDown size={18} className={`text-slate-400 transition-transform ${showRoleDropdown ? 'rotate-180' : ''}`} />
-                                    </button>
-
-                                    {/* Dropdown */}
-                                    {showRoleDropdown && roles.length > 0 && (
-                                        <div className="absolute top-full mt-2 w-full bg-white rounded-[12px] shadow-xl border border-slate-200 z-20 overflow-hidden max-h-60 overflow-y-auto">
-                                            {/* Option to clear selection */}
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    handleRoleSelect(0);
-                                                    setFormData(prev => ({ ...prev, role_id: null }));
-                                                    setShowRoleDropdown(false);
-                                                }}
-                                                className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors ${!formData.role_id ? 'bg-slate-50' : ''}`}
-                                            >
-                                                <div className="w-8 h-8 rounded-lg bg-slate-300 flex items-center justify-center text-white">
-                                                    <Users size={18} />
-                                                </div>
-                                                <div className="flex-1 text-right">
-                                                    <span className="font-semibold text-charcoal block">بدون دور محدد</span>
-                                                    <p className="text-xs text-slate-400">سيتم تعيين الدور لاحقاً</p>
-                                                </div>
-                                            </button>
-
-                                            {roles.map((role) => (
-                                                <button
-                                                    key={role.id}
-                                                    type="button"
-                                                    onClick={() => handleRoleSelect(role.id)}
-                                                    className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors ${formData.role_id === role.id ? 'bg-slate-50' : ''}`}
-                                                >
-                                                    <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white">
-                                                        <Shield size={18} />
-                                                    </div>
-                                                    <div className="flex-1 text-right">
-                                                        <span className="font-semibold text-charcoal block">{role.name}</span>
-                                                        <p className="text-xs text-slate-400">
-                                                            {role.permissions?.length || 0} صلاحية
-                                                        </p>
-                                                    </div>
-                                                    {formData.role_id === role.id && (
-                                                        <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                                                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                                            </svg>
-                                                        </div>
-                                                    )}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Role info notice */}
-                            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs flex items-start gap-2">
-                                <Settings size={14} className="flex-shrink-0 mt-0.5" />
-                                <span>الصلاحيات ستُحدد تلقائياً حسب الدور المختار من النظام.</span>
-                            </div>
-                        </div>
-
                         {/* Name */}
                         <div>
                             <label className="block text-sm font-semibold text-charcoal mb-2">
-                                الاسم <span className="text-shibl-crimson">*</span>
+                                الاسم <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -359,7 +272,7 @@ export function AddAdminModal({ isOpen, onClose, onSuccess }: AddAdminModalProps
                         {/* Email */}
                         <div>
                             <label className="block text-sm font-semibold text-charcoal mb-2">
-                                البريد الإلكتروني <span className="text-shibl-crimson">*</span>
+                                البريد الإلكتروني <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -378,21 +291,107 @@ export function AddAdminModal({ isOpen, onClose, onSuccess }: AddAdminModalProps
                             {fieldErrors.email && <p className="mt-1 text-xs text-red-500">{fieldErrors.email}</p>}
                         </div>
 
-                        {/* Password */}
+                        {/* Role Selection */}
+                        <div className="role-dropdown-container">
+                            <label className="block text-sm font-semibold text-charcoal mb-2">
+                                الدور <span className="text-slate-400">(اختياري)</span>
+                            </label>
+
+                            {rolesLoading && (
+                                <div className="w-full h-12 rounded-[12px] bg-soft-cloud border border-slate-200 flex items-center justify-center gap-2 text-slate-400">
+                                    <Loader2 size={18} className="animate-spin" />
+                                    <span className="text-sm">جاري تحميل الأدوار...</span>
+                                </div>
+                            )}
+
+                            {rolesError && !rolesLoading && (
+                                <div className="w-full p-3 rounded-[12px] bg-red-50 border border-red-200 flex items-center gap-2 text-red-600">
+                                    <AlertCircle size={18} />
+                                    <span className="text-sm">{rolesError}</span>
+                                </div>
+                            )}
+
+                            {!rolesLoading && !rolesError && (
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowRoleDropdown(!showRoleDropdown)}
+                                        className="w-full h-12 rounded-[12px] bg-soft-cloud border border-slate-200 hover:border-slate-300 transition-all outline-none text-sm px-4 flex items-center justify-between"
+                                        disabled={loading || roles.length === 0}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white">
+                                                <Shield size={18} />
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="font-semibold text-charcoal">
+                                                    {selectedRole ? selectedRole.name : 'اختر الدور'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <ChevronDown size={18} className={`text-slate-400 transition-transform ${showRoleDropdown ? 'rotate-180' : ''}`} />
+                                    </button>
+
+                                    {showRoleDropdown && roles.length > 0 && (
+                                        <div className="absolute top-full mt-2 w-full bg-white rounded-[12px] shadow-xl border border-slate-200 z-20 overflow-hidden max-h-60 overflow-y-auto">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRoleSelect(null)}
+                                                className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors ${!formData.role_id ? 'bg-slate-50' : ''}`}
+                                            >
+                                                <div className="w-8 h-8 rounded-lg bg-slate-300 flex items-center justify-center text-white">
+                                                    <Users size={18} />
+                                                </div>
+                                                <div className="flex-1 text-right">
+                                                    <span className="font-semibold text-charcoal block">بدون دور محدد</span>
+                                                </div>
+                                            </button>
+
+                                            {roles.map((role) => (
+                                                <button
+                                                    key={role.id}
+                                                    type="button"
+                                                    onClick={() => handleRoleSelect(role.id)}
+                                                    className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors ${formData.role_id === role.id ? 'bg-slate-50' : ''}`}
+                                                >
+                                                    <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white">
+                                                        <Shield size={18} />
+                                                    </div>
+                                                    <div className="flex-1 text-right">
+                                                        <span className="font-semibold text-charcoal block">{role.name}</span>
+                                                    </div>
+                                                    {formData.role_id === role.id && (
+                                                        <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                                                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                            </svg>
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Divider */}
+                        <div className="border-t border-slate-200 pt-4">
+                            <p className="text-sm text-slate-500 mb-4">تغيير كلمة المرور (اختياري)</p>
+                        </div>
+
+                        {/* New Password */}
                         <div>
                             <label className="block text-sm font-semibold text-charcoal mb-2">
-                                كلمة المرور <span className="text-shibl-crimson">*</span>
+                                كلمة المرور الجديدة
                             </label>
                             <div className="relative">
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-                                    <Lock size={18} />
-                                </div>
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     value={formData.password}
                                     onChange={(e) => handleChange('password', e.target.value)}
-                                    placeholder="8 أحرف على الأقل"
-                                    className={`${inputClass('password')} pr-12 pl-10`}
+                                    placeholder="اتركه فارغاً للإبقاء على كلمة المرور الحالية"
+                                    className={`${inputClass('password')} px-4`}
                                     disabled={loading}
                                 />
                                 <button
@@ -407,29 +406,31 @@ export function AddAdminModal({ isOpen, onClose, onSuccess }: AddAdminModalProps
                         </div>
 
                         {/* Confirm Password */}
-                        <div>
-                            <label className="block text-sm font-semibold text-charcoal mb-2">
-                                تأكيد كلمة المرور <span className="text-shibl-crimson">*</span>
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type={showConfirmPassword ? 'text' : 'password'}
-                                    value={formData.password_confirmation}
-                                    onChange={(e) => handleChange('password_confirmation', e.target.value)}
-                                    placeholder="أعد كتابة كلمة المرور"
-                                    className={`${inputClass('password_confirmation')} px-10`}
-                                    disabled={loading}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                                >
-                                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
+                        {formData.password && (
+                            <div>
+                                <label className="block text-sm font-semibold text-charcoal mb-2">
+                                    تأكيد كلمة المرور
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        value={formData.password_confirmation}
+                                        onChange={(e) => handleChange('password_confirmation', e.target.value)}
+                                        placeholder="أعد كتابة كلمة المرور"
+                                        className={`${inputClass('password_confirmation')} px-4`}
+                                        disabled={loading}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                                {fieldErrors.password_confirmation && <p className="mt-1 text-xs text-red-500">{fieldErrors.password_confirmation}</p>}
                             </div>
-                            {fieldErrors.password_confirmation && <p className="mt-1 text-xs text-red-500">{fieldErrors.password_confirmation}</p>}
-                        </div>
+                        )}
                     </div>
 
                     {/* Actions */}
@@ -445,17 +446,17 @@ export function AddAdminModal({ isOpen, onClose, onSuccess }: AddAdminModalProps
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 h-12 rounded-pill bg-charcoal hover:bg-slate-800 text-white font-bold text-sm shadow-lg transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center gap-2"
+                            className="flex-1 h-12 rounded-pill bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>
                                     <Loader2 size={18} className="animate-spin" />
-                                    <span>جاري الإضافة...</span>
+                                    <span>جاري الحفظ...</span>
                                 </>
                             ) : (
                                 <>
-                                    <Shield size={18} />
-                                    <span>إضافة المدير</span>
+                                    <Settings size={18} />
+                                    <span>حفظ التغييرات</span>
                                 </>
                             )}
                         </button>

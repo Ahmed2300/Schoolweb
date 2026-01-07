@@ -40,6 +40,7 @@ export const ROUTES = {
 
     // Admin routes
     ADMIN_DASHBOARD: '/admin',
+    ADMIN_ADMINS: '/admin/admins',
     ADMIN_USERS: '/admin/users',
     ADMIN_COURSES: '/admin/courses',
     ADMIN_SUBSCRIPTIONS: '/admin/subscriptions',

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { X, Save, Loader2, User, Mail, Phone, Lock, BookOpen, GraduationCap, Eye, EyeOff } from 'lucide-react';
-import { adminService, CreateTeacherRequest } from '../../../data/api/adminService';
+import { useState, useEffect, useRef } from 'react';
+import { X, Save, Loader2, User, Mail, Phone, Lock, BookOpen, GraduationCap, Eye, EyeOff, ImagePlus, Trash2 } from 'lucide-react';
+import { adminService } from '../../../data/api/adminService';
 
 interface AddTeacherModalProps {
     isOpen: boolean;
@@ -38,12 +38,19 @@ export function AddTeacherModal({ isOpen, onClose, onSuccess }: AddTeacherModalP
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    // Image upload state
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     // Reset form when modal opens
     useEffect(() => {
         if (isOpen) {
             setFormData(initialFormData);
             setError(null);
             setFieldErrors({});
+            setImageFile(null);
+            setImagePreview(null);
         }
     }, [isOpen]);
 
@@ -83,6 +90,39 @@ export function AddTeacherModal({ isOpen, onClose, onSuccess }: AddTeacherModalP
         }
     };
 
+    // Handle image selection
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            // Validate file type
+            if (!['image/jpeg', 'image/png', 'image/jpg', 'image/gif'].includes(file.type)) {
+                setFieldErrors(prev => ({ ...prev, image: 'يجب أن تكون الصورة بصيغة JPEG, PNG, JPG, أو GIF' }));
+                return;
+            }
+            // Validate file size (max 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                setFieldErrors(prev => ({ ...prev, image: 'حجم الصورة يجب أن لا يتجاوز 2 ميغابايت' }));
+                return;
+            }
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+            setFieldErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors.image;
+                return newErrors;
+            });
+        }
+    };
+
+    // Remove selected image
+    const handleRemoveImage = () => {
+        setImageFile(null);
+        setImagePreview(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
     const validateForm = (): boolean => {
         const errors: Record<string, string> = {};
 
@@ -115,18 +155,19 @@ export function AddTeacherModal({ isOpen, onClose, onSuccess }: AddTeacherModalP
         setError(null);
 
         try {
-            const requestData: CreateTeacherRequest = {
-                name: formData.name,
-                email: formData.email,
-                password: formData.password,
-                password_confirmation: formData.password_confirmation,
-                specialization: formData.specialization,
-                phone: formData.phone || undefined,
-                qualification: formData.qualification || undefined,
-                status: formData.status,
-            };
+            // Use FormData for file upload support
+            const submitData = new window.FormData();
+            submitData.append('name', formData.name);
+            submitData.append('email', formData.email);
+            submitData.append('password', formData.password);
+            submitData.append('password_confirmation', formData.password_confirmation);
+            submitData.append('specialization', formData.specialization);
+            if (formData.phone) submitData.append('phone', formData.phone);
+            if (formData.qualification) submitData.append('qualification', formData.qualification);
+            submitData.append('status', formData.status);
+            if (imageFile) submitData.append('image_path', imageFile);
 
-            await adminService.createTeacher(requestData);
+            await adminService.createTeacherWithImage(submitData);
             onSuccess();
             onClose();
         } catch (err: any) {
@@ -363,6 +404,69 @@ export function AddTeacherModal({ isOpen, onClose, onSuccess }: AddTeacherModalP
                                 <option value="inactive">غير نشط</option>
                                 <option value="on-leave">في إجازة</option>
                             </select>
+                        </div>
+
+                        {/* Profile Image */}
+                        <div>
+                            <label className="block text-sm font-semibold text-charcoal mb-2">صورة الملف الشخصي</label>
+                            <div className="flex items-start gap-4">
+                                {/* Image Preview */}
+                                <div className="w-20 h-20 rounded-[12px] bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden">
+                                    {imagePreview ? (
+                                        <img
+                                            src={imagePreview}
+                                            alt="Preview"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <GraduationCap size={32} className="text-slate-400" />
+                                    )}
+                                </div>
+
+                                {/* Upload Controls */}
+                                <div className="flex-1">
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleImageChange}
+                                        accept="image/jpeg,image/png,image/jpg,image/gif"
+                                        className="hidden"
+                                        disabled={loading}
+                                    />
+                                    <div className="flex gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={loading}
+                                            className="flex-1 h-10 rounded-[10px] bg-slate-100 hover:bg-slate-200 text-charcoal font-medium text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                        >
+                                            <ImagePlus size={16} />
+                                            <span>{imageFile ? 'تغيير الصورة' : 'اختيار صورة'}</span>
+                                        </button>
+                                        {imageFile && (
+                                            <button
+                                                type="button"
+                                                onClick={handleRemoveImage}
+                                                disabled={loading}
+                                                className="w-10 h-10 rounded-[10px] bg-red-100 hover:bg-red-200 text-red-600 transition-colors flex items-center justify-center disabled:opacity-50"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-slate-400 mt-2">
+                                        JPEG, PNG, JPG أو GIF (الحد الأقصى 2 ميغابايت)
+                                    </p>
+                                    {imageFile && (
+                                        <p className="text-xs text-green-600 mt-1">
+                                            ✓ {imageFile.name}
+                                        </p>
+                                    )}
+                                    {fieldErrors.image && (
+                                        <p className="text-xs text-red-500 mt-1">{fieldErrors.image}</p>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
 

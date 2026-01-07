@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Save,
     Globe,
@@ -8,14 +8,143 @@ import {
     Settings,
     Upload,
     AlertTriangle,
-    MapPin
+    MapPin,
+    User,
+    Mail,
+    Lock,
+    Eye,
+    EyeOff,
+    Loader2,
+    CheckCircle,
+    AlertCircle
 } from 'lucide-react';
+import { useAuthStore } from '../../store';
+import { adminService } from '../../../data/api/adminService';
 
 // Types
-type SettingsTab = 'general' | 'roles' | 'locations' | 'payments' | 'notifications';
+type SettingsTab = 'profile' | 'general' | 'roles' | 'locations' | 'payments' | 'notifications';
 
 export function AdminSettingsPage() {
-    const [activeTab, setActiveTab] = useState<SettingsTab>('general');
+    const { user: currentUser, setUser } = useAuthStore();
+    const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
+
+    // Profile Form States
+    const [profileName, setProfileName] = useState('');
+    const [profileEmail, setProfileEmail] = useState('');
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    // Profile Form UI States
+    const [profileLoading, setProfileLoading] = useState(false);
+    const [passwordLoading, setPasswordLoading] = useState(false);
+    const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
+    const [profileError, setProfileError] = useState<string | null>(null);
+    const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+    const [passwordError, setPasswordError] = useState<string | null>(null);
+
+    // Initialize profile form with current user data
+    useEffect(() => {
+        if (currentUser) {
+            setProfileName(currentUser.name || '');
+            setProfileEmail(currentUser.email || '');
+        }
+    }, [currentUser]);
+
+    // Clear messages after 5 seconds
+    useEffect(() => {
+        if (profileSuccess || profileError) {
+            const timer = setTimeout(() => {
+                setProfileSuccess(null);
+                setProfileError(null);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [profileSuccess, profileError]);
+
+    useEffect(() => {
+        if (passwordSuccess || passwordError) {
+            const timer = setTimeout(() => {
+                setPasswordSuccess(null);
+                setPasswordError(null);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [passwordSuccess, passwordError]);
+
+    // Handle profile update
+    const handleProfileUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setProfileLoading(true);
+        setProfileError(null);
+        setProfileSuccess(null);
+
+        try {
+            if (!currentUser?.id) throw new Error('المستخدم غير موجود');
+
+            const updatedAdmin = await adminService.updateAdmin(Number(currentUser.id), {
+                name: profileName,
+                email: profileEmail,
+            });
+
+            // Update local state
+            setUser({
+                ...currentUser,
+                name: updatedAdmin.name || profileName,
+                email: updatedAdmin.email || profileEmail,
+            });
+
+            setProfileSuccess('تم تحديث الملف الشخصي بنجاح');
+        } catch (err: any) {
+            console.error('Error updating profile:', err);
+            setProfileError(err.response?.data?.message || 'فشل في تحديث الملف الشخصي');
+        } finally {
+            setProfileLoading(false);
+        }
+    };
+
+    // Handle password update
+    const handlePasswordUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setPasswordLoading(true);
+        setPasswordError(null);
+        setPasswordSuccess(null);
+
+        // Validate
+        if (newPassword.length < 8) {
+            setPasswordError('كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل');
+            setPasswordLoading(false);
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            setPasswordError('كلمة المرور الجديدة غير متطابقة');
+            setPasswordLoading(false);
+            return;
+        }
+
+        try {
+            if (!currentUser?.id) throw new Error('المستخدم غير موجود');
+
+            await adminService.updateAdmin(Number(currentUser.id), {
+                password: newPassword,
+                password_confirmation: confirmPassword,
+            });
+
+            // Clear password fields
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+            setPasswordSuccess('تم تغيير كلمة المرور بنجاح');
+        } catch (err: any) {
+            console.error('Error updating password:', err);
+            setPasswordError(err.response?.data?.message || 'فشل في تغيير كلمة المرور');
+        } finally {
+            setPasswordLoading(false);
+        }
+    };
 
     // Form States (Mock)
     const [siteName, setSiteName] = useState('منصتي التعليمية');
@@ -38,18 +167,21 @@ export function AdminSettingsPage() {
                     <h1 className="text-2xl font-extrabold text-charcoal mb-1">الإعدادات</h1>
                     <p className="text-slate-500 text-sm">تخصيص خصائص المنصة وإدارة النظام</p>
                 </div>
-
-                <div className="flex items-center gap-3">
-                    <button className="h-11 px-6 rounded-[12px] bg-shibl-crimson hover:bg-red-800 text-white font-bold text-sm transition-all flex items-center gap-2 shadow-lg shadow-red-900/10">
-                        <Save size={18} />
-                        <span>حفظ التغييرات</span>
-                    </button>
-                </div>
             </div>
 
             {/* Tabs */}
             <div className="border-b border-slate-200 mb-8 overflow-x-auto">
                 <div className="flex items-center gap-6 min-w-max">
+                    <button
+                        onClick={() => setActiveTab('profile')}
+                        className={`pb-4 px-2 font-bold text-sm transition-all relative flex items-center gap-2 ${activeTab === 'profile' ? 'text-shibl-crimson' : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                    >
+                        <User size={20} />
+                        <span>حسابي</span>
+                        {activeTab === 'profile' && <div className="absolute bottom-0 right-0 left-0 h-0.5 bg-shibl-crimson rounded-t-full" />}
+                    </button>
+
                     <button
                         onClick={() => setActiveTab('general')}
                         className={`pb-4 px-2 font-bold text-sm transition-all relative flex items-center gap-2 ${activeTab === 'general' ? 'text-shibl-crimson' : 'text-slate-500 hover:text-slate-700'
@@ -102,6 +234,204 @@ export function AdminSettingsPage() {
                 </div>
             </div>
 
+            {/* Profile Tab Content */}
+            {activeTab === 'profile' && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Profile Info */}
+                    <div className="bg-white rounded-[20px] shadow-card border border-slate-100 p-6">
+                        <h3 className="font-bold text-charcoal mb-6 flex items-center gap-2">
+                            <User size={20} className="text-slate-400" />
+                            الملف الشخصي
+                        </h3>
+
+                        {/* Success/Error Messages */}
+                        {profileSuccess && (
+                            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-[12px] text-sm flex items-center gap-2">
+                                <CheckCircle size={18} />
+                                {profileSuccess}
+                            </div>
+                        )}
+                        {profileError && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-[12px] text-sm flex items-center gap-2">
+                                <AlertCircle size={18} />
+                                {profileError}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleProfileUpdate} className="space-y-4">
+                            {/* Avatar */}
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-shibl-crimson to-red-700 flex items-center justify-center text-white text-2xl font-bold ring-4 ring-shibl-crimson/20">
+                                    {profileName.charAt(0) || 'A'}
+                                </div>
+                                <div>
+                                    <p className="font-bold text-charcoal">{profileName || 'Admin'}</p>
+                                    <p className="text-sm text-slate-500">{profileEmail}</p>
+                                </div>
+                            </div>
+
+                            {/* Name */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 mb-1.5">الاسم</label>
+                                <div className="relative">
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                        <User size={18} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={profileName}
+                                        onChange={(e) => setProfileName(e.target.value)}
+                                        className="w-full h-11 pr-12 pl-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                        dir="auto"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Email */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 mb-1.5">البريد الإلكتروني</label>
+                                <div className="relative">
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                        <Mail size={18} />
+                                    </div>
+                                    <input
+                                        type="email"
+                                        value={profileEmail}
+                                        onChange={(e) => setProfileEmail(e.target.value)}
+                                        className="w-full h-11 pr-12 pl-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                        dir="ltr"
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={profileLoading}
+                                className="w-full h-11 mt-4 rounded-[10px] bg-shibl-crimson hover:bg-red-800 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {profileLoading ? (
+                                    <>
+                                        <Loader2 size={18} className="animate-spin" />
+                                        جاري الحفظ...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save size={18} />
+                                        حفظ التغييرات
+                                    </>
+                                )}
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Change Password */}
+                    <div className="bg-white rounded-[20px] shadow-card border border-slate-100 p-6">
+                        <h3 className="font-bold text-charcoal mb-6 flex items-center gap-2">
+                            <Lock size={20} className="text-slate-400" />
+                            تغيير كلمة المرور
+                        </h3>
+
+                        {/* Success/Error Messages */}
+                        {passwordSuccess && (
+                            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-[12px] text-sm flex items-center gap-2">
+                                <CheckCircle size={18} />
+                                {passwordSuccess}
+                            </div>
+                        )}
+                        {passwordError && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-[12px] text-sm flex items-center gap-2">
+                                <AlertCircle size={18} />
+                                {passwordError}
+                            </div>
+                        )}
+
+                        <form onSubmit={handlePasswordUpdate} className="space-y-4">
+                            {/* Current Password */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 mb-1.5">كلمة المرور الحالية</label>
+                                <div className="relative">
+                                    <input
+                                        type={showCurrentPassword ? 'text' : 'password'}
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        placeholder="أدخل كلمة المرور الحالية"
+                                        className="w-full h-11 px-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    >
+                                        {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* New Password */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 mb-1.5">كلمة المرور الجديدة</label>
+                                <div className="relative">
+                                    <input
+                                        type={showNewPassword ? 'text' : 'password'}
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        placeholder="أدخل كلمة المرور الجديدة"
+                                        className="w-full h-11 px-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    >
+                                        {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                                <p className="text-xs text-slate-400 mt-1">يجب أن تكون 8 أحرف على الأقل</p>
+                            </div>
+
+                            {/* Confirm Password */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 mb-1.5">تأكيد كلمة المرور</label>
+                                <div className="relative">
+                                    <input
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        placeholder="أعد كتابة كلمة المرور الجديدة"
+                                        className="w-full h-11 px-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={passwordLoading || !newPassword || !confirmPassword}
+                                className="w-full h-11 mt-4 rounded-[10px] bg-charcoal hover:bg-slate-800 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {passwordLoading ? (
+                                    <>
+                                        <Loader2 size={18} className="animate-spin" />
+                                        جاري التغيير...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Lock size={18} />
+                                        تغيير كلمة المرور
+                                    </>
+                                )}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             {/* General Tab Content */}
             {activeTab === 'general' && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -152,6 +482,11 @@ export function AdminSettingsPage() {
                                 placeholder="منصة تعليمية رائدة..."
                             />
                         </div>
+
+                        <button className="w-full h-11 mt-6 rounded-[10px] bg-shibl-crimson hover:bg-red-800 text-white font-bold text-sm transition-all flex items-center justify-center gap-2">
+                            <Save size={18} />
+                            حفظ التغييرات
+                        </button>
                     </div>
 
                     {/* System Settings */}
@@ -268,3 +603,4 @@ export function AdminSettingsPage() {
         </>
     );
 }
+

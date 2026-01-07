@@ -14,7 +14,10 @@ import {
     Loader2,
     AlertCircle
 } from 'lucide-react';
-import { adminService } from '../../../data/api/adminService';
+import { adminService, CourseData } from '../../../data/api/adminService';
+import { AddCourseModal } from '../../components/admin/AddCourseModal';
+import { EditCourseModal } from '../../components/admin/EditCourseModal';
+import { DeleteConfirmModal } from '../../components/admin/DeleteConfirmModal';
 
 // ============================================================
 // Types - Designed for future backend enhancements
@@ -101,6 +104,11 @@ export function AdminCoursesPage() {
         draftCourses: 0,
     });
 
+    // Modal state
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [editingCourse, setEditingCourse] = useState<CourseData | null>(null);
+    const [deletingCourse, setDeletingCourse] = useState<Course | null>(null);
+
     // Fetch courses
     const fetchCourses = useCallback(async () => {
         try {
@@ -162,7 +170,10 @@ export function AdminCoursesPage() {
                     </div>
 
                     {/* Add Course Button */}
-                    <button className="h-11 px-6 rounded-pill bg-shibl-crimson hover:bg-shibl-crimson-dark text-white font-bold text-sm shadow-crimson transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2">
+                    <button
+                        onClick={() => setShowAddModal(true)}
+                        className="h-11 px-6 rounded-pill bg-shibl-crimson hover:bg-shibl-crimson-dark text-white font-bold text-sm shadow-crimson transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
+                    >
                         <Plus size={18} />
                         <span>إضافة كورس</span>
                     </button>
@@ -331,10 +342,16 @@ export function AdminCoursesPage() {
                                                         <button className="w-8 h-8 rounded-[8px] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors">
                                                             <Eye size={16} />
                                                         </button>
-                                                        <button className="w-8 h-8 rounded-[8px] bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 transition-colors">
+                                                        <button
+                                                            onClick={() => setEditingCourse(course as unknown as CourseData)}
+                                                            className="w-8 h-8 rounded-[8px] bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 transition-colors"
+                                                        >
                                                             <Edit2 size={16} />
                                                         </button>
-                                                        <button className="w-8 h-8 rounded-[8px] bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 transition-colors">
+                                                        <button
+                                                            onClick={() => setDeletingCourse(course)}
+                                                            className="w-8 h-8 rounded-[8px] bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 transition-colors"
+                                                        >
                                                             <Trash2 size={16} />
                                                         </button>
                                                     </div>
@@ -358,6 +375,42 @@ export function AdminCoursesPage() {
                 <code className="mx-1 px-2 py-0.5 bg-amber-100 rounded text-xs">category_id</code>
                 <code className="mx-1 px-2 py-0.5 bg-amber-100 rounded text-xs">course_type</code>
             </div>
+
+            {/* Add Course Modal */}
+            <AddCourseModal
+                isOpen={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                onSuccess={() => {
+                    setShowAddModal(false);
+                    fetchCourses();
+                }}
+            />
+
+            {/* Edit Course Modal */}
+            <EditCourseModal
+                isOpen={!!editingCourse}
+                course={editingCourse}
+                onClose={() => setEditingCourse(null)}
+                onSuccess={() => {
+                    setEditingCourse(null);
+                    fetchCourses();
+                }}
+            />
+
+            {/* Delete Confirmation Modal */}
+            <DeleteConfirmModal
+                isOpen={!!deletingCourse}
+                title="حذف الكورس"
+                message="هل أنت متأكد من حذف هذا الكورس؟ سيتم حذف جميع المحاضرات والبيانات المرتبطة به."
+                itemName={deletingCourse ? getCourseName(deletingCourse) : undefined}
+                onConfirm={async () => {
+                    if (deletingCourse) {
+                        await adminService.deleteCourse(deletingCourse.id);
+                        fetchCourses();
+                    }
+                }}
+                onClose={() => setDeletingCourse(null)}
+            />
         </>
     );
 }

@@ -73,13 +73,104 @@ export const endpoints = {
             update: (id: number) => `/api/v1/admin/admins/${id}/update`,
             delete: (id: number) => `/api/v1/admin/admins/delete/${id}`,
         },
-        // Courses
-        courses: {
-            list: '/api/v1/admin/courses',
+        // Roles
+        roles: {
+            list: '/api/v1/admin/roles',
+            create: '/api/v1/admin/roles',
+            show: (id: number) => `/api/v1/admin/roles/${id}`,
+            update: (id: number) => `/api/v1/admin/roles/${id}`,
+            delete: (id: number) => `/api/v1/admin/roles/${id}`,
+        },
+        // Subjects
+        subjects: {
+            list: '/api/v1/admin/subjects',
+            create: '/api/v1/admin/subjects',
+            show: (id: number) => `/api/v1/admin/subjects/${id}`,
+            update: (id: number) => `/api/v1/admin/subjects/${id}`,
+            delete: (id: number) => `/api/v1/admin/subjects/${id}`,
         },
         // Grades
         grades: {
             list: '/api/v1/admin/grades',
+            create: '/api/v1/admin/grades',
+            show: (id: number) => `/api/v1/admin/grades/${id}`,
+            update: (id: number) => `/api/v1/admin/grades/${id}`,
+            delete: (id: number) => `/api/v1/admin/grades/${id}`,
+        },
+        // Semesters
+        semesters: {
+            list: '/api/v1/admin/semesters',
+            create: '/api/v1/admin/semesters',
+            show: (id: number) => `/api/v1/admin/semesters/${id}`,
+            update: (id: number) => `/api/v1/admin/semesters/${id}`,
+            delete: (id: number) => `/api/v1/admin/semesters/${id}`,
+        },
+        // Courses
+        courses: {
+            list: '/api/v1/admin/courses',
+            create: '/api/v1/admin/courses',
+            show: (id: number) => `/api/v1/admin/courses/${id}`,
+            update: (id: number) => `/api/v1/admin/courses/${id}`,
+            delete: (id: number) => `/api/v1/admin/courses/${id}`,
+        },
+        // Lectures
+        lectures: {
+            list: '/api/v1/admin/lectures',
+            create: '/api/v1/admin/lectures',
+            show: (id: number) => `/api/v1/admin/lectures/${id}`,
+            update: (id: number) => `/api/v1/admin/lectures/${id}`,
+            delete: (id: number) => `/api/v1/admin/lectures/${id}`,
+            chunkedCreate: '/api/v1/admin/lectures/chunked-create',
+            chunkedUpdate: (id: number) => `/api/v1/admin/lectures/${id}/chunked-update`,
+        },
+        // Countries
+        countries: {
+            list: '/api/v1/admin/countries',
+            create: '/api/v1/admin/countries',
+            show: (id: number) => `/api/v1/admin/countries/${id}`,
+            update: (id: number) => `/api/v1/admin/countries/${id}`,
+            delete: (id: number) => `/api/v1/admin/countries/${id}`,
+        },
+        // Cities
+        cities: {
+            list: '/api/v1/admin/cities',
+            create: '/api/v1/admin/cities',
+            show: (id: number) => `/api/v1/admin/cities/${id}`,
+            update: (id: number) => `/api/v1/admin/cities/${id}`,
+            delete: (id: number) => `/api/v1/admin/cities/${id}`,
+        },
+        // Settings
+        settings: {
+            list: '/api/v1/admin/settings',
+            create: '/api/v1/admin/settings',
+            show: (id: number) => `/api/v1/admin/settings/${id}`,
+            update: (id: number) => `/api/v1/admin/settings/${id}`,
+            delete: (id: number) => `/api/v1/admin/settings/${id}`,
+            uploadLogo: '/api/v1/admin/settings/upload-logo',
+        },
+        // Reports
+        reports: {
+            studentRegistrations: '/api/v1/admin/reports/student-registrations',
+            teacherRegistrations: '/api/v1/admin/reports/teacher-registrations',
+            parentRegistrations: '/api/v1/admin/reports/parent-registrations',
+        },
+        // Activity Logs
+        activityLogs: {
+            list: '/api/v1/admin/activity-logs',
+        },
+        // Video Upload
+        videos: {
+            initiate: '/api/v1/admin/videos/initiate',
+            chunk: '/api/v1/admin/videos/chunk',
+            complete: '/api/v1/admin/videos/complete',
+            progress: '/api/v1/admin/videos/progress',
+            cancel: '/api/v1/admin/videos/cancel',
+        },
+        // Student-Parent Assignment
+        studentParent: {
+            assign: '/api/v1/admin/student-parent/assign',
+            update: (studentId: number) => `/api/v1/admin/student-parent/${studentId}`,
+            remove: (studentId: number) => `/api/v1/admin/student-parent/${studentId}`,
         },
     },
 

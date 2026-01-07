@@ -1,4 +1,5 @@
 export { AdminDashboard } from './AdminDashboard';
+export { AdminAdminsPage } from './AdminAdminsPage';
 export { AdminUsersPage } from './AdminUsersPage';
 export { AdminCoursesPage } from './AdminCoursesPage';
 export { AdminTeachersPage } from './AdminTeachersPage';

@@ -102,6 +102,34 @@ export interface UpdateParentRequest {
     status?: 'active' | 'inactive';
 }
 
+// Create student request based on backend StoreStudentRequest
+export interface CreateStudentRequest {
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+    phone?: string;
+    parent_phone?: string;
+    how_do_you_know_us?: string;
+    grade_id?: number;
+    country_id?: number;
+    city_id?: number;
+    status?: 'active' | 'inactive';
+}
+
+// Create parent request based on backend StoreParentRequest
+export interface CreateParentRequest {
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+    phone?: string;
+    address?: string;
+    relationship?: string;
+    occupation?: string;
+    status?: 'active' | 'inactive';
+}
+
 export interface UpdateTeacherRequest {
     name?: string;
     email?: string;
@@ -127,7 +155,315 @@ export interface CreateAdminRequest {
     email: string;
     password: string;
     password_confirmation: string;
+    role_id?: number;  // Optional: Assign a role when creating admin
 }
+
+// ==================== NEW ENTITY TYPES ====================
+
+// Role types
+export interface RoleData {
+    id: number;
+    name: string;
+    guard_name: string;
+    permissions?: PermissionData[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PermissionData {
+    id: number;
+    name: string;
+    guard_name: string;
+}
+
+export interface CreateRoleRequest {
+    name: string;
+    permissions?: number[];
+}
+
+export interface UpdateRoleRequest {
+    name?: string;
+    permissions?: number[];
+}
+
+// Subject types
+export interface SubjectData {
+    id: number;
+    name: string;
+    description?: string;
+    icon?: string;
+    color?: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreateSubjectRequest {
+    name: string;
+    description?: string;
+    icon?: string;
+    color?: string;
+    is_active?: boolean;
+}
+
+export interface UpdateSubjectRequest {
+    name?: string;
+    description?: string;
+    icon?: string;
+    color?: string;
+    is_active?: boolean;
+}
+
+// Grade types
+export interface GradeData {
+    id: number;
+    name: string;
+    description?: string;
+    order: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreateGradeRequest {
+    name: string;
+    description?: string;
+    order?: number;
+    is_active?: boolean;
+}
+
+export interface UpdateGradeRequest {
+    name?: string;
+    description?: string;
+    order?: number;
+    is_active?: boolean;
+}
+
+// Semester types
+export interface SemesterData {
+    id: number;
+    name: string;
+    start_date: string;
+    end_date: string;
+    is_current: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreateSemesterRequest {
+    name: string;
+    start_date: string;
+    end_date: string;
+    is_current?: boolean;
+}
+
+export interface UpdateSemesterRequest {
+    name?: string;
+    start_date?: string;
+    end_date?: string;
+    is_current?: boolean;
+}
+
+// Course types (matching backend StoreCourseRequest)
+export interface CourseData {
+    id: number;
+    name: { ar?: string; en?: string } | string;
+    description?: { ar?: string; en?: string } | string;
+    code: string;
+    credits: number;
+    duration_hours?: number;
+    price?: number;
+    old_price?: number;
+    is_promoted?: boolean;
+    is_active: boolean;
+    start_date?: string;
+    end_date?: string;
+    image_path?: string;
+    grade_id?: number;
+    semester_id?: number;
+    subject_id?: number;
+    teacher_id?: number;
+    grade?: { id: number; name: string };
+    semester?: { id: number; name: string };
+    subject?: { id: number; name: string };
+    teacher?: { id: number; name: string };
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface CreateCourseRequest {
+    name: { ar: string; en: string };
+    description?: { ar?: string; en?: string };
+    code: string;
+    credits: number;
+    duration_hours?: number;
+    price?: number;
+    old_price: number;
+    is_promoted?: boolean;
+    is_active?: boolean;
+    start_date?: string;
+    end_date?: string;
+    image?: File;
+    grade_id: number;
+    semester_id: number;
+    subject_id: number;
+    teacher_id: number;
+}
+
+export interface UpdateCourseRequest {
+    name?: { ar?: string; en?: string };
+    description?: { ar?: string; en?: string };
+    code?: string;
+    credits?: number;
+    duration_hours?: number;
+    price?: number;
+    old_price?: number;
+    is_promoted?: boolean;
+    is_active?: boolean;
+    start_date?: string;
+    end_date?: string;
+    image?: File;
+    grade_id?: number;
+    semester_id?: number;
+    subject_id?: number;
+    teacher_id?: number;
+}
+
+// Lecture types
+export interface LectureData {
+    id: number;
+    course_id: number;
+    title: string;
+    video_url?: string;
+    duration?: number;
+    order: number;
+    is_free: boolean;
+    attachments?: string[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreateLectureRequest {
+    course_id: number;
+    title: string;
+    video_url?: string;
+    duration?: number;
+    order?: number;
+    is_free?: boolean;
+    attachments?: string[];
+}
+
+export interface UpdateLectureRequest {
+    course_id?: number;
+    title?: string;
+    video_url?: string;
+    duration?: number;
+    order?: number;
+    is_free?: boolean;
+    attachments?: string[];
+}
+
+// Setting types
+export interface SettingData {
+    id: number;
+    key: string;
+    value: string;
+    group?: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreateSettingRequest {
+    key: string;
+    value: string;
+    group?: string;
+}
+
+export interface UpdateSettingRequest {
+    key?: string;
+    value?: string;
+    group?: string;
+}
+
+// Report types
+export interface RegistrationReportData {
+    date: string;
+    count: number;
+    data?: Array<{
+        id: number;
+        name: string;
+        email: string;
+        created_at: string;
+    }>;
+}
+
+export interface ReportParams {
+    start_date?: string;
+    end_date?: string;
+    group_by?: 'day' | 'week' | 'month';
+}
+
+// Activity Log types
+export interface ActivityLogData {
+    id: number;
+    log_name: string;
+    description: string;
+    subject_type?: string;
+    subject_id?: number;
+    causer_type?: string;
+    causer_id?: number;
+    properties?: Record<string, unknown>;
+    created_at: string;
+    updated_at: string;
+}
+
+// Video Upload types
+export interface VideoUploadInitiateRequest {
+    filename: string;
+    filesize: number;
+    mimetype: string;
+}
+
+export interface VideoUploadInitiateResponse {
+    upload_id: string;
+    chunk_size: number;
+    total_chunks: number;
+}
+
+export interface VideoUploadChunkRequest {
+    upload_id: string;
+    chunk_index: number;
+    chunk_data: Blob;
+}
+
+export interface VideoUploadCompleteRequest {
+    upload_id: string;
+}
+
+export interface VideoUploadCompleteResponse {
+    video_url: string;
+    duration?: number;
+}
+
+export interface VideoUploadProgressResponse {
+    upload_id: string;
+    uploaded_chunks: number;
+    total_chunks: number;
+    percent: number;
+}
+
+// Student-Parent Assignment types
+export interface AssignParentRequest {
+    student_id: number;
+    parent_id: number;
+    is_primary?: boolean;
+}
+
+export interface UpdateParentAssignmentRequest {
+    parent_id: number;
+    is_primary?: boolean;
+}
+
 
 // Admin Auth Service
 export const adminService = {
@@ -240,6 +576,22 @@ export const adminService = {
         return { ...response.data.data, role: 'parent' as UserRole };
     },
 
+    /**
+     * Create a new student (admin only)
+     */
+    createStudent: async (data: CreateStudentRequest): Promise<UserData> => {
+        const response = await apiClient.post(endpoints.admin.students.create, data);
+        return { ...response.data.data, role: 'student' as UserRole };
+    },
+
+    /**
+     * Create a new parent (admin only)
+     */
+    createParent: async (data: CreateParentRequest): Promise<UserData> => {
+        const response = await apiClient.post(endpoints.admin.parents.create, data);
+        return { ...response.data.data, role: 'parent' as UserRole };
+    },
+
     // ==================== TEACHERS ====================
 
     /**
@@ -292,11 +644,58 @@ export const adminService = {
     },
 
     /**
+     * Create a new teacher with image (uses FormData)
+     */
+    createTeacherWithImage: async (formData: FormData): Promise<UserData> => {
+        const response = await apiClient.post(endpoints.admin.teachers.create, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return { ...response.data.data, role: 'teacher' as UserRole };
+    },
+
+    /**
      * Create a new admin (super admin only)
      */
     createAdmin: async (data: CreateAdminRequest): Promise<any> => {
         const response = await apiClient.post(endpoints.admin.admins.create, data);
         return response.data.data;
+    },
+
+    /**
+     * Get paginated list of admins
+     */
+    getAdmins: async (params: UserListParams = {}): Promise<PaginatedResponse<any>> => {
+        const response = await apiClient.get(endpoints.admin.admins.list, { params });
+        return {
+            data: response.data.data || [],
+            meta: response.data.meta,
+            links: response.data.links,
+        };
+    },
+
+    /**
+     * Get single admin by ID
+     */
+    getAdmin: async (id: number): Promise<any> => {
+        const response = await apiClient.get(endpoints.admin.admins.show(id));
+        return response.data.data;
+    },
+
+    /**
+     * Update admin by ID
+     */
+    updateAdmin: async (id: number, data: Partial<CreateAdminRequest>): Promise<any> => {
+        const response = await apiClient.put(endpoints.admin.admins.update(id), data);
+        return response.data.data;
+    },
+
+    /**
+     * Delete admin by ID
+     */
+    deleteAdmin: async (id: number): Promise<void> => {
+        await apiClient.delete(endpoints.admin.admins.delete(id));
     },
 
     // ==================== ALL USERS ====================
@@ -393,11 +792,68 @@ export const adminService = {
     // ==================== COURSES ====================
 
     /**
-     * Get courses list
+     * Get courses list with pagination
      */
-    getCourses: async (params: UserListParams = {}): Promise<PaginatedResponse<any>> => {
+    getCourses: async (params: UserListParams = {}): Promise<PaginatedResponse<CourseData>> => {
         const response = await apiClient.get(endpoints.admin.courses.list, { params });
         return response.data;
+    },
+
+    /**
+     * Get single course by ID
+     */
+    getCourse: async (id: number): Promise<CourseData> => {
+        const response = await apiClient.get(endpoints.admin.courses.show(id));
+        return response.data.data;
+    },
+
+    /**
+     * Create a new course
+     */
+    createCourse: async (data: CreateCourseRequest): Promise<CourseData> => {
+        const response = await apiClient.post(endpoints.admin.courses.create, data);
+        return response.data.data;
+    },
+
+    /**
+     * Create a new course with image upload (uses FormData)
+     */
+    createCourseWithImage: async (formData: FormData): Promise<CourseData> => {
+        const response = await apiClient.post(endpoints.admin.courses.create, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data.data;
+    },
+
+    /**
+     * Update a course
+     */
+    updateCourse: async (id: number, data: UpdateCourseRequest): Promise<CourseData> => {
+        const response = await apiClient.put(endpoints.admin.courses.update(id), data);
+        return response.data.data;
+    },
+
+    /**
+     * Update a course with image upload (uses FormData)
+     */
+    updateCourseWithImage: async (id: number, formData: FormData): Promise<CourseData> => {
+        // For PUT with FormData, we need to use POST with _method override
+        formData.append('_method', 'PUT');
+        const response = await apiClient.post(endpoints.admin.courses.update(id), formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data.data;
+    },
+
+    /**
+     * Delete a course (soft delete)
+     */
+    deleteCourse: async (id: number): Promise<void> => {
+        await apiClient.delete(endpoints.admin.courses.delete(id));
     },
 
     // ==================== DASHBOARD ====================
@@ -444,6 +900,323 @@ export const adminService = {
                 totalCourses: 0,
             };
         }
+    },
+
+    // ==================== ROLES ====================
+
+    getRoles: async (params: UserListParams = {}): Promise<PaginatedResponse<RoleData>> => {
+        const response = await apiClient.get(endpoints.admin.roles.list, { params });
+        return response.data;
+    },
+
+    getRole: async (id: number): Promise<RoleData> => {
+        const response = await apiClient.get(endpoints.admin.roles.show(id));
+        return response.data.data;
+    },
+
+    createRole: async (data: CreateRoleRequest): Promise<RoleData> => {
+        const response = await apiClient.post(endpoints.admin.roles.create, data);
+        return response.data.data;
+    },
+
+    updateRole: async (id: number, data: UpdateRoleRequest): Promise<RoleData> => {
+        const response = await apiClient.put(endpoints.admin.roles.update(id), data);
+        return response.data.data;
+    },
+
+    deleteRole: async (id: number): Promise<void> => {
+        await apiClient.delete(endpoints.admin.roles.delete(id));
+    },
+
+    // ==================== SUBJECTS ====================
+
+    getSubjects: async (params: UserListParams = {}): Promise<PaginatedResponse<SubjectData>> => {
+        const response = await apiClient.get(endpoints.admin.subjects.list, { params });
+        return response.data;
+    },
+
+    getSubject: async (id: number): Promise<SubjectData> => {
+        const response = await apiClient.get(endpoints.admin.subjects.show(id));
+        return response.data.data;
+    },
+
+    createSubject: async (data: CreateSubjectRequest): Promise<SubjectData> => {
+        const response = await apiClient.post(endpoints.admin.subjects.create, data);
+        return response.data.data;
+    },
+
+    updateSubject: async (id: number, data: UpdateSubjectRequest): Promise<SubjectData> => {
+        const response = await apiClient.put(endpoints.admin.subjects.update(id), data);
+        return response.data.data;
+    },
+
+    deleteSubject: async (id: number): Promise<void> => {
+        await apiClient.delete(endpoints.admin.subjects.delete(id));
+    },
+
+    // ==================== GRADES ====================
+
+    getGrades: async (params: UserListParams = {}): Promise<PaginatedResponse<GradeData>> => {
+        const response = await apiClient.get(endpoints.admin.grades.list, { params });
+        return response.data;
+    },
+
+    getGrade: async (id: number): Promise<GradeData> => {
+        const response = await apiClient.get(endpoints.admin.grades.show(id));
+        return response.data.data;
+    },
+
+    createGrade: async (data: CreateGradeRequest): Promise<GradeData> => {
+        const response = await apiClient.post(endpoints.admin.grades.create, data);
+        return response.data.data;
+    },
+
+    updateGrade: async (id: number, data: UpdateGradeRequest): Promise<GradeData> => {
+        const response = await apiClient.put(endpoints.admin.grades.update(id), data);
+        return response.data.data;
+    },
+
+    deleteGrade: async (id: number): Promise<void> => {
+        await apiClient.delete(endpoints.admin.grades.delete(id));
+    },
+
+    // ==================== SEMESTERS ====================
+
+    getSemesters: async (params: UserListParams = {}): Promise<PaginatedResponse<SemesterData>> => {
+        const response = await apiClient.get(endpoints.admin.semesters.list, { params });
+        return response.data;
+    },
+
+    getSemester: async (id: number): Promise<SemesterData> => {
+        const response = await apiClient.get(endpoints.admin.semesters.show(id));
+        return response.data.data;
+    },
+
+    createSemester: async (data: CreateSemesterRequest): Promise<SemesterData> => {
+        const response = await apiClient.post(endpoints.admin.semesters.create, data);
+        return response.data.data;
+    },
+
+    updateSemester: async (id: number, data: UpdateSemesterRequest): Promise<SemesterData> => {
+        const response = await apiClient.put(endpoints.admin.semesters.update(id), data);
+        return response.data.data;
+    },
+
+    deleteSemester: async (id: number): Promise<void> => {
+        await apiClient.delete(endpoints.admin.semesters.delete(id));
+    },
+
+    // ==================== LECTURES ====================
+
+    getLectures: async (params: UserListParams = {}): Promise<PaginatedResponse<LectureData>> => {
+        const response = await apiClient.get(endpoints.admin.lectures.list, { params });
+        return response.data;
+    },
+
+    getLecture: async (id: number): Promise<LectureData> => {
+        const response = await apiClient.get(endpoints.admin.lectures.show(id));
+        return response.data.data;
+    },
+
+    createLecture: async (data: CreateLectureRequest): Promise<LectureData> => {
+        const response = await apiClient.post(endpoints.admin.lectures.create, data);
+        return response.data.data;
+    },
+
+    updateLecture: async (id: number, data: UpdateLectureRequest): Promise<LectureData> => {
+        const response = await apiClient.put(endpoints.admin.lectures.update(id), data);
+        return response.data.data;
+    },
+
+    deleteLecture: async (id: number): Promise<void> => {
+        await apiClient.delete(endpoints.admin.lectures.delete(id));
+    },
+
+    createLectureWithChunkedVideo: async (data: CreateLectureRequest): Promise<LectureData> => {
+        const response = await apiClient.post(endpoints.admin.lectures.chunkedCreate, data);
+        return response.data.data;
+    },
+
+    updateLectureWithChunkedVideo: async (id: number, data: UpdateLectureRequest): Promise<LectureData> => {
+        const response = await apiClient.post(endpoints.admin.lectures.chunkedUpdate(id), data);
+        return response.data.data;
+    },
+
+    // ==================== COUNTRIES ====================
+
+    getCountries: async (params: UserListParams = {}): Promise<PaginatedResponse<{ id: number; name: string; code: string }>> => {
+        const response = await apiClient.get(endpoints.admin.countries.list, { params });
+        return response.data;
+    },
+
+    createCountry: async (data: { name: string; code: string }): Promise<{ id: number; name: string; code: string }> => {
+        const response = await apiClient.post(endpoints.admin.countries.create, data);
+        return response.data.data;
+    },
+
+    updateCountry: async (id: number, data: { name?: string; code?: string }): Promise<{ id: number; name: string; code: string }> => {
+        const response = await apiClient.put(endpoints.admin.countries.update(id), data);
+        return response.data.data;
+    },
+
+    deleteCountry: async (id: number): Promise<void> => {
+        await apiClient.delete(endpoints.admin.countries.delete(id));
+    },
+
+    // ==================== CITIES ====================
+
+    getCities: async (params: UserListParams = {}): Promise<PaginatedResponse<{ id: number; country_id: number; name: string }>> => {
+        const response = await apiClient.get(endpoints.admin.cities.list, { params });
+        return response.data;
+    },
+
+    createCity: async (data: { country_id: number; name: string }): Promise<{ id: number; country_id: number; name: string }> => {
+        const response = await apiClient.post(endpoints.admin.cities.create, data);
+        return response.data.data;
+    },
+
+    updateCity: async (id: number, data: { country_id?: number; name?: string }): Promise<{ id: number; country_id: number; name: string }> => {
+        const response = await apiClient.put(endpoints.admin.cities.update(id), data);
+        return response.data.data;
+    },
+
+    deleteCity: async (id: number): Promise<void> => {
+        await apiClient.delete(endpoints.admin.cities.delete(id));
+    },
+
+    // ==================== SETTINGS ====================
+
+    getSettings: async (params: UserListParams = {}): Promise<PaginatedResponse<SettingData>> => {
+        const response = await apiClient.get(endpoints.admin.settings.list, { params });
+        return response.data;
+    },
+
+    getSetting: async (id: number): Promise<SettingData> => {
+        const response = await apiClient.get(endpoints.admin.settings.show(id));
+        return response.data.data;
+    },
+
+    createSetting: async (data: CreateSettingRequest): Promise<SettingData> => {
+        const response = await apiClient.post(endpoints.admin.settings.create, data);
+        return response.data.data;
+    },
+
+    updateSetting: async (id: number, data: UpdateSettingRequest): Promise<SettingData> => {
+        const response = await apiClient.put(endpoints.admin.settings.update(id), data);
+        return response.data.data;
+    },
+
+    deleteSetting: async (id: number): Promise<void> => {
+        await apiClient.delete(endpoints.admin.settings.delete(id));
+    },
+
+    uploadLogo: async (file: File): Promise<{ url: string }> => {
+        const formData = new FormData();
+        formData.append('logo', file);
+        const response = await apiClient.post(endpoints.admin.settings.uploadLogo, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    },
+
+    // ==================== REPORTS ====================
+
+    getStudentRegistrations: async (params: ReportParams = {}): Promise<RegistrationReportData[]> => {
+        const response = await apiClient.get(endpoints.admin.reports.studentRegistrations, { params });
+        return response.data.data;
+    },
+
+    getTeacherRegistrations: async (params: ReportParams = {}): Promise<RegistrationReportData[]> => {
+        const response = await apiClient.get(endpoints.admin.reports.teacherRegistrations, { params });
+        return response.data.data;
+    },
+
+    getParentRegistrations: async (params: ReportParams = {}): Promise<RegistrationReportData[]> => {
+        const response = await apiClient.get(endpoints.admin.reports.parentRegistrations, { params });
+        return response.data.data;
+    },
+
+    // ==================== ACTIVITY LOGS ====================
+
+    getActivityLogs: async (params: UserListParams = {}): Promise<PaginatedResponse<ActivityLogData>> => {
+        const response = await apiClient.get(endpoints.admin.activityLogs.list, { params });
+        return response.data;
+    },
+
+    // ==================== VIDEO UPLOAD ====================
+
+    initiateVideoUpload: async (data: VideoUploadInitiateRequest): Promise<VideoUploadInitiateResponse> => {
+        const response = await apiClient.post(endpoints.admin.videos.initiate, data);
+        return response.data;
+    },
+
+    uploadVideoChunk: async (data: VideoUploadChunkRequest): Promise<{ success: boolean }> => {
+        const formData = new FormData();
+        formData.append('upload_id', data.upload_id);
+        formData.append('chunk_index', String(data.chunk_index));
+        formData.append('chunk_data', data.chunk_data);
+        const response = await apiClient.post(endpoints.admin.videos.chunk, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    },
+
+    completeVideoUpload: async (data: VideoUploadCompleteRequest): Promise<VideoUploadCompleteResponse> => {
+        const response = await apiClient.post(endpoints.admin.videos.complete, data);
+        return response.data;
+    },
+
+    getVideoUploadProgress: async (uploadId: string): Promise<VideoUploadProgressResponse> => {
+        const response = await apiClient.get(endpoints.admin.videos.progress, { params: { upload_id: uploadId } });
+        return response.data;
+    },
+
+    cancelVideoUpload: async (uploadId: string): Promise<void> => {
+        await apiClient.post(endpoints.admin.videos.cancel, { upload_id: uploadId });
+    },
+
+    // ==================== STUDENT-PARENT ASSIGNMENT ====================
+
+    assignParentToStudent: async (data: AssignParentRequest): Promise<{ success: boolean }> => {
+        const response = await apiClient.post(endpoints.admin.studentParent.assign, data);
+        return response.data;
+    },
+
+    updateStudentParentAssignment: async (studentId: number, data: UpdateParentAssignmentRequest): Promise<{ success: boolean }> => {
+        const response = await apiClient.put(endpoints.admin.studentParent.update(studentId), data);
+        return response.data;
+    },
+
+    removeParentFromStudent: async (studentId: number): Promise<void> => {
+        await apiClient.delete(endpoints.admin.studentParent.remove(studentId));
+    },
+
+    // ==================== GRADES/COUNTRIES/CITIES ====================
+
+    /**
+     * Get list of grades for dropdown
+     */
+    getGradesList: async (): Promise<{ data: { id: number; name: string }[] }> => {
+        const response = await apiClient.get(endpoints.admin.grades.list);
+        return { data: response.data.data || response.data || [] };
+    },
+
+    /**
+     * Get list of countries for dropdown
+     */
+    getCountriesList: async (): Promise<{ data: { id: number; name: string }[] }> => {
+        const response = await apiClient.get(endpoints.admin.countries.list);
+        return { data: response.data.data || response.data || [] };
+    },
+
+    /**
+     * Get list of cities for a country
+     */
+    getCitiesList: async (countryId: number): Promise<{ data: { id: number; name: string }[] }> => {
+        const response = await apiClient.get(endpoints.admin.cities.list, {
+            params: { country_id: countryId }
+        });
+        return { data: response.data.data || response.data || [] };
     },
 };
 

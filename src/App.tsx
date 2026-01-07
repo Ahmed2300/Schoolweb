@@ -10,6 +10,7 @@ import {
 
   AdminLoginPage,
   AdminDashboard,
+  AdminAdminsPage,
   AdminUsersPage,
   AdminCoursesPage,
   AdminTeachersPage,
@@ -94,6 +95,7 @@ function App() {
           {/* Sidebar & Header render ONCE, only content changes on navigation */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
+            <Route path="admins" element={<AdminAdminsPage />} />
             <Route path="users" element={<AdminUsersPage />} />
             <Route path="courses" element={<AdminCoursesPage />} />
             <Route path="teachers" element={<AdminTeachersPage />} />
