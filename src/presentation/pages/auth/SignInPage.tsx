@@ -78,7 +78,9 @@ export function SignInPage() {
 
                 if (userData) {
                     // Check if email is verified
-                    if (!userData.email_verified_at) {
+                    const isEmailVerified = userData.email_verified_at && userData.email_verified_at !== '';
+
+                    if (!isEmailVerified) {
                         navigate(ROUTES.VERIFY_EMAIL, {
                             state: { email: formData.email, userType }
                         });

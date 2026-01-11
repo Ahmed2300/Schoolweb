@@ -172,6 +172,17 @@ export const endpoints = {
             update: (studentId: number) => `/api/v1/admin/student-parent/${studentId}`,
             remove: (studentId: number) => `/api/v1/admin/student-parent/${studentId}`,
         },
+        // Payments
+        payments: {
+            list: '/api/v1/admin/payments',
+            create: '/api/v1/admin/payments',
+            show: (id: number) => `/api/v1/admin/payments/${id}`,
+            update: (id: number) => `/api/v1/admin/payments/${id}`,
+            delete: (id: number) => `/api/v1/admin/payments/${id}`,
+            approve: (id: number) => `/api/v1/admin/payments/${id}/approve`,
+            reject: (id: number) => `/api/v1/admin/payments/${id}/reject`,
+            statistics: '/api/v1/admin/payments/statistics/summary',
+        },
     },
 
     // Grades (authenticated)
@@ -198,18 +209,18 @@ export const endpoints = {
         cities: (countryId: number) => `/api/v1/countries/${countryId}/cities`,
     },
 
-    // Courses
+    // Courses - using admin endpoint since student-facing API doesn't exist yet
     courses: {
-        list: '/api/v1/courses',
-        detail: (id: string) => `/api/v1/courses/${id}`,
+        list: '/api/v1/admin/courses',
+        detail: (id: string) => `/api/v1/admin/courses/${id}`,
         enrolled: '/api/v1/courses/enrolled',
         featured: '/api/v1/courses/featured',
         recommended: '/api/v1/courses/recommended',
         search: '/api/v1/courses/search',
-        create: '/api/v1/courses',
-        update: (id: string) => `/api/v1/courses/${id}`,
-        delete: (id: string) => `/api/v1/courses/${id}`,
-        publish: (id: string) => `/api/v1/courses/${id}/publish`,
+        create: '/api/v1/admin/courses',
+        update: (id: string) => `/api/v1/admin/courses/${id}`,
+        delete: (id: string) => `/api/v1/admin/courses/${id}`,
+        publish: (id: string) => `/api/v1/admin/courses/${id}/publish`,
     },
 
     // Subscriptions

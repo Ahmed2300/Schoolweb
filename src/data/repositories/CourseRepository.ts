@@ -9,7 +9,15 @@ import type { Course, CourseDetails } from '../../core/entities';
 export class CourseRepository implements ICourseRepository {
     async getCourses(filters?: CourseFilters): Promise<PaginatedResponse<Course>> {
         const response = await apiClient.get(endpoints.courses.list, { params: filters });
-        return response.data;
+        const { data, pagination } = response.data;
+
+        return {
+            data: data || [],
+            total: pagination?.total || 0,
+            page: pagination?.current_page || 1,
+            limit: pagination?.per_page || 12,
+            totalPages: pagination?.total_pages || pagination?.last_page || 1,
+        };
     }
 
     async getCourseById(id: string): Promise<CourseDetails> {

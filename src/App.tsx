@@ -12,13 +12,20 @@ import {
   AdminDashboard,
   AdminAdminsPage,
   AdminUsersPage,
+  AdminGradesPage,
   AdminCoursesPage,
   AdminTeachersPage,
   AdminSubscriptionsPage,
   AdminReportsPage,
   AdminSettingsPage,
+  AdminPaymentsPage,
+  AdminSemestersPage,
+  AdminSubjectsPage,
+  AdminLecturesPage,
   StudentLayout,
   StudentHomePage,
+  StudentCoursesPage,
+  StudentCourseDetailPage,
   StudentSchedulePage,
   StudentQuizzesPage,
   StudentLivePage,
@@ -70,6 +77,8 @@ function App() {
             }
           >
             <Route index element={<StudentHomePage />} />
+            <Route path="courses" element={<StudentCoursesPage />} />
+            <Route path="courses/:id" element={<StudentCourseDetailPage />} />
             <Route path="schedule" element={<StudentSchedulePage />} />
             <Route path="quizzes" element={<StudentQuizzesPage />} />
             <Route path="live" element={<StudentLivePage />} />
@@ -91,15 +100,26 @@ function App() {
             <Route path="settings" element={<ParentSettingsPage />} />
           </Route>
 
-          {/* Admin Routes - Nested under AdminLayout */}
-          {/* Sidebar & Header render ONCE, only content changes on navigation */}
-          <Route path="/admin" element={<AdminLayout />}>
+          {/* Admin Routes - Protected for admin role only */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<AdminDashboard />} />
             <Route path="admins" element={<AdminAdminsPage />} />
             <Route path="users" element={<AdminUsersPage />} />
+            <Route path="grades" element={<AdminGradesPage />} />
             <Route path="courses" element={<AdminCoursesPage />} />
+            <Route path="lectures" element={<AdminLecturesPage />} />
             <Route path="teachers" element={<AdminTeachersPage />} />
             <Route path="subscriptions" element={<AdminSubscriptionsPage />} />
+            <Route path="payments" element={<AdminPaymentsPage />} />
+            <Route path="semesters" element={<AdminSemestersPage />} />
+            <Route path="subjects" element={<AdminSubjectsPage />} />
             <Route path="reports" element={<AdminReportsPage />} />
             <Route path="settings" element={<AdminSettingsPage />} />
           </Route>

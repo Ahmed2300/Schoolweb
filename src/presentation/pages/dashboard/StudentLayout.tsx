@@ -34,14 +34,11 @@ export function StudentLayout() {
 
     const navItems = [
         { id: '', icon: Home, label: 'الرئيسية', path: ROUTES.DASHBOARD },
+        { id: '/courses', icon: BookOpen, label: 'الدورات', path: '/dashboard/courses' },
         { id: '/schedule', icon: Calendar, label: 'الجدول', path: '/dashboard/schedule' },
         { id: '/quizzes', icon: FileQuestion, label: 'الاختبارات', path: '/dashboard/quizzes' },
         { id: '/live', icon: Video, label: 'جلسات مباشرة', path: '/dashboard/live' },
         { id: '/profile', icon: User, label: 'الملف الشخصي', path: '/dashboard/profile' },
-        // These are conceptually tabs on home, but keeping in nav for now if that's the design? 
-        // Design shows them as Sidebar items. Let's make them routes if they need pages.
-        // Actually for Academic/Skills user wants tabs on home.
-        // Let's keep Sidebar simple.
     ];
 
     // Helper to determine active state

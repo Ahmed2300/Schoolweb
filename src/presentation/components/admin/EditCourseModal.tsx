@@ -88,6 +88,13 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Helper to extract name from translatable object
+    const extractName = (name: any): string => {
+        if (!name) return '';
+        if (typeof name === 'string') return name;
+        return name.ar || name.en || '';
+    };
+
     // Fetch dropdown options
     const fetchDropdownOptions = async () => {
         setLoadingDropdowns(true);
@@ -100,16 +107,32 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
             ]);
 
             if (gradesRes.status === 'fulfilled') {
-                setGrades(gradesRes.value.data || []);
+                const gradeData = gradesRes.value.data || [];
+                setGrades(gradeData.map(g => ({
+                    id: g.id,
+                    name: extractName((g as any).name) || `صف ${g.id}`
+                })));
             }
             if (semestersRes.status === 'fulfilled') {
-                setSemesters(semestersRes.value.data || []);
+                const semesterData = semestersRes.value.data || [];
+                setSemesters(semesterData.map(s => ({
+                    id: s.id,
+                    name: extractName(s.name)
+                })));
             }
             if (subjectsRes.status === 'fulfilled') {
-                setSubjects(subjectsRes.value.data || []);
+                const subjectData = subjectsRes.value.data || [];
+                setSubjects(subjectData.map(s => ({
+                    id: s.id,
+                    name: extractName((s as any).name) || s.code
+                })));
             }
             if (teachersRes.status === 'fulfilled') {
-                setTeachers(teachersRes.value.data || []);
+                const teacherData = teachersRes.value.data || [];
+                setTeachers(teacherData.map(t => ({
+                    id: t.id,
+                    name: t.name || t.email || `معلم ${t.id}`
+                })));
             }
         } catch (err) {
             console.error('Error fetching dropdown options:', err);

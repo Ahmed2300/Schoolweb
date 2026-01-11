@@ -239,30 +239,7 @@ export interface UpdateGradeRequest {
     is_active?: boolean;
 }
 
-// Semester types
-export interface SemesterData {
-    id: number;
-    name: string;
-    start_date: string;
-    end_date: string;
-    is_current: boolean;
-    created_at: string;
-    updated_at: string;
-}
 
-export interface CreateSemesterRequest {
-    name: string;
-    start_date: string;
-    end_date: string;
-    is_current?: boolean;
-}
-
-export interface UpdateSemesterRequest {
-    name?: string;
-    start_date?: string;
-    end_date?: string;
-    is_current?: boolean;
-}
 
 // Course types (matching backend StoreCourseRequest)
 export interface CourseData {
@@ -415,6 +392,133 @@ export interface ActivityLogData {
     properties?: Record<string, unknown>;
     created_at: string;
     updated_at: string;
+}
+
+// Semester types
+export interface SemesterData {
+    id: number;
+    name: string | { ar?: string; en?: string };
+    grade_id?: number;
+    grade_ids?: number[];
+    country_id?: number;
+    start_date?: string;
+    expiry_date?: string;
+    created_at: string;
+    updated_at?: string;
+    grade?: { id: number; name: string };
+    grades?: { id: number; name: string }[];
+    country?: { id: number; name: string };
+}
+
+export interface CreateSemesterRequest {
+    name: string | { ar?: string; en?: string };
+    grade_id: number;  // Required by backend
+    country_id: number;  // Required by backend
+    start_date: string;  // Required by backend
+}
+
+export interface UpdateSemesterRequest {
+    name?: string | { ar?: string; en?: string };
+    grade_id?: number;
+    country_id?: number;
+    start_date?: string;
+}
+
+// Subject types
+export interface SubjectData {
+    id: number;
+    name: string;
+    code: string;
+    description?: string;
+    study_term_id?: number;
+    grade_id?: number;
+    semester_ids?: number[];
+    created_at: string;
+    updated_at?: string;
+    studyTerm?: { id: number; name: string };
+    grade?: { id: number; name: string };
+    semesters?: { id: number; name: string }[];
+}
+
+export interface CreateSubjectRequest {
+    name: string;
+    code: string;
+    description?: string;
+    study_term_id?: number;
+    grade_id?: number;
+    semester_ids?: number[];
+}
+
+export interface UpdateSubjectRequest {
+    name?: string;
+    code?: string;
+    description?: string;
+    study_term_id?: number;
+    grade_id?: number;
+    semester_ids?: number[];
+}
+
+// Payment types
+export type PaymentStatus = 'pending' | 'approved' | 'rejected' | 'refunded';
+export type PaymentMethod = 'bank_transfer' | 'cash' | 'wallet' | 'card';
+
+export interface PaymentData {
+    id: number;
+    subscription_id?: number;
+    student_id: number;
+    amount: number;
+    currency: string;
+    method: PaymentMethod;
+    status: PaymentStatus;
+    receipt_image?: string;
+    notes?: string;
+    approved_by?: number;
+    approved_at?: string;
+    rejected_by?: number;
+    rejected_at?: string;
+    rejection_reason?: string;
+    student?: { id: number; name: string; email: string };
+    subscription?: { id: number; course_id: number; course?: { id: number; name: string } };
+    approver?: { id: number; name: string };
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreatePaymentRequest {
+    subscription_id?: number;
+    student_id: number;
+    amount: number;
+    currency?: string;
+    method: PaymentMethod;
+    notes?: string;
+    receipt_image?: File;
+}
+
+export interface UpdatePaymentRequest {
+    amount?: number;
+    method?: PaymentMethod;
+    notes?: string;
+    receipt_image?: File;
+}
+
+export interface PaymentListParams {
+    page?: number;
+    per_page?: number;
+    search?: string;
+    status?: PaymentStatus;
+    method?: PaymentMethod;
+    student_id?: number;
+}
+
+export interface PaymentStatistics {
+    total_payments: number;
+    total_amount: number;
+    pending_count: number;
+    approved_count: number;
+    rejected_count: number;
+    pending_amount: number;
+    approved_amount: number;
+    rejected_amount: number;
 }
 
 // Video Upload types
@@ -902,6 +1006,93 @@ export const adminService = {
         }
     },
 
+    // ==================== ACTIVITY LOGS ====================
+
+    /**
+     * Get activity logs with pagination
+     */
+    getActivityLogs: async (params: { per_page?: number; page?: number } = {}): Promise<PaginatedResponse<ActivityLogData>> => {
+        const response = await apiClient.get(endpoints.admin.activityLogs.list, { params });
+        return response.data;
+    },
+
+    // ==================== PAYMENTS ====================
+
+    /**
+     * Get payments list with pagination and filters
+     */
+    getPayments: async (params: PaymentListParams = {}): Promise<PaginatedResponse<PaymentData>> => {
+        const response = await apiClient.get(endpoints.admin.payments.list, { params });
+        return response.data;
+    },
+
+    /**
+     * Get single payment by ID
+     */
+    getPayment: async (id: number): Promise<PaymentData> => {
+        const response = await apiClient.get(endpoints.admin.payments.show(id));
+        return response.data.data;
+    },
+
+    /**
+     * Create a new payment
+     */
+    createPayment: async (data: CreatePaymentRequest): Promise<PaymentData> => {
+        const formData = new FormData();
+        Object.entries(data).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                if (value instanceof File) {
+                    formData.append(key, value);
+                } else {
+                    formData.append(key, String(value));
+                }
+            }
+        });
+        const response = await apiClient.post(endpoints.admin.payments.create, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data.data;
+    },
+
+    /**
+     * Update a payment
+     */
+    updatePayment: async (id: number, data: UpdatePaymentRequest): Promise<PaymentData> => {
+        const response = await apiClient.put(endpoints.admin.payments.update(id), data);
+        return response.data.data;
+    },
+
+    /**
+     * Delete a payment
+     */
+    deletePayment: async (id: number): Promise<void> => {
+        await apiClient.delete(endpoints.admin.payments.delete(id));
+    },
+
+    /**
+     * Approve a payment
+     */
+    approvePayment: async (id: number): Promise<PaymentData> => {
+        const response = await apiClient.post(endpoints.admin.payments.approve(id));
+        return response.data.data;
+    },
+
+    /**
+     * Reject a payment with reason
+     */
+    rejectPayment: async (id: number, reason: string): Promise<PaymentData> => {
+        const response = await apiClient.post(endpoints.admin.payments.reject(id), { rejection_reason: reason });
+        return response.data.data;
+    },
+
+    /**
+     * Get payment statistics
+     */
+    getPaymentStatistics: async (): Promise<{ pending: number; approved: number; rejected: number; total_amount: number }> => {
+        const response = await apiClient.get(endpoints.admin.payments.statistics);
+        return response.data.data;
+    },
+
     // ==================== ROLES ====================
 
     getRoles: async (params: UserListParams = {}): Promise<PaginatedResponse<RoleData>> => {
@@ -1136,12 +1327,6 @@ export const adminService = {
         return response.data.data;
     },
 
-    // ==================== ACTIVITY LOGS ====================
-
-    getActivityLogs: async (params: UserListParams = {}): Promise<PaginatedResponse<ActivityLogData>> => {
-        const response = await apiClient.get(endpoints.admin.activityLogs.list, { params });
-        return response.data;
-    },
 
     // ==================== VIDEO UPLOAD ====================
 
@@ -1191,32 +1376,141 @@ export const adminService = {
         await apiClient.delete(endpoints.admin.studentParent.remove(studentId));
     },
 
-    // ==================== GRADES/COUNTRIES/CITIES ====================
+    // ==================== PAYMENT MANAGEMENT ====================
 
     /**
-     * Get list of grades for dropdown
+     * Get paginated list of payments with optional filters
      */
-    getGradesList: async (): Promise<{ data: { id: number; name: string }[] }> => {
-        const response = await apiClient.get(endpoints.admin.grades.list);
-        return { data: response.data.data || response.data || [] };
+    getPayments: async (params?: PaymentListParams): Promise<PaginatedResponse<PaymentData>> => {
+        const response = await apiClient.get(endpoints.admin.payments.list, { params });
+        return {
+            data: response.data.data || [],
+            meta: response.data.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 },
+        };
     },
 
     /**
-     * Get list of countries for dropdown
+     * Get a single payment by ID
      */
-    getCountriesList: async (): Promise<{ data: { id: number; name: string }[] }> => {
-        const response = await apiClient.get(endpoints.admin.countries.list);
-        return { data: response.data.data || response.data || [] };
+    getPayment: async (id: number): Promise<PaymentData> => {
+        const response = await apiClient.get(endpoints.admin.payments.show(id));
+        return response.data.data || response.data;
     },
 
     /**
-     * Get list of cities for a country
+     * Approve a pending payment
      */
-    getCitiesList: async (countryId: number): Promise<{ data: { id: number; name: string }[] }> => {
-        const response = await apiClient.get(endpoints.admin.cities.list, {
-            params: { country_id: countryId }
+    approvePayment: async (id: number): Promise<PaymentData> => {
+        const response = await apiClient.post(endpoints.admin.payments.approve(id));
+        return response.data.data || response.data;
+    },
+
+    /**
+     * Reject a pending payment
+     */
+    rejectPayment: async (id: number, reason?: string): Promise<PaymentData> => {
+        const response = await apiClient.post(endpoints.admin.payments.reject(id), { reason });
+        return response.data.data || response.data;
+    },
+
+    /**
+     * Get payment statistics
+     */
+    getPaymentStatistics: async (startDate?: string, endDate?: string): Promise<PaymentStatistics> => {
+        const response = await apiClient.get(endpoints.admin.payments.statistics, {
+            params: { start_date: startDate, end_date: endDate }
         });
-        return { data: response.data.data || response.data || [] };
+        return response.data;
+    },
+
+    // ==================== GRADE MANAGEMENT ====================
+
+    /**
+     * Get list of grades for dropdowns
+     */
+    getGradesList: async (params?: { page?: number; per_page?: number; search?: string }): Promise<PaginatedResponse<{ id: number; name: string }>> => {
+        const response = await apiClient.get(endpoints.admin.grades.list, { params });
+        return {
+            data: response.data.data || [],
+            meta: response.data.meta || { current_page: 1, last_page: 1, per_page: 100, total: 0 },
+        };
+    },
+
+    getGrade: async (id: number): Promise<{ id: number; name: string }> => {
+        const response = await apiClient.get(endpoints.admin.grades.show(id));
+        return response.data.data || response.data;
+    },
+
+    createGrade: async (data: { name: string | { ar?: string; en?: string } }): Promise<{ id: number; name: string }> => {
+        const response = await apiClient.post(endpoints.admin.grades.create, data);
+        return response.data.data || response.data;
+    },
+
+    updateGrade: async (id: number, data: { name?: string | { ar?: string; en?: string } }): Promise<{ id: number; name: string }> => {
+        const response = await apiClient.put(endpoints.admin.grades.update(id), data);
+        return response.data.data || response.data;
+    },
+
+    deleteGrade: async (id: number): Promise<void> => {
+        await apiClient.delete(endpoints.admin.grades.delete(id));
+    },
+
+    // ==================== SEMESTER MANAGEMENT ====================
+
+    getSemesters: async (params?: { page?: number; per_page?: number; search?: string }): Promise<PaginatedResponse<SemesterData>> => {
+        const response = await apiClient.get(endpoints.admin.semesters.list, { params });
+        return {
+            data: response.data.data || [],
+            meta: response.data.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 },
+        };
+    },
+
+    getSemester: async (id: number): Promise<SemesterData> => {
+        const response = await apiClient.get(endpoints.admin.semesters.show(id));
+        return response.data.data || response.data;
+    },
+
+    createSemester: async (data: CreateSemesterRequest): Promise<SemesterData> => {
+        const response = await apiClient.post(endpoints.admin.semesters.create, data);
+        return response.data.data || response.data;
+    },
+
+    updateSemester: async (id: number, data: UpdateSemesterRequest): Promise<SemesterData> => {
+        const response = await apiClient.put(endpoints.admin.semesters.update(id), data);
+        return response.data.data || response.data;
+    },
+
+    deleteSemester: async (id: number): Promise<void> => {
+        await apiClient.delete(endpoints.admin.semesters.delete(id));
+    },
+
+    // ==================== SUBJECT MANAGEMENT ====================
+
+    getSubjects: async (params?: { page?: number; per_page?: number; search?: string }): Promise<PaginatedResponse<SubjectData>> => {
+        const response = await apiClient.get(endpoints.admin.subjects.list, { params });
+        return {
+            data: response.data.data || [],
+            meta: response.data.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 },
+        };
+    },
+
+    getSubject: async (id: number): Promise<SubjectData> => {
+        const response = await apiClient.get(endpoints.admin.subjects.show(id));
+        return response.data.data || response.data;
+    },
+
+    createSubject: async (data: CreateSubjectRequest): Promise<SubjectData> => {
+        const response = await apiClient.post(endpoints.admin.subjects.create, data);
+        return response.data.data || response.data;
+    },
+
+    updateSubject: async (id: number, data: UpdateSubjectRequest): Promise<SubjectData> => {
+        const response = await apiClient.put(endpoints.admin.subjects.update(id), data);
+        return response.data.data || response.data;
+    },
+
+    deleteSubject: async (id: number): Promise<void> => {
+        await apiClient.delete(endpoints.admin.subjects.delete(id));
     },
 };
 

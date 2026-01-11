@@ -43,6 +43,7 @@ export const ROUTES = {
     ADMIN_ADMINS: '/admin/admins',
     ADMIN_USERS: '/admin/users',
     ADMIN_COURSES: '/admin/courses',
+    ADMIN_LECTURES: '/admin/lectures',
     ADMIN_SUBSCRIPTIONS: '/admin/subscriptions',
     ADMIN_SESSIONS: '/admin/sessions',
     ADMIN_REPORTS: '/admin/reports',

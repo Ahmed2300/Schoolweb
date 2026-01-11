@@ -1,5 +1,7 @@
 export { StudentLayout } from './StudentLayout';
 export { StudentHomePage } from './StudentHomePage';
+export { StudentCoursesPage } from './StudentCoursesPage';
+export { StudentCourseDetailPage } from './StudentCourseDetailPage';
 export { StudentSchedulePage } from './StudentSchedulePage';
 export { StudentQuizzesPage } from './StudentQuizzesPage';
 export { StudentLivePage } from './StudentLivePage';

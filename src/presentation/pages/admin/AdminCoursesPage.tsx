@@ -19,15 +19,19 @@ import { AddCourseModal } from '../../components/admin/AddCourseModal';
 import { EditCourseModal } from '../../components/admin/EditCourseModal';
 import { DeleteConfirmModal } from '../../components/admin/DeleteConfirmModal';
 
-// ============================================================
-// Types - Designed for future backend enhancements
-// ============================================================
+interface GradeOption {
+    id: number;
+    name: string;
+}
 
-type CourseType = 'academic' | 'non_academic';
-type CourseStatus = 'active' | 'draft' | 'archived';
+interface SemesterOption {
+    id: number;
+    name: string;
+    grade_id?: number;
+}
+
 type MainTab = 'academic' | 'skills';
 
-// Current backend course structure
 interface Course {
     id: number;
     name: { ar?: string; en?: string } | string;
@@ -42,19 +46,13 @@ interface Course {
     start_date?: string;
     end_date?: string;
     teacher_id?: number;
-    // TODO: Backend will add these fields
-    // course_type?: CourseType;
-    // grade_id?: number;
-    // semester_id?: number;
-    // subject_id?: number;
-    // category_id?: number;
-    // grade?: { id: number; name: string };
-    // semester?: { id: number; name: string };
-    // subject?: { id: number; name: string };
-    // category?: { id: number; name: string };
-    // teacher?: { id: number; name: string };
-    // students_count?: number;
-    // lessons_count?: number;
+    grade_id?: number;
+    semester_id?: number;
+    subject_id?: number;
+    grade?: { id: number; name: string | { ar?: string; en?: string } };
+    semester?: { id: number; name: string | { ar?: string; en?: string } };
+    subject?: { id: number; name: string | { ar?: string; en?: string } };
+    teacher?: { id: number; name: string };
 }
 
 interface CourseStats {
@@ -63,38 +61,40 @@ interface CourseStats {
     draftCourses: number;
 }
 
-// ============================================================
-// Configuration
-// ============================================================
-
 const statusConfig: Record<string, { label: string; bgColor: string; textColor: string }> = {
     active: { label: 'نشط', bgColor: 'bg-green-100', textColor: 'text-green-700' },
     draft: { label: 'مسودة', bgColor: 'bg-amber-100', textColor: 'text-amber-700' },
     archived: { label: 'مؤرشف', bgColor: 'bg-slate-100', textColor: 'text-slate-500' },
 };
 
-// Helper to get localized course name
-const getCourseName = (course: Course): string => {
-    if (typeof course.name === 'string') return course.name;
-    return course.name?.ar || course.name?.en || 'بدون اسم';
+const extractName = (name: unknown): string => {
+    if (!name) return '';
+    if (typeof name === 'string') return name;
+    if (typeof name === 'object' && name !== null) {
+        const obj = name as Record<string, string>;
+        return obj.ar || obj.en || '';
+    }
+    return '';
 };
 
-// Helper to determine course status from is_active
+const getCourseName = (course: Course): string => {
+    return extractName(course.name) || 'بدون اسم';
+};
+
 const getCourseStatus = (course: Course): string => {
     return course.is_active ? 'active' : 'draft';
 };
 
-// ============================================================
-// Component
-// ============================================================
-
 export function AdminCoursesPage() {
     const [activeTab, setActiveTab] = useState<MainTab>('academic');
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedGrade, setSelectedGrade] = useState('الكل');
-    const [selectedTerm, setSelectedTerm] = useState('الكل');
+    const [selectedGradeId, setSelectedGradeId] = useState<number | null>(null);
+    const [selectedSemesterId, setSelectedSemesterId] = useState<number | null>(null);
 
-    // Data states
+    const [grades, setGrades] = useState<GradeOption[]>([]);
+    const [semesters, setSemesters] = useState<SemesterOption[]>([]);
+    const [loadingDropdowns, setLoadingDropdowns] = useState(false);
+
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -104,12 +104,42 @@ export function AdminCoursesPage() {
         draftCourses: 0,
     });
 
-    // Modal state
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingCourse, setEditingCourse] = useState<CourseData | null>(null);
     const [deletingCourse, setDeletingCourse] = useState<Course | null>(null);
 
-    // Fetch courses
+    const filteredSemesters = selectedGradeId
+        ? semesters.filter(s => s.grade_id === selectedGradeId)
+        : semesters;
+
+    const fetchDropdownData = useCallback(async () => {
+        setLoadingDropdowns(true);
+        try {
+            const [gradesRes, semestersRes] = await Promise.allSettled([
+                adminService.getGradesList({ per_page: 100 }),
+                adminService.getSemesters({ per_page: 100 }),
+            ]);
+
+            if (gradesRes.status === 'fulfilled') {
+                setGrades(gradesRes.value.data.map(g => ({
+                    id: g.id,
+                    name: extractName((g as Record<string, unknown>).name) || `صف ${g.id}`,
+                })));
+            }
+            if (semestersRes.status === 'fulfilled') {
+                setSemesters(semestersRes.value.data.map(s => ({
+                    id: s.id,
+                    name: extractName(s.name),
+                    grade_id: s.grade_id,
+                })));
+            }
+        } catch (err) {
+            console.error('Error fetching dropdown options:', err);
+        } finally {
+            setLoadingDropdowns(false);
+        }
+    }, []);
+
     const fetchCourses = useCallback(async () => {
         try {
             setLoading(true);
@@ -117,30 +147,45 @@ export function AdminCoursesPage() {
 
             const response = await adminService.getCourses({
                 search: searchQuery || undefined,
+                grade_id: selectedGradeId || undefined,
+                semester_id: selectedSemesterId || undefined,
                 per_page: 20,
             });
 
             const coursesData = response.data || [];
             setCourses(coursesData);
 
-            // Calculate stats
             const activeCourses = coursesData.filter((c: Course) => c.is_active).length;
             setStats({
                 totalCourses: response.meta?.total || coursesData.length,
                 activeCourses,
                 draftCourses: coursesData.length - activeCourses,
             });
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error fetching courses:', err);
-            setError(err.response?.data?.message || 'فشل في تحميل الكورسات');
+            const error = err as { response?: { data?: { message?: string; error?: string } }; message?: string };
+            const errorMessage = error.response?.data?.message
+                || error.response?.data?.error
+                || error.message
+                || 'فشل في تحميل الكورسات';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
-    }, [searchQuery]);
+    }, [searchQuery, selectedGradeId, selectedSemesterId]);
+
+    useEffect(() => {
+        fetchDropdownData();
+    }, [fetchDropdownData]);
 
     useEffect(() => {
         fetchCourses();
     }, [fetchCourses]);
+
+    const handleGradeChange = (gradeId: number | null) => {
+        setSelectedGradeId(gradeId);
+        setSelectedSemesterId(null);
+    };
 
     // Stats display
     const statsDisplay = [
@@ -220,33 +265,51 @@ export function AdminCoursesPage() {
                 ))}
             </div>
 
-            {/* Filters - Disabled until backend adds grade/semester support */}
-            <div className="flex gap-3 mb-6">
+            {/* Filters */}
+            <div className="flex flex-wrap gap-3 mb-6">
                 <div className="relative">
                     <select
-                        value={selectedGrade}
-                        onChange={(e) => setSelectedGrade(e.target.value)}
-                        disabled // TODO: Enable when backend adds grade_id
-                        className="h-11 pl-10 pr-4 rounded-[12px] bg-white border border-slate-200 text-sm font-medium text-charcoal appearance-none cursor-not-allowed opacity-50 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none"
-                        title="قريباً - في انتظار تحديث الـ Backend"
+                        value={selectedGradeId ?? ''}
+                        onChange={(e) => handleGradeChange(e.target.value ? parseInt(e.target.value) : null)}
+                        disabled={loadingDropdowns}
+                        className="h-11 pl-10 pr-4 rounded-[12px] bg-white border border-slate-200 text-sm font-medium text-charcoal appearance-none cursor-pointer focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all disabled:opacity-50"
                     >
-                        <option value="الكل">كل الصفوف</option>
+                        <option value="">كل الصفوف</option>
+                        {grades.map((grade) => (
+                            <option key={grade.id} value={grade.id}>{grade.name}</option>
+                        ))}
                     </select>
                     <ChevronDown size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
                 <div className="relative">
                     <select
-                        value={selectedTerm}
-                        onChange={(e) => setSelectedTerm(e.target.value)}
-                        disabled // TODO: Enable when backend adds semester_id
-                        className="h-11 pl-10 pr-4 rounded-[12px] bg-white border border-slate-200 text-sm font-medium text-charcoal appearance-none cursor-not-allowed opacity-50 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none"
-                        title="قريباً - في انتظار تحديث الـ Backend"
+                        value={selectedSemesterId ?? ''}
+                        onChange={(e) => setSelectedSemesterId(e.target.value ? parseInt(e.target.value) : null)}
+                        disabled={loadingDropdowns || !selectedGradeId}
+                        className={`h-11 pl-10 pr-4 rounded-[12px] bg-white border border-slate-200 text-sm font-medium text-charcoal appearance-none cursor-pointer focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all ${!selectedGradeId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        title={!selectedGradeId ? 'اختر الصف أولاً' : undefined}
                     >
-                        <option value="الكل">كل الترمات</option>
+                        <option value="">كل الفصول</option>
+                        {filteredSemesters.map((semester) => (
+                            <option key={semester.id} value={semester.id}>{semester.name}</option>
+                        ))}
                     </select>
                     <ChevronDown size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
-                <span className="text-xs text-slate-400 self-center">(الفلترة قريباً)</span>
+                {(selectedGradeId || selectedSemesterId) && (
+                    <button
+                        onClick={() => { setSelectedGradeId(null); setSelectedSemesterId(null); }}
+                        className="h-11 px-4 rounded-[12px] bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium transition-colors"
+                    >
+                        مسح الفلاتر
+                    </button>
+                )}
+                {loadingDropdowns && (
+                    <span className="text-xs text-slate-400 self-center flex items-center gap-1">
+                        <Loader2 size={14} className="animate-spin" />
+                        جاري التحميل...
+                    </span>
+                )}
             </div>
 
             {/* Error State */}
@@ -263,11 +326,54 @@ export function AdminCoursesPage() {
                 </div>
             )}
 
-            {/* Loading State */}
+            {/* Loading State - Shimmer Skeleton */}
             {loading && (
-                <div className="bg-white rounded-[16px] shadow-card p-12 flex flex-col items-center justify-center gap-4">
-                    <Loader2 size={40} className="text-shibl-crimson animate-spin" />
-                    <p className="text-slate-grey">جاري تحميل الكورسات...</p>
+                <div className="bg-white rounded-[16px] shadow-card overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="bg-slate-50 border-b border-slate-100">
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكورس</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكود</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الساعات</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">السعر</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الحالة</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {[...Array(6)].map((_, index) => (
+                                    <tr key={index}>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" />
+                                                <div className="h-4 w-32 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100}ms` }} />
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-4 w-16 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 50}ms` }} />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-4 w-12 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 100}ms` }} />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-4 w-20 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 150}ms` }} />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-6 w-14 rounded-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 200}ms` }} />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 250}ms` }} />
+                                                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 300}ms` }} />
+                                                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 350}ms` }} />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
 
@@ -366,15 +472,7 @@ export function AdminCoursesPage() {
                 </div>
             )}
 
-            {/* Future Backend Fields Notice */}
-            <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-[12px] text-sm text-amber-700">
-                <strong>ملاحظة للمطورين:</strong> الصفحة جاهزة لاستقبال الحقول الإضافية من الـ Backend:
-                <code className="mx-1 px-2 py-0.5 bg-amber-100 rounded text-xs">grade_id</code>
-                <code className="mx-1 px-2 py-0.5 bg-amber-100 rounded text-xs">semester_id</code>
-                <code className="mx-1 px-2 py-0.5 bg-amber-100 rounded text-xs">subject_id</code>
-                <code className="mx-1 px-2 py-0.5 bg-amber-100 rounded text-xs">category_id</code>
-                <code className="mx-1 px-2 py-0.5 bg-amber-100 rounded text-xs">course_type</code>
-            </div>
+
 
             {/* Add Course Modal */}
             <AddCourseModal

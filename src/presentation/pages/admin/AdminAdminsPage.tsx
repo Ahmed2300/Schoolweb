@@ -297,9 +297,51 @@ export function AdminAdminsPage() {
             {/* Admins Table */}
             <div className="bg-white rounded-[16px] shadow-card overflow-hidden">
                 {loading ? (
-                    <div className="flex items-center justify-center py-20">
-                        <Loader2 size={32} className="animate-spin text-shibl-crimson" />
-                        <span className="mr-3 text-slate-500">جاري التحميل...</span>
+                    /* Shimmer Skeleton Loading */
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="bg-slate-50 border-b border-slate-100">
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الاسم</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">البريد الإلكتروني</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الدور</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الحالة</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">تاريخ الانضمام</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {[...Array(6)].map((_, index) => (
+                                    <tr key={index}>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" />
+                                                <div className="h-4 w-28 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100}ms` }} />
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-4 w-40 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 50}ms` }} />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-6 w-16 rounded-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 100}ms` }} />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-6 w-14 rounded-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 150}ms` }} />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-4 w-28 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 200}ms` }} />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 250}ms` }} />
+                                                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 300}ms` }} />
+                                                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 350}ms` }} />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 ) : admins.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 text-slate-500">

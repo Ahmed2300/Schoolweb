@@ -132,6 +132,81 @@ body {
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  /* ============================================
+     CUSTOM SCROLLBAR UTILITIES
+     ============================================ */
+
+  /* Hide scrollbar completely but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Opera */
+  }
+
+  /* Minimal sleek scrollbar - appears on hover */
+  .scrollbar-sleek {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.3s ease;
+  }
+
+  .scrollbar-sleek:hover {
+    scrollbar-color: rgba(175, 12, 21, 0.3) transparent;
+  }
+
+  .scrollbar-sleek::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-sleek::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+  }
+
+  .scrollbar-sleek::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 10px;
+    transition: background 0.3s ease;
+  }
+
+  .scrollbar-sleek:hover::-webkit-scrollbar-thumb {
+    background: rgba(175, 12, 21, 0.3);
+  }
+
+  .scrollbar-sleek::-webkit-scrollbar-thumb:hover {
+    background: rgba(175, 12, 21, 0.5);
+  }
+
+  /* Ultra-thin scrollbar for sidebars */
+  .scrollbar-thin-sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .scrollbar-thin-sidebar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .scrollbar-thin-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin-sidebar::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 10px;
+  }
+
+  .scrollbar-thin-sidebar:hover::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.2);
+  }
 }
 
 /* ============================================
@@ -203,4 +278,19 @@ body {
 
 .animate-scaleIn {
   animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Shimmer Skeleton Loading Animation */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s ease-in-out infinite;
 }

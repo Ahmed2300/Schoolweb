@@ -238,14 +238,39 @@ export function AdminTeachersPage() {
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
                                     {loading ? (
-                                        <tr>
-                                            <td colSpan={6} className="px-6 py-16 text-center">
-                                                <div className="flex flex-col items-center gap-4">
-                                                    <Loader2 size={40} className="animate-spin text-blue-600" />
-                                                    <p className="text-slate-600">جاري تحميل المدرسين...</p>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        /* Shimmer Skeleton Loading */
+                                        [...Array(5)].map((_, index) => (
+                                            <tr key={index}>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" />
+                                                        <div className="space-y-2">
+                                                            <div className="h-4 w-28 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100}ms` }} />
+                                                            <div className="h-3 w-36 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 50}ms` }} />
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="h-4 w-20 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 100}ms` }} />
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="h-4 w-16 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 150}ms` }} />
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="h-4 w-10 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 200}ms` }} />
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="h-6 w-14 rounded-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 250}ms` }} />
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 300}ms` }} />
+                                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 350}ms` }} />
+                                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 400}ms` }} />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
                                     ) : error ? (
                                         <tr>
                                             <td colSpan={6} className="px-6 py-16 text-center">
