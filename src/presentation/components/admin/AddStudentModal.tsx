@@ -103,7 +103,7 @@ export function AddStudentModal({ isOpen, onClose, onSuccess }: AddStudentModalP
     const fetchGrades = async () => {
         setLoadingGrades(true);
         try {
-            const response = await adminService.getGradesList();
+            const response = await adminService.getGrades();
             setGrades(response.data || []);
         } catch (err) {
             console.error('Error fetching grades:', err);
@@ -116,7 +116,7 @@ export function AddStudentModal({ isOpen, onClose, onSuccess }: AddStudentModalP
     const fetchCountries = async () => {
         setLoadingCountries(true);
         try {
-            const response = await adminService.getCountriesList();
+            const response = await adminService.getCountries();
             setCountries(response.data || []);
         } catch (err) {
             console.error('Error fetching countries:', err);
@@ -137,7 +137,7 @@ export function AddStudentModal({ isOpen, onClose, onSuccess }: AddStudentModalP
     const fetchCities = async (countryId: number) => {
         setLoadingCities(true);
         try {
-            const response = await adminService.getCitiesList(countryId);
+            const response = await adminService.getCities({ country_id: countryId });
             setCities(response.data || []);
         } catch (err) {
             console.error('Error fetching cities:', err);

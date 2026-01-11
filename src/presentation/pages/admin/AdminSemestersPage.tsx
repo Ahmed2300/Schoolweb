@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Calendar,
     Search,
@@ -36,7 +36,7 @@ const extractName = (name: string | { ar?: string; en?: string } | undefined): s
     return name.ar || name.en || '';
 };
 
-export function AdminSemestersPage(): JSX.Element {
+export function AdminSemestersPage(): React.ReactElement {
     const [semesters, setSemesters] = useState<SemesterData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -84,7 +84,7 @@ export function AdminSemestersPage(): JSX.Element {
     const fetchGrades = useCallback(async () => {
         setLoadingGrades(true);
         try {
-            const response = await adminService.getGradesList({ per_page: 100 });
+            const response = await adminService.getGrades({ per_page: 100 });
             const gradeData = response.data || [];
             setGrades(gradeData.map(g => ({
                 id: g.id,

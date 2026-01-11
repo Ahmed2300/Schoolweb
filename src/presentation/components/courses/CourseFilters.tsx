@@ -1,6 +1,7 @@
 // src/presentation/components/courses/CourseFilters.tsx
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import type { CourseFilters as CourseFiltersType, CourseType } from '../../../core/repositories';
+import type { CourseFilters as CourseFiltersType } from '../../../core/repositories';
+import type { CourseType } from '../../../core/entities';
 import { useLanguage } from '../../hooks';
 
 interface CourseFiltersProps {

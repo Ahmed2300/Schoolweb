@@ -1,4 +1,4 @@
-import { ReactNode, useState, useCallback } from 'react';
+import React, { ReactNode, useState, useCallback } from 'react';
 import {
     LayoutDashboard,
     Users,
@@ -94,7 +94,7 @@ interface AdminSidebarProps {
     onToggle: () => void;
 }
 
-export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps): JSX.Element {
+export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps): React.ReactElement {
     const location = useLocation();
     const navigate = useNavigate();
     const { logout } = useAuthStore();

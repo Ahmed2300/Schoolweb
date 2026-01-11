@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     GraduationCap,
     Search,
@@ -35,7 +35,7 @@ const extractName = (name: string | { ar?: string; en?: string } | undefined): s
     return name.ar || name.en || '';
 };
 
-const ShimmerRow = (): JSX.Element => (
+const ShimmerRow = (): React.ReactElement => (
     <tr className="animate-pulse">
         <td className="py-4 px-6">
             <div className="h-4 bg-slate-200 rounded w-16"></div>
@@ -55,7 +55,7 @@ const ShimmerRow = (): JSX.Element => (
     </tr>
 );
 
-export function AdminGradesPage(): JSX.Element {
+export function AdminGradesPage(): React.ReactElement {
     const [grades, setGrades] = useState<GradeData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -80,7 +80,7 @@ export function AdminGradesPage(): JSX.Element {
         setLoading(true);
         setError(null);
         try {
-            const response = await adminService.getGradesList({
+            const response = await adminService.getGrades({
                 page: currentPage,
                 per_page: 15,
                 search: searchQuery || undefined,

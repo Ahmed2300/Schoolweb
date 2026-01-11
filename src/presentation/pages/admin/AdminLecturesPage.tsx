@@ -438,7 +438,7 @@ export function AdminLecturesPage() {
                 onConfirm={confirmDelete}
                 title="حذف المحاضرة"
                 message={`هل أنت متأكد من حذف المحاضرة "${selectedLecture ? extractName(selectedLecture.title) : ''}"؟ سيتم حذف الفيديو المرتبط أيضاً.`}
-                loading={deleteLoading}
+            // loading={deleteLoading}
             />
         </div>
     );

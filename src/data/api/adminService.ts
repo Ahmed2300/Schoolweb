@@ -71,6 +71,9 @@ export interface UserListParams {
     search?: string;
     country_id?: number;
     city_id?: number;
+    grade_id?: number;
+    term_id?: number;
+    semester_id?: number;
 }
 
 // Update request types based on backend validation rules
@@ -187,16 +190,7 @@ export interface UpdateRoleRequest {
 }
 
 // Subject types
-export interface SubjectData {
-    id: number;
-    name: string;
-    description?: string;
-    icon?: string;
-    color?: string;
-    is_active: boolean;
-    created_at: string;
-    updated_at: string;
-}
+
 
 export interface CreateSubjectRequest {
     name: string;
@@ -1376,142 +1370,7 @@ export const adminService = {
         await apiClient.delete(endpoints.admin.studentParent.remove(studentId));
     },
 
-    // ==================== PAYMENT MANAGEMENT ====================
 
-    /**
-     * Get paginated list of payments with optional filters
-     */
-    getPayments: async (params?: PaymentListParams): Promise<PaginatedResponse<PaymentData>> => {
-        const response = await apiClient.get(endpoints.admin.payments.list, { params });
-        return {
-            data: response.data.data || [],
-            meta: response.data.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 },
-        };
-    },
-
-    /**
-     * Get a single payment by ID
-     */
-    getPayment: async (id: number): Promise<PaymentData> => {
-        const response = await apiClient.get(endpoints.admin.payments.show(id));
-        return response.data.data || response.data;
-    },
-
-    /**
-     * Approve a pending payment
-     */
-    approvePayment: async (id: number): Promise<PaymentData> => {
-        const response = await apiClient.post(endpoints.admin.payments.approve(id));
-        return response.data.data || response.data;
-    },
-
-    /**
-     * Reject a pending payment
-     */
-    rejectPayment: async (id: number, reason?: string): Promise<PaymentData> => {
-        const response = await apiClient.post(endpoints.admin.payments.reject(id), { reason });
-        return response.data.data || response.data;
-    },
-
-    /**
-     * Get payment statistics
-     */
-    getPaymentStatistics: async (startDate?: string, endDate?: string): Promise<PaymentStatistics> => {
-        const response = await apiClient.get(endpoints.admin.payments.statistics, {
-            params: { start_date: startDate, end_date: endDate }
-        });
-        return response.data;
-    },
-
-    // ==================== GRADE MANAGEMENT ====================
-
-    /**
-     * Get list of grades for dropdowns
-     */
-    getGradesList: async (params?: { page?: number; per_page?: number; search?: string }): Promise<PaginatedResponse<{ id: number; name: string }>> => {
-        const response = await apiClient.get(endpoints.admin.grades.list, { params });
-        return {
-            data: response.data.data || [],
-            meta: response.data.meta || { current_page: 1, last_page: 1, per_page: 100, total: 0 },
-        };
-    },
-
-    getGrade: async (id: number): Promise<{ id: number; name: string }> => {
-        const response = await apiClient.get(endpoints.admin.grades.show(id));
-        return response.data.data || response.data;
-    },
-
-    createGrade: async (data: { name: string | { ar?: string; en?: string } }): Promise<{ id: number; name: string }> => {
-        const response = await apiClient.post(endpoints.admin.grades.create, data);
-        return response.data.data || response.data;
-    },
-
-    updateGrade: async (id: number, data: { name?: string | { ar?: string; en?: string } }): Promise<{ id: number; name: string }> => {
-        const response = await apiClient.put(endpoints.admin.grades.update(id), data);
-        return response.data.data || response.data;
-    },
-
-    deleteGrade: async (id: number): Promise<void> => {
-        await apiClient.delete(endpoints.admin.grades.delete(id));
-    },
-
-    // ==================== SEMESTER MANAGEMENT ====================
-
-    getSemesters: async (params?: { page?: number; per_page?: number; search?: string }): Promise<PaginatedResponse<SemesterData>> => {
-        const response = await apiClient.get(endpoints.admin.semesters.list, { params });
-        return {
-            data: response.data.data || [],
-            meta: response.data.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 },
-        };
-    },
-
-    getSemester: async (id: number): Promise<SemesterData> => {
-        const response = await apiClient.get(endpoints.admin.semesters.show(id));
-        return response.data.data || response.data;
-    },
-
-    createSemester: async (data: CreateSemesterRequest): Promise<SemesterData> => {
-        const response = await apiClient.post(endpoints.admin.semesters.create, data);
-        return response.data.data || response.data;
-    },
-
-    updateSemester: async (id: number, data: UpdateSemesterRequest): Promise<SemesterData> => {
-        const response = await apiClient.put(endpoints.admin.semesters.update(id), data);
-        return response.data.data || response.data;
-    },
-
-    deleteSemester: async (id: number): Promise<void> => {
-        await apiClient.delete(endpoints.admin.semesters.delete(id));
-    },
-
-    // ==================== SUBJECT MANAGEMENT ====================
-
-    getSubjects: async (params?: { page?: number; per_page?: number; search?: string }): Promise<PaginatedResponse<SubjectData>> => {
-        const response = await apiClient.get(endpoints.admin.subjects.list, { params });
-        return {
-            data: response.data.data || [],
-            meta: response.data.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 },
-        };
-    },
-
-    getSubject: async (id: number): Promise<SubjectData> => {
-        const response = await apiClient.get(endpoints.admin.subjects.show(id));
-        return response.data.data || response.data;
-    },
-
-    createSubject: async (data: CreateSubjectRequest): Promise<SubjectData> => {
-        const response = await apiClient.post(endpoints.admin.subjects.create, data);
-        return response.data.data || response.data;
-    },
-
-    updateSubject: async (id: number, data: UpdateSubjectRequest): Promise<SubjectData> => {
-        const response = await apiClient.put(endpoints.admin.subjects.update(id), data);
-        return response.data.data || response.data;
-    },
-
-    deleteSubject: async (id: number): Promise<void> => {
-        await apiClient.delete(endpoints.admin.subjects.delete(id));
-    },
 };
 
 export default adminService;

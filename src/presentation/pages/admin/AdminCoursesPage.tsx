@@ -116,14 +116,14 @@ export function AdminCoursesPage() {
         setLoadingDropdowns(true);
         try {
             const [gradesRes, semestersRes] = await Promise.allSettled([
-                adminService.getGradesList({ per_page: 100 }),
+                adminService.getGrades({ per_page: 100 }),
                 adminService.getSemesters({ per_page: 100 }),
             ]);
 
             if (gradesRes.status === 'fulfilled') {
                 setGrades(gradesRes.value.data.map(g => ({
                     id: g.id,
-                    name: extractName((g as Record<string, unknown>).name) || `صف ${g.id}`,
+                    name: extractName((g as any).name) || `صف ${g.id}`,
                 })));
             }
             if (semestersRes.status === 'fulfilled') {

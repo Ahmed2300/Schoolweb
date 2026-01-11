@@ -151,7 +151,7 @@ export function AddCourseModal({ isOpen, onClose, onSuccess }: AddCourseModalPro
         setLoadingDropdowns(true);
         try {
             const [gradesRes, semestersRes, subjectsRes, teachersRes] = await Promise.allSettled([
-                adminService.getGradesList({ per_page: 100 }),
+                adminService.getGrades({ per_page: 100 }),
                 adminService.getSemesters({ per_page: 100 }),
                 adminService.getSubjects({ per_page: 100 }),
                 adminService.getTeachers({ per_page: 100 }),

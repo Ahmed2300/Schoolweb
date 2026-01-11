@@ -100,7 +100,7 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
         setLoadingDropdowns(true);
         try {
             const [gradesRes, semestersRes, subjectsRes, teachersRes] = await Promise.allSettled([
-                adminService.getGradesList(),
+                adminService.getGrades({ per_page: 100 }),
                 adminService.getSemesters(),
                 adminService.getSubjects(),
                 adminService.getTeachers({ per_page: 100 }),

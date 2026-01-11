@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     BookOpen,
     Search,
@@ -74,7 +74,7 @@ const generateSubjectCode = (name: string): string => {
     return `${prefix}${randomSuffix}`;
 };
 
-export function AdminSubjectsPage(): JSX.Element {
+export function AdminSubjectsPage(): React.ReactElement {
     const [subjects, setSubjects] = useState<SubjectData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -125,7 +125,7 @@ export function AdminSubjectsPage(): JSX.Element {
         setLoadingDropdowns(true);
         try {
             const [gradesRes, semestersRes] = await Promise.allSettled([
-                adminService.getGradesList({ per_page: 100 }),
+                adminService.getGrades({ per_page: 100 }),
                 adminService.getSemesters({ per_page: 100 }),
             ]);
 
