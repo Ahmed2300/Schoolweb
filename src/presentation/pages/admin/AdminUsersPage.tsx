@@ -44,6 +44,7 @@ const roleConfig: Record<UserRole, { label: string; bgColor: string; textColor: 
 const statusConfig: Record<UserStatus, { label: string; bgColor: string; textColor: string }> = {
     active: { label: 'نشط', bgColor: 'bg-green-100', textColor: 'text-green-700' },
     inactive: { label: 'غير نشط', bgColor: 'bg-slate-100', textColor: 'text-slate-500' },
+    'on-leave': { label: 'في إجازة', bgColor: 'bg-amber-100', textColor: 'text-amber-700' },
 };
 
 // Format date to Arabic
