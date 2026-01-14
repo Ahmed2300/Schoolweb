@@ -218,6 +218,10 @@ export const endpoints = {
         enrolled: '/api/v1/courses/enrolled', // TODO: Implement in backend
         featured: '/api/v1/courses/featured', // TODO: Implement in backend
         recommended: '/api/v1/courses/recommended', // TODO: Implement in backend
+        create: '/api/v1/courses',
+        update: (id: string) => `/api/v1/courses/${id}`,
+        delete: (id: string) => `/api/v1/courses/${id}`,
+        publish: (id: string) => `/api/v1/courses/${id}/publish`,
     },
 
     // Student Subscriptions
@@ -226,6 +230,12 @@ export const endpoints = {
         create: '/api/v1/students/subscriptions',
         cancel: (id: string) => `/api/v1/students/subscriptions/${id}`,
         uploadBill: (id: string) => `/api/v1/students/subscriptions/${id}/bill-image`,
+        detail: (id: string) => `/api/v1/students/subscriptions/${id}`,
+        checkAccess: '/api/v1/students/subscriptions/check-access',
+        request: '/api/v1/students/subscriptions/request',
+        pending: '/api/v1/admin/subscriptions?status=pending',
+        approve: (id: string) => `/api/v1/admin/subscriptions/${id}/activate`,
+        reject: (id: string) => `/api/v1/admin/subscriptions/${id}/reject`,
     },
 
     // Student Schedules
