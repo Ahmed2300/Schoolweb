@@ -57,6 +57,7 @@ export interface Course {
     old_price?: number;
     is_promoted?: boolean;
     is_active?: boolean;
+    is_academic?: boolean;
     start_date?: string;
     end_date?: string;
     teacher_id?: number;
@@ -65,12 +66,14 @@ export interface Course {
         name: string;
         image_path?: string;
     };
-    // TODO: Backend will add these
-    // grade_id?: number;
-    // semester_id?: number;
-    // subject_id?: number;
-    // progress_percentage?: number;
-    // lessons_count?: number;
+    grade_id?: number;
+    semester_id?: number;
+    subject_id?: number;
+    grade?: Grade;
+    semester?: Semester;
+    image_path?: string;
+    lectures?: Lecture[];
+    lectures_count?: number;
     created_at?: string;
     updated_at?: string;
 }
@@ -83,6 +86,7 @@ export interface Lecture {
     order?: number;
     duration_minutes?: number;
     video_url?: string;
+    video_path?: string;
     is_free?: boolean;
     is_active?: boolean;
     created_at?: string;
@@ -107,19 +111,60 @@ export interface PaginatedResponse<T> {
     };
 }
 
+// Subscription status values matching backend enum
+export type SubscriptionStatus = 0 | 1 | 2 | 3; // INACTIVE=0, ACTIVE=1, PENDING=2, REJECTED=3
+
+export const SubscriptionStatusLabels: Record<SubscriptionStatus, string> = {
+    0: 'غير نشط',
+    1: 'نشط',
+    2: 'قيد المراجعة',
+    3: 'مرفوض',
+};
+
+export interface Subscription {
+    id: number;
+    student_id: number;
+    course_id: number;
+    course?: Course;
+    status: SubscriptionStatus;
+    status_label: string;
+    bill_image_path?: string;
+    rejection_reason?: string;
+    start_date?: string;
+    end_date?: string;
+    is_currently_active: boolean;
+    created_at?: string;
+    updated_at?: string;
+}
+
 // ============================================================
 // Helper Functions
 // ============================================================
 
 /**
  * Get localized name from multilingual field
+ * Handles both objects and JSON strings
  */
 export const getLocalizedName = (
     field: string | { ar?: string; en?: string } | undefined,
     fallback: string = 'بدون اسم'
 ): string => {
     if (!field) return fallback;
-    if (typeof field === 'string') return field;
+
+    // If it's a string, check if it's a JSON string and try to parse it
+    if (typeof field === 'string') {
+        // Check if it looks like a JSON object
+        if (field.startsWith('{') && field.includes('"ar"')) {
+            try {
+                const parsed = JSON.parse(field);
+                return parsed.ar || parsed.en || field;
+            } catch {
+                return field;
+            }
+        }
+        return field;
+    }
+
     // Default to Arabic, fallback to English
     return field.ar || field.en || fallback;
 };
@@ -187,6 +232,48 @@ export const studentService = {
     getSemesterById: async (id: number): Promise<Semester> => {
         const response = await apiClient.get(endpoints.semesters.detail(id));
         return response.data.data || response.data;
+    },
+
+    /**
+     * Get semesters for a specific grade
+     */
+    getSemestersByGrade: async (gradeId: number): Promise<Semester[]> => {
+        const response = await apiClient.get(endpoints.grades.semestersByGrade(gradeId));
+        return response.data.data || response.data || [];
+    },
+
+    /**
+     * Get academic courses (filtered by grade/semester)
+     */
+    getAcademicCourses: async (params: {
+        grade_id?: number;
+        semester_id?: number;
+        per_page?: number;
+        page?: number;
+    }): Promise<PaginatedResponse<Course>> => {
+        const response = await apiClient.get(endpoints.courses.list, {
+            params: { ...params, is_academic: true }
+        });
+        return {
+            data: response.data.data || [],
+            meta: response.data.meta,
+        };
+    },
+
+    /**
+     * Get non-academic/skills courses
+     */
+    getSkillsCourses: async (params?: {
+        per_page?: number;
+        page?: number;
+    }): Promise<PaginatedResponse<Course>> => {
+        const response = await apiClient.get(endpoints.courses.list, {
+            params: { ...params, is_academic: false }
+        });
+        return {
+            data: response.data.data || [],
+            meta: response.data.meta,
+        };
     },
 
     /**
@@ -280,6 +367,54 @@ export const studentService = {
      */
     logoutAll: async (): Promise<void> => {
         await apiClient.post(endpoints.studentAuth.logoutAll);
+    },
+
+    // ============================================================
+    // Subscription Methods
+    // ============================================================
+
+    /**
+     * Subscribe to a course (creates pending subscription)
+     */
+    subscribeToCourse: async (courseId: number): Promise<Subscription> => {
+        const response = await apiClient.post('/api/v1/students/subscriptions', {
+            course_id: courseId,
+        });
+        return response.data.data || response.data;
+    },
+
+    /**
+     * Upload payment receipt for a subscription
+     */
+    uploadPaymentReceipt: async (subscriptionId: number, file: File): Promise<Subscription> => {
+        const formData = new FormData();
+        formData.append('bill_image', file);
+        const response = await apiClient.post(
+            `/api/v1/students/subscriptions/${subscriptionId}/bill-image`,
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            }
+        );
+        return response.data.data || response.data;
+    },
+
+    /**
+     * Get all subscriptions for the current student
+     */
+    getMySubscriptions: async (): Promise<Subscription[]> => {
+        const response = await apiClient.get('/api/v1/students/subscriptions');
+        return response.data.data || response.data;
+    },
+
+    /**
+     * Check if student has a subscription for a specific course
+     */
+    getSubscriptionByCourse: async (courseId: number): Promise<Subscription | null> => {
+        const subscriptions = await studentService.getMySubscriptions();
+        return subscriptions.find(s => s.course_id === courseId) || null;
     },
 };
 

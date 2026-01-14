@@ -67,10 +67,23 @@ export class AuthRepository implements IAuthRepository {
         }
     }
 
-    async updateProfile(data: Partial<User>): Promise<User> {
-        // PUT /api/v1/students/auth/me - Backend returns { success: true, data: {...} }
+    async updateProfile(data: Partial<User> | FormData): Promise<User> {
+        // Handle FormData with POST method spoofing for Laravel
+        if (data instanceof FormData) {
+            // Ensure _method is set to PUT
+            if (!data.has('_method')) {
+                data.append('_method', 'PUT');
+            }
+
+            // Use POST endpoint but it's the same URL as PUT usually
+            const response = await apiClient.post(endpoints.studentAuth.me, data, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            return response.data.data || response.data.user || response.data;
+        }
+
+        // Standard JSON PUT update
         const response = await apiClient.put(endpoints.studentAuth.me, data);
-        // Backend returns: { success: true, message: '...', data: { user data } }
         return response.data.data || response.data.user || response.data;
     }
 }

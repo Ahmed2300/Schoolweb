@@ -189,6 +189,7 @@ export const endpoints = {
     grades: {
         list: '/api/v1/grades',
         detail: (id: number) => `/api/v1/grades/${id}`,
+        semestersByGrade: (gradeId: number) => `/api/v1/grades/semsters/by/grade/${gradeId}`,
     },
 
     // Semesters (authenticated)
@@ -206,32 +207,32 @@ export const endpoints = {
     // Countries & Cities (for registration)
     locations: {
         countries: '/api/v1/countries',
-        cities: (countryId: number) => `/api/v1/countries/${countryId}/cities`,
+        cities: (countryId: number) => `/api/v1/cities?country_id=${countryId}`,
     },
 
-    // Courses - using admin endpoint since student-facing API doesn't exist yet
+    // Courses
     courses: {
-        list: '/api/v1/admin/courses',
-        detail: (id: string) => `/api/v1/admin/courses/${id}`,
-        enrolled: '/api/v1/courses/enrolled',
-        featured: '/api/v1/courses/featured',
-        recommended: '/api/v1/courses/recommended',
+        list: '/api/v1/courses',
+        detail: (id: string) => `/api/v1/courses/${id}`,
         search: '/api/v1/courses/search',
-        create: '/api/v1/admin/courses',
-        update: (id: string) => `/api/v1/admin/courses/${id}`,
-        delete: (id: string) => `/api/v1/admin/courses/${id}`,
-        publish: (id: string) => `/api/v1/admin/courses/${id}/publish`,
+        enrolled: '/api/v1/courses/enrolled', // TODO: Implement in backend
+        featured: '/api/v1/courses/featured', // TODO: Implement in backend
+        recommended: '/api/v1/courses/recommended', // TODO: Implement in backend
     },
 
-    // Subscriptions
+    // Student Subscriptions
     subscriptions: {
-        list: '/api/v1/subscriptions',
-        detail: (id: string) => `/api/v1/subscriptions/${id}`,
-        checkAccess: '/api/v1/subscriptions/check-access',
-        request: '/api/v1/subscriptions/request',
-        cancel: (id: string) => `/api/v1/subscriptions/${id}/cancel`,
-        pending: '/api/v1/subscriptions/pending',
-        approve: (id: string) => `/api/v1/subscriptions/${id}/approve`,
-        reject: (id: string) => `/api/v1/subscriptions/${id}/reject`,
+        list: '/api/v1/students/subscriptions',
+        create: '/api/v1/students/subscriptions',
+        cancel: (id: string) => `/api/v1/students/subscriptions/${id}`,
+        uploadBill: (id: string) => `/api/v1/students/subscriptions/${id}/bill-image`,
+    },
+
+    // Student Schedules
+    schedules: {
+        list: '/api/v1/students/schedules',
+        create: '/api/v1/students/schedules',
+        complete: (id: number) => `/api/v1/students/schedules/${id}/complete`,
+        delete: (id: number) => `/api/v1/students/schedules/${id}`,
     },
 } as const;

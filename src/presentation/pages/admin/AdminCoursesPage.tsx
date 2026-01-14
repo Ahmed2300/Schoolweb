@@ -53,6 +53,7 @@ interface Course {
     semester?: { id: number; name: string | { ar?: string; en?: string } };
     subject?: { id: number; name: string | { ar?: string; en?: string } };
     teacher?: { id: number; name: string };
+    image?: string;
 }
 
 interface CourseStats {
@@ -145,16 +146,21 @@ export function AdminCoursesPage() {
             setLoading(true);
             setError(null);
 
+            const isAcademic = activeTab === 'academic';
+
             const response = await adminService.getCourses({
                 search: searchQuery || undefined,
                 grade_id: selectedGradeId || undefined,
                 semester_id: selectedSemesterId || undefined,
+                is_academic: isAcademic,
                 per_page: 20,
             });
 
             const coursesData = response.data || [];
             setCourses(coursesData);
 
+            // Calculate stats based on the current view
+            // Note: For a real dashboard, you might want these stats to be global or strictly related to the tab
             const activeCourses = coursesData.filter((c: Course) => c.is_active).length;
             setStats({
                 totalCourses: response.meta?.total || coursesData.length,
@@ -172,7 +178,7 @@ export function AdminCoursesPage() {
         } finally {
             setLoading(false);
         }
-    }, [searchQuery, selectedGradeId, selectedSemesterId]);
+    }, [searchQuery, selectedGradeId, selectedSemesterId, activeTab]);
 
     useEffect(() => {
         fetchDropdownData();
@@ -384,6 +390,7 @@ export function AdminCoursesPage() {
                         <table className="w-full">
                             <thead>
                                 <tr className="bg-slate-50 border-b border-slate-100">
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase w-20">الصورة</th>
                                     <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكورس</th>
                                     <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكود</th>
                                     <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الساعات</th>
@@ -414,10 +421,22 @@ export function AdminCoursesPage() {
                                         return (
                                             <tr key={course.id} className="hover:bg-slate-50/50 transition-colors">
                                                 <td className="px-6 py-4">
+                                                    <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden border border-slate-200">
+                                                        {course.image ? (
+                                                            <img
+                                                                src={course.image}
+                                                                alt={getCourseName(course)}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                                                <BookOpen size={20} className="opacity-50" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-[12px] bg-blue-100 flex items-center justify-center">
-                                                            <BookOpen size={18} className="text-blue-600" />
-                                                        </div>
                                                         <div>
                                                             <span className="font-semibold text-charcoal block">{getCourseName(course)}</span>
                                                             <span className="text-xs text-slate-400">{course.credits} ساعات معتمدة</span>

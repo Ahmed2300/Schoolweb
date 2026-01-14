@@ -47,6 +47,16 @@ export interface UserData {
     occupation?: string;
     // Teacher-specific
     subject?: string;
+    type?: 'teacher' | 'instructor'; // Backend returns type based on is_academic
+    is_academic?: boolean; // true = teacher (academic), false = instructor (skills)
+    specialization?: string;
+    qualification?: string;
+    balance?: string;
+    hire_date?: string;
+    courses_count?: number;
+    courses?: string[];
+    subjects?: string[];
+    grades?: string[];
 }
 
 export interface PaginatedResponse<T> {
@@ -74,6 +84,7 @@ export interface UserListParams {
     grade_id?: number;
     term_id?: number;
     semester_id?: number;
+    is_academic?: boolean;
 }
 
 // Update request types based on backend validation rules
@@ -137,6 +148,10 @@ export interface UpdateTeacherRequest {
     name?: string;
     email?: string;
     phone?: string;
+    is_academic?: boolean;
+    specialization?: string;
+    qualification?: string;
+    status?: 'active' | 'inactive' | 'on-leave';
 }
 
 // Create teacher request based on backend StoreTeacherRequest
@@ -150,6 +165,7 @@ export interface CreateTeacherRequest {
     qualification?: string;
     balance?: number;
     status?: 'active' | 'inactive' | 'on-leave';
+    is_academic?: boolean; // true = teacher (academic), false = instructor (skills)
 }
 
 // Create admin request based on backend StoreAdminRequest
@@ -233,7 +249,50 @@ export interface UpdateGradeRequest {
     is_active?: boolean;
 }
 
+// Subscription types for admin management
+export type AdminSubscriptionStatus = 0 | 1 | 2 | 3; // INACTIVE=0, ACTIVE=1, PENDING=2, REJECTED=3
 
+export const AdminSubscriptionStatusLabels: Record<AdminSubscriptionStatus, string> = {
+    0: 'غير نشط',
+    1: 'نشط',
+    2: 'قيد المراجعة',
+    3: 'مرفوض',
+};
+
+export const AdminSubscriptionStatusColors: Record<AdminSubscriptionStatus, string> = {
+    0: 'bg-slate-100 text-slate-700',
+    1: 'bg-emerald-100 text-emerald-700',
+    2: 'bg-amber-100 text-amber-700',
+    3: 'bg-red-100 text-red-700',
+};
+
+export interface AdminSubscription {
+    id: number;
+    student_id: number;
+    course_id: number;
+    student?: {
+        id: number;
+        name: string;
+        email: string;
+        phone?: string;
+        image_path?: string;
+    };
+    course?: {
+        id: number;
+        name: { ar?: string; en?: string } | string;
+        code: string;
+        price?: number;
+    };
+    status: AdminSubscriptionStatus;
+    status_label: string;
+    bill_image_path?: string;
+    rejection_reason?: string;
+    start_date?: string;
+    end_date?: string;
+    is_currently_active: boolean;
+    created_at?: string;
+    updated_at?: string;
+}
 
 // Course types (matching backend StoreCourseRequest)
 export interface CourseData {
@@ -247,6 +306,7 @@ export interface CourseData {
     old_price?: number;
     is_promoted?: boolean;
     is_active: boolean;
+    is_academic?: boolean;
     start_date?: string;
     end_date?: string;
     image_path?: string;
@@ -272,6 +332,7 @@ export interface CreateCourseRequest {
     old_price: number;
     is_promoted?: boolean;
     is_active?: boolean;
+    is_academic?: boolean;
     start_date?: string;
     end_date?: string;
     image?: File;
@@ -291,6 +352,7 @@ export interface UpdateCourseRequest {
     old_price?: number;
     is_promoted?: boolean;
     is_active?: boolean;
+    is_academic?: boolean;
     start_date?: string;
     end_date?: string;
     image?: File;
@@ -396,7 +458,7 @@ export interface SemesterData {
     grade_ids?: number[];
     country_id?: number;
     start_date?: string;
-    expiry_date?: string;
+    end_date?: string;
     created_at: string;
     updated_at?: string;
     grade?: { id: number; name: string };
@@ -409,6 +471,7 @@ export interface CreateSemesterRequest {
     grade_id: number;  // Required by backend
     country_id: number;  // Required by backend
     start_date: string;  // Required by backend
+    end_date: string;  // Required by backend
 }
 
 export interface UpdateSemesterRequest {
@@ -416,6 +479,7 @@ export interface UpdateSemesterRequest {
     grade_id?: number;
     country_id?: number;
     start_date?: string;
+    end_date?: string;
 }
 
 // Subject types
@@ -1368,6 +1432,35 @@ export const adminService = {
 
     removeParentFromStudent: async (studentId: number): Promise<void> => {
         await apiClient.delete(endpoints.admin.studentParent.remove(studentId));
+    },
+
+    // ==================== SUBSCRIPTION MANAGEMENT ====================
+
+    getSubscriptions: async (params?: { status?: number; per_page?: number; page?: number }): Promise<PaginatedResponse<AdminSubscription>> => {
+        const response = await apiClient.get('/api/v1/admin/subscriptions', { params });
+        return response.data;
+    },
+
+    getSubscription: async (id: number): Promise<AdminSubscription> => {
+        const response = await apiClient.get(`/api/v1/admin/subscriptions/${id}`);
+        return response.data.data || response.data;
+    },
+
+    approveSubscription: async (id: number): Promise<AdminSubscription> => {
+        const response = await apiClient.post(`/api/v1/admin/subscriptions/${id}/activate`);
+        return response.data.data || response.data;
+    },
+
+    rejectSubscription: async (id: number, rejectionReason: string): Promise<AdminSubscription> => {
+        const response = await apiClient.post(`/api/v1/admin/subscriptions/${id}/reject`, {
+            rejection_reason: rejectionReason,
+        });
+        return response.data.data || response.data;
+    },
+
+    deactivateSubscription: async (id: number): Promise<AdminSubscription> => {
+        const response = await apiClient.post(`/api/v1/admin/subscriptions/${id}/deactivate`);
+        return response.data.data || response.data;
     },
 
 

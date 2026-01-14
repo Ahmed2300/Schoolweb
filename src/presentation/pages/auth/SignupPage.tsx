@@ -47,19 +47,7 @@ const HOW_DID_YOU_KNOW_US_OPTIONS = [
     { value: 'other', label: 'أخرى', Icon: FileText, color: 'text-slate-500' },
 ];
 
-// Omani Governorates / Cities (matching backend seeder)
-const OMAN_GOVERNORATES = [
-    { id: 0, name: 'اختر الولاية' },
-    { id: 1, name: 'مسقط' },
-    { id: 2, name: 'صلالة' },
-    { id: 3, name: 'صحار' },
-    { id: 4, name: 'نزوى' },
-    { id: 5, name: 'صور' },
-    { id: 6, name: 'عبري' },
-    { id: 7, name: 'بوشر' },
-    { id: 8, name: 'السيب' },
-    { id: 9, name: 'العامرات' },
-];
+
 
 type UserType = 'student' | 'parent';
 
@@ -243,6 +231,15 @@ export function SignupPage() {
 
         if (!formData.phone) {
             errors.phone = 'رقم الهاتف مطلوب';
+        }
+
+        if (userType === 'student') {
+            if (!formData.countryId || formData.countryId === 0) {
+                errors.country = 'يرجى اختيار الدولة';
+            }
+            if (!formData.cityId || formData.cityId === 0) {
+                errors.city = 'يرجى اختيار الولاية / المدينة';
+            }
         }
 
         if (Object.keys(errors).length > 0) {
@@ -497,40 +494,77 @@ export function SignupPage() {
                                 </div>
                             </div>
 
-                            {/* Location - Fixed Country (Oman) with Governorate dropdown - Both Student and Parent */}
+                            {/* Location - Country and City Selection */}
                             <>
-                                {/* Fixed Country - Oman */}
+                                {/* Country Selection - Dynamic */}
                                 <div className="form-control w-full">
                                     <label className="label pb-1">
                                         <span className="label-text font-bold text-slate-700">الدولة</span>
                                     </label>
-                                    <div className="bg-slate-100 px-4 py-3 rounded-xl flex items-center gap-3">
-                                        <span className="text-xl">🇴🇲</span>
-                                        <span className="font-bold text-slate-700">سلطنة عمان</span>
-                                        <span className="text-xs text-slate-400 mr-auto">(ثابت)</span>
+                                    <div className="relative">
+                                        <select
+                                            className={`input-pro pr-12 ${fieldErrors.country ? 'input-pro-error' : ''}`}
+                                            value={formData.countryId}
+                                            onChange={(e) => {
+                                                const newCountryId = Number(e.target.value);
+                                                setFormData(prev => ({ ...prev, countryId: newCountryId, cityId: 0 }));
+                                                setFieldErrors(prev => ({ ...prev, country: '', city: '' }));
+                                            }}
+                                            dir="rtl"
+                                            disabled={loadingCountries}
+                                        >
+                                            {loadingCountries ? (
+                                                <option value="0">جاري التحميل...</option>
+                                            ) : (
+                                                <>
+                                                    <option value="0">اختر الدولة</option>
+                                                    {countries.map((country) => (
+                                                        <option key={country.id} value={country.id}>
+                                                            {getLocalizedName(country.name, 'ar')}
+                                                        </option>
+                                                    ))}
+                                                </>
+                                            )}
+                                        </select>
+                                        <Flag size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.country ? 'text-red-400' : 'text-slate-400'}`} />
                                     </div>
+                                    {fieldErrors.country && <p className="text-red-500 text-sm mt-1">⚠ {fieldErrors.country}</p>}
                                 </div>
 
-                                {/* Governorate / City */}
+                                {/* City / Governorate Selection - Dynamic */}
                                 <div className="form-control w-full">
                                     <label className="label pb-1">
-                                        <span className="label-text font-bold text-slate-700">الولاية</span>
+                                        <span className="label-text font-bold text-slate-700">الولاية / المدينة</span>
                                     </label>
                                     <div className="relative">
                                         <select
-                                            className="input-pro pr-12"
+                                            className={`input-pro pr-12 ${fieldErrors.city ? 'input-pro-error' : ''}`}
                                             value={formData.cityId}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, cityId: Number(e.target.value) }))}
+                                            onChange={(e) => {
+                                                setFormData(prev => ({ ...prev, cityId: Number(e.target.value) }));
+                                                setFieldErrors(prev => ({ ...prev, city: '' }));
+                                            }}
                                             dir="rtl"
+                                            disabled={loadingCities || !formData.countryId}
                                         >
-                                            {OMAN_GOVERNORATES.map((gov) => (
-                                                <option key={gov.id} value={gov.id}>
-                                                    {gov.name}
-                                                </option>
-                                            ))}
+                                            {loadingCities ? (
+                                                <option value="0">جاري التحميل...</option>
+                                            ) : cities.length === 0 ? (
+                                                <option value="0">اختر الدولة أولاً</option>
+                                            ) : (
+                                                <>
+                                                    <option value="0">اختر الولاية / المدينة</option>
+                                                    {cities.map((city) => (
+                                                        <option key={city.id} value={city.id}>
+                                                            {getLocalizedName(city.name, 'ar')}
+                                                        </option>
+                                                    ))}
+                                                </>
+                                            )}
                                         </select>
-                                        <Building size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                        <Building size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.city ? 'text-red-400' : 'text-slate-400'}`} />
                                     </div>
+                                    {fieldErrors.city && <p className="text-red-500 text-sm mt-1">⚠ {fieldErrors.city}</p>}
                                 </div>
                             </>
 
@@ -719,6 +753,6 @@ export function SignupPage() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

@@ -19,7 +19,9 @@ import {
     Loader2
 } from 'lucide-react';
 import { AddTeacherModal } from '../../components/admin/AddTeacherModal';
+import { EditTeacherModal } from '../../components/admin/EditTeacherModal';
 import { adminService, UserData } from '../../../data/api/adminService';
+import teacherPlaceholder from '../../../assets/images/teacher-placeholder.png';
 
 // Types
 type MainTab = 'teachers' | 'instructors';
@@ -98,6 +100,8 @@ export function AdminTeachersPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [showPendingRequests, setShowPendingRequests] = useState(true);
     const [showAddTeacherModal, setShowAddTeacherModal] = useState(false);
+    const [showEditTeacherModal, setShowEditTeacherModal] = useState(false);
+    const [selectedTeacher, setSelectedTeacher] = useState<UserData | null>(null);
 
     // Data fetching states
     const [teachers, setTeachers] = useState<UserData[]>([]);
@@ -117,9 +121,13 @@ export function AdminTeachersPage() {
             setError(null);
             const response = await adminService.getTeachers({ per_page: 100 });
             setTeachers(response.data);
+            // Calculate stats based on teacher type
+            const academicTeachers = response.data.filter((t: UserData) => t.type === 'teacher' || t.is_academic === undefined || t.is_academic === true);
+            const instructors = response.data.filter((t: UserData) => t.type === 'instructor' || t.is_academic === false);
             setStats(prev => ({
                 ...prev,
-                totalTeachers: response.meta.total,
+                totalTeachers: academicTeachers.length,
+                totalInstructors: instructors.length,
             }));
         } catch (err) {
             console.error('Error fetching teachers:', err);
@@ -134,11 +142,18 @@ export function AdminTeachersPage() {
         fetchTeachers();
     }, []);
 
-    // Filter teachers based on search
-    const filteredTeachers = teachers.filter(teacher =>
-        teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        teacher.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Filter teachers based on search and type (is_academic)
+    const filteredTeachers = teachers.filter(teacher => {
+        const matchesSearch = teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            teacher.email.toLowerCase().includes(searchQuery.toLowerCase());
+
+        // Filter by type: teachers tab shows academic (is_academic=true), instructors tab shows non-academic
+        const matchesType = activeTab === 'teachers'
+            ? teacher.type === 'teacher' || teacher.is_academic === undefined || teacher.is_academic === true
+            : teacher.type === 'instructor' || teacher.is_academic === false;
+
+        return matchesSearch && matchesType;
+    });
 
     const statsDisplay = [
         { icon: <GraduationCap size={22} className="text-blue-600" />, label: 'مجموع المدرسين', value: String(stats.totalTeachers), bgColor: 'bg-blue-50' },
@@ -231,7 +246,7 @@ export function AdminTeachersPage() {
                                         <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">المعلم</th>
                                         <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">المواد الدراسية</th>
                                         <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الصفوف الدراسية</th>
-                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">عدد الطلاب</th>
+                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الدورات</th>
                                         <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الحالة</th>
                                         <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">إجراءات</th>
                                     </tr>
@@ -310,30 +325,91 @@ export function AdminTeachersPage() {
                                             <tr key={teacher.id} className="hover:bg-slate-50/50 transition-colors">
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-sm">
-                                                            {teacher.name.charAt(0).toUpperCase()}
-                                                        </div>
+                                                        {/* Profile Image or Placeholder */}
+                                                        {teacher.image_path && !teacher.image_path.includes('default.jpg') ? (
+                                                            <img
+                                                                src={teacher.image_path}
+                                                                alt={teacher.name}
+                                                                className="w-10 h-10 rounded-full object-cover border-2 border-slate-200"
+                                                            />
+                                                        ) : (
+                                                            <img
+                                                                src={teacherPlaceholder}
+                                                                alt={teacher.name}
+                                                                className="w-10 h-10 rounded-full object-cover border-2 border-slate-200"
+                                                            />
+                                                        )}
                                                         <div className="flex flex-col">
-                                                            <span className="font-semibold text-charcoal">{teacher.name}</span>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="font-semibold text-charcoal">{teacher.name}</span>
+                                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${teacher.type === 'instructor' || teacher.is_academic === false
+                                                                    ? 'bg-green-100 text-green-700'
+                                                                    : 'bg-blue-100 text-blue-700'
+                                                                    }`}>
+                                                                    {teacher.type === 'instructor' || teacher.is_academic === false ? 'مدرب' : 'مدرس'}
+                                                                </span>
+                                                            </div>
                                                             <span className="text-xs text-slate-400">{teacher.email}</span>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <span className="text-sm text-slate-600">{teacher.subject || 'غير محدد'}</span>
+                                                    {/* Subjects from backend */}
+                                                    {teacher.subjects && teacher.subjects.length > 0 ? (
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {teacher.subjects.slice(0, 2).map((subject: string, idx: number) => (
+                                                                <span
+                                                                    key={idx}
+                                                                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${subjectColors[subject] || 'bg-slate-100 text-slate-600'
+                                                                        }`}
+                                                                >
+                                                                    {subject}
+                                                                </span>
+                                                            ))}
+                                                            {teacher.subjects.length > 2 && (
+                                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500">
+                                                                    +{teacher.subjects.length - 2}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-sm text-slate-400">غير محدد</span>
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <span className="text-sm text-slate-600">-</span>
+                                                    {/* Grades from backend */}
+                                                    {teacher.grades && teacher.grades.length > 0 ? (
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {teacher.grades.slice(0, 2).map((grade: string, idx: number) => (
+                                                                <span key={idx} className="text-xs text-slate-600 bg-slate-50 px-2 py-0.5 rounded">
+                                                                    {grade}
+                                                                </span>
+                                                            ))}
+                                                            {teacher.grades.length > 2 && (
+                                                                <span className="text-xs text-slate-400">+{teacher.grades.length - 2}</span>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-sm text-slate-400">-</span>
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-4">
+                                                    {/* Courses count from backend */}
                                                     <div className="flex items-center gap-2">
-                                                        <Users size={16} className="text-slate-400" />
-                                                        <span className="font-semibold text-charcoal">0</span>
+                                                        <BookOpen size={16} className="text-slate-400" />
+                                                        <span className="font-semibold text-charcoal">
+                                                            {teacher.courses_count ?? teacher.courses?.length ?? 0}
+                                                        </span>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${teacher.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                                                        {teacher.status === 'active' ? 'نشط' : 'غير نشط'}
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${teacher.status === 'active'
+                                                        ? 'bg-green-100 text-green-700'
+                                                        : teacher.status === 'on-leave'
+                                                            ? 'bg-amber-100 text-amber-700'
+                                                            : 'bg-slate-100 text-slate-500'
+                                                        }`}>
+                                                        {teacher.status === 'active' ? 'نشط' : teacher.status === 'on-leave' ? 'في إجازة' : 'غير نشط'}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4">
@@ -341,7 +417,13 @@ export function AdminTeachersPage() {
                                                         <button className="w-8 h-8 flex items-center justify-center rounded-[8px] hover:bg-blue-50 text-blue-600 transition-colors">
                                                             <Eye size={16} />
                                                         </button>
-                                                        <button className="w-8 h-8 rounded-[8px] bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 transition-colors">
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedTeacher(teacher);
+                                                                setShowEditTeacherModal(true);
+                                                            }}
+                                                            className="w-8 h-8 rounded-[8px] bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 transition-colors"
+                                                        >
                                                             <Edit2 size={16} />
                                                         </button>
                                                         <button className="w-8 h-8 rounded-[8px] bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 transition-colors">
@@ -422,32 +504,6 @@ export function AdminTeachersPage() {
             )
             }
 
-            {/* Pending Requests Section */}
-            <div className="bg-white rounded-[16px] shadow-card overflow-hidden">
-                <button
-                    onClick={() => setShowPendingRequests(!showPendingRequests)}
-                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
-                >
-                    <div className="flex items-center gap-2">
-                        <AlertCircle size={20} className="text-amber-600" />
-                        <h2 className="font-bold text-charcoal">طلبات معلقة</h2>
-                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">
-                            قريباً
-                        </span>
-                    </div>
-                    {showPendingRequests ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
-                </button>
-
-                {showPendingRequests && (
-                    <div className="px-6 pb-6 pt-2">
-                        <div className="bg-slate-50 rounded-[12px] py-12 px-6 text-center">
-                            <Clock size={40} className="mx-auto mb-3 text-slate-400" />
-                            <p className="text-slate-600 font-medium mb-1">ميزة قيد التطوير</p>
-                            <p className="text-sm text-slate-400">سيتم تفعيل إدارة الطلبات المعلقة قريباً من قبل فريق Backend</p>
-                        </div>
-                    </div>
-                )}
-            </div>
 
             {/* Add Teacher Modal */}
             <AddTeacherModal
@@ -455,6 +511,21 @@ export function AdminTeachersPage() {
                 onClose={() => setShowAddTeacherModal(false)}
                 onSuccess={() => {
                     setShowAddTeacherModal(false);
+                    fetchTeachers(); // Refresh teachers list
+                }}
+            />
+
+            {/* Edit Teacher Modal */}
+            <EditTeacherModal
+                isOpen={showEditTeacherModal}
+                teacher={selectedTeacher}
+                onClose={() => {
+                    setShowEditTeacherModal(false);
+                    setSelectedTeacher(null);
+                }}
+                onSuccess={() => {
+                    setShowEditTeacherModal(false);
+                    setSelectedTeacher(null);
                     fetchTeachers(); // Refresh teachers list
                 }}
             />

@@ -17,6 +17,7 @@ interface LectureData {
     start_time?: string;
     end_time?: string;
     is_online?: boolean;
+    remove_video?: boolean;
 }
 
 interface ChunkUploadResult {
@@ -68,7 +69,7 @@ export const lectureService = {
 
     updateLectureWithVideo: async (id: number, data: Partial<LectureData>, videoPath?: string) => {
         const payload = videoPath ? { ...data, video_path: videoPath } : data;
-        const response = await apiClient.put(endpoints.admin.lectures.chunkedUpdate(id), payload);
+        const response = await apiClient.post(endpoints.admin.lectures.chunkedUpdate(id), payload);
         return response.data;
     },
 

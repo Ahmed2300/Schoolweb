@@ -25,10 +25,16 @@ interface FormDataType {
     name_ar: string;
     name_en: string;
     start_date: string;
-    expiry_date: string;
+    end_date: string;
     grade_id: number | null;
     country_id: number;
 }
+
+// Get today's date in YYYY-MM-DD format for date picker min attribute
+const getTodayDate = (): string => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+};
 
 const extractName = (name: string | { ar?: string; en?: string } | undefined): string => {
     if (!name) return '';
@@ -50,10 +56,11 @@ export function AdminSemestersPage(): React.ReactElement {
         name_ar: '',
         name_en: '',
         start_date: '',
-        expiry_date: '',
+        end_date: '',
         grade_id: null,
         country_id: 1,
     });
+    const [dateError, setDateError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
     const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
@@ -119,13 +126,13 @@ export function AdminSemestersPage(): React.ReactElement {
                 name_ar: nameAr,
                 name_en: nameEn,
                 start_date: semester.start_date || '',
-                expiry_date: semester.expiry_date || '',
+                end_date: semester.end_date || '',
                 grade_id: semester.grade_id || null,
                 country_id: semester.country_id || 1,
             });
         } else {
             setEditingSemester(null);
-            setFormData({ name_ar: '', name_en: '', start_date: '', expiry_date: '', grade_id: null, country_id: 1 });
+            setFormData({ name_ar: '', name_en: '', start_date: '', end_date: '', grade_id: null, country_id: 1 });
         }
         setFormError(null);
         setIsModalOpen(true);
@@ -160,6 +167,14 @@ export function AdminSemestersPage(): React.ReactElement {
             setFormError('تاريخ البدء مطلوب');
             return;
         }
+        if (!formData.end_date) {
+            setFormError('تاريخ الانتهاء مطلوب');
+            return;
+        }
+        if (new Date(formData.end_date) <= new Date(formData.start_date)) {
+            setFormError('تاريخ الانتهاء يجب أن يكون بعد تاريخ البدء');
+            return;
+        }
 
         setSubmitting(true);
         setFormError(null);
@@ -168,6 +183,7 @@ export function AdminSemestersPage(): React.ReactElement {
             const payload = {
                 name: { ar: formData.name_ar.trim(), en: formData.name_en.trim() || formData.name_ar.trim() },
                 start_date: formData.start_date,
+                end_date: formData.end_date,
                 grade_id: formData.grade_id,
                 country_id: formData.country_id,
             };
@@ -320,7 +336,7 @@ export function AdminSemestersPage(): React.ReactElement {
                                         {semester.start_date ? new Date(semester.start_date).toLocaleDateString('ar-EG') : '—'}
                                     </td>
                                     <td className="py-4 px-6 text-sm text-slate-600">
-                                        {semester.expiry_date ? new Date(semester.expiry_date).toLocaleDateString('ar-EG') : '—'}
+                                        {semester.end_date ? new Date(semester.end_date).toLocaleDateString('ar-EG') : '—'}
                                     </td>
                                     <td className="py-4 px-6">
                                         <div className="flex items-center gap-2">
@@ -468,7 +484,14 @@ export function AdminSemestersPage(): React.ReactElement {
                                             <input
                                                 type="date"
                                                 value={formData.start_date}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
+                                                min={getTodayDate()}
+                                                onChange={(e) => {
+                                                    setFormData(prev => ({ ...prev, start_date: e.target.value }));
+                                                    // Clear end_date if it's before the new start_date
+                                                    if (formData.end_date && new Date(formData.end_date) <= new Date(e.target.value)) {
+                                                        setFormData(prev => ({ ...prev, end_date: '' }));
+                                                    }
+                                                }}
                                                 className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 outline-none text-sm transition-all cursor-pointer"
                                                 disabled={submitting}
                                             />
@@ -482,11 +505,15 @@ export function AdminSemestersPage(): React.ReactElement {
                                         <div className="relative">
                                             <input
                                                 type="date"
-                                                value={formData.expiry_date}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, expiry_date: e.target.value }))}
+                                                value={formData.end_date}
+                                                min={formData.start_date || getTodayDate()}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
                                                 className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 outline-none text-sm transition-all cursor-pointer"
-                                                disabled={submitting}
+                                                disabled={submitting || !formData.start_date}
                                             />
+                                            {!formData.start_date && (
+                                                <p className="text-xs text-slate-400 mt-1">اختر تاريخ البدء أولاً</p>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

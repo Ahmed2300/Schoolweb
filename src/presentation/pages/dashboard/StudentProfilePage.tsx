@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuthStore } from '../../store';
-import { User, Mail, Phone, MapPin, Edit3, X, Save, Loader2, Calendar, Lock, KeyRound } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Edit3, X, Save, Loader2, Calendar, Lock, KeyRound, Copy, Check } from 'lucide-react';
 import { AuthRepository } from '../../../data/repositories/AuthRepository';
 import { authService } from '../../../data/api';
 
@@ -25,6 +25,9 @@ interface EditProfileFormData {
     phone: string;
     governorate: string;
     date_of_birth: string;
+    parent_name: string;
+    parent_phone: string;
+    parent_email: string;
 }
 
 export function StudentProfilePage() {
@@ -43,7 +46,14 @@ export function StudentProfilePage() {
         phone: user?.phoneNumber || user?.phone || '',
         governorate: '',
         date_of_birth: '',
+        parent_name: '',
+        parent_phone: '',
+        parent_email: '',
     });
+
+    // Image upload state
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
 
     // Password change modal state
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -58,6 +68,15 @@ export function StudentProfilePage() {
         new_password: '',
         new_password_confirmation: '',
     });
+
+    const [copiedField, setCopiedField] = useState<string | null>(null);
+
+    const handleCopy = (text: string, fieldName: string) => {
+        if (!text || text === 'غير مسجل') return;
+        navigator.clipboard.writeText(text);
+        setCopiedField(fieldName);
+        setTimeout(() => setCopiedField(null), 2000);
+    };
 
     const openModal = () => {
         // Parse governorate from address if exists (format: "مسقط، سلطنة عمان")
@@ -83,7 +102,12 @@ export function StudentProfilePage() {
             phone: user?.phoneNumber || user?.phone || '',
             governorate: currentGovernorate,
             date_of_birth: formattedDob,
+            parent_name: (user as any)?.parent_name || '',
+            parent_phone: (user as any)?.parent_phone || '',
+            parent_email: (user as any)?.parent_email || '',
         });
+        setImageFile(null);
+        setImagePreview(null);
         setError(null);
         setSuccessMessage(null);
         setIsModalOpen(true);
@@ -99,6 +123,14 @@ export function StudentProfilePage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
@@ -108,22 +140,50 @@ export function StudentProfilePage() {
         try {
             const authRepository = new AuthRepository();
 
-            // Prepare update data - send all fields with values
+            // Prepare update data
             const selectedGov = OMAN_GOVERNORATES.find(g => g.value === formData.governorate);
-            const updateData: Record<string, string> = {
-                ...(formData.name && { name: formData.name }),
-                ...(formData.phone && { phone: formData.phone }),
-                ...(selectedGov && { address: `${selectedGov.label}، سلطنة عمان` }),
-                ...(formData.date_of_birth && { date_of_birth: formData.date_of_birth }),
-            };
 
-            if (Object.keys(updateData).length === 0) {
+            let updatePayload: any;
+
+            if (imageFile) {
+                const data = new FormData();
+                if (formData.name) data.append('name', formData.name);
+                // Phone is read-only, do not send updates
+                // if (formData.phone) data.append('phone', formData.phone);
+                if (selectedGov) data.append('address', `${selectedGov.label}، سلطنة عمان`);
+                if (formData.date_of_birth) data.append('date_of_birth', formData.date_of_birth);
+                if (formData.parent_name) data.append('parent_name', formData.parent_name);
+                if (formData.parent_phone) data.append('parent_phone', formData.parent_phone);
+                if (formData.parent_email) data.append('parent_email', formData.parent_email);
+                data.append('image', imageFile);
+                // Add _method PUT for Laravel to handle multipart/form-data with PUT requests
+                data.append('_method', 'PUT');
+
+                // For FormData with file upload, we usually need to use POST method with _method=PUT in Laravel
+                // However, apiClient.put sends a PUT request. 
+                // Using apiClient.post with _method=PUT is safer for file uploads in Laravel
+                updatePayload = data;
+            } else {
+                updatePayload = {
+                    ...(formData.name && { name: formData.name }),
+                    // Phone is read-only
+                    // ...(formData.phone && { phone: formData.phone }),
+                    ...(selectedGov && { address: `${selectedGov.label}، سلطنة عمان` }),
+                    ...(formData.date_of_birth && { date_of_birth: formData.date_of_birth }),
+                    ...(formData.parent_name && { parent_name: formData.parent_name }),
+                    ...(formData.parent_phone && { parent_phone: formData.parent_phone }),
+                    ...(formData.parent_email && { parent_email: formData.parent_email }),
+                };
+            }
+
+            if (!imageFile && Object.keys(updatePayload).length === 0) {
                 setError('لم يتم تغيير أي بيانات');
                 setIsLoading(false);
                 return;
             }
 
-            const updatedUser = await authRepository.updateProfile(updateData);
+            // Use the repository which handles method spoofing internally
+            const updatedUser = await authRepository.updateProfile(updatePayload);
 
             // Merge updated data with existing user to preserve all fields
             if (updatedUser && user) {
@@ -133,10 +193,13 @@ export function StudentProfilePage() {
                     // Ensure phone fields are synced
                     phoneNumber: updatedUser.phone || updatedUser.phoneNumber || formData.phone,
                     phone: updatedUser.phone || formData.phone,
+                    parent_name: formData.parent_name || (user as any).parent_name,
+                    parent_phone: formData.parent_phone || (user as any).parent_phone,
+                    parent_email: formData.parent_email || (user as any).parent_email,
                     // Ensure date_of_birth is preserved
                     date_of_birth: (updatedUser as any).date_of_birth || formData.date_of_birth || (user as any).date_of_birth,
                     // Ensure address is preserved
-                    address: (updatedUser as any).address || updateData.address || (user as any).address,
+                    address: (updatedUser as any).address || (updatePayload instanceof FormData ? updatePayload.get('address') : updatePayload.address) || (user as any).address,
                 };
                 setUser(mergedUser as any);
             } else if (updatedUser) {
@@ -146,7 +209,7 @@ export function StudentProfilePage() {
                     phone: (updatedUser as any).phone || formData.phone,
                     phoneNumber: (updatedUser as any).phone || formData.phone,
                     date_of_birth: (updatedUser as any).date_of_birth || formData.date_of_birth,
-                    address: (updatedUser as any).address || updateData.address,
+                    address: (updatedUser as any).address || updatePayload.address || (updatePayload instanceof FormData ? updatePayload.get('address') : undefined),
                 };
                 setUser(userWithFormData as any);
             } else {
@@ -157,7 +220,7 @@ export function StudentProfilePage() {
                     phone: formData.phone || user!.phone || '',
                     phoneNumber: formData.phone || user!.phoneNumber,
                     date_of_birth: formData.date_of_birth || (user as any)?.date_of_birth,
-                    address: updateData.address || (user as any)?.address,
+                    address: (updatePayload instanceof FormData ? updatePayload.get('address') : updatePayload.address) || (user as any)?.address,
                 } as any);
             }
 
@@ -263,27 +326,27 @@ export function StudentProfilePage() {
                 <div className="h-32 bg-gradient-to-r from-shibl-crimson to-[#8B0A12]"></div>
 
                 <div className="px-8 pb-8">
-                    <div className="relative flex justify-between items-end -mt-12 mb-6">
-                        <div className="w-24 h-24 rounded-full border-4 border-white overflow-hidden bg-slate-200">
+                    <div className="relative flex justify-between items-end -mt-12 mb-8">
+                        <div className="w-32 h-32 rounded-full border-[6px] border-white overflow-hidden bg-white shadow-md">
                             {user?.avatar ? (
                                 <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-slate-800 text-white text-2xl font-bold">
+                                <div className="w-full h-full flex items-center justify-center bg-slate-800 text-white text-3xl font-bold">
                                     {userInitials}
                                 </div>
                             )}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-3 mb-2">
                             <button
                                 onClick={openPasswordModal}
-                                className="flex items-center gap-2 bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors"
+                                className="flex items-center gap-2 bg-white border border-slate-200 text-slate-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all shadow-sm"
                             >
                                 <KeyRound size={16} />
                                 تغيير كلمة المرور
                             </button>
                             <button
                                 onClick={openModal}
-                                className="flex items-center gap-2 bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors"
+                                className="flex items-center gap-2 bg-gradient-to-r from-shibl-crimson to-[#8B0A12] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-shibl-crimson/20 transition-all"
                             >
                                 <Edit3 size={16} />
                                 تعديل الملف
@@ -291,49 +354,73 @@ export function StudentProfilePage() {
                         </div>
                     </div>
 
-                    <div className="mb-8">
-                        <h2 className="text-2xl font-extrabold text-charcoal mb-1">{user?.name}</h2>
-                        <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold">طالب</span>
+                    <div className="mb-10">
+                        <div className="flex items-center gap-3 mb-2">
+                            <h2 className="text-3xl font-extrabold text-charcoal">{user?.name}</h2>
+                            <span className="bg-red-50 text-shibl-crimson px-4 py-1.5 rounded-full text-sm font-bold">طالب</span>
+                        </div>
+                        <p className="text-slate-400 flex items-center gap-2">
+                            <MapPin size={16} />
+                            {(user as any)?.address || 'غير مسجل'}
+                        </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-slate-50 p-4 rounded-xl flex items-center gap-4">
-                            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-slate-400">
-                                <Mail size={20} />
+                        {/* Email */}
+                        <div className="group bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-5 relative">
+                            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-shibl-crimson">
+                                <Mail size={24} />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-400">البريد الإلكتروني</p>
-                                <p className="font-bold text-charcoal">{user?.email}</p>
+                                <p className="text-xs text-slate-400 font-medium mb-1">البريد الإلكتروني</p>
+                                <p className="font-bold text-charcoal text-lg dir-ltr">{user?.email}</p>
+                            </div>
+                            <button
+                                onClick={() => handleCopy(user?.email || '', 'email')}
+                                className="absolute left-5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all p-2 text-slate-400 hover:text-shibl-crimson hover:bg-red-50 rounded-lg"
+                                title="نسخ"
+                            >
+                                {copiedField === 'email' ? <Check size={18} /> : <Copy size={18} />}
+                            </button>
+                        </div>
+
+                        {/* Phone */}
+                        <div className="group bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-5 relative">
+                            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-shibl-crimson">
+                                <Phone size={24} />
+                            </div>
+                            <div>
+                                <p className="text-xs text-slate-400 font-medium mb-1">رقم الهاتف</p>
+                                <p className="font-bold text-charcoal text-lg dir-ltr">{user?.phoneNumber || user?.phone || 'غير مسجل'}</p>
+                            </div>
+                            <button
+                                onClick={() => handleCopy(user?.phoneNumber || user?.phone || '', 'phone')}
+                                className="absolute left-5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all p-2 text-slate-400 hover:text-shibl-crimson hover:bg-red-50 rounded-lg"
+                                title="نسخ"
+                            >
+                                {copiedField === 'phone' ? <Check size={18} /> : <Copy size={18} />}
+                            </button>
+                        </div>
+
+                        {/* Location */}
+                        <div className="bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-5">
+                            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-shibl-crimson">
+                                <MapPin size={24} />
+                            </div>
+                            <div>
+                                <p className="text-xs text-slate-400 font-medium mb-1">الموقع</p>
+                                <p className="font-bold text-charcoal text-lg">{(user as any)?.address || 'غير مسجل'}</p>
                             </div>
                         </div>
 
-                        <div className="bg-slate-50 p-4 rounded-xl flex items-center gap-4">
-                            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-slate-400">
-                                <Phone size={20} />
+                        {/* Date of Birth */}
+                        <div className="bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-5">
+                            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-shibl-crimson">
+                                <Calendar size={24} />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-400">رقم الهاتف</p>
-                                <p className="font-bold text-charcoal">{user?.phoneNumber || user?.phone || 'غير مسجل'}</p>
-                            </div>
-                        </div>
-
-                        <div className="bg-slate-50 p-4 rounded-xl flex items-center gap-4">
-                            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-slate-400">
-                                <MapPin size={20} />
-                            </div>
-                            <div>
-                                <p className="text-xs text-slate-400">الموقع</p>
-                                <p className="font-bold text-charcoal">{(user as any)?.address || 'غير مسجل'}</p>
-                            </div>
-                        </div>
-
-                        <div className="bg-slate-50 p-4 rounded-xl flex items-center gap-4">
-                            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-slate-400">
-                                <Calendar size={20} />
-                            </div>
-                            <div>
-                                <p className="text-xs text-slate-400">تاريخ الميلاد</p>
-                                <p className="font-bold text-charcoal">
+                                <p className="text-xs text-slate-400 font-medium mb-1">تاريخ الميلاد</p>
+                                <p className="font-bold text-charcoal text-lg">
                                     {(user as any)?.date_of_birth
                                         ? new Date((user as any).date_of_birth).toLocaleDateString('ar-OM', {
                                             year: 'numeric',
@@ -347,36 +434,64 @@ export function StudentProfilePage() {
                     </div>
 
                     {/* Parent Details Section */}
-                    <h3 className="text-xl font-bold text-charcoal mt-8 mb-4">معلومات ولي الأمر</h3>
+                    {/* Divider */}
+                    <div className="my-10 border-t border-slate-100 relative">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 text-slate-400 text-sm font-medium">
+                            المرافق
+                        </div>
+                    </div>
+
+                    <h3 className="text-xl font-bold text-charcoal mb-6 flex items-center gap-2">
+                        <User className="text-shibl-crimson" size={24} />
+                        معلومات ولي الأمر
+                    </h3>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-slate-50 p-4 rounded-xl flex items-center gap-4">
-                            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-slate-400">
-                                <User size={20} />
+                        {/* Parent Name */}
+                        <div className="bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-5">
+                            <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600">
+                                <User size={24} />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-400">اسم ولي الأمر</p>
-                                <p className="font-bold text-charcoal">سعيد محمد</p>
+                                <p className="text-xs text-slate-400 font-medium mb-1">اسم ولي الأمر</p>
+                                <p className="font-bold text-charcoal text-lg">{(user as any)?.parent_name || 'غير مسجل'}</p>
                             </div>
                         </div>
 
-                        <div className="bg-slate-50 p-4 rounded-xl flex items-center gap-4">
-                            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-slate-400">
-                                <Phone size={20} />
+                        {/* Parent Phone */}
+                        <div className="group bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-5 relative">
+                            <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600">
+                                <Phone size={24} />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-400">هاتف ولي الأمر</p>
-                                <p className="font-bold text-charcoal">96123456</p>
+                                <p className="text-xs text-slate-400 font-medium mb-1">هاتف ولي الأمر</p>
+                                <p className="font-bold text-charcoal text-lg dir-ltr">{(user as any)?.parent_phone || 'غير مسجل'}</p>
                             </div>
+                            <button
+                                onClick={() => handleCopy((user as any)?.parent_phone || '', 'parent_phone')}
+                                className="absolute left-5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                                title="نسخ"
+                            >
+                                {copiedField === 'parent_phone' ? <Check size={18} /> : <Copy size={18} />}
+                            </button>
                         </div>
 
-                        <div className="bg-slate-50 p-4 rounded-xl flex items-center gap-4">
-                            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-slate-400">
-                                <Mail size={20} />
+                        {/* Parent Email */}
+                        <div className="group bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-5 relative">
+                            <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600">
+                                <Mail size={24} />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-400">البريد الإلكتروني</p>
-                                <p className="font-bold text-charcoal">parent@example.com</p>
+                                <p className="text-xs text-slate-400 font-medium mb-1">البريد الإلكتروني</p>
+                                <p className="font-bold text-charcoal text-lg dir-ltr">{(user as any)?.parent_email || 'غير مسجل'}</p>
                             </div>
+                            <button
+                                onClick={() => handleCopy((user as any)?.parent_email || '', 'parent_email')}
+                                className="absolute left-5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                                title="نسخ"
+                            >
+                                {copiedField === 'parent_email' ? <Check size={18} /> : <Copy size={18} />}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -420,6 +535,36 @@ export function StudentProfilePage() {
                                 </div>
                             )}
 
+                            {/* Image Upload Field */}
+                            <div className="flex justify-center mb-6">
+                                <div className="relative">
+                                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-slate-100 bg-slate-200">
+                                        {imagePreview ? (
+                                            <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                        ) : user?.avatar ? (
+                                            <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center bg-slate-800 text-white text-2xl font-bold">
+                                                {userInitials}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <label
+                                        htmlFor="image-upload"
+                                        className="absolute bottom-0 right-0 bg-shibl-crimson text-white p-2 rounded-full cursor-pointer hover:bg-red-700 transition"
+                                    >
+                                        <Edit3 size={14} />
+                                    </label>
+                                    <input
+                                        id="image-upload"
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleImageChange}
+                                    />
+                                </div>
+                            </div>
+
                             {/* Name Field */}
                             <div>
                                 <label className="block text-sm font-bold text-slate-600 mb-2">
@@ -449,8 +594,9 @@ export function StudentProfilePage() {
                                         type="tel"
                                         name="phone"
                                         value={formData.phone}
-                                        onChange={handleInputChange}
-                                        className="w-full pr-10 pl-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson transition-all text-right"
+                                        readOnly
+                                        disabled
+                                        className="w-full pr-10 pl-4 py-3 border border-slate-200 rounded-xl bg-slate-100 text-slate-500 cursor-not-allowed focus:outline-none transition-all text-right"
                                         placeholder="أدخل رقم الهاتف"
                                         dir="ltr"
                                     />
@@ -507,6 +653,67 @@ export function StudentProfilePage() {
                                         <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                         </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Parent Info Section */}
+                            <div className="border-t border-slate-100 pt-5 mt-5">
+                                <h4 className="text-md font-bold text-shibl-crimson mb-4">معلومات ولي الأمر</h4>
+
+                                {/* Parent Name Field */}
+                                <div className="mb-4">
+                                    <label className="block text-sm font-bold text-slate-600 mb-2">
+                                        اسم ولي الأمر
+                                    </label>
+                                    <div className="relative">
+                                        <User className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <input
+                                            type="text"
+                                            name="parent_name"
+                                            value={formData.parent_name}
+                                            onChange={handleInputChange}
+                                            className="w-full pr-10 pl-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson transition-all text-right"
+                                            placeholder="أدخل اسم ولي الأمر"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Parent Phone Field */}
+                                <div className="mb-4">
+                                    <label className="block text-sm font-bold text-slate-600 mb-2">
+                                        هاتف ولي الأمر
+                                    </label>
+                                    <div className="relative">
+                                        <Phone className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <input
+                                            type="tel"
+                                            name="parent_phone"
+                                            value={formData.parent_phone}
+                                            onChange={handleInputChange}
+                                            className="w-full pr-10 pl-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson transition-all text-right"
+                                            placeholder="أدخل رقم هاتف ولي الأمر"
+                                            dir="ltr"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Parent Email Field */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-600 mb-2">
+                                        بريد ولي الأمر
+                                    </label>
+                                    <div className="relative">
+                                        <Mail className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <input
+                                            type="email"
+                                            name="parent_email"
+                                            value={formData.parent_email}
+                                            onChange={handleInputChange}
+                                            className="w-full pr-10 pl-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson transition-all text-right"
+                                            placeholder="أدخل البريد الإلكتروني لولي الأمر"
+                                            dir="ltr"
+                                        />
                                     </div>
                                 </div>
                             </div>

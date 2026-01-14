@@ -23,6 +23,7 @@ interface Lecture {
     start_time?: string;
     end_time?: string;
     is_online: boolean;
+    recording_url?: string;
 }
 
 interface EditLectureModalProps {
@@ -48,7 +49,17 @@ interface FormData {
 
 const extractName = (name: unknown): { ar: string, en: string } => {
     if (!name) return { ar: '', en: '' };
-    if (typeof name === 'string') return { ar: name, en: '' };
+    if (typeof name === 'string') {
+        try {
+            const parsed = JSON.parse(name);
+            if (typeof parsed === 'object' && parsed !== null) {
+                return { ar: parsed.ar || '', en: parsed.en || '' };
+            }
+            return { ar: name, en: '' };
+        } catch {
+            return { ar: name, en: '' };
+        }
+    }
     if (typeof name === 'object' && name !== null) {
         const obj = name as { ar?: string; en?: string };
         return { ar: obj.ar || '', en: obj.en || '' };
@@ -277,29 +288,82 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
                         </form>
                     ) : (
                         <div className="space-y-6">
-                            <div className="text-center space-y-2">
-                                <h3 className="font-semibold text-charcoal">تحديث فيديو المحاضرة</h3>
-                                <p className="text-sm text-slate-500">
-                                    {lecture.recording_path
-                                        ? 'يوجد فيديو حالياً. قم برفع فيديو جديد لاستبداله.'
-                                        : 'لا يوجد فيديو حالياً. يمكنك رفع فيديو جديد.'}
-                                </p>
-                            </div>
+                            {lecture.recording_path && !newVideoPath ? (
+                                <div className="space-y-4">
+                                    <div className="aspect-video bg-black rounded-xl overflow-hidden relative group">
+                                        {lecture.recording_url ? (
+                                            <video
+                                                src={lecture.recording_url}
+                                                controls
+                                                className="w-full h-full object-contain"
+                                            />
+                                        ) : (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-slate-900/50">
+                                                <Video size={48} className="text-white opacity-50" />
+                                            </div>
+                                        )}
+                                        <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur rounded-lg p-3 flex items-center justify-between transition-opacity opacity-0 group-hover:opacity-100">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center text-green-600">
+                                                    <Video size={20} />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-sm text-charcoal">فيديو المحاضرة الحالي</p>
+                                                    <p className="text-xs text-green-600">متوفر</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={async () => {
+                                                    if (confirm('هل أنت متأكد من حذف الفيديو الحالي؟')) {
+                                                        setLoading(true);
+                                                        try {
+                                                            await lectureService.updateLecture(lecture.id, { remove_video: true });
+                                                            onSuccess(); // Refresh list/data
+                                                            onClose();
+                                                        } catch (e) {
+                                                            console.error('Failed to delete video', e);
+                                                            setError('فشل حذف الفيديو');
+                                                            setLoading(false);
+                                                        }
+                                                    }
+                                                }}
+                                                className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100 transition-colors flex items-center gap-1.5"
+                                            >
+                                                <Trash2 size={14} />
+                                                حذف الفيديو
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 bg-blue-50 text-blue-800 rounded-xl text-sm flex items-start gap-3">
+                                        <div className="shrink-0 mt-0.5"><Video size={18} /></div>
+                                        <div>
+                                            <p className="font-semibold mb-1">استبدال الفيديو:</p>
+                                            <p>يمكنك رفع فيديو جديد أدناه. سيتم استبدال الفيديو الحالي تلقائياً عند الحفظ.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : null}
 
                             <VideoUploader
                                 onUploadComplete={(path) => setNewVideoPath(path)}
                                 onError={(msg) => console.error(msg)}
-                            // We don't rely on existingVideoUrl for previews here to force a fresh upload UI for replacement,
-                            // but we could show it if desired. For now, kept simple.
                             />
 
-                            {lecture.recording_path && !newVideoPath && (
+                            {lecture.recording_path && newVideoPath && (
                                 <div className="p-4 bg-orange-50 text-orange-800 rounded-xl text-sm flex items-start gap-3">
                                     <Video size={20} className="shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold mb-1">تنبيه:</p>
-                                        <p>رفع فيديو جديد سيؤدي إلى حذف الفيديو القديم تلقائياً بعد الحفظ.</p>
+                                        <p>سيتم استبدال الفيديو القديم بالفيديو الجديد الذي قمت برفعه الآن.</p>
                                     </div>
+                                </div>
+                            )}
+
+                            {!lecture.recording_path && !newVideoPath && !loading && (
+                                <div className="text-center py-8 text-slate-400">
+                                    <p>لا يوجد فيديو حالياً</p>
                                 </div>
                             )}
                         </div>

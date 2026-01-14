@@ -39,7 +39,7 @@ interface SemesterOption {
     id: number;
     name: string;
     grade_id?: number;
-    expiry_date?: string;
+    end_date?: string;
 }
 
 interface SubjectOption {
@@ -70,14 +70,16 @@ interface FormData {
     is_promoted: boolean;
     is_active: boolean;
     is_free: boolean;
+    is_academic: boolean;
 }
 
 const STEPS = [
-    { id: 1, title: 'الصف الدراسي', icon: Layers },
-    { id: 2, title: 'الفصل الدراسي', icon: Calendar },
-    { id: 3, title: 'المادة الدراسية', icon: BookMarked },
-    { id: 4, title: 'تفاصيل الكورس', icon: BookOpen },
-    { id: 5, title: 'المراجعة والإنهاء', icon: CheckCircle2 },
+    { id: 1, title: 'نوع الكورس', icon: Layers },
+    { id: 2, title: 'الصف الدراسي', icon: GraduationCap },
+    { id: 3, title: 'الفصل الدراسي', icon: Calendar },
+    { id: 4, title: 'المادة الدراسية', icon: BookMarked },
+    { id: 5, title: 'تفاصيل الكورس', icon: BookOpen },
+    { id: 6, title: 'المراجعة والإنهاء', icon: CheckCircle2 },
 ];
 
 const initialFormData: FormData = {
@@ -97,6 +99,7 @@ const initialFormData: FormData = {
     is_promoted: false,
     is_active: true,
     is_free: false,
+    is_academic: true, // Default to Academic
 };
 
 const DURATION_PRESETS = [10, 20, 30, 40, 50, 60];
@@ -168,7 +171,7 @@ export function AddCourseModal({ isOpen, onClose, onSuccess }: AddCourseModalPro
                     id: s.id,
                     name: extractName(s.name),
                     grade_id: s.grade_id,
-                    expiry_date: s.expiry_date,
+                    end_date: s.end_date,
                 })));
             }
             if (subjectsRes.status === 'fulfilled') {
@@ -289,24 +292,35 @@ export function AddCourseModal({ isOpen, onClose, onSuccess }: AddCourseModalPro
 
     const canProceed = () => {
         switch (currentStep) {
-            case 1: return formData.grade_id !== null;
-            case 2: return formData.semester_id !== null;
-            case 3: return formData.subject_id !== null;
-            case 4: return formData.name_ar.trim() && formData.code.trim() && (formData.is_free || formData.old_price > 0) && formData.teacher_id !== null;
-            case 5: return true;
+            case 1: return true; // Course Type is always valid (boolean)
+            case 2: return formData.grade_id !== null;
+            case 3: return formData.semester_id !== null;
+            case 4: return formData.subject_id !== null;
+            case 5: return formData.name_ar.trim() && formData.code.trim() && (formData.is_free || formData.old_price > 0) && formData.teacher_id !== null;
+            case 6: return true;
             default: return false;
         }
     };
 
     const handleNext = () => {
-        if (currentStep < 5 && canProceed()) {
-            setCurrentStep(prev => prev + 1);
+        if (currentStep < 6 && canProceed()) {
+            if (currentStep === 1 && !formData.is_academic) {
+                // Skip Grade(2), Semester(3), Subject(4) for Non-Academic
+                setCurrentStep(5);
+            } else {
+                setCurrentStep(prev => prev + 1);
+            }
         }
     };
 
     const handlePrev = () => {
         if (currentStep > 1) {
-            setCurrentStep(prev => prev - 1);
+            if (currentStep === 5 && !formData.is_academic) {
+                // Return to Type(1) from Details(5) for Non-Academic
+                setCurrentStep(1);
+            } else {
+                setCurrentStep(prev => prev - 1);
+            }
         }
     };
 
@@ -323,16 +337,20 @@ export function AddCourseModal({ isOpen, onClose, onSuccess }: AddCourseModalPro
             submitData.append('code', formData.code);
             submitData.append('credits', String(formData.credits));
             if (formData.duration_hours) submitData.append('duration_hours', String(formData.duration_hours));
-            if (formData.price) submitData.append('price', String(formData.price));
-            submitData.append('old_price', String(formData.old_price));
+            // CRITICAL: Always send price. If is_free is true, send 0, otherwise send the actual price
+            const actualPrice = formData.is_free ? 0 : (formData.price || 0);
+            submitData.append('price', String(actualPrice));
+            // Only send old_price if course is NOT free
+            submitData.append('old_price', String(formData.is_free ? 0 : (formData.old_price || 0)));
             submitData.append('is_promoted', formData.is_promoted ? '1' : '0');
             submitData.append('is_active', formData.is_active ? '1' : '0');
-            submitData.append('grade_id', String(formData.grade_id));
-            submitData.append('semester_id', String(formData.semester_id));
-            submitData.append('subject_id', String(formData.subject_id));
+            submitData.append('is_academic', formData.is_academic ? '1' : '0');
+            if (formData.grade_id) submitData.append('grade_id', String(formData.grade_id));
+            if (formData.semester_id) submitData.append('semester_id', String(formData.semester_id));
+            if (formData.subject_id) submitData.append('subject_id', String(formData.subject_id));
             submitData.append('teacher_id', String(formData.teacher_id));
-            if (selectedSemester?.expiry_date) {
-                submitData.append('end_date', selectedSemester.expiry_date);
+            if (selectedSemester?.end_date) {
+                submitData.append('end_date', selectedSemester.end_date);
             }
             if (imageFile) submitData.append('image', imageFile);
 
@@ -412,6 +430,63 @@ export function AddCourseModal({ isOpen, onClose, onSuccess }: AddCourseModalPro
 
                     {currentStep === 1 && (
                         <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                            <h3 className="text-lg font-bold text-charcoal mb-2">نوع الكورس</h3>
+                            <p className="text-sm text-slate-400 mb-6">حدد نوع الكورس للمتابعة في الخطوات المناسبة</p>
+
+                            <div className="flex gap-4">
+                                <label className={`
+                                    flex-1 cursor-pointer rounded-xl border-2 p-5 transition-all
+                                    ${formData.is_academic
+                                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                        : 'border-slate-200 hover:border-blue-200 text-slate-600'}
+                                `}>
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${formData.is_academic ? 'border-blue-500' : 'border-slate-300'}`}>
+                                            {formData.is_academic && <div className="w-3 h-3 rounded-full bg-blue-500" />}
+                                        </div>
+                                        <input
+                                            type="radio"
+                                            name="course_type_step1"
+                                            className="hidden"
+                                            checked={formData.is_academic}
+                                            onChange={() => handleChange('is_academic', true)}
+                                        />
+                                        <div>
+                                            <div className="font-bold text-lg mb-1">كورس أكاديمي</div>
+                                            <div className="text-sm opacity-70">مرتبط بصفوف دراسية، فصول، ومواد منهجية</div>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label className={`
+                                    flex-1 cursor-pointer rounded-xl border-2 p-5 transition-all
+                                    ${!formData.is_academic
+                                        ? 'border-purple-500 bg-purple-50 text-purple-700'
+                                        : 'border-slate-200 hover:border-purple-200 text-slate-600'}
+                                `}>
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${!formData.is_academic ? 'border-purple-500' : 'border-slate-300'}`}>
+                                            {!formData.is_academic && <div className="w-3 h-3 rounded-full bg-purple-500" />}
+                                        </div>
+                                        <input
+                                            type="radio"
+                                            name="course_type_step1"
+                                            className="hidden"
+                                            checked={!formData.is_academic}
+                                            onChange={() => handleChange('is_academic', false)}
+                                        />
+                                        <div>
+                                            <div className="font-bold text-lg mb-1">كورس مهارات / غير أكاديمي</div>
+                                            <div className="text-sm opacity-70">غير مرتبط بمنهج دراسي محدد (لغات، برمجة، فنون...)</div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    )}
+
+                    {currentStep === 2 && (
+                        <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                             <h3 className="text-lg font-bold text-charcoal mb-2">اختر الصف الدراسي</h3>
                             <p className="text-sm text-slate-400 mb-6">حدد الصف الذي سينتمي إليه الكورس</p>
                             {loadingDropdowns ? (
@@ -450,7 +525,7 @@ export function AddCourseModal({ isOpen, onClose, onSuccess }: AddCourseModalPro
                         </div>
                     )}
 
-                    {currentStep === 2 && (
+                    {currentStep === 3 && (
                         <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                             <h3 className="text-lg font-bold text-charcoal mb-2">اختر الفصل الدراسي</h3>
                             <p className="text-sm text-slate-400 mb-6">
@@ -482,10 +557,10 @@ export function AddCourseModal({ isOpen, onClose, onSuccess }: AddCourseModalPro
                                                     <Calendar size={20} />
                                                 </div>
                                                 <h4 className={`font-bold ${isSelected ? 'text-blue-700' : 'text-charcoal'}`}>{semester.name}</h4>
-                                                {semester.expiry_date && (
-                                                    <p className="text-xs text-slate-400 mt-1">
-                                                        ينتهي: {new Date(semester.expiry_date).toLocaleDateString('ar-EG')}
-                                                    </p>
+                                                {semester.end_date && (
+                                                    <span className="text-xs text-slate-400">
+                                                        ينتهي: {new Date(semester.end_date).toLocaleDateString('ar-EG')}
+                                                    </span>
                                                 )}
                                             </button>
                                         );
@@ -495,7 +570,7 @@ export function AddCourseModal({ isOpen, onClose, onSuccess }: AddCourseModalPro
                         </div>
                     )}
 
-                    {currentStep === 3 && (
+                    {currentStep === 4 && (
                         <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                             <h3 className="text-lg font-bold text-charcoal mb-2">اختر المادة الدراسية</h3>
                             <p className="text-sm text-slate-400 mb-6">
@@ -533,40 +608,44 @@ export function AddCourseModal({ isOpen, onClose, onSuccess }: AddCourseModalPro
                         </div>
                     )}
 
-                    {currentStep === 4 && (
+                    {currentStep === 5 && (
                         <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-5">
-                            {/* Context Summary Bar */}
-                            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-xl p-3 border border-blue-100/50">
-                                <div className="flex items-center gap-4 text-sm">
-                                    <div className="flex items-center gap-1.5">
-                                        <GraduationCap size={14} className="text-blue-600" />
-                                        <span className="text-slate-500">الصف:</span>
-                                        <span className="font-semibold text-charcoal">{selectedGrade?.name || '-'}</span>
-                                    </div>
-                                    <div className="w-px h-4 bg-slate-300" />
-                                    <div className="flex items-center gap-1.5">
-                                        <Calendar size={14} className="text-indigo-600" />
-                                        <span className="text-slate-500">الفصل:</span>
-                                        <span className="font-semibold text-charcoal">{selectedSemester?.name || '-'}</span>
-                                    </div>
-                                    <div className="w-px h-4 bg-slate-300" />
-                                    <div className="flex items-center gap-1.5">
-                                        <BookMarked size={14} className="text-purple-600" />
-                                        <span className="text-slate-500">المادة:</span>
-                                        <span className="font-semibold text-charcoal">{selectedSubject?.name || '-'}</span>
+                            {/* Context Summary Bar - Only show if Academic */}
+                            {formData.is_academic && (
+                                <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-xl p-3 border border-blue-100/50">
+                                    <div className="flex items-center gap-4 text-sm">
+                                        <div className="flex items-center gap-1.5">
+                                            <GraduationCap size={14} className="text-blue-600" />
+                                            <span className="text-slate-500">الصف:</span>
+                                            <span className="font-semibold text-charcoal">{selectedGrade?.name || '-'}</span>
+                                        </div>
+                                        <div className="w-px h-4 bg-slate-300" />
+                                        <div className="flex items-center gap-1.5">
+                                            <Calendar size={14} className="text-indigo-600" />
+                                            <span className="text-slate-500">الفصل:</span>
+                                            <span className="font-semibold text-charcoal">{selectedSemester?.name || '-'}</span>
+                                        </div>
+                                        <div className="w-px h-4 bg-slate-300" />
+                                        <div className="flex items-center gap-1.5">
+                                            <BookMarked size={14} className="text-purple-600" />
+                                            <span className="text-slate-500">المادة:</span>
+                                            <span className="font-semibold text-charcoal">{selectedSubject?.name || '-'}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
 
                             {/* Section 1: Basic Information */}
                             <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
                                 <div className="bg-gradient-to-r from-slate-50 to-slate-100/50 px-4 py-2.5 border-b border-slate-200/50">
                                     <h4 className="text-sm font-bold text-charcoal flex items-center gap-2">
                                         <BookOpen size={14} className="text-blue-600" />
-                                        معلومات الكورس الأساسية
+                                        المدرس <span className="text-red-500">*</span>
                                     </h4>
                                 </div>
                                 <div className="p-4 space-y-4">
+                                    {/* Course Type Selection REMOVED */}
+
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-medium text-slate-600 mb-1.5">
@@ -804,8 +883,8 @@ export function AddCourseModal({ isOpen, onClose, onSuccess }: AddCourseModalPro
                                     <div><span className="text-slate-500">اسم الكورس:</span> <span className="font-medium text-charcoal">{formData.name_ar}</span></div>
                                     <div><span className="text-slate-500">الكود:</span> <span className="font-mono font-medium text-charcoal">{formData.code}</span></div>
                                     <div><span className="text-slate-500">السعر:</span> <span className="font-bold text-green-600">{formData.price || formData.old_price} ر.ع</span></div>
-                                    {selectedSemester?.expiry_date && (
-                                        <div><span className="text-slate-500">تاريخ الانتهاء:</span> <span className="font-medium text-amber-600">{new Date(selectedSemester.expiry_date).toLocaleDateString('ar-EG')}</span></div>
+                                    {selectedSemester?.end_date && (
+                                        <div><span className="text-slate-500">تاريخ الانتهاء:</span> <span className="font-medium text-amber-600">{new Date(selectedSemester.end_date).toLocaleDateString('ar-EG')}</span></div>
                                     )}
                                 </div>
                             </div>

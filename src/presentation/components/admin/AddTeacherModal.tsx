@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Save, Loader2, User, Mail, Phone, Lock, BookOpen, GraduationCap, Eye, EyeOff, ImagePlus, Trash2 } from 'lucide-react';
+import { X, Save, Loader2, User, Mail, Phone, Lock, BookOpen, GraduationCap, Eye, EyeOff, ImagePlus, Trash2, Briefcase } from 'lucide-react';
 import { adminService } from '../../../data/api/adminService';
 
 interface AddTeacherModalProps {
@@ -17,6 +17,7 @@ interface FormData {
     phone: string;
     qualification: string;
     status: 'active' | 'inactive' | 'on-leave';
+    is_academic: boolean; // true = مدرس (teacher), false = مدرب (instructor)
 }
 
 const initialFormData: FormData = {
@@ -28,6 +29,7 @@ const initialFormData: FormData = {
     phone: '',
     qualification: '',
     status: 'active',
+    is_academic: true, // Default to academic teacher
 };
 
 export function AddTeacherModal({ isOpen, onClose, onSuccess }: AddTeacherModalProps) {
@@ -165,6 +167,7 @@ export function AddTeacherModal({ isOpen, onClose, onSuccess }: AddTeacherModalP
             if (formData.phone) submitData.append('phone', formData.phone);
             if (formData.qualification) submitData.append('qualification', formData.qualification);
             submitData.append('status', formData.status);
+            submitData.append('is_academic', formData.is_academic ? '1' : '0');
             if (imageFile) submitData.append('image_path', imageFile);
 
             await adminService.createTeacherWithImage(submitData);
@@ -404,6 +407,30 @@ export function AddTeacherModal({ isOpen, onClose, onSuccess }: AddTeacherModalP
                                 <option value="inactive">غير نشط</option>
                                 <option value="on-leave">في إجازة</option>
                             </select>
+                        </div>
+
+                        {/* Teacher Type - Academic vs Instructor */}
+                        <div>
+                            <label className="block text-sm font-semibold text-charcoal mb-2">
+                                نوع المدرس <span className="text-shibl-crimson">*</span>
+                            </label>
+                            <div className="relative">
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                    <Briefcase size={18} />
+                                </div>
+                                <select
+                                    value={formData.is_academic ? 'teacher' : 'instructor'}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, is_academic: e.target.value === 'teacher' }))}
+                                    className={`${inputClass('is_academic')} pr-12 pl-4 appearance-none cursor-pointer`}
+                                    disabled={loading}
+                                >
+                                    <option value="teacher">مدرس (أكاديمي)</option>
+                                    <option value="instructor">مدرب (مهارات)</option>
+                                </select>
+                            </div>
+                            <p className="mt-1 text-xs text-slate-400">
+                                المدرس: يدرّس المواد الأكاديمية | المدرب: يقدم دورات المهارات
+                            </p>
                         </div>
 
                         {/* Profile Image */}

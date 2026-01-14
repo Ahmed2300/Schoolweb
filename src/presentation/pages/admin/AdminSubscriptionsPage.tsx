@@ -1,88 +1,167 @@
-import { useState } from 'react';
+/**
+ * Admin Subscriptions Management Page
+ * 
+ * Allows admins to view, approve, and reject course subscription requests.
+ */
+
+import { useState, useEffect, useCallback } from 'react';
 import {
-    Search,
-    Download,
     CreditCard,
+    Search,
     Clock,
     AlertCircle,
-    DollarSign,
     Calendar,
     Check,
     X,
     Eye,
-    FileText,
     User,
     BookOpen,
-    XCircle
+    XCircle,
+    Loader2,
+    RefreshCw,
+    Receipt,
+    DollarSign
 } from 'lucide-react';
+import adminService, {
+    AdminSubscription,
+    AdminSubscriptionStatus,
+    AdminSubscriptionStatusLabels,
+    AdminSubscriptionStatusColors,
+    PaginatedResponse
+} from '../../../data/api/adminService';
 
-// Types
-type SubTab = 'pending' | 'active' | 'expired';
-type SubscriptionType = 'course' | 'package';
-type SubscriptionStatus = 'active' | 'pending' | 'expired' | 'rejected';
-
-interface PendingSubscription {
-    id: number;
-    studentName: string;
-    avatar: string;
-    courseName: string;
-    type: SubscriptionType;
-    amount: string;
-    receiptDate: string;
-    receiptImage?: string;
-}
-
-interface ActiveSubscription {
-    id: number;
-    studentName: string;
-    avatar: string;
-    subscriptionType: SubscriptionType;
-    coursesIncluded: string[];
-    startDate: string;
-    endDate: string;
-    daysRemaining: number;
-    totalDays: number;
-}
-
-// Mock data - Pending
-const mockPendingSubscriptions: PendingSubscription[] = [
-    { id: 1, studentName: 'أحمد علي', avatar: 'أ', courseName: 'الرياضيات - الصف الثالث', type: 'course', amount: '15 ر.ع', receiptDate: 'منذ ساعتين' },
-    { id: 2, studentName: 'فاطمة حسن', avatar: 'ف', courseName: 'باقة الترم الأول الكاملة', type: 'package', amount: '45 ر.ع', receiptDate: 'منذ 4 ساعات' },
-    { id: 3, studentName: 'محمد سالم', avatar: 'م', courseName: 'تجويد القرآن الكريم', type: 'course', amount: '25 ر.ع', receiptDate: 'منذ يوم' },
+// Status filter options
+const statusFilters: { label: string; value: AdminSubscriptionStatus | undefined; icon: typeof CreditCard; activeColor: string }[] = [
+    { label: 'كل الطلبات', value: undefined, icon: CreditCard, activeColor: 'bg-slate-600' },
+    { label: 'قيد المراجعة', value: 2, icon: Clock, activeColor: 'bg-amber-500' },
+    { label: 'نشطة', value: 1, icon: CreditCard, activeColor: 'bg-green-600' },
+    { label: 'مرفوضة', value: 3, icon: XCircle, activeColor: 'bg-red-500' },
 ];
 
-// Mock data - Active
-const mockActiveSubscriptions: ActiveSubscription[] = [
-    { id: 1, studentName: 'نور الهدى', avatar: 'ن', subscriptionType: 'package', coursesIncluded: ['الرياضيات', 'الفيزياء', 'اللغة العربية'], startDate: '1 ديسمبر 2024', endDate: '1 مارس 2025', daysRemaining: 62, totalDays: 90 },
-    { id: 2, studentName: 'يوسف أحمد', avatar: 'ي', subscriptionType: 'course', coursesIncluded: ['أساسيات البرمجة'], startDate: '15 نوفمبر 2024', endDate: '15 فبراير 2025', daysRemaining: 48, totalDays: 90 },
-    { id: 3, studentName: 'مريم خالد', avatar: 'م', subscriptionType: 'course', coursesIncluded: ['تجويد القرآن'], startDate: '20 ديسمبر 2024', endDate: '20 مارس 2025', daysRemaining: 81, totalDays: 90 },
-];
-
-const stats = [
-    { icon: <CreditCard size={22} className="text-green-600" />, label: 'الاشتراكات النشطة', value: '2,540', bgColor: 'bg-green-50' },
-    { icon: <Clock size={22} className="text-amber-600" />, label: 'طلبات معلقة', value: '12', bgColor: 'bg-amber-50' },
-    { icon: <DollarSign size={22} className="text-shibl-crimson" />, label: 'إيرادات الشهر', value: '4,500 ر.ع', bgColor: 'bg-red-50' },
-    { icon: <AlertCircle size={22} className="text-blue-600" />, label: 'تنتهي قريباً', value: '85', bgColor: 'bg-blue-50' },
-];
-
-const typeConfig: Record<SubscriptionType, { label: string; bgColor: string; textColor: string }> = {
-    course: { label: 'كورس', bgColor: 'bg-blue-100', textColor: 'text-blue-700' },
-    package: { label: 'باقة', bgColor: 'bg-purple-100', textColor: 'text-purple-700' },
+// Helper to get localized name
+const getLocalizedName = (name: { ar?: string; en?: string } | string | undefined): string => {
+    if (!name) return 'غير معروف';
+    if (typeof name === 'string') {
+        try {
+            const parsed = JSON.parse(name);
+            return parsed.ar || parsed.en || name;
+        } catch {
+            return name;
+        }
+    }
+    return name.ar || name.en || 'غير معروف';
 };
 
 export function AdminSubscriptionsPage() {
-    const [activeTab, setActiveTab] = useState<SubTab>('pending');
+    // State
+    const [subscriptions, setSubscriptions] = useState<AdminSubscription[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [statusFilter, setStatusFilter] = useState<AdminSubscriptionStatus | undefined>(2); // Default to pending
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedReceipt, setSelectedReceipt] = useState<PendingSubscription | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
 
-    const pendingCount = mockPendingSubscriptions.length;
+    // Modal states
+    const [selectedSubscription, setSelectedSubscription] = useState<AdminSubscription | null>(null);
+    const [showReceiptModal, setShowReceiptModal] = useState(false);
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [rejectionReason, setRejectionReason] = useState('');
+    const [actionLoading, setActionLoading] = useState(false);
+
+    // Fetch subscriptions
+    const fetchSubscriptions = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response: PaginatedResponse<AdminSubscription> = await adminService.getSubscriptions({
+                status: statusFilter,
+                page: currentPage,
+                per_page: 10,
+            });
+            setSubscriptions(response.data || []);
+            setTotalPages(response.meta?.last_page || 1);
+            setTotalItems(response.meta?.total || 0);
+        } catch (err) {
+            console.error('Error fetching subscriptions:', err);
+            setError('فشل في تحميل الاشتراكات');
+        } finally {
+            setLoading(false);
+        }
+    }, [statusFilter, currentPage]);
+
+    useEffect(() => {
+        fetchSubscriptions();
+    }, [fetchSubscriptions]);
+
+    // Handlers
+    const handleApprove = async (subscription: AdminSubscription) => {
+        if (!confirm(`هل تريد تفعيل اشتراك ${subscription.student?.name}؟`)) return;
+        setActionLoading(true);
+        try {
+            await adminService.approveSubscription(subscription.id);
+            fetchSubscriptions();
+        } catch (err) {
+            console.error('Error approving subscription:', err);
+            alert('فشل في تفعيل الاشتراك');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleReject = async () => {
+        if (!selectedSubscription || !rejectionReason.trim()) return;
+        setActionLoading(true);
+        try {
+            await adminService.rejectSubscription(selectedSubscription.id, rejectionReason);
+            setShowRejectModal(false);
+            setRejectionReason('');
+            setSelectedSubscription(null);
+            fetchSubscriptions();
+        } catch (err) {
+            console.error('Error rejecting subscription:', err);
+            alert('فشل في رفض الاشتراك');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const openRejectModal = (subscription: AdminSubscription) => {
+        setSelectedSubscription(subscription);
+        setRejectionReason('');
+        setShowRejectModal(true);
+    };
+
+    const openReceiptModal = (subscription: AdminSubscription) => {
+        setSelectedSubscription(subscription);
+        setShowReceiptModal(true);
+    };
+
+    // Filter by search
+    const filteredSubscriptions = subscriptions.filter(sub => {
+        if (!searchQuery) return true;
+        const studentName = sub.student?.name?.toLowerCase() || '';
+        const courseName = getLocalizedName(sub.course?.name).toLowerCase();
+        return studentName.includes(searchQuery.toLowerCase()) || courseName.includes(searchQuery.toLowerCase());
+    });
+
+    // Count pending
+    const pendingCount = statusFilter === 2 ? totalItems : subscriptions.filter(s => s.status === 2).length;
 
     return (
         <>
             {/* Page Header */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-                <h1 className="text-2xl font-extrabold text-charcoal">إدارة الاشتراكات</h1>
-
+                <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-shibl-crimson to-[#8B0A12] flex items-center justify-center shadow-lg">
+                        <CreditCard size={24} className="text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-extrabold text-charcoal">إدارة الاشتراكات</h1>
+                        <p className="text-sm text-slate-grey">مراجعة وإدارة طلبات الاشتراك في الدورات</p>
+                    </div>
+                </div>
                 <div className="flex items-center gap-3">
                     {/* Search */}
                     <div className="relative flex-1 lg:w-72">
@@ -95,133 +174,168 @@ export function AdminSubscriptionsPage() {
                         />
                         <Search size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                     </div>
-
-                    {/* Export Button */}
-                    <button className="h-11 px-5 rounded-[12px] bg-white border border-slate-200 hover:border-shibl-crimson text-slate-600 hover:text-shibl-crimson font-semibold text-sm transition-all flex items-center gap-2">
-                        <Download size={18} />
-                        <span>تصدير</span>
+                    {/* Refresh */}
+                    <button
+                        onClick={fetchSubscriptions}
+                        disabled={loading}
+                        className="h-11 px-4 rounded-[12px] bg-white border border-slate-200 hover:border-shibl-crimson text-slate-600 hover:text-shibl-crimson font-semibold text-sm transition-all flex items-center gap-2"
+                    >
+                        <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
                     </button>
                 </div>
             </div>
 
-            {/* Main Tabs */}
-            <div className="flex gap-3 mb-6">
-                <button
-                    onClick={() => setActiveTab('pending')}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-[12px] font-bold text-sm transition-all duration-300 ${activeTab === 'pending'
-                            ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/25'
-                            : 'bg-white text-slate-600 hover:bg-amber-50 border border-slate-200'
-                        }`}
-                >
-                    <Clock size={18} />
-                    <span>طلبات معلقة</span>
-                    {pendingCount > 0 && (
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700'
-                            }`}>
-                            {pendingCount}
-                        </span>
-                    )}
-                </button>
-                <button
-                    onClick={() => setActiveTab('active')}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-[12px] font-bold text-sm transition-all duration-300 ${activeTab === 'active'
-                            ? 'bg-green-600 text-white shadow-lg shadow-green-600/25'
-                            : 'bg-white text-slate-600 hover:bg-green-50 border border-slate-200'
-                        }`}
-                >
-                    <CreditCard size={18} />
-                    <span>الاشتراكات النشطة</span>
-                </button>
-                <button
-                    onClick={() => setActiveTab('expired')}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-[12px] font-bold text-sm transition-all duration-300 ${activeTab === 'expired'
-                            ? 'bg-slate-600 text-white shadow-lg shadow-slate-600/25'
-                            : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                        }`}
-                >
-                    <XCircle size={18} />
-                    <span>منتهية</span>
-                </button>
+            {/* Status Filter Tabs */}
+            <div className="flex gap-3 mb-6 flex-wrap">
+                {statusFilters.map((filter) => {
+                    const Icon = filter.icon;
+                    const isActive = statusFilter === filter.value;
+                    return (
+                        <button
+                            key={filter.label}
+                            onClick={() => {
+                                setStatusFilter(filter.value);
+                                setCurrentPage(1);
+                            }}
+                            className={`flex items-center gap-2 px-5 py-3 rounded-[12px] font-bold text-sm transition-all duration-300 ${isActive
+                                    ? `${filter.activeColor} text-white shadow-lg`
+                                    : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+                                }`}
+                        >
+                            <Icon size={18} />
+                            <span>{filter.label}</span>
+                            {filter.value === 2 && pendingCount > 0 && (
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${isActive ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700'
+                                    }`}>
+                                    {pendingCount}
+                                </span>
+                            )}
+                        </button>
+                    );
+                })}
             </div>
 
-            {/* Stats Mini Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                {stats.map((stat, index) => (
-                    <div key={index} className="bg-white rounded-[16px] p-4 shadow-card flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-[12px] flex items-center justify-center ${stat.bgColor}`}>
-                            {stat.icon}
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-grey font-medium">{stat.label}</p>
-                            <span className="text-xl font-extrabold text-charcoal">{stat.value}</span>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Pending Tab Content */}
-            {activeTab === 'pending' && (
+            {/* Content */}
+            {loading ? (
+                <div className="bg-white rounded-[16px] shadow-card p-12 flex items-center justify-center">
+                    <Loader2 size={40} className="animate-spin text-shibl-crimson" />
+                </div>
+            ) : error ? (
+                <div className="bg-white rounded-[16px] shadow-card p-12 text-center">
+                    <AlertCircle className="mx-auto mb-3 text-red-500" size={48} />
+                    <p className="text-red-600 font-medium mb-4">{error}</p>
+                    <button
+                        onClick={fetchSubscriptions}
+                        className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl transition-colors"
+                    >
+                        إعادة المحاولة
+                    </button>
+                </div>
+            ) : filteredSubscriptions.length === 0 ? (
+                <div className="bg-white rounded-[16px] shadow-card p-12 text-center">
+                    <CreditCard size={48} className="mx-auto text-slate-300 mb-4" />
+                    <h3 className="text-lg font-bold text-charcoal mb-2">لا توجد اشتراكات</h3>
+                    <p className="text-sm text-slate-grey">لا توجد طلبات اشتراك بالحالة المحددة</p>
+                </div>
+            ) : (
                 <div className="bg-white rounded-[16px] shadow-card overflow-hidden">
-                    <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-                        <Clock size={20} className="text-amber-600" />
-                        <h2 className="font-bold text-charcoal">طلبات الاشتراك المعلقة</h2>
-                        <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
-                            {pendingCount} طلب
-                        </span>
+                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <CreditCard size={20} className="text-shibl-crimson" />
+                            <h2 className="font-bold text-charcoal">قائمة الاشتراكات</h2>
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
+                                {totalItems} اشتراك
+                            </span>
+                        </div>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
                                 <tr className="bg-slate-50 border-b border-slate-100">
                                     <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الطالب</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكورس/الباقة</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">النوع</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">المبلغ</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">تاريخ الطلب</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">إجراءات</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الدورة</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الحالة</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">التاريخ</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الإجراءات</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {mockPendingSubscriptions.map((sub) => (
+                                {filteredSubscriptions.map((sub) => (
                                     <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white font-bold text-sm">
-                                                    {sub.avatar}
+                                                    {sub.student?.name?.charAt(0) || '?'}
                                                 </div>
-                                                <span className="font-semibold text-charcoal">{sub.studentName}</span>
+                                                <div>
+                                                    <span className="font-semibold text-charcoal block">{sub.student?.name || 'غير معروف'}</span>
+                                                    <span className="text-xs text-slate-grey">{sub.student?.email || ''}</span>
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <BookOpen size={16} className="text-slate-400" />
-                                                <span className="text-sm text-charcoal">{sub.courseName}</span>
+                                                <BookOpen size={16} className="text-shibl-crimson" />
+                                                <span className="text-sm text-charcoal font-medium">{getLocalizedName(sub.course?.name)}</span>
                                             </div>
+                                            {sub.course?.price && (
+                                                <span className="text-xs text-slate-grey flex items-center gap-1 mt-1">
+                                                    <DollarSign size={12} />
+                                                    {sub.course.price} ر.ع
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${typeConfig[sub.type].bgColor} ${typeConfig[sub.type].textColor}`}>
-                                                {typeConfig[sub.type].label}
+                                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${AdminSubscriptionStatusColors[sub.status]}`}>
+                                                {AdminSubscriptionStatusLabels[sub.status]}
                                             </span>
+                                            {sub.status === 3 && sub.rejection_reason && (
+                                                <p className="text-xs text-red-500 mt-1 max-w-[150px] truncate" title={sub.rejection_reason}>
+                                                    {sub.rejection_reason}
+                                                </p>
+                                            )}
                                         </td>
-                                        <td className="px-6 py-4 text-sm font-bold text-shibl-crimson">{sub.amount}</td>
-                                        <td className="px-6 py-4 text-sm text-slate-grey">{sub.receiptDate}</td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2 text-slate-grey text-sm">
+                                                <Calendar size={14} />
+                                                {sub.created_at ? new Date(sub.created_at).toLocaleDateString('ar-EG') : '-'}
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => setSelectedReceipt(sub)}
-                                                    className="py-2 px-3 rounded-[8px] bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs transition-colors flex items-center gap-1"
-                                                >
-                                                    <Eye size={14} />
-                                                    الإيصال
-                                                </button>
-                                                <button className="py-2 px-4 rounded-[8px] bg-green-100 hover:bg-green-200 text-green-700 font-semibold text-xs transition-colors flex items-center gap-1">
-                                                    <Check size={14} />
-                                                    قبول
-                                                </button>
-                                                <button className="py-2 px-4 rounded-[8px] bg-red-100 hover:bg-red-200 text-red-600 font-semibold text-xs transition-colors flex items-center gap-1">
-                                                    <X size={14} />
-                                                    رفض
-                                                </button>
+                                                {/* View Receipt */}
+                                                {sub.bill_image_path && (
+                                                    <button
+                                                        onClick={() => openReceiptModal(sub)}
+                                                        className="py-2 px-3 rounded-[8px] bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold text-xs transition-colors flex items-center gap-1"
+                                                        title="عرض الإيصال"
+                                                    >
+                                                        <Receipt size={14} />
+                                                        الإيصال
+                                                    </button>
+                                                )}
+
+                                                {/* Approve/Reject for pending */}
+                                                {sub.status === 2 && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleApprove(sub)}
+                                                            disabled={actionLoading}
+                                                            className="py-2 px-4 rounded-[8px] bg-green-100 hover:bg-green-200 text-green-700 font-semibold text-xs transition-colors flex items-center gap-1 disabled:opacity-50"
+                                                        >
+                                                            <Check size={14} />
+                                                            قبول
+                                                        </button>
+                                                        <button
+                                                            onClick={() => openRejectModal(sub)}
+                                                            disabled={actionLoading}
+                                                            className="py-2 px-4 rounded-[8px] bg-red-100 hover:bg-red-200 text-red-600 font-semibold text-xs transition-colors flex items-center gap-1 disabled:opacity-50"
+                                                        >
+                                                            <X size={14} />
+                                                            رفض
+                                                        </button>
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -229,140 +343,142 @@ export function AdminSubscriptionsPage() {
                             </tbody>
                         </table>
                     </div>
-                </div>
-            )}
 
-            {/* Active Tab Content */}
-            {activeTab === 'active' && (
-                <div className="bg-white rounded-[16px] shadow-card overflow-hidden">
-                    <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-                        <CreditCard size={20} className="text-green-600" />
-                        <h2 className="font-bold text-charcoal">الاشتراكات النشطة</h2>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="bg-slate-50 border-b border-slate-100">
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الطالب</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">النوع</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكورسات</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">تاريخ البدء</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">تاريخ الانتهاء</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">المتبقي</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {mockActiveSubscriptions.map((sub) => (
-                                    <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm">
-                                                    {sub.avatar}
-                                                </div>
-                                                <span className="font-semibold text-charcoal">{sub.studentName}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${typeConfig[sub.subscriptionType].bgColor} ${typeConfig[sub.subscriptionType].textColor}`}>
-                                                {typeConfig[sub.subscriptionType].label}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex flex-wrap gap-1">
-                                                {sub.coursesIncluded.map((course, idx) => (
-                                                    <span key={idx} className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                                                        {course}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-slate-grey">{sub.startDate}</td>
-                                        <td className="px-6 py-4 text-sm text-slate-grey">{sub.endDate}</td>
-                                        <td className="px-6 py-4">
-                                            <div className="w-32">
-                                                <div className="flex items-center justify-between text-xs mb-1">
-                                                    <span className="font-semibold text-charcoal">{sub.daysRemaining} يوم</span>
-                                                    <span className="text-slate-grey">من {sub.totalDays}</span>
-                                                </div>
-                                                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                                    <div
-                                                        className={`h-full rounded-full transition-all ${sub.daysRemaining < 14 ? 'bg-red-500' : sub.daysRemaining < 30 ? 'bg-amber-500' : 'bg-green-500'
-                                                            }`}
-                                                        style={{ width: `${(sub.daysRemaining / sub.totalDays) * 100}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-
-            {/* Expired Tab Content */}
-            {activeTab === 'expired' && (
-                <div className="bg-white rounded-[16px] shadow-card p-12 text-center">
-                    <XCircle size={48} className="mx-auto text-slate-300 mb-4" />
-                    <h3 className="text-lg font-bold text-charcoal mb-2">لا توجد اشتراكات منتهية</h3>
-                    <p className="text-sm text-slate-grey">ستظهر هنا الاشتراكات المنتهية</p>
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="px-6 py-4 border-t border-slate-100 flex justify-center gap-2">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                <button
+                                    key={page}
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`w-10 h-10 rounded-[8px] font-medium transition-all ${currentPage === page
+                                            ? 'bg-shibl-crimson text-white'
+                                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                        }`}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
 
             {/* Receipt Preview Modal */}
-            {selectedReceipt && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedReceipt(null)}>
+            {showReceiptModal && selectedSubscription && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowReceiptModal(false)}>
                     <div className="bg-white rounded-[20px] max-w-lg w-full overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-                        {/* Modal Header */}
                         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                            <h3 className="font-bold text-charcoal">معاينة الإيصال</h3>
-                            <button onClick={() => setSelectedReceipt(null)} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+                            <h3 className="font-bold text-charcoal flex items-center gap-2">
+                                <Receipt size={20} />
+                                معاينة الإيصال
+                            </h3>
+                            <button onClick={() => setShowReceiptModal(false)} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
                                 <X size={18} className="text-slate-500" />
                             </button>
                         </div>
-
-                        {/* Modal Content */}
                         <div className="p-6">
-                            {/* Receipt Image Placeholder */}
-                            <div className="h-48 bg-gradient-to-br from-slate-100 to-slate-200 rounded-[12px] flex items-center justify-center mb-6">
-                                <FileText size={48} className="text-slate-400" />
-                            </div>
-
-                            {/* Details */}
-                            <div className="space-y-4 mb-6">
+                            {selectedSubscription.bill_image_path ? (
+                                <img
+                                    src={selectedSubscription.bill_image_path}
+                                    alt="إيصال الدفع"
+                                    className="w-full rounded-[12px] shadow-lg mb-6"
+                                />
+                            ) : (
+                                <div className="h-48 bg-gradient-to-br from-slate-100 to-slate-200 rounded-[12px] flex items-center justify-center mb-6">
+                                    <Receipt size={48} className="text-slate-400" />
+                                </div>
+                            )}
+                            <div className="space-y-3 mb-6">
                                 <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-[10px]">
                                     <User size={18} className="text-slate-400" />
                                     <div>
                                         <p className="text-xs text-slate-grey">الطالب</p>
-                                        <p className="font-semibold text-charcoal">{selectedReceipt.studentName}</p>
+                                        <p className="font-semibold text-charcoal">{selectedSubscription.student?.name}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-[10px]">
                                     <BookOpen size={18} className="text-slate-400" />
                                     <div>
-                                        <p className="text-xs text-slate-grey">الكورس/الباقة</p>
-                                        <p className="font-semibold text-charcoal">{selectedReceipt.courseName}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-[10px]">
-                                    <DollarSign size={18} className="text-slate-400" />
-                                    <div>
-                                        <p className="text-xs text-slate-grey">المبلغ</p>
-                                        <p className="font-bold text-shibl-crimson text-lg">{selectedReceipt.amount}</p>
+                                        <p className="text-xs text-slate-grey">الدورة</p>
+                                        <p className="font-semibold text-charcoal">{getLocalizedName(selectedSubscription.course?.name)}</p>
                                     </div>
                                 </div>
                             </div>
+                            {selectedSubscription.status === 2 && (
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => {
+                                            setShowReceiptModal(false);
+                                            handleApprove(selectedSubscription);
+                                        }}
+                                        disabled={actionLoading}
+                                        className="flex-1 py-3 rounded-[12px] bg-green-600 hover:bg-green-700 text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        <Check size={18} />
+                                        قبول الاشتراك
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowReceiptModal(false);
+                                            openRejectModal(selectedSubscription);
+                                        }}
+                                        className="flex-1 py-3 rounded-[12px] bg-red-100 hover:bg-red-200 text-red-600 font-bold text-sm transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <X size={18} />
+                                        رفض
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
-                            {/* Actions */}
+            {/* Reject Modal */}
+            {showRejectModal && selectedSubscription && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowRejectModal(false)}>
+                    <div className="bg-white rounded-[20px] max-w-md w-full overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+                        <div className="px-6 py-4 border-b border-red-100 bg-red-50 flex items-center justify-between">
+                            <h3 className="font-bold text-red-700 flex items-center gap-2">
+                                <XCircle size={20} />
+                                رفض الاشتراك
+                            </h3>
+                            <button onClick={() => setShowRejectModal(false)} className="w-8 h-8 rounded-full bg-red-100 hover:bg-red-200 flex items-center justify-center">
+                                <X size={18} className="text-red-600" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <p className="text-sm text-slate-600">
+                                أنت على وشك رفض طلب اشتراك <strong>{selectedSubscription.student?.name}</strong> في دورة <strong>{getLocalizedName(selectedSubscription.course?.name)}</strong>
+                            </p>
+                            <div>
+                                <label className="block text-sm font-medium text-charcoal mb-2">سبب الرفض *</label>
+                                <textarea
+                                    value={rejectionReason}
+                                    onChange={(e) => setRejectionReason(e.target.value)}
+                                    placeholder="اكتب سبب رفض الطلب..."
+                                    className="w-full h-24 rounded-[12px] border border-slate-200 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none p-3 text-sm resize-none"
+                                />
+                            </div>
                             <div className="flex gap-3">
-                                <button className="flex-1 py-3 rounded-[12px] bg-green-600 hover:bg-green-700 text-white font-bold text-sm transition-colors flex items-center justify-center gap-2">
-                                    <Check size={18} />
-                                    قبول الاشتراك
+                                <button
+                                    onClick={() => setShowRejectModal(false)}
+                                    className="flex-1 py-3 rounded-[12px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors"
+                                >
+                                    إلغاء
                                 </button>
-                                <button className="flex-1 py-3 rounded-[12px] bg-red-100 hover:bg-red-200 text-red-600 font-bold text-sm transition-colors flex items-center justify-center gap-2">
-                                    <X size={18} />
-                                    رفض
+                                <button
+                                    onClick={handleReject}
+                                    disabled={actionLoading || !rejectionReason.trim()}
+                                    className="flex-1 py-3 rounded-[12px] bg-red-600 hover:bg-red-700 text-white font-bold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                >
+                                    {actionLoading ? (
+                                        <Loader2 size={18} className="animate-spin" />
+                                    ) : (
+                                        <XCircle size={18} />
+                                    )}
+                                    تأكيد الرفض
                                 </button>
                             </div>
                         </div>

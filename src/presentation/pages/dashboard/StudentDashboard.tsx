@@ -108,8 +108,8 @@ export function StudentDashboard() {
                                     <button
                                         onClick={() => setActiveNav(item.id)}
                                         className={`w-full flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl transition-all ${activeNav === item.id
-                                                ? 'bg-shibl-crimson text-white'
-                                                : 'text-slate-500 hover:bg-slate-50'
+                                            ? 'bg-shibl-crimson text-white'
+                                            : 'text-slate-500 hover:bg-slate-50'
                                             }`}
                                     >
                                         <IconComponent
@@ -224,8 +224,8 @@ export function StudentDashboard() {
                         <button
                             onClick={() => setActiveTab('academic')}
                             className={`px-8 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === 'academic'
-                                    ? 'bg-shibl-crimson text-white shadow-lg'
-                                    : 'text-slate-500 hover:text-charcoal'
+                                ? 'bg-shibl-crimson text-white shadow-lg'
+                                : 'text-slate-500 hover:text-charcoal'
                                 }`}
                         >
                             الأكاديمي
@@ -233,8 +233,8 @@ export function StudentDashboard() {
                         <button
                             onClick={() => setActiveTab('skills')}
                             className={`px-8 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === 'skills'
-                                    ? 'bg-shibl-crimson text-white shadow-lg'
-                                    : 'text-slate-500 hover:text-charcoal'
+                                ? 'bg-shibl-crimson text-white shadow-lg'
+                                : 'text-slate-500 hover:text-charcoal'
                                 }`}
                         >
                             المهارات
