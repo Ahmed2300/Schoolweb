@@ -22,7 +22,7 @@ export interface AdminAuthResponse {
 
 // User types for admin management
 export type UserRole = 'student' | 'parent' | 'teacher';
-export type UserStatus = 'active' | 'inactive';
+export type UserStatus = 'active' | 'inactive' | 'on-leave';
 
 export interface UserData {
     id: number;
