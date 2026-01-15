@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { AdminSidebar } from './AdminSidebar';
 import { useLanguage } from '../../hooks';
-import { Bell, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useAuthStore } from '../../store';
 import { SessionManager } from './SessionManager';
+import { NotificationBell, NotificationToast } from '@/components/notifications';
 
 export function AdminLayout() {
     const { isRTL } = useLanguage();
@@ -13,6 +14,9 @@ export function AdminLayout() {
 
     return (
         <div className="min-h-screen bg-soft-cloud" dir={isRTL ? 'rtl' : 'ltr'}>
+            {/* Real-time Notification Toast - Shows popup on new notification */}
+            <NotificationToast />
+
             {/* Session Management - Tracks inactivity and shows warning before logout */}
             <SessionManager
                 enabled={true}
@@ -55,11 +59,8 @@ export function AdminLayout() {
                         </div>
                     </div>
 
-                    {/* Right side - Notifications */}
-                    <button className="relative w-11 h-11 rounded-[12px] bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-colors">
-                        <Bell size={20} className="text-slate-600" />
-                        <span className="absolute top-2 right-2 w-2 h-2 bg-shibl-crimson rounded-full"></span>
-                    </button>
+                    {/* Right side - Real-time Notifications Bell */}
+                    <NotificationBell />
                 </header>
 
                 {/* Page Content - Only this changes on route navigation */}

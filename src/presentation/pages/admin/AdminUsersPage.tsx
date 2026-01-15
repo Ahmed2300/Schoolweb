@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Search,
     Filter,
-    Shield,
     Users,
     UserCheck,
     Clock,
@@ -13,7 +12,8 @@ import {
     ChevronRight,
     Loader2
 } from 'lucide-react';
-import { adminService, UserData, UserRole, UserStatus, PaginatedResponse } from '../../../data/api/adminService';
+import { useQuery } from '@tanstack/react-query';
+import { adminService, UserData, UserRole, UserStatus } from '../../../data/api/adminService';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { EditUserModal } from '../../components/admin/EditUserModal';
 import { ViewUserModal } from '../../components/admin/ViewUserModal';
@@ -66,23 +66,92 @@ export function AdminUsersPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage] = useState(10);
+    const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
 
-    // Data states
-    const [users, setUsers] = useState<UserData[]>([]);
-    const [stats, setStats] = useState<Stats>({
-        totalUsers: 0,
-        totalStudents: 0,
-        totalParents: 0,
+    // Debounce search input
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+            setCurrentPage(1); // Reset to first page on search
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    // Reset page when tab changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeTab]);
+
+    // Query for Users
+    const {
+        data: usersData,
+        isLoading: isUsersLoading,
+        isFetching: isUsersFetching,
+        isError: isUsersError,
+        error: usersError,
+        refetch: refetchUsers
+    } = useQuery({
+        queryKey: ['admin-users', activeTab, currentPage, perPage, debouncedSearch],
+        queryFn: async () => {
+            const params = {
+                page: currentPage,
+                per_page: perPage,
+                search: debouncedSearch || undefined,
+            };
+
+            if (activeTab === 'all') {
+                return adminService.getStudentsAndParents(params);
+            } else if (activeTab === 'students') {
+                const response = await adminService.getStudents(params);
+                return {
+                    users: response.data,
+                    stats: { // Keep logic consistent, though we might want to fetch stats separately eventually
+                        totalStudents: response.meta.total,
+                        totalParents: 0, // Not available in single call, handled by derived state or separate query if needed
+                        total: response.meta.total
+                    },
+                    meta: response.meta
+                };
+            } else { // parents
+                const response = await adminService.getParents(params);
+                return {
+                    users: response.data,
+                    stats: {
+                        totalStudents: 0,
+                        totalParents: response.meta.total,
+                        total: response.meta.total
+                    },
+                    meta: response.meta
+                };
+            }
+        },
+        placeholderData: (previousData) => previousData, // Keep previous data while fetching new data (smart loading)
     });
-    const [pagination, setPagination] = useState({
-        currentPage: 1,
-        lastPage: 1,
-        total: 0,
-    });
+
+    // Derived state
+    const users = usersData?.users || [];
+    const rawStats = usersData?.stats || { total: 0, totalStudents: 0, totalParents: 0 };
+    const stats = {
+        totalUsers: rawStats.total,
+        totalStudents: rawStats.totalStudents,
+        totalParents: rawStats.totalParents
+    };
+
+    // Handle meta for pagination
+    // The combined endpoint returns 'stats', paginated returns 'meta'.
+    const pagination = usersData && 'meta' in usersData ? (usersData as any).meta : {
+        currentPage: 1, lastPage: 1, total: stats.totalUsers
+    };
+
+    const totalItems = pagination.total;
+    const lastPage = pagination.last_page || pagination.lastPage || 1;
+    const currentP = pagination.current_page || pagination.currentPage || 1;
+
 
     // Loading and error states
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    // Show skeleton only on INITIAL load, not on refetch (smart loading)
+    const showSkeleton = isUsersLoading;
+
     const [deleting, setDeleting] = useState<number | null>(null);
 
     // Delete dialog state
@@ -107,89 +176,6 @@ export function AdminUsersPage() {
     const [showAddStudentModal, setShowAddStudentModal] = useState(false);
     const [showAddParentModal, setShowAddParentModal] = useState(false);
 
-    // Debounced search
-    const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
-
-    // Debounce search input
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearch(searchQuery);
-            setCurrentPage(1); // Reset to first page on search
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [searchQuery]);
-
-    // Fetch users based on active tab
-    const fetchUsers = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            const params = {
-                page: currentPage,
-                per_page: perPage,
-                search: debouncedSearch || undefined,
-            };
-
-            if (activeTab === 'all') {
-                // Fetch all users
-                const result = await adminService.getAllUsers(params);
-                setUsers(result.users);
-                setStats({
-                    totalUsers: result.stats.totalStudents + result.stats.totalParents,
-                    totalStudents: result.stats.totalStudents,
-                    totalParents: result.stats.totalParents,
-                });
-                setPagination({
-                    currentPage: 1,
-                    lastPage: 1,
-                    total: result.users.length,
-                });
-            } else {
-                // Fetch specific user type
-                let response: PaginatedResponse<UserData>;
-
-                switch (activeTab) {
-                    case 'students':
-                        response = await adminService.getStudents(params);
-                        break;
-                    case 'parents':
-                        response = await adminService.getParents(params);
-                        break;
-                    default:
-                        response = await adminService.getStudents(params);
-                }
-
-                setUsers(response.data);
-                setPagination({
-                    currentPage: response.meta.current_page,
-                    lastPage: response.meta.last_page,
-                    total: response.meta.total,
-                });
-
-                // Update stats for the specific type
-                setStats(prev => ({
-                    ...prev,
-                    [`total${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`]: response.meta.total,
-                }));
-            }
-        } catch (err: any) {
-            console.error('Error fetching users:', err);
-            setError(err.response?.data?.message || 'فشل في تحميل المستخدمين');
-        } finally {
-            setLoading(false);
-        }
-    }, [activeTab, currentPage, perPage, debouncedSearch]);
-
-    // Fetch on mount and when dependencies change
-    useEffect(() => {
-        fetchUsers();
-    }, [fetchUsers]);
-
-    // Reset page when tab changes
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [activeTab]);
 
     // Open delete confirmation dialog
     const openDeleteDialog = (user: UserData) => {
@@ -213,7 +199,7 @@ export function AdminUsersPage() {
 
     // Handle successful edit
     const handleEditSuccess = () => {
-        fetchUsers(); // Refresh the list
+        refetchUsers(); // Refresh the list
     };
 
     // Open view modal
@@ -235,11 +221,11 @@ export function AdminUsersPage() {
         try {
             await adminService.deleteUser(user.role, user.id);
             // Refresh the list
-            fetchUsers();
+            refetchUsers();
             closeDeleteDialog();
         } catch (err: any) {
             console.error('Error deleting user:', err);
-            setError(err.response?.data?.message || 'فشل في حذف المستخدم');
+            // Error handling typically via toast
         } finally {
             setDeleting(null);
         }
@@ -250,7 +236,7 @@ export function AdminUsersPage() {
         const pages: number[] = [];
         const maxPages = 5;
         let start = Math.max(1, currentPage - Math.floor(maxPages / 2));
-        const end = Math.min(pagination.lastPage, start + maxPages - 1);
+        const end = Math.min(lastPage, start + maxPages - 1);
 
         if (end - start + 1 < maxPages) {
             start = Math.max(1, end - maxPages + 1);
@@ -345,15 +331,15 @@ export function AdminUsersPage() {
             </div>
 
             {/* Error Message */}
-            {error && (
+            {isUsersError && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-[12px] mb-6">
-                    {error}
+                    {usersError instanceof Error ? usersError.message : 'حدث خطأ أثناء تحميل البيانات'}
                 </div>
             )}
 
             {/* Users Table */}
             <div className="bg-white rounded-[16px] shadow-card overflow-hidden">
-                {loading ? (
+                {showSkeleton ? (
                     /* Shimmer Skeleton Loading */
                     <div className="overflow-x-auto">
                         <table className="w-full">
@@ -407,7 +393,7 @@ export function AdminUsersPage() {
                         <p className="text-sm">لم يتم العثور على أي مستخدمين مطابقين</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
+                    <div className={`overflow-x-auto transition-opacity duration-200 ${isUsersFetching && !isUsersLoading ? 'opacity-50' : 'opacity-100'}`}>
                         <table className="w-full">
                             <thead>
                                 <tr className="bg-slate-50 border-b border-slate-100">
@@ -488,7 +474,7 @@ export function AdminUsersPage() {
                 )}
 
                 {/* Pagination */}
-                {!loading && users.length > 0 && (
+                {!showSkeleton && users.length > 0 && (
                     <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
                         <p className="text-sm text-slate-grey">
                             عرض {users.length} من {pagination.total}
@@ -514,8 +500,8 @@ export function AdminUsersPage() {
                                 </button>
                             ))}
                             <button
-                                onClick={() => setCurrentPage(p => Math.min(pagination.lastPage, p + 1))}
-                                disabled={currentPage === pagination.lastPage}
+                                onClick={() => setCurrentPage(p => Math.min(lastPage, p + 1))}
+                                disabled={currentPage === lastPage}
                                 className="w-9 h-9 rounded-[8px] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors disabled:opacity-50"
                             >
                                 <ChevronLeft size={18} />
@@ -563,7 +549,7 @@ export function AdminUsersPage() {
                 onClose={() => setShowAddStudentModal(false)}
                 onSuccess={() => {
                     setShowAddStudentModal(false);
-                    fetchUsers();
+                    refetchUsers(); // Changed from fetchUsers to refetchUsers
                 }}
             />
 
@@ -573,7 +559,7 @@ export function AdminUsersPage() {
                 onClose={() => setShowAddParentModal(false)}
                 onSuccess={() => {
                     setShowAddParentModal(false);
-                    fetchUsers();
+                    refetchUsers(); // Changed from fetchUsers to refetchUsers
                 }}
             />
         </>

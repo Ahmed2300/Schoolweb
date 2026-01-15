@@ -153,6 +153,7 @@ export const endpoints = {
             studentRegistrations: '/api/v1/admin/reports/student-registrations',
             teacherRegistrations: '/api/v1/admin/reports/teacher-registrations',
             parentRegistrations: '/api/v1/admin/reports/parent-registrations',
+            recentRegistrations: '/api/v1/admin/reports/recent-registrations',
         },
         // Activity Logs
         activityLogs: {

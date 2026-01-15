@@ -87,6 +87,43 @@ export interface UserListParams {
     is_academic?: boolean;
 }
 
+// ==================== REPORT TYPES ====================
+
+/** Parameters for date-range report queries */
+export interface ReportDateParams {
+    start_date?: string; // Format: YYYY-MM-DD
+    end_date?: string;   // Format: YYYY-MM-DD
+}
+
+/** Single data point for registration reports */
+export interface RegistrationReportData {
+    date: string;
+    count: number;
+}
+
+/** Individual user registration record from recent registrations API */
+export interface RecentRegistration {
+    id: number;
+    name: string;
+    role: 'student' | 'teacher' | 'parent';
+    date: string;
+    status: 'active' | 'inactive';
+}
+
+/** Subscription statistics from /api/v1/admin/subscriptions/statistics/summary */
+export interface SubscriptionStatistics {
+    total_subscriptions: number;
+    active_subscriptions: number;
+    inactive_subscriptions: number;
+    current_subscriptions: number;
+}
+
+/** Combined financial statistics for dashboard */
+export interface FinancialStatistics {
+    payments: PaymentStatistics;
+    subscriptions: SubscriptionStatistics;
+}
+
 // Update request types based on backend validation rules
 export interface UpdateStudentRequest {
     name?: string;
@@ -818,6 +855,20 @@ export const adminService = {
     },
 
     /**
+     * Update teacher with image (uses FormData)
+     */
+    updateTeacherWithImage: async (id: number, formData: FormData): Promise<UserData> => {
+        // For PUT with FormData, we need to use POST with _method override
+        formData.append('_method', 'PUT');
+        const response = await apiClient.post(endpoints.admin.teachers.update(id), formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return { ...response.data.data, role: 'teacher' as UserRole };
+    },
+
+    /**
      * Create a new admin (super admin only)
      */
     createAdmin: async (data: CreateAdminRequest): Promise<any> => {
@@ -867,6 +918,51 @@ export const adminService = {
      * Fetches from all three endpoints and merges results
      * Uses Promise.allSettled to handle partial failures gracefully
      */
+    /**
+     * Get students and parents only (excluding teachers)
+     * Fetches from students and parents endpoints and merges results
+     */
+    getStudentsAndParents: async (params: UserListParams = {}): Promise<{
+        users: UserData[];
+        stats: {
+            totalStudents: number;
+            totalParents: number;
+            total: number;
+        };
+    }> => {
+        // Use allSettled to handle partial failures
+        const results = await Promise.allSettled([
+            adminService.getStudents(params),
+            adminService.getParents(params),
+        ]);
+
+        // Extract successful results, use empty arrays for failures
+        const studentsRes = results[0].status === 'fulfilled' ? results[0].value : { data: [], meta: { total: 0 } };
+        const parentsRes = results[1].status === 'fulfilled' ? results[1].value : { data: [], meta: { total: 0 } };
+
+        // Log any failures for debugging
+        results.forEach((result, index) => {
+            if (result.status === 'rejected') {
+                const endpoints = ['students', 'parents'];
+                console.warn(`Failed to fetch ${endpoints[index]}:`, result.reason);
+            }
+        });
+
+        const allUsers = [
+            ...studentsRes.data,
+            ...parentsRes.data,
+        ];
+
+        return {
+            users: allUsers,
+            stats: {
+                totalStudents: studentsRes.meta.total,
+                totalParents: parentsRes.meta.total,
+                total: studentsRes.meta.total + parentsRes.meta.total,
+            },
+        };
+    },
+
     getAllUsers: async (params: UserListParams = {}): Promise<{
         users: UserData[];
         stats: {
@@ -1143,14 +1239,6 @@ export const adminService = {
         return response.data.data;
     },
 
-    /**
-     * Get payment statistics
-     */
-    getPaymentStatistics: async (): Promise<{ pending: number; approved: number; rejected: number; total_amount: number }> => {
-        const response = await apiClient.get(endpoints.admin.payments.statistics);
-        return response.data.data;
-    },
-
     // ==================== ROLES ====================
 
     getRoles: async (params: UserListParams = {}): Promise<PaginatedResponse<RoleData>> => {
@@ -1368,23 +1456,6 @@ export const adminService = {
         return response.data;
     },
 
-    // ==================== REPORTS ====================
-
-    getStudentRegistrations: async (params: ReportParams = {}): Promise<RegistrationReportData[]> => {
-        const response = await apiClient.get(endpoints.admin.reports.studentRegistrations, { params });
-        return response.data.data;
-    },
-
-    getTeacherRegistrations: async (params: ReportParams = {}): Promise<RegistrationReportData[]> => {
-        const response = await apiClient.get(endpoints.admin.reports.teacherRegistrations, { params });
-        return response.data.data;
-    },
-
-    getParentRegistrations: async (params: ReportParams = {}): Promise<RegistrationReportData[]> => {
-        const response = await apiClient.get(endpoints.admin.reports.parentRegistrations, { params });
-        return response.data.data;
-    },
-
 
     // ==================== VIDEO UPLOAD ====================
 
@@ -1403,6 +1474,7 @@ export const adminService = {
         });
         return response.data;
     },
+
 
     completeVideoUpload: async (data: VideoUploadCompleteRequest): Promise<VideoUploadCompleteResponse> => {
         const response = await apiClient.post(endpoints.admin.videos.complete, data);
@@ -1463,8 +1535,122 @@ export const adminService = {
         return response.data.data || response.data;
     },
 
+    // ==================== REPORTS ====================
+
+    /**
+     * Fetches user registration data grouped by date.
+     * Used for analytics charts and reports.
+     */
+    getStudentRegistrations: async (params?: ReportDateParams): Promise<RegistrationReportData[]> => {
+        const response = await apiClient.get(endpoints.admin.reports.studentRegistrations, { params });
+        // Runtime validation: validate API response shape
+        if (!response.data.success) {
+            throw new Error(response.data.message || 'Failed to fetch student registrations');
+        }
+        return response.data.data as RegistrationReportData[];
+    },
+
+    getTeacherRegistrations: async (params?: ReportDateParams): Promise<RegistrationReportData[]> => {
+        const response = await apiClient.get(endpoints.admin.reports.teacherRegistrations, { params });
+        if (!response.data.success) {
+            throw new Error(response.data.message || 'Failed to fetch teacher registrations');
+        }
+        return response.data.data as RegistrationReportData[];
+    },
+
+    getParentRegistrations: async (params?: ReportDateParams): Promise<RegistrationReportData[]> => {
+        const response = await apiClient.get(endpoints.admin.reports.parentRegistrations, { params });
+        if (!response.data.success) {
+            throw new Error(response.data.message || 'Failed to fetch parent registrations');
+        }
+        return response.data.data as RegistrationReportData[];
+    },
+
+    /**
+     * Fetches all registration reports in parallel for dashboard usage.
+     * Returns combined data for students, teachers, and parents.
+     */
+    getAllRegistrationReports: async (params?: ReportDateParams): Promise<{
+        students: RegistrationReportData[];
+        teachers: RegistrationReportData[];
+        parents: RegistrationReportData[];
+    }> => {
+        // Direct API calls to avoid self-reference during object initialization
+        const fetchStudents = async (): Promise<RegistrationReportData[]> => {
+            const response = await apiClient.get(endpoints.admin.reports.studentRegistrations, { params });
+            if (!response.data.success) throw new Error('Failed to fetch student registrations');
+            return response.data.data as RegistrationReportData[];
+        };
+        const fetchTeachers = async (): Promise<RegistrationReportData[]> => {
+            const response = await apiClient.get(endpoints.admin.reports.teacherRegistrations, { params });
+            if (!response.data.success) throw new Error('Failed to fetch teacher registrations');
+            return response.data.data as RegistrationReportData[];
+        };
+        const fetchParents = async (): Promise<RegistrationReportData[]> => {
+            const response = await apiClient.get(endpoints.admin.reports.parentRegistrations, { params });
+            if (!response.data.success) throw new Error('Failed to fetch parent registrations');
+            return response.data.data as RegistrationReportData[];
+        };
+
+        const [students, teachers, parents] = await Promise.all([
+            fetchStudents(),
+            fetchTeachers(),
+            fetchParents(),
+        ]);
+        return { students, teachers, parents };
+    },
+
+    /**
+     * Fetches the most recent user registrations across all user types.
+     * Returns a list of students, teachers, and parents sorted by registration date.
+     */
+    getRecentRegistrations: async (limit: number = 10): Promise<RecentRegistration[]> => {
+        const response = await apiClient.get(endpoints.admin.reports.recentRegistrations, {
+            params: { limit }
+        });
+        if (!response.data.success) {
+            throw new Error(response.data.message || 'Failed to fetch recent registrations');
+        }
+        return response.data.data as RecentRegistration[];
+    },
+
+    // ==================== FINANCIAL STATISTICS ====================
+
+    /**
+     * Fetches payment statistics from the admin payments endpoint.
+     */
+    getPaymentStatistics: async (params?: ReportDateParams): Promise<PaymentStatistics> => {
+        const response = await apiClient.get(endpoints.admin.payments.statistics, { params });
+        return response.data as PaymentStatistics;
+    },
+
+    /**
+     * Fetches subscription statistics from the admin subscriptions endpoint.
+     */
+    getSubscriptionStatistics: async (): Promise<SubscriptionStatistics> => {
+        const response = await apiClient.get('/api/v1/admin/subscriptions/statistics/summary');
+        return response.data as SubscriptionStatistics;
+    },
+
+    /**
+     * Fetches combined financial statistics (payments + subscriptions) in parallel.
+     */
+    getFinancialStatistics: async (params?: ReportDateParams): Promise<FinancialStatistics> => {
+        const [payments, subscriptions] = await Promise.all([
+            apiClient.get(endpoints.admin.payments.statistics, { params }),
+            apiClient.get('/api/v1/admin/subscriptions/statistics/summary'),
+        ]);
+        return {
+            payments: payments.data as PaymentStatistics,
+            subscriptions: subscriptions.data as SubscriptionStatistics,
+        };
+    },
 
 };
 
 export default adminService;
+
+
+
+
 
