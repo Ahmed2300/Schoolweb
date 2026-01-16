@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '../../store';
 import { studentService, Course, getLocalizedName } from '../../../data/api/studentService';
 import { StudentAcademicBrowsePage } from './StudentAcademicBrowsePage';
@@ -23,7 +23,7 @@ export function StudentHomePage() {
     const [error, setError] = useState<string | null>(null);
 
     // Fetch non-academic/skills courses for the skills tab
-    const fetchSkillsCourses = async () => {
+    const fetchSkillsCourses = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
@@ -35,13 +35,36 @@ export function StudentHomePage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         if (activeTab === 'skills') {
             fetchSkillsCourses();
         }
-    }, [activeTab]);
+    }, [activeTab, fetchSkillsCourses]);
+
+    // Listen for real-time subscription updates - refetch data when approved/rejected
+    useEffect(() => {
+        const handleSubscriptionUpdate = (event: Event) => {
+            const customEvent = event as CustomEvent;
+            const notification = customEvent.detail;
+
+            // Refetch when subscription status changes
+            if (notification?.type?.includes('subscription')) {
+                console.log('Subscription status changed, refreshing student home...');
+                if (activeTab === 'skills') {
+                    fetchSkillsCourses();
+                }
+                // Note: Academic tab uses StudentAcademicBrowsePage which handles its own refresh
+            }
+        };
+
+        window.addEventListener('student-notification', handleSubscriptionUpdate);
+
+        return () => {
+            window.removeEventListener('student-notification', handleSubscriptionUpdate);
+        };
+    }, [activeTab, fetchSkillsCourses]);
 
     // Calculate stats from courses
     const stats = {

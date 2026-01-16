@@ -5,6 +5,8 @@ import { useAuthStore } from '../../store';
 import { authService } from '../../../data/api/authService';
 import { ROUTES } from '../../../shared/constants';
 import { LogoutModal } from '../../components/ui';
+import { StudentNotificationBell } from '@/components/notifications/StudentNotificationBell';
+import { StudentNotificationToast } from '@/components/notifications/StudentNotificationToast';
 
 // Lucide Icons
 import {
@@ -172,19 +174,27 @@ export function StudentLayout() {
                         />
                     </div>
 
-                    {/* User Profile */}
-                    <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-shibl-crimson ring-offset-2 flex items-center justify-center bg-gradient-to-br from-shibl-crimson to-shibl-crimson-dark text-white font-bold">
-                        {user?.avatar ? (
-                            <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                        ) : (
-                            <span>{user?.name?.charAt(0) || 'ط'}</span>
-                        )}
+                    {/* Notifications & User Profile */}
+                    <div className="flex items-center gap-4">
+                        <StudentNotificationBell />
+
+                        {/* User Profile */}
+                        <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-shibl-crimson ring-offset-2 flex items-center justify-center bg-gradient-to-br from-shibl-crimson to-shibl-crimson-dark text-white font-bold">
+                            {user?.avatar ? (
+                                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <span>{user?.name?.charAt(0) || 'ط'}</span>
+                            )}
+                        </div>
                     </div>
                 </header>
 
                 {/* Page Content */}
                 <Outlet />
             </main>
+
+            {/* Student Notification Toast */}
+            <StudentNotificationToast />
         </div>
     );
 }

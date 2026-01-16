@@ -86,6 +86,26 @@ export function useCourses(initialFilters?: Partial<CourseFilters>): UseCoursesR
         fetchCourses(filters);
     }, [filters, fetchCourses]);
 
+    // Listen for real-time subscription updates - refetch courses when approved/rejected
+    useEffect(() => {
+        const handleSubscriptionUpdate = (event: Event) => {
+            const customEvent = event as CustomEvent;
+            const notification = customEvent.detail;
+
+            // Refetch courses when subscription status changes (approval/rejection)
+            if (notification?.type?.includes('subscription')) {
+                console.log('Subscription status changed, refreshing courses...');
+                fetchCourses(filters);
+            }
+        };
+
+        window.addEventListener('student-notification', handleSubscriptionUpdate);
+
+        return () => {
+            window.removeEventListener('student-notification', handleSubscriptionUpdate);
+        };
+    }, [filters, fetchCourses]);
+
     const setFilters = useCallback((newFilters: Partial<CourseFilters>) => {
         setFiltersState(prev => ({
             ...prev,

@@ -5,4 +5,4 @@ export { VerifyEmailPage } from './VerifyEmailPage';
 export { ForgotPasswordPage } from './ForgotPasswordPage';
 export { ResetPasswordPage } from './ResetPasswordPage';
 export { AdminLoginPage } from './AdminLoginPage';
-
+export { TeacherVerifyEmailPage } from './TeacherVerifyEmailPage';

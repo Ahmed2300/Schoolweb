@@ -9,6 +9,7 @@ import {
   ResetPasswordPage,
 
   AdminLoginPage,
+  TeacherVerifyEmailPage,
   AdminDashboard,
   AdminAdminsPage,
   AdminUsersPage,
@@ -34,9 +35,14 @@ import {
   ParentHomePage,
   ParentChildrenPage,
   ParentFinancePage,
-  ParentSettingsPage
+  ParentSettingsPage,
+  TeacherDashboardPage,
+  TeacherCoursesPage,
+  TeacherSettingsPage,
+  NotFoundPage
 } from './presentation/pages';
 import { AdminLayout } from './presentation/components/admin';
+import { TeacherLayout } from './presentation/components/teacher';
 import { ProtectedRoute } from './presentation/components/auth';
 import { ROUTES } from './shared/constants';
 import './shared/i18n';
@@ -66,6 +72,8 @@ function App() {
           <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
           <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
           <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLoginPage />} />
+          <Route path={ROUTES.TEACHER_LOGIN} element={<AdminLoginPage />} />
+          <Route path={ROUTES.TEACHER_VERIFY_EMAIL} element={<TeacherVerifyEmailPage />} />
 
           {/* Protected Student Dashboard */}
           <Route
@@ -100,6 +108,20 @@ function App() {
             <Route path="settings" element={<ParentSettingsPage />} />
           </Route>
 
+          {/* Protected Teacher Dashboard - Security: role-based access */}
+          <Route
+            path="/teacher"
+            element={
+              <ProtectedRoute allowedRoles={['teacher']}>
+                <TeacherLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<TeacherDashboardPage />} />
+            <Route path="courses" element={<TeacherCoursesPage />} />
+            <Route path="settings" element={<TeacherSettingsPage />} />
+          </Route>
+
           {/* Admin Routes - Protected for admin role only */}
           <Route
             path="/admin"
@@ -123,6 +145,9 @@ function App() {
             <Route path="reports" element={<AdminReportsPage />} />
             <Route path="settings" element={<AdminSettingsPage />} />
           </Route>
+
+          {/* 404 Catch-all Route */}
+          <Route path="*" element={<NotFoundPage />} />
 
         </Routes>
       </BrowserRouter>

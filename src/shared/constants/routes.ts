@@ -9,6 +9,12 @@ export const ROUTES = {
     RESET_PASSWORD: '/reset-password',
     ADMIN_LOGIN: '/admin/login',
 
+    // Teacher Auth routes
+    TEACHER_LOGIN: '/teacher/login',
+    TEACHER_VERIFY_EMAIL: '/teacher/verify-email',
+    TEACHER_FORGOT_PASSWORD: '/teacher/forgot-password',
+    TEACHER_RESET_PASSWORD: '/teacher/reset-password',
+
     // Course routes
     COURSES: '/courses',
     COURSE_DETAIL: '/courses/:id',

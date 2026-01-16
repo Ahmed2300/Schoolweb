@@ -34,6 +34,23 @@ export const endpoints = {
         logoutAll: '/api/v1/auth/parents/logout-all',
     },
 
+    // Teacher Auth
+    teacherAuth: {
+        // Public routes
+        register: '/api/v1/auth/teachers/register',
+        login: '/api/v1/auth/teachers/login',
+        verifyEmail: '/api/v1/auth/teachers/verify-email',
+        resendOtp: '/api/v1/auth/teachers/resend-otp',
+        forgotPassword: '/api/v1/auth/teachers/forgot-password',
+        resetPassword: '/api/v1/auth/teachers/reset-password',
+        // Protected routes
+        me: '/api/v1/auth/teachers/me',
+        refresh: '/api/v1/auth/teachers/refresh',
+        changePassword: '/api/v1/auth/teachers/change-password',
+        logout: '/api/v1/auth/teachers/logout',
+        logoutAll: '/api/v1/auth/teachers/logout-all',
+    },
+
     // Admin Auth
     adminAuth: {
         login: '/api/v1/admin/auth/login',

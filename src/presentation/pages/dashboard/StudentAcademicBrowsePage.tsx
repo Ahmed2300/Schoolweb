@@ -59,6 +59,26 @@ export function StudentAcademicBrowsePage({ onCourseSelect }: AcademicBrowseProp
         fetchSubscriptions();
     }, [fetchSubscriptions]);
 
+    // Listen for real-time subscription status updates (when admin approves/rejects)
+    useEffect(() => {
+        const handleSubscriptionUpdate = (event: Event) => {
+            const customEvent = event as CustomEvent;
+            const notification = customEvent.detail;
+
+            // Refetch subscriptions when status changes
+            if (notification?.type?.includes('subscription')) {
+                console.log('Subscription status changed, refreshing subscription statuses...');
+                fetchSubscriptions();
+            }
+        };
+
+        window.addEventListener('student-notification', handleSubscriptionUpdate);
+
+        return () => {
+            window.removeEventListener('student-notification', handleSubscriptionUpdate);
+        };
+    }, [fetchSubscriptions]);
+
     // Get subscription status for a course
     const getSubscriptionStatus = (courseId: number): Subscription | undefined => {
         return subscriptions.get(courseId);

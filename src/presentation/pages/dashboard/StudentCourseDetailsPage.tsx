@@ -23,6 +23,7 @@ import {
 import { useLanguage } from '../../hooks';
 import SubscriptionModal from '../../components/student/SubscriptionModal';
 import teacherPlaceholder from '../../../assets/images/teacher-placeholder.png';
+import { CourseDetailSkeleton } from '../../components/shimmer';
 
 interface CourseDetailsProps {
     courseId: number;
@@ -70,21 +71,9 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
         checkSubscription();
     }, [courseId]);
 
-    // Loading skeleton
+    // Premium shimmer skeleton loading state
     if (loading) {
-        return (
-            <div className="animate-pulse p-10 space-y-12">
-                <div className="h-12 w-32 bg-slate-100 rounded-2xl"></div>
-                <div className="flex flex-col md:flex-row gap-12">
-                    <div className="w-full md:w-1/2 aspect-video bg-slate-100 rounded-[3rem]"></div>
-                    <div className="flex-1 space-y-6">
-                        <div className="h-20 bg-slate-100 rounded-3xl w-full"></div>
-                        <div className="h-32 bg-slate-50 rounded-3xl w-5/6"></div>
-                        <div className="h-16 bg-slate-100 rounded-2xl w-48"></div>
-                    </div>
-                </div>
-            </div>
-        );
+        return <CourseDetailSkeleton />;
     }
 
     if (error || !course) {

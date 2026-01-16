@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuthStore } from '@/presentation/store';
 import { getToken } from '@/data/api/ApiClient';
-import { initializeEcho, subscribeToAdminChannel, unsubscribeFromAdminChannel, disconnectEcho } from '@/services/websocket';
-import notificationService from '@/services/notificationService';
-import type { AdminNotification, WebSocketNotificationEvent } from '@/types/notification';
+import { initializeEcho, subscribeToStudentChannel, unsubscribeFromStudentChannel, disconnectEcho } from '@/services/websocket';
+import studentNotificationService from '@/services/studentNotificationService';
+import type { StudentNotification, WebSocketStudentNotificationEvent } from '@/types/studentNotification';
 
 // Notification sound
 const NOTIFICATION_SOUND_URL = '/sounds/notification.mp3';
 
-interface UseNotificationsReturn {
-    notifications: AdminNotification[];
+interface UseStudentNotificationsReturn {
+    notifications: StudentNotification[];
     unreadCount: number;
     isConnected: boolean;
     isLoading: boolean;
@@ -19,9 +19,9 @@ interface UseNotificationsReturn {
     refetch: () => Promise<void>;
 }
 
-export function useNotifications(): UseNotificationsReturn {
+export function useStudentNotifications(): UseStudentNotificationsReturn {
     const { user, isAuthenticated } = useAuthStore();
-    const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+    const [notifications, setNotifications] = useState<StudentNotification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isConnected, setIsConnected] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -49,7 +49,7 @@ export function useNotifications(): UseNotificationsReturn {
     const fetchNotifications = useCallback(async () => {
         try {
             setIsLoading(true);
-            const response = await notificationService.getNotifications(50);
+            const response = await studentNotificationService.getNotifications(50);
             setNotifications(response.data);
             setUnreadCount(response.unread_count);
             setError(null);
@@ -62,8 +62,8 @@ export function useNotifications(): UseNotificationsReturn {
     }, []);
 
     // Handle incoming WebSocket notification
-    const handleNotification = useCallback((event: WebSocketNotificationEvent) => {
-        const newNotification: AdminNotification = {
+    const handleNotification = useCallback((event: WebSocketStudentNotificationEvent) => {
+        const newNotification: StudentNotification = {
             id: event.id,
             type: event.type,
             title: event.title,
@@ -79,33 +79,36 @@ export function useNotifications(): UseNotificationsReturn {
         setUnreadCount((prev) => prev + 1);
         playNotificationSound();
 
-        // Dispatch custom event so other components can react (e.g., refetch data, toast)
+        // Dispatch custom event for toast notification
         window.dispatchEvent(
-            new CustomEvent('admin-notification', { detail: newNotification })
+            new CustomEvent('student-notification', { detail: newNotification })
         );
     }, [playNotificationSound]);
 
     // Initialize WebSocket connection and subscribe to channel
     useEffect(() => {
         const token = getToken();
-        if (!user?.id || !isAuthenticated || !token) {
+        // For students, user.id IS the student ID (they authenticate as Student model directly)
+        const studentId = user?.id ? Number(user.id) : null;
+
+        if (!studentId || !isAuthenticated || !token) {
             setIsConnected(false);
             return;
         }
 
         try {
             initializeEcho(token);
-            subscribeToAdminChannel(user.id, handleNotification as (event: unknown) => void);
+            subscribeToStudentChannel(studentId, handleNotification as (event: unknown) => void);
             setIsConnected(true);
-            console.log('WebSocket connected for admin:', user.id);
+            console.log('WebSocket connected for student:', studentId);
         } catch (err) {
             console.error('Failed to connect to WebSocket:', err);
             setIsConnected(false);
         }
 
         return () => {
-            if (user?.id) {
-                unsubscribeFromAdminChannel(user.id);
+            if (studentId) {
+                unsubscribeFromStudentChannel(studentId);
             }
             disconnectEcho();
             setIsConnected(false);
@@ -114,7 +117,8 @@ export function useNotifications(): UseNotificationsReturn {
 
     // Fetch initial notifications
     useEffect(() => {
-        if (user?.id && isAuthenticated) {
+        const studentId = user?.id ? Number(user.id) : null;
+        if (studentId && isAuthenticated) {
             fetchNotifications();
         }
     }, [user?.id, isAuthenticated, fetchNotifications]);
@@ -122,7 +126,7 @@ export function useNotifications(): UseNotificationsReturn {
     // Mark single notification as read
     const markAsRead = useCallback(async (id: number) => {
         try {
-            await notificationService.markAsRead(id);
+            await studentNotificationService.markAsRead(id);
             setNotifications((prev) =>
                 prev.map((n) =>
                     n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
@@ -137,7 +141,7 @@ export function useNotifications(): UseNotificationsReturn {
     // Mark all notifications as read
     const markAllAsRead = useCallback(async () => {
         try {
-            await notificationService.markAllAsRead();
+            await studentNotificationService.markAllAsRead();
             setNotifications((prev) =>
                 prev.map((n) => ({ ...n, is_read: true, read_at: new Date().toISOString() }))
             );
@@ -159,4 +163,4 @@ export function useNotifications(): UseNotificationsReturn {
     };
 }
 
-export default useNotifications;
+export default useStudentNotifications;

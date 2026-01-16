@@ -95,6 +95,27 @@ export function AdminSubscriptionsPage() {
         fetchSubscriptions();
     }, [fetchSubscriptions]);
 
+    // Listen for real-time updates - refetch when admin receives subscription-related notifications
+    useEffect(() => {
+        const handleDataUpdate = (event: Event) => {
+            const customEvent = event as CustomEvent;
+            const notification = customEvent.detail;
+
+            // Refetch when subscription-related notifications arrive
+            if (notification?.type?.includes('subscription')) {
+                console.log('Subscription data update received, refreshing list...');
+                fetchSubscriptions();
+            }
+        };
+
+        // Listen for admin notifications (dispatched from NotificationBell)
+        window.addEventListener('admin-notification', handleDataUpdate);
+
+        return () => {
+            window.removeEventListener('admin-notification', handleDataUpdate);
+        };
+    }, [fetchSubscriptions]);
+
     // Handlers
     const handleApprove = async (subscription: AdminSubscription) => {
         if (!confirm(`هل تريد تفعيل اشتراك ${subscription.student?.name}؟`)) return;
@@ -198,8 +219,8 @@ export function AdminSubscriptionsPage() {
                                 setCurrentPage(1);
                             }}
                             className={`flex items-center gap-2 px-5 py-3 rounded-[12px] font-bold text-sm transition-all duration-300 ${isActive
-                                    ? `${filter.activeColor} text-white shadow-lg`
-                                    : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+                                ? `${filter.activeColor} text-white shadow-lg`
+                                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
                                 }`}
                         >
                             <Icon size={18} />
@@ -352,8 +373,8 @@ export function AdminSubscriptionsPage() {
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
                                     className={`w-10 h-10 rounded-[8px] font-medium transition-all ${currentPage === page
-                                            ? 'bg-shibl-crimson text-white'
-                                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                        ? 'bg-shibl-crimson text-white'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                         }`}
                                 >
                                     {page}
