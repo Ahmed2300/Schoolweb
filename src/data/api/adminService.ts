@@ -1646,6 +1646,220 @@ export const adminService = {
         };
     },
 
+    // ==================== PACKAGES ====================
+
+    /**
+     * Fetches packages list from admin API.
+     */
+    getPackages: async (params: { page?: number; per_page?: number; search?: string } = {}): Promise<PaginatedResponse<{
+        id: number;
+        name: string;
+        description?: string;
+        price: number;
+        final_price?: number;
+        type: string;
+        is_active: boolean;
+        courses_count?: number;
+        courses?: { id: number; name: string; price?: number }[];
+        grade?: { id: number; name: string };
+        // Cover image
+        image?: string;
+        // Discount fields
+        is_discount_active?: boolean;
+        discount_percentage?: number;
+        discount_price?: number;
+    }>> => {
+        const response = await apiClient.get('/api/v1/admin/packages', { params });
+        return response.data;
+    },
+
+    /**
+     * Get single package details.
+     */
+    getPackage: async (id: number): Promise<{
+        id: number;
+        name: string;
+        description?: string;
+        price: number;
+        is_active: boolean;
+        courses: { id: number; name: string | { ar?: string; en?: string }; price: number }[];
+        grade?: { id: number; name: string };
+        // Cover image
+        image?: string;
+        // Discount fields
+        is_discount_active?: boolean;
+        discount_percentage?: number;
+        discount_price?: number;
+        discount_start_date?: string;
+        discount_end_date?: string;
+        final_price?: number;
+        // Builder layout (React Flow nodes/edges)
+        builder_layout?: { nodes: any[]; edges: any[] };
+    }> => {
+        const response = await apiClient.get(`/api/v1/admin/packages/${id}`);
+        console.log('🔍 Raw API response:', response);
+        console.log('🔍 response.data:', response.data);
+        console.log('🔍 response.data.data:', response.data?.data);
+        // API returns { data: {...} }, so we need to unwrap it
+        const result = response.data?.data || response.data;
+        console.log('🔍 Final result:', result);
+        return result;
+    },
+
+    /**
+     * Create a new package.
+     */
+    createPackage: async (data: {
+        name: string;
+        description?: string;
+        price: number;
+        type?: string;
+        grade_id?: number;
+        is_active?: boolean;
+        // Cover image
+        image?: File | null;
+        // Discount fields
+        is_discount_active?: boolean;
+        discount_percentage?: number | null;
+        discount_price?: number | null;
+        discount_start_date?: string | null;
+        discount_end_date?: string | null;
+        // Builder layout
+        builder_layout?: { nodes: any[]; edges: any[] };
+    }): Promise<{ data: { id: number; name: string } }> => {
+        // Use FormData if there's an image
+        if (data.image) {
+            const formData = new FormData();
+            formData.append('name', data.name);
+            if (data.description) formData.append('description', data.description);
+            formData.append('price', String(data.price));
+            if (data.type) formData.append('type', data.type);
+            if (data.grade_id) formData.append('grade_id', String(data.grade_id));
+            if (data.is_active !== undefined) formData.append('is_active', data.is_active ? '1' : '0');
+            formData.append('image', data.image);
+            if (data.is_discount_active !== undefined) formData.append('is_discount_active', data.is_discount_active ? '1' : '0');
+            if (data.discount_percentage) formData.append('discount_percentage', String(data.discount_percentage));
+            if (data.discount_price) formData.append('discount_price', String(data.discount_price));
+            if (data.discount_start_date) formData.append('discount_start_date', data.discount_start_date);
+            if (data.discount_end_date) formData.append('discount_end_date', data.discount_end_date);
+            if (data.builder_layout) formData.append('builder_layout', JSON.stringify(data.builder_layout));
+
+            const response = await apiClient.post('/api/v1/admin/packages', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            return response.data;
+        }
+        const response = await apiClient.post('/api/v1/admin/packages', data);
+        return response.data;
+    },
+
+    /**
+     * Attach courses to a package.
+     */
+    /**
+     * Attach courses to a package.
+     */
+    attachCoursesToPackage: async (packageId: number, courseIds: number[]): Promise<void> => {
+        await apiClient.post(`/api/v1/admin/packages/${packageId}/attach-courses`, {
+            course_ids: courseIds,
+        });
+    },
+
+    /**
+     * Detach courses from a package.
+     */
+    detachCoursesFromPackage: async (packageId: number, courseIds: number[]): Promise<void> => {
+        await apiClient.post(`/api/v1/admin/packages/${packageId}/detach-courses`, {
+            course_ids: courseIds,
+        });
+    },
+
+    /**
+     * Update a package.
+     */
+    updatePackage: async (id: number, data: {
+        name: string;
+        description?: string;
+        price: number;
+        type?: string;
+        grade_id?: number;
+        is_active?: boolean;
+        // Cover image
+        image?: File | null;
+        // Discount fields
+        is_discount_active?: boolean;
+        discount_percentage?: number | null;
+        discount_price?: number | null;
+        discount_start_date?: string | null;
+        discount_end_date?: string | null;
+        // Builder layout
+        builder_layout?: { nodes: any[]; edges: any[] };
+    }): Promise<{ data: { id: number; name: string } }> => {
+        // Use FormData if there's an image
+        if (data.image) {
+            const formData = new FormData();
+            formData.append('_method', 'PUT'); // Laravel requires this for FormData updates
+            formData.append('name', data.name);
+            if (data.description) formData.append('description', data.description);
+            formData.append('price', String(data.price));
+            if (data.type) formData.append('type', data.type);
+            if (data.grade_id) formData.append('grade_id', String(data.grade_id));
+            if (data.is_active !== undefined) formData.append('is_active', data.is_active ? '1' : '0');
+            formData.append('image', data.image);
+            if (data.is_discount_active !== undefined) formData.append('is_discount_active', data.is_discount_active ? '1' : '0');
+            if (data.discount_percentage) formData.append('discount_percentage', String(data.discount_percentage));
+            if (data.discount_price) formData.append('discount_price', String(data.discount_price));
+            if (data.discount_start_date) formData.append('discount_start_date', data.discount_start_date);
+            if (data.discount_end_date) formData.append('discount_end_date', data.discount_end_date);
+            if (data.builder_layout) formData.append('builder_layout', JSON.stringify(data.builder_layout));
+
+            const response = await apiClient.post(`/api/v1/admin/packages/${id}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            return response.data;
+        }
+        const response = await apiClient.put(`/api/v1/admin/packages/${id}`, data);
+        return response.data;
+    },
+
+    /**
+     * Delete a package.
+     */
+    deletePackage: async (id: number): Promise<void> => {
+        await apiClient.delete(`/api/v1/admin/packages/${id}`);
+    },
+
+    /**
+     * Get Academic Graph Nodes (Lazy Loading)
+     */
+    getAcademicNodes: async (params: { type: string; parentId?: number | string }) => {
+        const response = await apiClient.get('/api/v1/admin/academic-graph/nodes', { params });
+        return response.data;
+    },
+
+    /**
+     * Connect Academic Graph Nodes
+     */
+    connectAcademicNodes: async (data: { sourceId: number | string; sourceType: string; targetId: number | string; targetType: string }) => {
+        const response = await apiClient.post('/api/v1/admin/academic-graph/connect', data);
+        return response.data;
+    },
+
+    /**
+     * Disconnect Academic Graph Nodes
+     */
+    disconnectAcademicNodes: async (data: { targetId: number | string; targetType: string }) => {
+        const response = await apiClient.post('/api/v1/admin/academic-graph/disconnect', data);
+        return response.data;
+    },
+
+    /**
+     * Get Unlinked (Orphan) Academic Nodes
+     */
+    getUnlinkedAcademicNodes: async () => {
+        const response = await apiClient.get('/api/v1/admin/academic-graph/unlinked');
+        return response.data;
+    }
 };
 
 export default adminService;

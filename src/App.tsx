@@ -23,6 +23,8 @@ import {
   AdminSemestersPage,
   AdminSubjectsPage,
   AdminLecturesPage,
+  AdminPackagesPage,
+  AdminAcademicGraphPage,
   StudentLayout,
   StudentHomePage,
   StudentCoursesPage,
@@ -143,6 +145,8 @@ function App() {
             <Route path="semesters" element={<AdminSemestersPage />} />
             <Route path="subjects" element={<AdminSubjectsPage />} />
             <Route path="reports" element={<AdminReportsPage />} />
+            <Route path="packages" element={<AdminPackagesPage />} />
+            <Route path="academic-structure" element={<AdminAcademicGraphPage />} />
             <Route path="settings" element={<AdminSettingsPage />} />
           </Route>
 

@@ -19,7 +19,8 @@ import {
     UserCog,
     School,
     Wallet,
-    PlayCircle
+    PlayCircle,
+    Package
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../shared/constants';
@@ -62,11 +63,13 @@ const navGroups: NavGroup[] = [
         label: 'المحتوى التعليمي',
         icon: <School size={18} />,
         items: [
+            { icon: <div className="text-indigo-500"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="3"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="12" x2="7" y2="17"></line><line x1="12" y1="12" x2="17" y2="17"></line></svg></div>, label: 'الهيكل التعليمي', path: '/admin/academic-structure' },
             { icon: <Layers size={18} />, label: 'الصفوف الدراسية', path: '/admin/grades' },
             { icon: <Calendar size={18} />, label: 'الفصول الدراسية', path: '/admin/semesters' },
             { icon: <ListTree size={18} />, label: 'المواد الدراسية', path: '/admin/subjects' },
             { icon: <BookOpen size={18} />, label: 'الكورسات', path: ROUTES.ADMIN_COURSES },
             { icon: <PlayCircle size={18} />, label: 'المحاضرات', path: ROUTES.ADMIN_LECTURES },
+            { icon: <Package size={18} />, label: 'الباقات', path: '/admin/packages' },
         ],
     },
     {
