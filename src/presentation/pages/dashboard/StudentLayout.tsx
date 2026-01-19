@@ -20,7 +20,8 @@ import {
     Search,
     LogOut,
     ChevronRight,
-    ChevronLeft
+    ChevronLeft,
+    Package
 } from 'lucide-react';
 
 export function StudentLayout() {
@@ -37,6 +38,7 @@ export function StudentLayout() {
     const navItems = [
         { id: '', icon: Home, label: 'الرئيسية', path: ROUTES.DASHBOARD },
         { id: '/courses', icon: BookOpen, label: 'الدورات', path: '/dashboard/courses' },
+        { id: '/packages', icon: Package, label: 'الباقات', path: '/dashboard/packages' },
         { id: '/schedule', icon: Calendar, label: 'الجدول', path: '/dashboard/schedule' },
         { id: '/quizzes', icon: FileQuestion, label: 'الاختبارات', path: '/dashboard/quizzes' },
         { id: '/live', icon: Video, label: 'جلسات مباشرة', path: '/dashboard/live' },

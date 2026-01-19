@@ -207,6 +207,37 @@ export const teacherAuthService = {
     },
 
     /**
+     * Update authenticated teacher's profile
+     */
+    updateProfile: async (data: {
+        name?: string;
+        phone?: string;
+        specialization?: string;
+        qualification?: string;
+        image?: File;
+    }): Promise<TeacherAuthResponse> => {
+        const formData = new FormData();
+
+        if (data.name) formData.append('name', data.name);
+        if (data.phone) formData.append('phone', data.phone);
+        if (data.specialization) formData.append('specialization', data.specialization);
+        if (data.qualification) formData.append('qualification', data.qualification);
+        if (data.image) formData.append('image', data.image);
+
+        const response = await apiClient.put(endpoints.teacherAuth.updateProfile, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        return {
+            success: response.data.success ?? true,
+            message: response.data.message ?? 'Profile updated successfully',
+            data: {
+                teacher: response.data.data ?? response.data,
+            },
+        };
+    },
+
+    /**
      * Refresh authentication token
      */
     refreshToken: async (): Promise<TeacherAuthResponse> => {

@@ -7,6 +7,7 @@ export { StudentSchedulePage } from './StudentSchedulePage';
 export { StudentQuizzesPage } from './StudentQuizzesPage';
 export { StudentLivePage } from './StudentLivePage';
 export { StudentProfilePage } from './StudentProfilePage';
+export { StudentPackagesPage } from './StudentPackagesPage';
 
 export { ParentLayout } from './ParentLayout';
 export { ParentHomePage } from './ParentHomePage';

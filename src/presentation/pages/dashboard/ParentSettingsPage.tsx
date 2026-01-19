@@ -13,22 +13,60 @@ import {
     EyeOff
 } from 'lucide-react';
 import { useAuthStore } from '../../store';
-import { authService } from '../../../data/api';
+import { authService, commonService } from '../../../data/api';
+import { useEffect } from 'react';
 
 export function ParentSettingsPage() {
     const { user, setUser } = useAuthStore();
     const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications'>('profile');
 
     // Profile State
-    const [profile, setProfile] = useState({
+    const [profile, setProfile] = useState<{
+        name: string;
+        email: string;
+        phone: string;
+        address: string;
+        avatar: string | null;
+        avatarFile: File | null;
+    }>({
         name: user?.name || '',
         email: user?.email || '',
         phone: (user as { phone?: string })?.phone || '',
         address: (user as { address?: string })?.address || '',
+        avatar: user?.avatar || null,
+        avatarFile: null,
     });
     const [profileLoading, setProfileLoading] = useState(false);
     const [profileError, setProfileError] = useState<string | null>(null);
+
     const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
+
+    // Location State
+    const [states, setStates] = useState<{ id: number; name: string }[]>([]);
+    const [isLoadingLocations, setIsLoadingLocations] = useState(false);
+
+    useEffect(() => {
+        const fetchLocations = async () => {
+            setIsLoadingLocations(true);
+            try {
+                // 1. Fetch Countries to find Oman
+                const countries = await commonService.getCountries();
+                const oman = countries.find(c => c.name.includes('Oman') || c.name.includes('عمان'));
+
+                if (oman) {
+                    // 2. Fetch Cities/States for Oman
+                    const cities = await commonService.getCities(oman.id);
+                    setStates(cities);
+                }
+            } catch (error) {
+                console.error('Failed to fetch locations', error);
+            } finally {
+                setIsLoadingLocations(false);
+            }
+        };
+
+        fetchLocations();
+    }, []);
 
     // Password State
     const [passwordForm, setPasswordForm] = useState({
@@ -59,8 +97,8 @@ export function ParentSettingsPage() {
         try {
             const response = await authService.parentUpdateProfile({
                 name: profile.name,
-                phone: profile.phone,
                 address: profile.address,
+                avatar: profile.avatarFile,
             });
 
             if (response.success) {
@@ -68,8 +106,20 @@ export function ParentSettingsPage() {
                 if (response.data?.parent) {
                     setProfile(prev => ({
                         ...prev,
+                        ...prev,
                         name: response.data!.parent!.name || prev.name,
+                        address: (response.data!.parent as any)?.address || prev.address,
+                        avatar: response.data!.parent!.avatar || prev.avatar,
+                        avatarFile: null, // Reset file input
                     }));
+                    // Update global store
+                    setUser({
+                        ...user!,
+                        name: response.data!.parent!.name,
+                        avatar: response.data!.parent!.avatar,
+                        // @ts-ignore
+                        address: response.data!.parent!.address
+                    });
                 }
                 setProfileSuccess('تم تحديث الملف الشخصي بنجاح');
             }
@@ -152,15 +202,37 @@ export function ParentSettingsPage() {
                             <div className="flex flex-col items-center">
                                 <div className="relative">
                                     <div className="w-24 h-24 rounded-full bg-slate-100 border-4 border-white shadow-sm overflow-hidden flex items-center justify-center text-slate-300">
-                                        {user?.avatar ? ( // Mock check, actually generic
-                                            <img src="/images/avatar-placeholder.png" alt="Profile" className="w-full h-full object-cover" />
+                                        {profile.avatar ? (
+                                            <img src={profile.avatar} alt="Profile" className="w-full h-full object-cover" />
                                         ) : (
                                             <User size={40} />
                                         )}
                                     </div>
-                                    <button className="absolute bottom-0 right-0 w-8 h-8 bg-shibl-crimson text-white rounded-full flex items-center justify-center shadow-sm hover:scale-110 transition-transform">
+                                    <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 w-8 h-8 bg-shibl-crimson text-white rounded-full flex items-center justify-center shadow-sm hover:scale-110 transition-transform cursor-pointer">
                                         <Camera size={14} />
-                                    </button>
+                                        <input
+                                            id="avatar-upload"
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    // Validate file size (Max 2MB)
+                                                    if (file.size > 2 * 1024 * 1024) {
+                                                        setProfileError('حجم الصورة كبير جداً. يرجى اختيار صورة أقل من 2 ميجابايت');
+                                                        return;
+                                                    }
+                                                    setProfileError(null); // Clear previous errors
+                                                    setProfile(prev => ({
+                                                        ...prev,
+                                                        avatarFile: file,
+                                                        avatar: URL.createObjectURL(file) // Preview
+                                                    }));
+                                                }
+                                            }}
+                                        />
+                                    </label>
                                 </div>
                                 <h3 className="mt-4 font-bold text-lg text-charcoal">{profile.name}</h3>
                                 <p className="text-slate-400 text-xs">ولي أمر</p>
@@ -194,14 +266,14 @@ export function ParentSettingsPage() {
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500">رقم الهاتف</label>
+                                <div className="space-y-2 opacity-60">
+                                    <label className="text-xs font-bold text-slate-500">رقم الهاتف <span className="text-[10px] text-red-400">(للقراءة فقط)</span></label>
                                     <div className="relative">
                                         <input
                                             type="tel"
                                             value={profile.phone}
-                                            onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                                            className="w-full h-11 pl-4 pr-10 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm font-bold text-charcoal"
+                                            disabled
+                                            className="w-full h-11 pl-4 pr-10 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 outline-none text-sm font-bold cursor-not-allowed"
                                         />
                                         <Phone size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                     </div>
@@ -209,14 +281,37 @@ export function ParentSettingsPage() {
 
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-slate-500">العنوان</label>
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            value={profile.address}
-                                            onChange={(e) => setProfile({ ...profile, address: e.target.value })}
-                                            className="w-full h-11 pl-4 pr-10 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm font-bold text-charcoal"
-                                        />
-                                        <MapPin size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <div className="flex gap-2">
+                                        <div className="relative w-1/3">
+                                            <select
+                                                disabled
+                                                className="w-full h-11 pl-4 pr-10 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 outline-none text-sm font-bold appearance-none"
+                                            >
+                                                <option>سلطنة عمان</option>
+                                            </select>
+                                            <MapPin size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                        </div>
+                                        <div className="relative w-2/3">
+                                            <select
+                                                value={profile.address}
+                                                onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+                                                className="w-full h-11 pl-4 pr-10 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm font-bold text-charcoal appearance-none"
+                                            >
+                                                <option value="">اختر الولاية/المحافظة</option>
+                                                {isLoadingLocations ? (
+                                                    <option>جاري التحميل...</option>
+                                                ) : (
+                                                    states.map((state) => (
+                                                        <option key={state.id} value={state.name}>
+                                                            {state.name}
+                                                        </option>
+                                                    ))
+                                                )}
+                                            </select>
+                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

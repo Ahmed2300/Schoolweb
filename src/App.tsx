@@ -24,6 +24,7 @@ import {
   AdminSubjectsPage,
   AdminLecturesPage,
   AdminPackagesPage,
+  AdminPackageSubscriptionsPage,
   AdminAcademicGraphPage,
   StudentLayout,
   StudentHomePage,
@@ -33,6 +34,7 @@ import {
   StudentQuizzesPage,
   StudentLivePage,
   StudentProfilePage,
+  StudentPackagesPage,
   ParentLayout,
   ParentHomePage,
   ParentChildrenPage,
@@ -40,6 +42,7 @@ import {
   ParentSettingsPage,
   TeacherDashboardPage,
   TeacherCoursesPage,
+  TeacherQuizzesPage,
   TeacherSettingsPage,
   NotFoundPage
 } from './presentation/pages';
@@ -89,6 +92,7 @@ function App() {
             <Route index element={<StudentHomePage />} />
             <Route path="courses" element={<StudentCoursesPage />} />
             <Route path="courses/:id" element={<StudentCourseDetailPage />} />
+            <Route path="packages" element={<StudentPackagesPage />} />
             <Route path="schedule" element={<StudentSchedulePage />} />
             <Route path="quizzes" element={<StudentQuizzesPage />} />
             <Route path="live" element={<StudentLivePage />} />
@@ -121,6 +125,7 @@ function App() {
           >
             <Route index element={<TeacherDashboardPage />} />
             <Route path="courses" element={<TeacherCoursesPage />} />
+            <Route path="quizzes" element={<TeacherQuizzesPage />} />
             <Route path="settings" element={<TeacherSettingsPage />} />
           </Route>
 
@@ -146,6 +151,7 @@ function App() {
             <Route path="subjects" element={<AdminSubjectsPage />} />
             <Route path="reports" element={<AdminReportsPage />} />
             <Route path="packages" element={<AdminPackagesPage />} />
+            <Route path="package-subscriptions" element={<AdminPackageSubscriptionsPage />} />
             <Route path="academic-structure" element={<AdminAcademicGraphPage />} />
             <Route path="settings" element={<AdminSettingsPage />} />
           </Route>

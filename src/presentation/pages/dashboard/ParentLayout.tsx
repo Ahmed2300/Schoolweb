@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useLanguage } from '../../hooks';
 import { useAuthStore } from '../../store';
@@ -15,7 +15,9 @@ import {
     LogOut,
     ChevronRight,
     ChevronLeft,
-    Search
+    Search,
+    Menu,
+    X
 } from 'lucide-react';
 
 export function ParentLayout() {
@@ -25,9 +27,15 @@ export function ParentLayout() {
     const { user, logout: clearAuthStore } = useAuthStore();
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const displayName = user?.name?.split(' ')[0] || 'ولي الأمر';
     const userInitials = user?.name?.charAt(0) || 'P';
+
+    // Close mobile menu on route change
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [location.pathname]);
 
     // Parent Specific Navigation
     const navItems = [
@@ -56,7 +64,7 @@ export function ParentLayout() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F8F9FA] flex" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="min-h-screen bg-[#F8F9FA] flex flex-col md:flex-row" dir={isRTL ? 'rtl' : 'ltr'}>
             <LogoutModal
                 isOpen={showLogoutModal}
                 onClose={() => setShowLogoutModal(false)}
@@ -64,16 +72,56 @@ export function ParentLayout() {
                 userName={displayName}
             />
 
+            {/* Mobile Header (Visible only on small screens) */}
+            <header className="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sticky top-0 z-40">
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setIsMobileMenuOpen(true)}
+                        className="p-2 -mr-2 text-slate-500 hover:text-shibl-crimson hover:bg-slate-50 rounded-lg transition-colors"
+                    >
+                        <Menu size={24} />
+                    </button>
+                    <div className="flex items-center gap-2">
+                        <img src="/images/subol-red.png" alt="سُبُل" className="w-8 h-8" />
+                        <span className="text-xl font-extrabold text-shibl-crimson">سُبُل</span>
+                    </div>
+                </div>
+                <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-shibl-crimson/20 flex items-center justify-center bg-gradient-to-br from-shibl-crimson to-shibl-crimson-dark text-white font-bold text-sm">
+                    {user?.avatar ? (
+                        <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                    ) : (
+                        <span>{userInitials}</span>
+                    )}
+                </div>
+            </header>
+
+            {/* Mobile Overlay Backdrop */}
+            {isMobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-200"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
             <aside
                 className={`
                     fixed top-0 right-0 h-screen bg-white border-l border-slate-200
                     transition-all duration-300 z-50 flex flex-col
-                    ${isCollapsed ? 'w-20' : 'w-64'}
+                    ${isCollapsed ? 'md:w-20' : 'md:w-64'}
+                    w-64 
+                    ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-full md:translate-x-0 shadow-none'}
                 `}
             >
-                {/* Logo */}
-                <div className="h-20 flex items-center justify-center border-b border-slate-100 px-4">
+                {/* Logo (Desktop) / Close (Mobile) */}
+                <div className="h-20 flex items-center justify-center border-b border-slate-100 px-4 relative">
+                    <button
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="md:hidden absolute left-4 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-red-500"
+                    >
+                        <X size={20} />
+                    </button>
+
                     {!isCollapsed ? (
                         <div className="flex items-center gap-2">
                             <img src="/images/subol-red.png" alt="سُبُل" className="w-8 h-8" />
@@ -84,10 +132,10 @@ export function ParentLayout() {
                     )}
                 </div>
 
-                {/* Collapse Toggle */}
+                {/* Desktop Collapse Toggle */}
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="absolute top-6 -left-3 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-shibl-crimson hover:border-shibl-crimson transition-colors shadow-sm"
+                    className="hidden md:flex absolute top-6 -left-3 w-6 h-6 bg-white border border-slate-200 rounded-full items-center justify-center text-slate-400 hover:text-shibl-crimson hover:border-shibl-crimson transition-colors shadow-sm"
                 >
                     {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
                 </button>
@@ -110,7 +158,7 @@ export function ParentLayout() {
                                                 ? 'bg-shibl-crimson text-white shadow-crimson'
                                                 : 'text-slate-500 hover:bg-slate-50 hover:text-shibl-crimson'
                                             }
-                                            ${isCollapsed ? 'justify-center' : ''}
+                                            ${isCollapsed ? 'md:justify-center' : ''}
                                         `}
                                         title={isCollapsed ? item.label : undefined}
                                     >
@@ -118,9 +166,7 @@ export function ParentLayout() {
                                             size={20}
                                             className={active ? 'text-white' : 'text-slate-400 group-hover:text-shibl-crimson'}
                                         />
-                                        {!isCollapsed && (
-                                            <span className="font-semibold text-sm">{item.label}</span>
-                                        )}
+                                        <span className={`font-semibold text-sm ${isCollapsed ? 'md:hidden' : ''}`}>{item.label}</span>
                                     </Link>
                                 </li>
                             );
@@ -135,12 +181,12 @@ export function ParentLayout() {
                         className={`
                             flex items-center gap-3 px-4 py-3 rounded-xl w-full
                             text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200
-                            ${isCollapsed ? 'justify-center' : ''}
+                            ${isCollapsed ? 'md:justify-center' : ''}
                         `}
                         title={isCollapsed ? 'تسجيل الخروج' : undefined}
                     >
                         <LogOut size={20} />
-                        {!isCollapsed && <span className="font-medium text-sm">تسجيل الخروج</span>}
+                        <span className={`font-medium text-sm ${isCollapsed ? 'md:hidden' : ''}`}>تسجيل الخروج</span>
                     </button>
                 </div>
             </aside>
@@ -148,12 +194,12 @@ export function ParentLayout() {
             {/* Main Content */}
             <main
                 className={`
-                    flex-1 transition-all duration-300
-                    ${isCollapsed ? 'mr-20' : 'mr-64'}
+                    flex-1 transition-all duration-300 min-h-screen
+                    ${isCollapsed ? 'md:mr-20' : 'md:mr-64'}
                 `}
             >
-                {/* Header */}
-                <header className="h-16 bg-white/80 backdrop-blur-sm flex items-center justify-between px-6 sticky top-0 z-40">
+                {/* Desktop Header */}
+                <header className="hidden md:flex h-16 bg-white/80 backdrop-blur-sm items-center justify-between px-6 sticky top-0 z-40 border-b border-slate-100">
                     <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-4 py-2 w-full max-w-sm">
                         <Search size={18} className="text-slate-400" />
                         <input
@@ -173,7 +219,9 @@ export function ParentLayout() {
                 </header>
 
                 {/* Page Content */}
-                <Outlet />
+                <div className="w-full">
+                    <Outlet />
+                </div>
             </main>
         </div>
     );

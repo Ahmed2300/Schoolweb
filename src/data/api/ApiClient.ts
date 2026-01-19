@@ -16,7 +16,7 @@ const getApiBaseUrl = (): string => {
     return `${protocol}//${hostname}:8000`;
 };
 
-const API_BASE_URL = getApiBaseUrl();
+export const API_BASE_URL = getApiBaseUrl();
 
 // Token storage keys
 const TOKEN_KEY = 'auth_token';
@@ -44,6 +44,11 @@ apiClient.interceptors.request.use(
         const language = localStorage.getItem('language') || 'ar';
         if (config.headers) {
             config.headers['Accept-Language'] = language;
+        }
+
+        // For FormData requests, remove Content-Type to let axios set it with proper boundary
+        if (config.data instanceof FormData && config.headers) {
+            delete config.headers['Content-Type'];
         }
 
         return config;

@@ -1,5 +1,16 @@
-import apiClient, { setTokens, clearTokens } from './ApiClient';
+import apiClient, { setTokens, clearTokens, API_BASE_URL } from './ApiClient';
 import { endpoints } from './endpoints';
+
+// Helper to fix avatar URLs
+const transformUser = (user: UserData): UserData => {
+    if (user.avatar && !user.avatar.startsWith('http')) {
+        // Ensure clean concatenation
+        const baseUrl = API_BASE_URL.replace(/\/$/, '');
+        const avatarPath = user.avatar.startsWith('/') ? user.avatar : `/${user.avatar}`;
+        return { ...user, avatar: `${baseUrl}${avatarPath}` };
+    }
+    return user;
+};
 
 // Types
 export interface LoginRequest {
@@ -65,6 +76,9 @@ export interface UserData {
     city_id?: number;
     email_verified_at?: string | null;
     created_at?: string;
+    avatar?: string | null;
+    address?: string | null;
+    phone?: string | null;
 }
 
 // Auth Service
@@ -123,7 +137,7 @@ export const authService = {
             success: true,
             message: 'Login successful',
             data: {
-                parent: backendData.parent,
+                parent: transformUser(backendData.parent),
                 token: backendData.token,
             },
         };
@@ -153,7 +167,7 @@ export const authService = {
             success: true,
             message: backendData.message,
             data: {
-                parent: backendData.parent,
+                parent: transformUser(backendData.parent),
                 token: backendData.token,
             },
         };
@@ -186,13 +200,26 @@ export const authService = {
         };
     },
 
-    parentUpdateProfile: async (data: { name?: string; phone?: string; address?: string }): Promise<AuthResponse> => {
-        const response = await apiClient.put(endpoints.parentAuth.updateProfile, data);
+    parentUpdateProfile: async (data: { name?: string; phone?: string; address?: string; avatar?: File | null }): Promise<AuthResponse> => {
+        const formData = new FormData();
+        if (data.name) formData.append('name', data.name);
+        if (data.address) formData.append('address', data.address);
+        // Phone is read-only, but if passed we could ignore it or not append it.
+        // Backend ignores it anyway.
+        if (data.avatar) {
+            formData.append('avatar', data.avatar);
+        }
+
+        // Must set Content-Type: multipart/form-data, but axios usually handles it with FormData
+        const response = await apiClient.post(endpoints.parentAuth.updateProfile, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
         return {
             success: true,
             message: response.data.message,
             data: {
-                parent: response.data.parent,
+                parent: transformUser(response.data.data.parent),
             },
         };
     },
@@ -230,7 +257,7 @@ export const authService = {
             return {
                 success: true,
                 data: {
-                    parent: response.data,
+                    parent: transformUser(response.data),
                 },
             };
         }

@@ -25,7 +25,7 @@ export const endpoints = {
         verifyEmail: '/api/v1/auth/parents/verify-email',
         resendOtp: '/api/v1/auth/parents/resend-otp',
         me: '/api/v1/auth/parents/me',
-        updateProfile: '/api/v1/auth/parents/me',
+        updateProfile: '/api/v1/user/profile/update',
         refresh: '/api/v1/auth/parents/refresh',
         changePassword: '/api/v1/auth/parents/change-password',
         forgotPassword: '/api/v1/auth/parents/forgot-password',
@@ -45,10 +45,31 @@ export const endpoints = {
         resetPassword: '/api/v1/auth/teachers/reset-password',
         // Protected routes
         me: '/api/v1/auth/teachers/me',
+        updateProfile: '/api/v1/auth/teachers/update-profile',
         refresh: '/api/v1/auth/teachers/refresh',
         changePassword: '/api/v1/auth/teachers/change-password',
         logout: '/api/v1/auth/teachers/logout',
         logoutAll: '/api/v1/auth/teachers/logout-all',
+    },
+
+    // Teacher Dashboard & Courses (authenticated teacher)
+    teacher: {
+        // My Courses - Teacher's own courses
+        myCourses: {
+            list: '/api/v1/my-courses',
+            create: '/api/v1/my-courses',
+            show: (id: number) => `/api/v1/my-courses/${id}`,
+            update: (id: number) => `/api/v1/my-courses/${id}`,
+            delete: (id: number) => `/api/v1/my-courses/${id}`,
+        },
+        // Quizzes - Teacher's quizzes
+        quizzes: {
+            list: '/api/v1/teacher/quizzes',
+            create: '/api/v1/teacher/quizzes',
+            show: (id: number) => `/api/v1/teacher/quizzes/${id}`,
+            update: (id: number) => `/api/v1/teacher/quizzes/${id}`,
+            delete: (id: number) => `/api/v1/teacher/quizzes/${id}`,
+        },
     },
 
     // Admin Auth
@@ -262,5 +283,25 @@ export const endpoints = {
         create: '/api/v1/students/schedules',
         complete: (id: number) => `/api/v1/students/schedules/${id}/complete`,
         delete: (id: number) => `/api/v1/students/schedules/${id}`,
+    },
+
+    // Packages
+    packages: {
+        // Public/Student routes
+        list: '/api/v1/packages',
+        detail: (id: number) => `/api/v1/packages/${id}`,
+        purchase: (id: number) => `/api/v1/packages/${id}/purchase`,
+        checkPurchase: (id: number) => `/api/v1/packages/${id}/check-purchase`,
+        mySubscriptions: '/api/v1/my-package-subscriptions',
+        // Admin routes
+        create: '/api/v1/packages',
+        update: (id: number) => `/api/v1/packages/${id}`,
+        delete: (id: number) => `/api/v1/packages/${id}`,
+        attachCourses: (id: number) => `/api/v1/packages/${id}/attach-courses`,
+        detachCourses: (id: number) => `/api/v1/packages/${id}/detach-courses`,
+        subscriptions: '/api/v1/package-subscriptions',
+        pendingSubscriptions: '/api/v1/package-subscriptions/pending',
+        approveSubscription: (id: number) => `/api/v1/package-subscriptions/${id}/approve`,
+        rejectSubscription: (id: number) => `/api/v1/package-subscriptions/${id}/reject`,
     },
 } as const;

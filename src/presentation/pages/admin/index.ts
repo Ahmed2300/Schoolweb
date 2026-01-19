@@ -12,5 +12,6 @@ export { AdminSemestersPage } from './AdminSemestersPage';
 export { AdminSubjectsPage } from './AdminSubjectsPage';
 export { AdminLecturesPage } from './AdminLecturesPage';
 export { AdminPackagesPage } from './packages';
+export { AdminPackageSubscriptionsPage } from './AdminPackageSubscriptionsPage';
 export { default as AdminAcademicGraphPage } from './AdminAcademicGraphPage';
 

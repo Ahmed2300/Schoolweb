@@ -20,6 +20,9 @@ import {
     Calendar
 } from 'lucide-react';
 
+// Assets
+import teacherPlaceholder from '../../../assets/images/teacher-placeholder.png';
+
 interface TeacherSidebarProps {
     isCollapsed: boolean;
     onToggle: () => void;
@@ -44,7 +47,7 @@ const navItems: NavItem[] = [
     { id: 'settings', label: 'الإعدادات', icon: Settings, path: '/teacher/settings' },
 ];
 
-// Memoized navigation item component for performance
+// Memoized navigation item component for performance - Light theme
 const NavItem = memo(function NavItem({
     item,
     isCollapsed,
@@ -54,15 +57,19 @@ const NavItem = memo(function NavItem({
     isCollapsed: boolean;
     isRTL: boolean;
 }) {
+    // Use 'end' prop for dashboard to prevent matching all child routes
+    const isDashboard = item.id === 'dashboard';
+
     return (
         <NavLink
             to={item.path}
+            end={isDashboard}
             className={({ isActive }) => `
                 relative flex items-center gap-3 px-4 py-3 mx-2 rounded-xl
                 transition-all duration-200 group
                 ${isActive
-                    ? 'bg-gradient-to-r from-shibl-crimson to-red-600 text-white shadow-lg shadow-shibl-crimson/30'
-                    : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                    ? `bg-red-50 text-shibl-crimson font-semibold ${isRTL ? 'border-r-4' : 'border-l-4'} border-shibl-crimson`
+                    : 'text-[#636E72] hover:bg-slate-100 hover:text-[#1F1F1F]'
                 }
                 ${isCollapsed ? 'justify-center' : ''}
             `}
@@ -78,7 +85,7 @@ const NavItem = memo(function NavItem({
             {isCollapsed && (
                 <div className={`
                     absolute ${isRTL ? 'right-full mr-2' : 'left-full ml-2'} 
-                    px-3 py-2 bg-charcoal text-white text-sm rounded-lg
+                    px-3 py-2 bg-[#1F1F1F] text-white text-sm rounded-lg
                     opacity-0 invisible group-hover:opacity-100 group-hover:visible
                     transition-all duration-200 whitespace-nowrap z-50
                     shadow-lg
@@ -93,7 +100,7 @@ const NavItem = memo(function NavItem({
 export function TeacherSidebar({ isCollapsed, onToggle }: TeacherSidebarProps) {
     const { isRTL } = useLanguage();
     const navigate = useNavigate();
-    const { user, clearUser } = useAuthStore();
+    const { user, logout: storeLogout } = useAuthStore();
 
     const handleLogout = async () => {
         try {
@@ -101,7 +108,7 @@ export function TeacherSidebar({ isCollapsed, onToggle }: TeacherSidebarProps) {
         } catch {
             // Continue with logout even if API fails
         } finally {
-            clearUser();
+            storeLogout();
             navigate(ROUTES.TEACHER_LOGIN);
         }
     };
@@ -114,23 +121,22 @@ export function TeacherSidebar({ isCollapsed, onToggle }: TeacherSidebarProps) {
         <aside
             className={`
                 fixed top-0 ${isRTL ? 'right-0' : 'left-0'} h-screen
-                bg-gradient-to-b from-[#1a1a2e] to-[#0f0f1a]
-                border-${isRTL ? 'l' : 'r'} border-white/5
+                bg-white border-${isRTL ? 'l' : 'r'} border-slate-200
                 transition-all duration-300 z-50
-                flex flex-col
+                flex flex-col shadow-sm
                 ${isCollapsed ? 'w-20' : 'w-64'}
             `}
         >
             {/* Logo Section */}
-            <div className="h-20 flex items-center justify-between px-4 border-b border-white/5">
+            <div className="h-20 flex items-center justify-between px-4 border-b border-slate-200">
                 {!isCollapsed && (
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-shibl-crimson to-red-600 flex items-center justify-center">
                             <GraduationCap size={22} className="text-white" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-white font-bold text-lg">سُبُل</span>
-                            <span className="text-slate-400 text-xs">بوابة المعلم</span>
+                            <span className="text-[#1F1F1F] font-bold text-lg">سُبُل</span>
+                            <span className="text-[#636E72] text-xs">بوابة المعلم</span>
                         </div>
                     </div>
                 )}
@@ -140,35 +146,42 @@ export function TeacherSidebar({ isCollapsed, onToggle }: TeacherSidebarProps) {
                         <GraduationCap size={22} className="text-white" />
                     </div>
                 )}
-
-                {/* Collapse Toggle */}
-                <button
-                    onClick={onToggle}
-                    className={`
-                        ${isCollapsed ? 'absolute -left-3' : ''} 
-                        w-6 h-6 rounded-full bg-shibl-crimson text-white
-                        flex items-center justify-center
-                        hover:bg-red-600 transition-colors
-                        shadow-lg
-                    `}
-                    aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                >
-                    <CollapseIcon size={14} />
-                </button>
             </div>
+
+            {/* Collapse Toggle - Positioned on sidebar edge */}
+            <button
+                onClick={onToggle}
+                className={`
+                    absolute top-24 z-50
+                    ${isRTL ? '-left-3' : '-right-3'}
+                    w-6 h-6 rounded-full bg-shibl-crimson text-white
+                    flex items-center justify-center
+                    hover:bg-red-600 transition-colors
+                    shadow-lg border-2 border-white
+                `}
+                aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+                <CollapseIcon size={14} />
+            </button>
 
             {/* Teacher Profile - Compact */}
             {!isCollapsed && (
-                <div className="px-4 py-4 border-b border-white/5">
+                <div className="px-4 py-4 border-b border-slate-200 bg-[#F8F9FA]">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-bold text-sm">
-                            {user?.name?.charAt(0) || 'م'}
-                        </div>
+                        <img
+                            src={user?.image_path || teacherPlaceholder}
+                            alt={user?.name || 'Teacher'}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-slate-200 flex-shrink-0"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = teacherPlaceholder;
+                            }}
+                        />
                         <div className="flex-1 min-w-0">
-                            <p className="text-white font-medium text-sm truncate">
+                            <p className="text-[#1F1F1F] font-medium text-sm truncate">
                                 {user?.name || 'المعلم'}
                             </p>
-                            <p className="text-slate-400 text-xs truncate">
+                            <p className="text-[#636E72] text-xs truncate">
                                 {user?.email || 'teacher@subol.edu'}
                             </p>
                         </div>
@@ -177,7 +190,7 @@ export function TeacherSidebar({ isCollapsed, onToggle }: TeacherSidebarProps) {
             )}
 
             {/* Navigation */}
-            <nav className="flex-1 py-4 overflow-y-auto">
+            <nav className="flex-1 py-4 overflow-y-auto bg-white">
                 <div className="space-y-1">
                     {navItems.map((item) => (
                         <NavItem
@@ -191,13 +204,13 @@ export function TeacherSidebar({ isCollapsed, onToggle }: TeacherSidebarProps) {
             </nav>
 
             {/* Logout Button */}
-            <div className="p-4 border-t border-white/5">
+            <div className="p-4 border-t border-slate-200 bg-white">
                 <button
                     onClick={handleLogout}
                     className={`
                         w-full flex items-center gap-3 px-4 py-3 rounded-xl
-                        text-red-400 hover:bg-red-500/10 hover:text-red-300
-                        transition-all duration-200
+                        text-red-600 hover:bg-red-50 hover:text-red-700
+                        transition-all duration-200 border border-transparent hover:border-red-200
                         ${isCollapsed ? 'justify-center' : ''}
                     `}
                 >

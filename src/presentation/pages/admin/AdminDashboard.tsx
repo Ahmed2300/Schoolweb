@@ -13,7 +13,11 @@ import {
     UsersRound,
     AlertCircle,
     CreditCard,
-    Activity
+    Activity,
+    CheckCircle2,
+    Trash2,
+    Edit,
+    ArrowRight
 } from 'lucide-react';
 import { adminService } from '../../../data/api/adminService';
 import { useAuthStore } from '../../store';
@@ -53,14 +57,37 @@ const formatTimeAgo = (dateString: string): string => {
     if (diffHours < 24) return `منذ ${diffHours} ساعة`;
 
     const diffDays = Math.floor(diffHours / 24);
-    return `منذ ${diffDays} يوم`;
+    if (diffDays < 30) return `منذ ${diffDays} يوم`;
+
+    return date.toLocaleDateString('ar-EG');
 };
 
-const getActionLabel = (description: string): string => {
-    if (description.includes('created')) return 'إنشاء';
-    if (description.includes('updated')) return 'تحديث';
-    if (description.includes('deleted')) return 'حذف';
-    return description;
+const getActivityConfig = (description: string) => {
+    const LowerDesc = description.toLowerCase();
+    if (LowerDesc.includes('created')) return {
+        label: 'إنشاء',
+        icon: <CheckCircle2 size={18} />,
+        bg: 'bg-emerald-100',
+        text: 'text-emerald-700'
+    };
+    if (LowerDesc.includes('updated')) return {
+        label: 'تحديث',
+        icon: <Edit size={18} />,
+        bg: 'bg-blue-100',
+        text: 'text-blue-700'
+    };
+    if (LowerDesc.includes('deleted')) return {
+        label: 'حذف',
+        icon: <Trash2 size={18} />,
+        bg: 'bg-red-100',
+        text: 'text-red-700'
+    };
+    return {
+        label: description,
+        icon: <Activity size={18} />,
+        bg: 'bg-slate-100',
+        text: 'text-slate-600'
+    };
 };
 
 export function AdminDashboard() {
@@ -116,29 +143,25 @@ export function AdminDashboard() {
         {
             icon: <Plus size={20} />,
             label: 'إضافة كورس',
-            color: 'bg-shibl-crimson hover:bg-shibl-crimson-dark shadow-crimson',
-            textColor: 'text-white',
+            className: 'bg-shibl-crimson hover:bg-red-800 text-white shadow-sm hover:shadow-md col-span-2', // Primary - Full Width or Prominent
             onClick: () => navigate('/admin/courses')
         },
         {
-            icon: <UserPlus size={20} />,
+            icon: <UserPlus size={18} />,
             label: 'إضافة مستخدم',
-            color: 'bg-success-green hover:bg-green-700 shadow-lg shadow-green-500/25',
-            textColor: 'text-white',
+            className: 'bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50', // Ghost/Outline
             onClick: () => navigate('/admin/users')
         },
         {
-            icon: <CreditCard size={20} />,
+            icon: <CreditCard size={18} />,
             label: 'المدفوعات',
-            color: 'bg-purple-500 hover:bg-purple-600 shadow-lg shadow-purple-500/25',
-            textColor: 'text-white',
+            className: 'bg-white border border-purple-500 text-purple-600 hover:bg-purple-50', // Ghost/Outline
             onClick: () => navigate('/admin/payments')
         },
         {
-            icon: <FileText size={20} />,
-            label: 'عرض التقارير',
-            color: 'bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-500/25',
-            textColor: 'text-white',
+            icon: <FileText size={18} />,
+            label: 'التقارير',
+            className: 'bg-white border border-blue-500 text-blue-600 hover:bg-blue-50', // Ghost/Outline
             onClick: () => navigate('/admin/reports')
         },
     ];
@@ -184,7 +207,7 @@ export function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {loading ? (
                     Array.from({ length: 4 }).map((_, index) => (
-                        <div key={index} className="bg-white rounded-2xl p-6 shadow-card border border-slate-100 animate-pulse">
+                        <div key={index} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 animate-pulse">
                             <div className="flex items-center justify-between">
                                 <div className="w-14 h-14 rounded-xl bg-slate-200"></div>
                                 <div className="text-left">
@@ -202,16 +225,16 @@ export function AdminDashboard() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="bg-white rounded-2xl p-6 shadow-card border border-slate-100">
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
                     <h2 className="text-lg font-bold text-charcoal mb-4 flex items-center gap-2">
                         <span>إجراءات سريعة</span>
                     </h2>
-                    <div className="flex flex-col gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                         {quickActions.map((action, index) => (
                             <button
                                 key={index}
                                 onClick={action.onClick}
-                                className={`flex items-center justify-center gap-2 py-3.5 px-6 rounded-pill font-bold text-sm transition-all duration-300 hover:-translate-y-0.5 ${action.color} ${action.textColor}`}
+                                className={`flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-bold text-sm transition-all duration-300 hover:-translate-y-0.5 ${action.className}`}
                             >
                                 {action.icon}
                                 <span>{action.label}</span>
@@ -220,16 +243,23 @@ export function AdminDashboard() {
                     </div>
                 </div>
 
-                <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-card border border-slate-100">
+                <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
                     <h2 className="text-lg font-bold text-charcoal mb-4 flex items-center gap-2">
                         <Activity size={20} className="text-shibl-crimson" />
                         <span>النشاط الأخير</span>
                     </h2>
 
                     {activitiesLoading ? (
-                        <div className="flex items-center justify-center py-12">
-                            <Loader2 size={24} className="animate-spin text-shibl-crimson" />
-                            <span className="mr-2 text-slate-500">جاري التحميل...</span>
+                        <div className="flex flex-col gap-4">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                                <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-slate-50 animate-pulse">
+                                    <div className="w-10 h-10 rounded-full bg-slate-100"></div>
+                                    <div className="flex-1 space-y-2">
+                                        <div className="h-4 bg-slate-100 rounded w-1/4"></div>
+                                        <div className="h-3 bg-slate-50 rounded w-1/3"></div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     ) : activitiesError ? (
                         <div className="flex items-center justify-center py-12 text-red-500">
@@ -243,23 +273,26 @@ export function AdminDashboard() {
                         </div>
                     ) : (
                         <div className="flex flex-col gap-4">
-                            {activities.map((activity) => (
-                                <div
-                                    key={activity.id}
-                                    className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors"
-                                >
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-shibl-crimson to-red-700 flex items-center justify-center text-white font-bold text-sm">
-                                        {activity.causer?.name?.charAt(0) || 'م'}
+                            {activities.map((activity) => {
+                                const config = getActivityConfig(activity.description);
+                                return (
+                                    <div
+                                        key={activity.id}
+                                        className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200"
+                                    >
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${config.bg} ${config.text}`}>
+                                            {config.icon}
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium text-charcoal">
+                                                <span className="font-bold">{activity.causer?.name || 'مسؤول'}:</span>{' '}
+                                                {config.label} {activity.subject_type?.split('\\').pop()}
+                                            </p>
+                                            <p className="text-xs text-slate-400 mt-1">{formatTimeAgo(activity.created_at)}</p>
+                                        </div>
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium text-charcoal">
-                                            <span className="font-bold">{activity.causer?.name || 'مسؤول'}:</span>{' '}
-                                            {getActionLabel(activity.description)} {activity.subject_type?.split('\\').pop()}
-                                        </p>
-                                        <p className="text-xs text-slate-400 mt-1">{formatTimeAgo(activity.created_at)}</p>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>

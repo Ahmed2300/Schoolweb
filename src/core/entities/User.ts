@@ -1,11 +1,13 @@
 // User entity base interface
 export interface User {
-  id: string;
+  id: string | number;
   email: string;
   phone: string;
   name: string;
   role: UserRole;
-  avatar?: string;
+  avatar?: string | null;
+  image_path?: string | null; // From backend teacher profile
+  address?: string | null;
   phoneNumber?: string;
   gradeId?: number;
   updatedAt: Date;

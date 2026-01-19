@@ -78,6 +78,7 @@ const navGroups: NavGroup[] = [
         icon: <Wallet size={18} />,
         items: [
             { icon: <CreditCard size={18} />, label: 'الاشتراكات', path: ROUTES.ADMIN_SUBSCRIPTIONS },
+            { icon: <Package size={18} />, label: 'اشتراكات الباقات', path: '/admin/package-subscriptions' },
             { icon: <Banknote size={18} />, label: 'المدفوعات', path: '/admin/payments' },
         ],
     },
