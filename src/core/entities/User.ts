@@ -17,6 +17,7 @@ export type UserRole = 'student' | 'parent' | 'teacher' | 'admin';
 
 export interface Student extends User {
   role: 'student';
+  uid?: string; // Unique identifier (STD-YYYY-XXXXXX)
   gradeId?: number;
   termId?: string;
   parentId?: string;

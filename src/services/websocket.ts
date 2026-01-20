@@ -23,6 +23,7 @@ const REVERB_CONFIG = {
 
 let echoInstance: Echo<'reverb'> | null = null;
 let studentEchoInstance: Echo<'reverb'> | null = null;
+let parentEchoInstance: Echo<'reverb'> | null = null;
 
 /**
  * Initialize Laravel Echo with Reverb broadcaster (for Admin)
@@ -84,6 +85,35 @@ export function initializeStudentEcho(authToken: string): Echo<'reverb'> {
 }
 
 /**
+ * Initialize Laravel Echo with Reverb broadcaster (for Parent)
+ */
+export function initializeParentEcho(authToken: string): Echo<'reverb'> {
+    if (parentEchoInstance) {
+        return parentEchoInstance;
+    }
+
+    const apiBaseUrl = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`;
+
+    parentEchoInstance = new Echo({
+        broadcaster: 'reverb',
+        key: REVERB_CONFIG.key,
+        wsHost: REVERB_CONFIG.host,
+        wsPort: REVERB_CONFIG.port,
+        wssPort: REVERB_CONFIG.port,
+        forceTLS: REVERB_CONFIG.scheme === 'https',
+        enabledTransports: ['ws', 'wss'],
+        authEndpoint: `${apiBaseUrl}/api/broadcasting/auth/parent`,
+        auth: {
+            headers: {
+                Authorization: `Bearer ${authToken}`,
+            },
+        },
+    });
+
+    return parentEchoInstance;
+}
+
+/**
  * Get the Echo instance (admin)
  */
 export function getEcho(): Echo<'reverb'> | null {
@@ -95,6 +125,13 @@ export function getEcho(): Echo<'reverb'> | null {
  */
 export function getStudentEcho(): Echo<'reverb'> | null {
     return studentEchoInstance;
+}
+
+/**
+ * Get the parent Echo instance
+ */
+export function getParentEcho(): Echo<'reverb'> | null {
+    return parentEchoInstance;
 }
 
 /**
@@ -114,6 +151,16 @@ export function disconnectStudentEcho(): void {
     if (studentEchoInstance) {
         studentEchoInstance.disconnect();
         studentEchoInstance = null;
+    }
+}
+
+/**
+ * Disconnect and cleanup parent Echo
+ */
+export function disconnectParentEcho(): void {
+    if (parentEchoInstance) {
+        parentEchoInstance.disconnect();
+        parentEchoInstance = null;
     }
 }
 
@@ -179,6 +226,37 @@ export function unsubscribeFromStudentChannel(studentId: number): void {
     }
 }
 
+/**
+ * Subscribe to parent notification channel
+ */
+export function subscribeToParentChannel(
+    parentId: number,
+    onNotification: (event: unknown) => void
+): void {
+    const echo = getParentEcho();
+    if (!echo) {
+        console.error('Parent Echo not initialized. Call initializeParentEcho first.');
+        return;
+    }
+
+    echo
+        .private(`parent.${parentId}`)
+        .listen('.notification', (event: unknown) => {
+            console.log('Received parent notification:', event);
+            onNotification(event);
+        });
+}
+
+/**
+ * Unsubscribe from parent notification channel
+ */
+export function unsubscribeFromParentChannel(parentId: number): void {
+    const echo = getParentEcho();
+    if (echo) {
+        echo.leave(`parent.${parentId}`);
+    }
+}
+
 export default {
     initializeEcho,
     initializeStudentEcho,
@@ -190,4 +268,9 @@ export default {
     unsubscribeFromAdminChannel,
     subscribeToStudentChannel,
     unsubscribeFromStudentChannel,
+    initializeParentEcho,
+    getParentEcho,
+    disconnectParentEcho,
+    subscribeToParentChannel,
+    unsubscribeFromParentChannel,
 };

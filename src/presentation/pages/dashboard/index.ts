@@ -8,6 +8,7 @@ export { StudentQuizzesPage } from './StudentQuizzesPage';
 export { StudentLivePage } from './StudentLivePage';
 export { StudentProfilePage } from './StudentProfilePage';
 export { StudentPackagesPage } from './StudentPackagesPage';
+export { StudentParentRequestsPage } from './StudentParentRequestsPage';
 
 export { ParentLayout } from './ParentLayout';
 export { ParentHomePage } from './ParentHomePage';

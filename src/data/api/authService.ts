@@ -125,6 +125,11 @@ export const authService = {
         return response.data;
     },
 
+    studentGenerateUid: async (): Promise<{ success: boolean; message: string; data?: { uid: string } }> => {
+        const response = await apiClient.post(endpoints.studentAuth.generateUid);
+        return response.data;
+    },
+
     // Parent Authentication
     parentLogin: async (data: LoginRequest): Promise<AuthResponse> => {
         const response = await apiClient.post(endpoints.parentAuth.login, data);

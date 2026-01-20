@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../store';
 import {
@@ -7,42 +8,49 @@ import {
     ChevronLeft,
     AlertCircle,
     Calendar,
-    BookOpen
+    BookOpen,
+    Loader2
 } from 'lucide-react';
+import { parentService, type StudentProfile } from '../../../data/api';
 
 export function ParentHomePage() {
     const { user } = useAuthStore();
     const displayName = user?.name?.split(' ')[0] || 'ولي الأمر';
 
-    // Mock Data for Children
-    const children = [
-        {
-            id: 1,
-            name: 'أحمد',
-            grade: 'الصف العاشر',
-            avatar: '/images/signin-student.png', // Placeholder
-            overallProgress: 85,
-            nextClass: 'الرياضيات - 4:00 م',
-            alerts: 0,
-            courses: 6
-        },
-        {
-            id: 2,
-            name: 'سارة',
-            grade: 'الصف الخامس',
-            avatar: '/images/signup-student.png', // Placeholder
-            overallProgress: 92,
-            nextClass: 'العلوم - 3:00 م',
-            alerts: 2,
-            courses: 4
-        }
-    ];
+    // --- State ---
+    const [children, setChildren] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Mock Financial Stats
+    // Fetch Linked Students
+    useEffect(() => {
+        const fetchChildren = async () => {
+            try {
+                const students = await parentService.getLinkedStudents();
+                const mappedChildren = students.map((s: StudentProfile) => ({
+                    id: s.id,
+                    name: s.name,
+                    grade: s.grade || 'غير محدد',
+                    avatar: s.image_path || null,
+                    overallProgress: 0, // Placeholder
+                    nextClass: 'لا توجد حصص قادمة', // Placeholder
+                    alerts: 0,
+                    courses: 0 // Placeholder
+                }));
+                setChildren(mappedChildren);
+            } catch (e) {
+                console.error('Failed to fetch dashboard children:', e);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchChildren();
+    }, []);
+
+    // Derived Stats (mocked for now where API data is missing)
     const stats = {
-        totalDue: 25.000,
-        nextPaymentDate: '1 يناير 2025',
-        totalActiveCourses: 10
+        totalDue: 0,
+        nextPaymentDate: 'غير محدد',
+        totalActiveCourses: children.reduce((acc, child) => acc + (child.courses || 0), 0)
     };
 
     return (
@@ -115,62 +123,83 @@ export function ParentHomePage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {children.map(child => (
-                    <div key={child.id} className="bg-white rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all overflow-hidden group">
-                        <div className="p-6">
-                            <div className="flex items-start justify-between mb-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-slate-100">
-                                        <img src={child.avatar} alt={child.name} className="w-full h-full object-cover" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-bold text-charcoal">{child.name}</h3>
-                                        <span className="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-full">{child.grade}</span>
-                                    </div>
-                                </div>
-                                {child.alerts > 0 && (
-                                    <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 animate-pulse">
-                                        <AlertCircle size={12} />
-                                        {child.alerts} تنبيهات
-                                    </span>
-                                )}
-                            </div>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <div className="flex justify-between text-xs mb-1">
-                                        <span className="text-slate-500 font-bold">التقدم العام للفصل</span>
-                                        <span className="text-shibl-crimson font-bold">{child.overallProgress}%</span>
-                                    </div>
-                                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-gradient-to-r from-shibl-crimson to-red-400 rounded-full"
-                                            style={{ width: `${child.overallProgress}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-slate-400">
-                                        <Calendar size={20} />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-slate-400 font-bold">الحصة القادمة</p>
-                                        <p className="text-sm font-bold text-charcoal">{child.nextClass}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex items-center justify-between group-hover:bg-slate-100 transition-colors">
-                            <span className="text-xs font-bold text-slate-500">{child.courses} دورات مسجلة</span>
-                            <button className="text-sm font-bold text-shibl-crimson flex items-center gap-1">
-                                التفاصيل
-                                <ChevronLeft size={16} />
-                            </button>
+                {isLoading ? (
+                    <div className="col-span-1 md:col-span-2 flex justify-center py-12 text-slate-400">
+                        <div className="flex items-center gap-2">
+                            <Loader2 size={24} className="animate-spin" />
+                            <span>جاري تحديث البيانات...</span>
                         </div>
                     </div>
-                ))}
+                ) : children.length === 0 ? (
+                    <div className="col-span-1 md:col-span-2 text-center py-12 text-slate-400 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                        <Users size={48} className="mx-auto mb-4 opacity-50" />
+                        <p>لم يتم ربط أي أبناء بعد</p>
+                        <Link to="/parent/children" className="text-shibl-crimson font-bold mt-2 hover:underline">
+                            أضف ابنك الأول الآن
+                        </Link>
+                    </div>
+                ) : (
+                    children.map(child => (
+                        <div key={child.id} className="bg-white rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all overflow-hidden group">
+                            <div className="p-6">
+                                <div className="flex items-start justify-between mb-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-slate-100 bg-slate-50 flex items-center justify-center">
+                                            {child.avatar ? (
+                                                <img src={child.avatar} alt={child.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Users size={24} className="text-slate-300" />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-charcoal">{child.name}</h3>
+                                            <span className="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-full">{child.grade}</span>
+                                        </div>
+                                    </div>
+                                    {child.alerts > 0 && (
+                                        <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 animate-pulse">
+                                            <AlertCircle size={12} />
+                                            {child.alerts} تنبيهات
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <div className="flex justify-between text-xs mb-1">
+                                            <span className="text-slate-500 font-bold">التقدم العام للفصل</span>
+                                            <span className="text-shibl-crimson font-bold">{child.overallProgress}%</span>
+                                        </div>
+                                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-shibl-crimson to-red-400 rounded-full"
+                                                style={{ width: `${child.overallProgress}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                        <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-slate-400">
+                                            <Calendar size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-400 font-bold">الحصة القادمة</p>
+                                            <p className="text-sm font-bold text-charcoal">{child.nextClass}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex items-center justify-between group-hover:bg-slate-100 transition-colors">
+                                <span className="text-xs font-bold text-slate-500">{child.courses} دورات مسجلة</span>
+                                <button className="text-sm font-bold text-shibl-crimson flex items-center gap-1">
+                                    التفاصيل
+                                    <ChevronLeft size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
         </div>
     );

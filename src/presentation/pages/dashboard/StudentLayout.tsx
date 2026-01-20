@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useLanguage } from '../../hooks';
 import { useAuthStore } from '../../store';
 import { authService } from '../../../data/api/authService';
+import { studentService } from '../../../data/api';
 import { ROUTES } from '../../../shared/constants';
 import { LogoutModal } from '../../components/ui';
 import { StudentNotificationBell } from '@/components/notifications/StudentNotificationBell';
@@ -21,7 +22,8 @@ import {
     LogOut,
     ChevronRight,
     ChevronLeft,
-    Package
+    Package,
+    Users
 } from 'lucide-react';
 
 export function StudentLayout() {
@@ -31,6 +33,36 @@ export function StudentLayout() {
     const { user, logout: clearAuthStore } = useAuthStore();
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+
+    // Fetch pending parent requests count
+    useEffect(() => {
+        const fetchPendingRequests = async () => {
+            try {
+                const requests = await studentService.getPendingParentRequests();
+                setPendingRequestsCount(requests.length);
+            } catch (error) {
+                console.error('Failed to fetch pending requests:', error);
+            }
+        };
+
+        if (user) {
+            fetchPendingRequests();
+        }
+
+        // Listen for real-time notifications to update badge
+        const handleNotification = (event: CustomEvent<any>) => {
+            if (event.detail?.type === 'parent_link_request') {
+                fetchPendingRequests();
+            }
+        };
+
+        window.addEventListener('student-notification' as any, handleNotification);
+
+        return () => {
+            window.removeEventListener('student-notification' as any, handleNotification);
+        };
+    }, [user]);
 
     // Get user display name
     const displayName = user?.name?.split(' ')[0] || 'طالب';
@@ -43,6 +75,13 @@ export function StudentLayout() {
         { id: '/quizzes', icon: FileQuestion, label: 'الاختبارات', path: '/dashboard/quizzes' },
         { id: '/live', icon: Video, label: 'جلسات مباشرة', path: '/dashboard/live' },
         { id: '/profile', icon: User, label: 'الملف الشخصي', path: '/dashboard/profile' },
+        {
+            id: '/parent-requests',
+            icon: Users,
+            label: 'طلبات الربط',
+            path: '/dashboard/parent-requests',
+            badge: pendingRequestsCount > 0 ? pendingRequestsCount : undefined
+        },
     ];
 
     // Helper to determine active state
@@ -131,7 +170,19 @@ export function StudentLayout() {
                                             className={active ? 'text-white' : 'text-slate-400 group-hover:text-shibl-crimson'}
                                         />
                                         {!isCollapsed && (
-                                            <span className="font-semibold text-sm">{item.label}</span>
+                                            <span className="font-semibold text-sm flex-1">{item.label}</span>
+                                        )}
+
+                                        {/* Badge */}
+                                        {!isCollapsed && (item as any).badge && (
+                                            <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                                                {(item as any).badge}
+                                            </span>
+                                        )}
+
+                                        {/* Collapsed Badge Dot */}
+                                        {isCollapsed && (item as any).badge && (
+                                            <div className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></div>
                                         )}
                                     </Link>
                                 </li>

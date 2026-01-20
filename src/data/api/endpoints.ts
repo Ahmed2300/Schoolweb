@@ -16,6 +16,17 @@ export const endpoints = {
         changePassword: '/api/v1/students/auth/change-password',
         logout: '/api/v1/students/auth/logout',
         logoutAll: '/api/v1/students/auth/logout-all',
+        generateUid: '/api/v1/students/auth/generate-uid',
+    },
+
+    // Student Dashboard
+    student: {
+        // Parent link requests (from student perspective)
+        parentRequests: {
+            list: '/api/v1/students/parent-requests',
+            show: (id: number) => `/api/v1/students/parent-requests/${id}`,
+            updateStatus: (id: number) => `/api/v1/students/parent-requests/${id}/status`,
+        },
     },
 
     // Parent Auth
@@ -24,14 +35,33 @@ export const endpoints = {
         login: '/api/v1/auth/parents/login',
         verifyEmail: '/api/v1/auth/parents/verify-email',
         resendOtp: '/api/v1/auth/parents/resend-otp',
-        me: '/api/v1/auth/parents/me',
+        me: '/api/v1/parents/auth/me',
         updateProfile: '/api/v1/user/profile/update',
-        refresh: '/api/v1/auth/parents/refresh',
-        changePassword: '/api/v1/auth/parents/change-password',
+        refresh: '/api/v1/parents/auth/refresh',
+        changePassword: '/api/v1/parents/auth/change-password',
         forgotPassword: '/api/v1/auth/parents/forgot-password',
         resetPassword: '/api/v1/auth/parents/reset-password',
-        logout: '/api/v1/auth/parents/logout',
-        logoutAll: '/api/v1/auth/parents/logout-all',
+        logout: '/api/v1/parents/auth/logout',
+        logoutAll: '/api/v1/parents/auth/logout-all',
+    },
+
+    // Parent Dashboard
+    parent: {
+        // Student search & linking
+        searchStudent: '/api/v1/parents/students/search',
+        studentRequests: {
+            list: '/api/v1/parents/student-requests',
+            create: '/api/v1/parents/student-requests',
+            show: (id: number) => `/api/v1/parents/student-requests/${id}`,
+            updateStatus: (id: number) => `/api/v1/parents/student-requests/${id}/status`,
+        },
+        // Reports
+        reports: {
+            students: '/api/v1/parents/reports/students',
+            studentDetail: (id: number) => `/api/v1/parents/reports/students/${id}`,
+        },
+        // Unlink student
+        unlinkStudent: (studentId: number) => `/api/v1/parents/students/${studentId}/unlink`,
     },
 
     // Teacher Auth

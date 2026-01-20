@@ -35,6 +35,7 @@ import {
   StudentLivePage,
   StudentProfilePage,
   StudentPackagesPage,
+  StudentParentRequestsPage,
   ParentLayout,
   ParentHomePage,
   ParentChildrenPage,
@@ -97,6 +98,7 @@ function App() {
             <Route path="quizzes" element={<StudentQuizzesPage />} />
             <Route path="live" element={<StudentLivePage />} />
             <Route path="profile" element={<StudentProfilePage />} />
+            <Route path="parent-requests" element={<StudentParentRequestsPage />} />
           </Route>
 
           {/* Protected Parent Dashboard */}

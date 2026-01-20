@@ -1,5 +1,9 @@
 import apiClient from './ApiClient';
 import { endpoints } from './endpoints';
+import type { Course } from './studentService';
+
+// Re-export Course for consumers of this module
+export type { Course };
 
 // ==================== Types ====================
 
@@ -31,29 +35,6 @@ export interface Package {
     };
     created_at?: string;
     updated_at?: string;
-}
-
-export interface Course {
-    id: number;
-    name: string; // Course name (translatable from backend)
-    title?: string; // Alternative field name
-    description?: string;
-    price: number;
-    code?: string;
-    image?: string; // Course cover image
-    thumbnail?: string; // Alternative image field
-    teacher?: {
-        id: number;
-        name: string;
-    };
-    subject?: {
-        id: number;
-        name: string;
-    };
-    semester?: {
-        id: number;
-        name: string;
-    };
 }
 
 export interface PackageSubscription {

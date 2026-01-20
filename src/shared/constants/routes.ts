@@ -29,6 +29,7 @@ export const ROUTES = {
     QUIZ_RESULT: '/quizzes/:id/result',
     PROFILE: '/profile',
     SETTINGS: '/settings',
+    PARENT_REQUESTS: '/parent-requests',
 
     // Parent routes
     PARENT_DASHBOARD: '/parent',

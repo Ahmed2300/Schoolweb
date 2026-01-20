@@ -14,14 +14,17 @@ import { endpoints } from './endpoints';
 
 export interface StudentProfile {
     id: number;
+    uid?: string; // Unique identifier (STD-YYYY-XXXXXX)
     name: string;
     email: string;
     phone?: string;
     image_path?: string;
     email_verified_at?: string;
     grade_id?: number;
+    grade?: string;
     country_id?: number;
     city_id?: number;
+    parent_id?: number;
     created_at?: string;
     updated_at?: string;
 }
@@ -135,6 +138,27 @@ export interface Subscription {
     is_currently_active: boolean;
     created_at?: string;
     updated_at?: string;
+}
+
+/** Parent link request (from student perspective) */
+export interface ParentLinkRequest {
+    id: number;
+    student_id: number;
+    parent_id: number;
+    requested_by_type: 'parent' | 'student';
+    status: 'pending' | 'accepted' | 'rejected' | 'cancelled';
+    message?: string;
+    response_message?: string;
+    expires_at?: string;
+    created_at?: string;
+    updated_at?: string;
+    parent?: {
+        id: number;
+        name: string;
+        email?: string;
+        phone?: string;
+        image_path?: string;
+    };
 }
 
 // ============================================================
@@ -415,6 +439,48 @@ export const studentService = {
     getSubscriptionByCourse: async (courseId: number): Promise<Subscription | null> => {
         const subscriptions = await studentService.getMySubscriptions();
         return subscriptions.find(s => s.course_id === courseId) || null;
+    },
+
+    // ============================================================
+    // Parent Link Request Methods
+    // ============================================================
+
+    /**
+     * Get all parent link requests for the current student
+     */
+    getParentRequests: async (): Promise<ParentLinkRequest[]> => {
+        const response = await apiClient.get(endpoints.student.parentRequests.list);
+        return response.data.data || [];
+    },
+
+    /**
+     * Get pending parent link requests only
+     */
+    getPendingParentRequests: async (): Promise<ParentLinkRequest[]> => {
+        const requests = await studentService.getParentRequests();
+        return requests.filter(r => r.status === 'pending');
+    },
+
+    /**
+     * Accept a parent link request
+     */
+    acceptParentRequest: async (requestId: number): Promise<ParentLinkRequest> => {
+        const response = await apiClient.put(
+            endpoints.student.parentRequests.updateStatus(requestId),
+            { status: 'accepted' }
+        );
+        return response.data.data;
+    },
+
+    /**
+     * Reject a parent link request
+     */
+    rejectParentRequest: async (requestId: number, reason?: string): Promise<ParentLinkRequest> => {
+        const response = await apiClient.put(
+            endpoints.student.parentRequests.updateStatus(requestId),
+            { status: 'rejected', response_message: reason }
+        );
+        return response.data.data;
     },
 };
 

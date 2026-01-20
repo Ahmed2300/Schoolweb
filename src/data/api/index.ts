@@ -7,10 +7,11 @@ export { teacherAuthService } from './teacherAuthService';
 export { quizService, getQuizName, getQuizTypeLabel, getQuizStatusStyle } from './quizService';
 export { commonService } from './commonService';
 export { packageService } from './packageService';
+export { parentService } from './parentService';
 export type * from './authService';
 export type * from './studentService';
 export type * from './teacherService';
 export type * from './teacherAuthService';
 export type * from './quizService';
 export type * from './packageService';
-
+export type * from './parentService';

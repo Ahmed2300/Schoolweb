@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuthStore } from '../../store';
-import { User, Mail, Phone, MapPin, Edit3, X, Save, Loader2, Calendar, Lock, KeyRound, Copy, Check } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Edit3, X, Save, Loader2, Calendar, Lock, KeyRound, Copy, Check, Hash, Link2 } from 'lucide-react';
 import { AuthRepository } from '../../../data/repositories/AuthRepository';
 import { authService } from '../../../data/api';
 
@@ -71,11 +71,33 @@ export function StudentProfilePage() {
 
     const [copiedField, setCopiedField] = useState<string | null>(null);
 
+    // UID generation state
+    const [isGeneratingUid, setIsGeneratingUid] = useState(false);
+    const [studentUid, setStudentUid] = useState<string | null>((user as any)?.uid || null);
+
     const handleCopy = (text: string, fieldName: string) => {
         if (!text || text === 'غير مسجل') return;
         navigator.clipboard.writeText(text);
         setCopiedField(fieldName);
         setTimeout(() => setCopiedField(null), 2000);
+    };
+
+    const handleGenerateUid = async () => {
+        setIsGeneratingUid(true);
+        try {
+            const response = await authService.studentGenerateUid();
+            if (response.success && response.data?.uid) {
+                setStudentUid(response.data.uid);
+                // Update store with new UID
+                if (user) {
+                    setUser({ ...user, uid: response.data.uid } as any);
+                }
+            }
+        } catch (err) {
+            console.error('Failed to generate UID:', err);
+        } finally {
+            setIsGeneratingUid(false);
+        }
     };
 
     const openModal = () => {
@@ -365,6 +387,59 @@ export function StudentProfilePage() {
                         </p>
                     </div>
 
+                    {/* Student UID Section */}
+                    <div className="mb-6">
+                        {studentUid ? (
+                            <div className="group bg-gradient-to-r from-slate-50 to-emerald-50 p-5 rounded-2xl border border-emerald-100 flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                                        <Hash size={24} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-400 font-medium mb-1">معرف الطالب (UID)</p>
+                                        <p className="font-bold text-charcoal text-lg tracking-wider" dir="ltr">{studentUid}</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleCopy(studentUid, 'uid')}
+                                    className="flex items-center gap-2 bg-white border border-emerald-200 text-emerald-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-50 transition-all"
+                                >
+                                    {copiedField === 'uid' ? <Check size={16} /> : <Copy size={16} />}
+                                    {copiedField === 'uid' ? 'تم النسخ!' : 'نسخ المعرف'}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-5 rounded-2xl border border-amber-200 flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
+                                        <Hash size={24} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-charcoal">لم يتم إنشاء معرف الطالب بعد</p>
+                                        <p className="text-xs text-slate-500 mt-0.5">يُستخدم المعرف لربط حسابك مع ولي الأمر</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={handleGenerateUid}
+                                    disabled={isGeneratingUid}
+                                    className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-amber-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isGeneratingUid ? (
+                                        <>
+                                            <Loader2 size={16} className="animate-spin" />
+                                            جاري الإنشاء...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Hash size={16} />
+                                            إنشاء المعرف
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Email */}
                         <div className="group bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-5 relative">
@@ -441,59 +516,114 @@ export function StudentProfilePage() {
                         </div>
                     </div>
 
-                    <h3 className="text-xl font-bold text-charcoal mb-6 flex items-center gap-2">
-                        <User className="text-shibl-crimson" size={24} />
-                        معلومات ولي الأمر
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Parent Name */}
-                        <div className="bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-5">
-                            <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600">
-                                <User size={24} />
-                            </div>
-                            <div>
-                                <p className="text-xs text-slate-400 font-medium mb-1">اسم ولي الأمر</p>
-                                <p className="font-bold text-charcoal text-lg">{(user as any)?.parent_name || 'غير مسجل'}</p>
-                            </div>
-                        </div>
-
-                        {/* Parent Phone */}
-                        <div className="group bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-5 relative">
-                            <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600">
-                                <Phone size={24} />
-                            </div>
-                            <div>
-                                <p className="text-xs text-slate-400 font-medium mb-1">هاتف ولي الأمر</p>
-                                <p className="font-bold text-charcoal text-lg dir-ltr">{(user as any)?.parent_phone || 'غير مسجل'}</p>
-                            </div>
-                            <button
-                                onClick={() => handleCopy((user as any)?.parent_phone || '', 'parent_phone')}
-                                className="absolute left-5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
-                                title="نسخ"
-                            >
-                                {copiedField === 'parent_phone' ? <Check size={18} /> : <Copy size={18} />}
-                            </button>
-                        </div>
-
-                        {/* Parent Email */}
-                        <div className="group bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-5 relative">
-                            <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600">
-                                <Mail size={24} />
-                            </div>
-                            <div>
-                                <p className="text-xs text-slate-400 font-medium mb-1">البريد الإلكتروني</p>
-                                <p className="font-bold text-charcoal text-lg dir-ltr">{(user as any)?.parent_email || 'غير مسجل'}</p>
-                            </div>
-                            <button
-                                onClick={() => handleCopy((user as any)?.parent_email || '', 'parent_email')}
-                                className="absolute left-5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
-                                title="نسخ"
-                            >
-                                {copiedField === 'parent_email' ? <Check size={18} /> : <Copy size={18} />}
-                            </button>
-                        </div>
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-xl font-bold text-charcoal flex items-center gap-2">
+                            <User className="text-shibl-crimson" size={24} />
+                            معلومات ولي الأمر
+                        </h3>
+                        {(user as any)?.has_linked_parent && (
+                            <span className="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-full text-xs font-bold">
+                                <Link2 size={14} />
+                                حساب مرتبط
+                            </span>
+                        )}
                     </div>
+
+                    {(user as any)?.has_linked_parent ? (
+                        // Linked Parent - Show full info from parent account
+                        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-6 rounded-2xl border border-emerald-100">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-16 h-16 rounded-full overflow-hidden bg-emerald-100 border-2 border-white shadow-md">
+                                    {((user as any)?.linked_parent?.avatar || (user as any)?.linked_parent?.image_path) ? (
+                                        <img
+                                            src={(user as any).linked_parent.avatar || (user as any).linked_parent.image_path}
+                                            alt={(user as any).linked_parent.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-emerald-600 text-white">
+                                            <User size={28} />
+                                        </div>
+                                    )}
+                                </div>
+                                <div>
+                                    <p className="font-bold text-charcoal text-xl">{(user as any)?.linked_parent?.name}</p>
+                                    <p className="text-emerald-600 text-sm">ولي أمر مرتبط بحسابك</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="group bg-white/80 p-4 rounded-xl flex items-center gap-4 relative">
+                                    <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                                        <Phone size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-400 font-medium mb-0.5">الهاتف</p>
+                                        <p className="font-bold text-charcoal dir-ltr">{(user as any)?.linked_parent?.phone || 'غير مسجل'}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleCopy((user as any)?.linked_parent?.phone || '', 'linked_parent_phone')}
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg"
+                                        title="نسخ"
+                                    >
+                                        {copiedField === 'linked_parent_phone' ? <Check size={16} /> : <Copy size={16} />}
+                                    </button>
+                                </div>
+                                <div className="group bg-white/80 p-4 rounded-xl flex items-center gap-4 relative">
+                                    <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                                        <Mail size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-400 font-medium mb-0.5">البريد الإلكتروني</p>
+                                        <p className="font-bold text-charcoal text-sm dir-ltr">{(user as any)?.linked_parent?.email || 'غير مسجل'}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleCopy((user as any)?.linked_parent?.email || '', 'linked_parent_email')}
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg"
+                                        title="نسخ"
+                                    >
+                                        {copiedField === 'linked_parent_email' ? <Check size={16} /> : <Copy size={16} />}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        // No linked parent - Show registration data (only parent_phone available)
+                        <div className="bg-gradient-to-r from-slate-50 to-gray-50 p-6 rounded-2xl border border-slate-200">
+                            <div className="flex items-center gap-3 mb-4 text-amber-600 bg-amber-50 px-4 py-2 rounded-xl">
+                                <User size={18} />
+                                <p className="text-sm font-medium">بيانات ولي الأمر المسجلة عند إنشاء الحساب</p>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="group bg-white p-4 rounded-xl border border-slate-100 flex items-center gap-4 relative">
+                                    <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600">
+                                        <Phone size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-400 font-medium mb-0.5">هاتف ولي الأمر</p>
+                                        <p className="font-bold text-charcoal dir-ltr">{(user as any)?.parent_phone || 'غير مسجل'}</p>
+                                    </div>
+                                    {(user as any)?.parent_phone && (
+                                        <button
+                                            onClick={() => handleCopy((user as any)?.parent_phone || '', 'parent_phone')}
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                                            title="نسخ"
+                                        >
+                                            {copiedField === 'parent_phone' ? <Check size={16} /> : <Copy size={16} />}
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="bg-white p-4 rounded-xl border border-dashed border-slate-200 flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
+                                        <Link2 size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-400 font-medium mb-0.5">لربط حساب ولي أمر</p>
+                                        <p className="text-sm text-slate-500">شارك رمز المعرف (UID) مع ولي أمرك</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
