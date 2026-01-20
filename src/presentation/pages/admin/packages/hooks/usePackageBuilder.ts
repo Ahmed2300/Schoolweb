@@ -12,7 +12,9 @@ import {
 import toast from 'react-hot-toast';
 import { AppNode, AppEdge, TermNodeData, GradeNodeData, CourseNodeData } from '../types';
 import { updatePackageTotals } from '../utils/aggregation';
+
 import { adminService } from '../../../../../data/api/adminService';
+import { getLocalizedName } from '../../../../../data/api/studentService';
 
 export function usePackageBuilder() {
     const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>([]);
@@ -118,13 +120,13 @@ export function usePackageBuilder() {
                 includedCourses.push({
                     id: course.id,
                     price,
-                    name: course.name,
-                    subject: course.subject?.name
+                    name: getLocalizedName(course.name),
+                    subject: getLocalizedName(course.subject?.name)
                 });
             });
 
             // Update the term node with calculated totals
-            setNodes((currentNodes) => {
+            setNodes((currentNodes): AppNode[] => {
                 return currentNodes.map(node => {
                     if (node.id === termNodeId) {
                         return {
@@ -136,7 +138,7 @@ export function usePackageBuilder() {
                                 calculatedCount: coursesCount,
                                 includedCourses, // Store for deduplication
                             }
-                        };
+                        } as AppNode;
                     }
                     return node;
                 });
@@ -171,14 +173,14 @@ export function usePackageBuilder() {
                     includedCourses.push({
                         id: course.id,
                         price,
-                        name: course.name,
-                        subject: course.subject?.name
+                        name: getLocalizedName(course.name),
+                        subject: getLocalizedName(course.subject?.name)
                     });
                 });
             }
 
             // Update the grade node with calculated totals
-            setNodes((currentNodes) => {
+            setNodes((currentNodes): AppNode[] => {
                 return currentNodes.map(node => {
                     if (node.id === gradeNodeId) {
                         return {
@@ -190,7 +192,7 @@ export function usePackageBuilder() {
                                 calculatedCount: coursesCount,
                                 includedCourses, // Store for deduplication
                             }
-                        };
+                        } as AppNode;
                     }
                     return node;
                 });

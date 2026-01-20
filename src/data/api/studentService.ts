@@ -75,6 +75,14 @@ export interface Course {
     grade?: Grade;
     semester?: Semester;
     image_path?: string;
+    // Added loose properties to match usage in components till backend is fully typed
+    image?: string;
+    thumbnail?: string;
+    title?: string | { ar?: string; en?: string };
+    subject?: {
+        id: number;
+        name: string | { ar?: string; en?: string };
+    };
     lectures?: Lecture[];
     lectures_count?: number;
     created_at?: string;

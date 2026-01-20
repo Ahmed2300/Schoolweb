@@ -15,6 +15,7 @@ import {
     Clock
 } from 'lucide-react';
 import { packageService, Package as PackageType, PackageSubscription } from '../../../data/api';
+import { getLocalizedName } from '../../../data/api/studentService';
 
 // Status badge component
 const StatusBadge = ({ status }: { status: string }) => {
@@ -524,7 +525,7 @@ export function StudentPackagesPage() {
                                                 <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">
                                                     <img
                                                         src={courseImage}
-                                                        alt={course.name || course.title || 'Course'}
+                                                        alt={getLocalizedName(course.name || course.title) || 'Course'}
                                                         className="w-full h-full object-cover"
                                                         onError={(e) => {
                                                             // On error, replace with icon container
@@ -544,10 +545,10 @@ export function StudentPackagesPage() {
                                             {/* Course Info */}
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="font-bold text-charcoal text-sm truncate">
-                                                    {course.name || course.title || 'دورة'}
+                                                    {getLocalizedName(course.name || course.title) || 'دورة'}
                                                 </h4>
                                                 <p className="text-slate-400 text-xs truncate">
-                                                    {course.teacher?.name || course.subject?.name || 'مدرس'}
+                                                    {course.teacher?.name || (course.subject ? getLocalizedName(course.subject.name) : 'مدرس')}
                                                 </p>
                                             </div>
 

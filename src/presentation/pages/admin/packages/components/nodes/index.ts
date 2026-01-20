@@ -5,8 +5,8 @@ import { TermNode } from './TermNode';
 import { GradeNode } from './GradeNode';
 
 export const nodeTypes: NodeTypes = {
-    packageNode: PackageNode,
-    courseNode: CourseNode,
-    termNode: TermNode,
-    gradeNode: GradeNode,
+    packageNode: PackageNode as any,
+    courseNode: CourseNode as any,
+    termNode: TermNode as any,
+    gradeNode: GradeNode as any,
 };

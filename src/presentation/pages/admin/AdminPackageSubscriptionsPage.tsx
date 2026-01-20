@@ -24,6 +24,8 @@ import {
     CheckCircle
 } from 'lucide-react';
 import { packageService, PackageSubscription } from '../../../data/api';
+import { getLocalizedName } from '../../../data/api/studentService';
+
 
 // Status filter options
 const statusFilters: { label: string; value: string | undefined; icon: typeof Package; activeColor: string }[] = [
@@ -614,16 +616,16 @@ export function AdminPackageSubscriptionsPage() {
                                             <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0">
                                                 <img
                                                     src={course.image || '/images/course-placeholder.png'}
-                                                    alt={course.name}
+                                                    alt={getLocalizedName(course.name)}
                                                     className="w-full h-full object-cover"
                                                     onError={(e) => {
                                                         (e.target as HTMLImageElement).src = '/images/course-placeholder.png';
                                                     }}
                                                 />
                                             </div>
-                                            <div>
-                                                <h5 className="font-bold text-charcoal text-sm">{course.name}</h5>
-                                                {course.subject && <span className="text-xs text-slate-500">{course.subject.name}</span>}
+                                            <div className="flex-1 min-w-0">
+                                                <h5 className="font-bold text-charcoal text-sm">{getLocalizedName(course.name)}</h5>
+                                                {course.subject && <span className="text-xs text-slate-500">{getLocalizedName(course.subject.name)}</span>}
                                             </div>
                                         </div>
                                     ))}

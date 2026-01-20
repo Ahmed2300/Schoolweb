@@ -366,7 +366,7 @@ function AdminPackagesContent() {
                         return {
                             ...node,
                             data: { ...node.data, originalId: newPackageId }
-                        };
+                        } as AppNode;
                     }
                     return node;
                 }));

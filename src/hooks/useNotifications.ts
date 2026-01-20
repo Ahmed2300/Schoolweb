@@ -14,7 +14,7 @@ interface UseNotificationsReturn {
     isConnected: boolean;
     isLoading: boolean;
     error: string | null;
-    markAsRead: (id: number) => Promise<void>;
+    markAsRead: (id: number | string) => Promise<void>;
     markAllAsRead: () => Promise<void>;
     refetch: () => Promise<void>;
 }
@@ -95,7 +95,9 @@ export function useNotifications(): UseNotificationsReturn {
 
         try {
             initializeEcho(token);
-            subscribeToAdminChannel(user.id, handleNotification as (event: unknown) => void);
+            initializeEcho(token);
+            // Cast to any to bypass strict number check if user.id is string|number
+            subscribeToAdminChannel(user.id as any, handleNotification as (event: unknown) => void);
             setIsConnected(true);
             console.log('WebSocket connected for admin:', user.id);
         } catch (err) {
@@ -105,7 +107,7 @@ export function useNotifications(): UseNotificationsReturn {
 
         return () => {
             if (user?.id) {
-                unsubscribeFromAdminChannel(user.id);
+                unsubscribeFromAdminChannel(user.id as any);
             }
             disconnectEcho();
             setIsConnected(false);
@@ -120,12 +122,13 @@ export function useNotifications(): UseNotificationsReturn {
     }, [user?.id, isAuthenticated, fetchNotifications]);
 
     // Mark single notification as read
-    const markAsRead = useCallback(async (id: number) => {
+    const markAsRead = useCallback(async (id: number | string) => {
+        const numericId = Number(id);
         try {
-            await notificationService.markAsRead(id);
+            await notificationService.markAsRead(numericId);
             setNotifications((prev) =>
                 prev.map((n) =>
-                    n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
+                    n.id === numericId ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
                 )
             );
             setUnreadCount((prev) => Math.max(0, prev - 1));
