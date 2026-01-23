@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
-import { X, ChevronLeft, ChevronRight, Check, Video, FileText, Calendar } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import { X, ChevronLeft, ChevronRight, Check, Video, FileText, Calendar, Loader2 } from 'lucide-react';
 import { lectureService } from '../../../data/api/lectureService';
+import { adminService } from '../../../data/api/adminService';
 import { VideoUploader } from './VideoUploader';
 
 interface CourseOption {
@@ -13,12 +14,19 @@ interface TeacherOption {
     name: string;
 }
 
+interface UnitOption {
+    id: number;
+    title: { ar?: string; en?: string } | string;
+}
+
 interface AddLectureModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
     courses: CourseOption[];
     teachers: TeacherOption[];
+    initialCourseId?: number;
+    initialUnitId?: number;
 }
 
 interface FormData {
@@ -27,6 +35,7 @@ interface FormData {
     descriptionAr: string;
     descriptionEn: string;
     courseId: string;
+    unitId: string;
     teacherId: string;
     startTime: string;
     endTime: string;
@@ -39,18 +48,80 @@ const initialFormData: FormData = {
     descriptionAr: '',
     descriptionEn: '',
     courseId: '',
+    unitId: '',
     teacherId: '',
     startTime: '',
     endTime: '',
     isOnline: false,
 };
 
-export function AddLectureModal({ isOpen, onClose, onSuccess, courses, teachers }: AddLectureModalProps) {
+export function AddLectureModal({
+    isOpen,
+    onClose,
+    onSuccess,
+    courses,
+    teachers,
+    initialCourseId,
+    initialUnitId
+}: AddLectureModalProps) {
     const [step, setStep] = useState(1);
-    const [formData, setFormData] = useState<FormData>(initialFormData);
+    const [formData, setFormData] = useState<FormData>({
+        ...initialFormData,
+        courseId: initialCourseId?.toString() || '',
+        unitId: initialUnitId?.toString() || '',
+    });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [uploadedVideoPath, setUploadedVideoPath] = useState<string | null>(null);
+    const [units, setUnits] = useState<UnitOption[]>([]);
+    const [loadingUnits, setLoadingUnits] = useState(false);
+    const [courseDates, setCourseDates] = useState<{ start: string; end: string } | null>(null);
+
+    // Helper to extract unit name
+    const getUnitName = (unit: UnitOption): string => {
+        if (typeof unit.title === 'string') return unit.title;
+        return unit.title?.ar || unit.title?.en || `وحدة ${unit.id}`;
+    };
+
+    // Fetch units and course details when course changes
+    useEffect(() => {
+        const fetchCourseData = async () => {
+            if (!formData.courseId) {
+                setUnits([]);
+                setCourseDates(null);
+                return;
+            }
+            setLoadingUnits(true);
+            try {
+                // Fetch units
+                const unitsResponse = await adminService.getUnits(parseInt(formData.courseId));
+                setUnits(unitsResponse.data || unitsResponse || []);
+
+                // Fetch course details for dates and teacher
+                const courseDetails = await adminService.getCourse(parseInt(formData.courseId));
+                if (courseDetails) {
+                    const startDate = courseDetails.start_date ? courseDetails.start_date.split('T')[0] + 'T09:00' : '';
+                    const endDate = courseDetails.end_date ? courseDetails.end_date.split('T')[0] + 'T10:00' : '';
+                    setCourseDates({ start: startDate, end: endDate });
+
+                    // Auto-populate teacher and dates from course
+                    setFormData(prev => ({
+                        ...prev,
+                        teacherId: courseDetails.teacher_id?.toString() || prev.teacherId,
+                        startTime: !prev.isOnline ? startDate : prev.startTime,
+                        endTime: !prev.isOnline ? endDate : prev.endTime,
+                    }));
+                }
+            } catch (err) {
+                console.error('Error fetching course data:', err);
+                setUnits([]);
+                setCourseDates(null);
+            } finally {
+                setLoadingUnits(false);
+            }
+        };
+        fetchCourseData();
+    }, [formData.courseId]);
 
     const resetForm = useCallback(() => {
         setFormData(initialFormData);
@@ -88,6 +159,7 @@ export function AddLectureModal({ isOpen, onClose, onSuccess, courses, teachers 
                 title: { ar: formData.titleAr, en: formData.titleEn },
                 description: { ar: formData.descriptionAr, en: formData.descriptionEn },
                 course_id: parseInt(formData.courseId),
+                unit_id: formData.unitId ? parseInt(formData.unitId) : undefined,
                 teacher_id: parseInt(formData.teacherId),
                 start_time: formData.startTime || undefined,
                 end_time: formData.endTime || undefined,
@@ -181,20 +253,47 @@ export function AddLectureModal({ isOpen, onClose, onSuccess, courses, teachers 
                                     <select
                                         required
                                         value={formData.courseId}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, courseId: e.target.value }))}
+                                        onChange={(e) => {
+                                            setFormData(prev => ({ ...prev, courseId: e.target.value, unitId: '' }));
+                                        }}
                                         className="w-full h-10 px-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none bg-white"
                                     >
                                         <option value="">اختر الكورس</option>
                                         {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                     </select>
                                 </div>
+                                {/* Unit dropdown - shows after course selection */}
+                                {formData.courseId && (
+                                    <div className="space-y-1.5">
+                                        <label className="text-sm font-medium text-charcoal flex items-center gap-2">
+                                            الوحدة
+                                            {loadingUnits && <Loader2 size={14} className="animate-spin text-slate-400" />}
+                                        </label>
+                                        <select
+                                            value={formData.unitId}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, unitId: e.target.value }))}
+                                            disabled={loadingUnits}
+                                            className="w-full h-10 px-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none bg-white disabled:bg-slate-50 disabled:cursor-not-allowed"
+                                        >
+                                            <option value="">{loadingUnits ? 'جاري التحميل...' : units.length === 0 ? 'لا توجد وحدات' : 'اختر الوحدة (اختياري)'}</option>
+                                            {units.map(u => <option key={u.id} value={u.id}>{getUnitName(u)}</option>)}
+                                        </select>
+                                    </div>
+                                )}
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal">المدرس *</label>
+                                    <label className="text-sm font-medium text-charcoal flex items-center gap-2">
+                                        المدرس
+                                        {formData.courseId && formData.teacherId && (
+                                            <span className="text-xs text-emerald-600 font-normal">(من الكورس)</span>
+                                        )}
+                                    </label>
                                     <select
                                         required
                                         value={formData.teacherId}
                                         onChange={(e) => setFormData(prev => ({ ...prev, teacherId: e.target.value }))}
-                                        className="w-full h-10 px-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none bg-white"
+                                        disabled={!!formData.courseId && !!formData.teacherId}
+                                        className={`w-full h-10 px-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none bg-white ${formData.courseId && formData.teacherId ? 'bg-slate-50 text-slate-600 cursor-not-allowed' : ''
+                                            }`}
                                     >
                                         <option value="">اختر المدرس</option>
                                         {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -213,26 +312,38 @@ export function AddLectureModal({ isOpen, onClose, onSuccess, courses, teachers 
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal">وقت البدء</label>
+                                    <label className="text-sm font-medium text-charcoal flex items-center gap-2">
+                                        وقت البدء
+                                        {!formData.isOnline && courseDates && (
+                                            <span className="text-xs text-slate-400">(من الكورس)</span>
+                                        )}
+                                    </label>
                                     <div className="relative">
                                         <Calendar size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                                         <input
                                             type="datetime-local"
                                             value={formData.startTime}
                                             onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                                            className="w-full h-10 pr-10 pl-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm"
+                                            disabled={!formData.isOnline}
+                                            className={`w-full h-10 pr-10 pl-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm ${!formData.isOnline ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
                                         />
                                     </div>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal">وقت الانتهاء</label>
+                                    <label className="text-sm font-medium text-charcoal flex items-center gap-2">
+                                        وقت الانتهاء
+                                        {!formData.isOnline && courseDates && (
+                                            <span className="text-xs text-slate-400">(من الكورس)</span>
+                                        )}
+                                    </label>
                                     <div className="relative">
                                         <Calendar size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                                         <input
                                             type="datetime-local"
                                             value={formData.endTime}
                                             onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-                                            className="w-full h-10 pr-10 pl-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm"
+                                            disabled={!formData.isOnline}
+                                            className={`w-full h-10 pr-10 pl-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm ${!formData.isOnline ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
                                         />
                                     </div>
                                 </div>

@@ -1859,7 +1859,92 @@ export const adminService = {
     getUnlinkedAcademicNodes: async () => {
         const response = await apiClient.get('/api/v1/admin/academic-graph/unlinked');
         return response.data;
-    }
+    },
+
+    // ==================== UNITS (Course Curriculum) ====================
+
+    /**
+     * Get all units for a course
+     */
+    getUnits: async (courseId: number) => {
+        const response = await apiClient.get(endpoints.admin.units.list(courseId));
+        return response.data;
+    },
+
+    /**
+     * Get a single unit by ID
+     */
+    getUnit: async (courseId: number, unitId: number) => {
+        const response = await apiClient.get(endpoints.admin.units.show(courseId, unitId));
+        return response.data;
+    },
+
+    /**
+     * Create a new unit in a course
+     */
+    createUnit: async (courseId: number, data: {
+        title: { ar: string; en?: string };
+        description?: { ar?: string; en?: string };
+        is_published?: boolean;
+    }) => {
+        const response = await apiClient.post(endpoints.admin.units.create(courseId), data);
+        return response.data;
+    },
+
+    /**
+     * Update a unit
+     */
+    updateUnit: async (courseId: number, unitId: number, data: {
+        title?: { ar?: string; en?: string };
+        description?: { ar?: string; en?: string };
+        order?: number;
+        is_published?: boolean;
+    }) => {
+        const response = await apiClient.put(endpoints.admin.units.update(courseId, unitId), data);
+        return response.data;
+    },
+
+    /**
+     * Delete a unit
+     */
+    deleteUnit: async (courseId: number, unitId: number) => {
+        await apiClient.delete(endpoints.admin.units.delete(courseId, unitId));
+    },
+
+    /**
+     * Reorder units within a course
+     */
+    reorderUnits: async (courseId: number, order: number[]) => {
+        const response = await apiClient.post(endpoints.admin.units.reorder(courseId), { order });
+        return response.data;
+    },
+
+    /**
+     * Move a lecture to a different unit
+     */
+    moveLectureToUnit: async (unitId: number, lectureId: number, order?: number) => {
+        const response = await apiClient.post(endpoints.admin.units.moveLecture(unitId), {
+            lecture_id: lectureId,
+            order,
+        });
+        return response.data;
+    },
+
+    /**
+     * Reorder lectures within a unit
+     */
+    reorderLectures: async (unitId: number, order: number[]) => {
+        const response = await apiClient.post(endpoints.admin.units.reorderLectures(unitId), { order });
+        return response.data;
+    },
+
+    /**
+     * Toggle unit publish status
+     */
+    toggleUnitPublish: async (unitId: number) => {
+        const response = await apiClient.post(endpoints.admin.units.togglePublish(unitId));
+        return response.data;
+    },
 };
 
 export default adminService;

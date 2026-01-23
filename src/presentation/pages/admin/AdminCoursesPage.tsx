@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Search,
     Plus,
@@ -12,7 +13,8 @@ import {
     Trash2,
     ChevronDown,
     Loader2,
-    AlertCircle
+    AlertCircle,
+    Layers,
 } from 'lucide-react';
 import { adminService, CourseData } from '../../../data/api/adminService';
 import { AddCourseModal } from '../../components/admin/AddCourseModal';
@@ -87,6 +89,7 @@ const getCourseStatus = (course: Course): string => {
 };
 
 export function AdminCoursesPage() {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<MainTab>('academic');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedGradeId, setSelectedGradeId] = useState<number | null>(null);
@@ -464,18 +467,27 @@ export function AdminCoursesPage() {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center gap-2">
-                                                        <button className="w-8 h-8 rounded-[8px] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors">
+                                                        <button className="w-8 h-8 rounded-[8px] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors" title="عرض">
                                                             <Eye size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => navigate(`/admin/courses/${course.id}/units`)}
+                                                            className="w-8 h-8 rounded-[8px] bg-purple-100 hover:bg-purple-200 flex items-center justify-center text-purple-600 transition-colors"
+                                                            title="إدارة الوحدات"
+                                                        >
+                                                            <Layers size={16} />
                                                         </button>
                                                         <button
                                                             onClick={() => setEditingCourse(course as unknown as CourseData)}
                                                             className="w-8 h-8 rounded-[8px] bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 transition-colors"
+                                                            title="تعديل"
                                                         >
                                                             <Edit2 size={16} />
                                                         </button>
                                                         <button
                                                             onClick={() => setDeletingCourse(course)}
                                                             className="w-8 h-8 rounded-[8px] bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 transition-colors"
+                                                            title="حذف"
                                                         >
                                                             <Trash2 size={16} />
                                                         </button>

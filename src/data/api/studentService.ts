@@ -490,6 +490,93 @@ export const studentService = {
         );
         return response.data.data;
     },
+
+    // ============================================================
+    // Schedule Methods
+    // ============================================================
+
+    /**
+     * Get all scheduled lectures for the current student
+     */
+    getSchedules: async (): Promise<{
+        id: number;
+        student_id: number;
+        lecture_id: number;
+        scheduled_at: string;
+        is_completed: boolean;
+        lecture?: {
+            id: number;
+            title: string | { ar?: string; en?: string };
+            description?: string | { ar?: string; en?: string };
+            duration_minutes?: number;
+            course?: {
+                id: number;
+                name: string | { ar?: string; en?: string };
+            };
+        };
+        created_at: string;
+        updated_at: string;
+    }[]> => {
+        const response = await apiClient.get(endpoints.schedules.list);
+        return response.data.data || [];
+    },
+
+    /**
+     * Create a new scheduled lecture
+     */
+    createSchedule: async (data: {
+        lecture_id: number;
+        scheduled_at: string;
+    }): Promise<{
+        id: number;
+        student_id: number;
+        lecture_id: number;
+        scheduled_at: string;
+        is_completed: boolean;
+        created_at: string;
+        updated_at: string;
+    }> => {
+        const response = await apiClient.post(endpoints.schedules.create, data);
+        return response.data.data || response.data;
+    },
+
+    /**
+     * Update a scheduled lecture
+     */
+    updateSchedule: async (
+        id: number,
+        data: { scheduled_at?: string }
+    ): Promise<{
+        id: number;
+        student_id: number;
+        lecture_id: number;
+        scheduled_at: string;
+        is_completed: boolean;
+        created_at: string;
+        updated_at: string;
+    }> => {
+        const response = await apiClient.patch(endpoints.schedules.update(id), data);
+        return response.data.data || response.data;
+    },
+
+    /**
+     * Mark a scheduled lecture as completed
+     */
+    completeSchedule: async (id: number): Promise<{
+        id: number;
+        is_completed: boolean;
+    }> => {
+        const response = await apiClient.patch(endpoints.schedules.complete(id));
+        return response.data.data || response.data;
+    },
+
+    /**
+     * Delete a scheduled lecture
+     */
+    deleteSchedule: async (id: number): Promise<{ success: boolean; message?: string }> => {
+        const response = await apiClient.delete(endpoints.schedules.delete(id));
+        return response.data;
+    },
 };
 
 export default studentService;

@@ -15,6 +15,7 @@ import {
   AdminUsersPage,
   AdminGradesPage,
   AdminCoursesPage,
+  AdminCourseUnitsPage,
   AdminTeachersPage,
   AdminSubscriptionsPage,
   AdminReportsPage,
@@ -145,6 +146,7 @@ function App() {
             <Route path="users" element={<AdminUsersPage />} />
             <Route path="grades" element={<AdminGradesPage />} />
             <Route path="courses" element={<AdminCoursesPage />} />
+            <Route path="courses/:courseId/units" element={<AdminCourseUnitsPage />} />
             <Route path="lectures" element={<AdminLecturesPage />} />
             <Route path="teachers" element={<AdminTeachersPage />} />
             <Route path="subscriptions" element={<AdminSubscriptionsPage />} />

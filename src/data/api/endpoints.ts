@@ -191,6 +191,18 @@ export const endpoints = {
             chunkedCreate: '/api/v1/admin/lectures/chunked-create',
             chunkedUpdate: (id: number) => `/api/v1/admin/lectures/${id}/chunked-update`,
         },
+        // Units (Course curriculum organization)
+        units: {
+            list: (courseId: number) => `/api/v1/admin/courses/${courseId}/units`,
+            create: (courseId: number) => `/api/v1/admin/courses/${courseId}/units`,
+            show: (courseId: number, unitId: number) => `/api/v1/admin/courses/${courseId}/units/${unitId}`,
+            update: (courseId: number, unitId: number) => `/api/v1/admin/courses/${courseId}/units/${unitId}`,
+            delete: (courseId: number, unitId: number) => `/api/v1/admin/courses/${courseId}/units/${unitId}`,
+            reorder: (courseId: number) => `/api/v1/admin/courses/${courseId}/units/reorder`,
+            moveLecture: (unitId: number) => `/api/v1/admin/units/${unitId}/move-lecture`,
+            reorderLectures: (unitId: number) => `/api/v1/admin/units/${unitId}/reorder-lectures`,
+            togglePublish: (unitId: number) => `/api/v1/admin/units/${unitId}/toggle-publish`,
+        },
         // Countries
         countries: {
             list: '/api/v1/admin/countries',
@@ -311,9 +323,12 @@ export const endpoints = {
     schedules: {
         list: '/api/v1/students/schedules',
         create: '/api/v1/students/schedules',
+        update: (id: number) => `/api/v1/students/schedules/${id}`,
         complete: (id: number) => `/api/v1/students/schedules/${id}/complete`,
         delete: (id: number) => `/api/v1/students/schedules/${id}`,
     },
+
+
 
     // Packages
     packages: {

@@ -311,63 +311,104 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
 
     // Loading skeleton component
     const LoadingSkeleton = () => (
-        <div className="p-6 animate-pulse space-y-6">
+        <div className="p-8 animate-pulse space-y-6">
+            {/* Name Section Skeleton */}
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-6 border border-slate-200/60">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="w-9 h-9 rounded-xl bg-red-50"></div>
+                    <div className="h-5 bg-slate-200 rounded w-24"></div>
+                </div>
+                <div className="grid grid-cols-2 gap-5">
+                    <div className="h-12 bg-slate-200/80 rounded-xl"></div>
+                    <div className="h-12 bg-slate-200/80 rounded-xl"></div>
+                </div>
+            </div>
+
+            {/* Code & Credits Skeleton */}
+            <div className="grid grid-cols-3 gap-5">
+                <div className="h-12 bg-slate-100 rounded-xl"></div>
+                <div className="h-12 bg-slate-100 rounded-xl"></div>
+                <div className="h-12 bg-slate-100 rounded-xl"></div>
+            </div>
+
+            {/* Pricing Skeleton */}
+            <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 rounded-2xl p-6 border border-green-200/60">
+                <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-green-100"></div>
+                    <div className="h-5 bg-green-200 rounded w-20"></div>
+                </div>
+                <div className="h-14 bg-white/80 rounded-xl mb-5"></div>
+                <div className="grid grid-cols-2 gap-5">
+                    <div className="h-12 bg-white/60 rounded-xl"></div>
+                    <div className="h-12 bg-white/60 rounded-xl"></div>
+                </div>
+            </div>
+
             {/* Course Type Skeleton */}
-            <div className="bg-slate-100 rounded-[12px] p-4">
-                <div className="h-4 bg-slate-200 rounded w-24 mb-4"></div>
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-6 border border-slate-200/60">
+                <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-red-50"></div>
+                    <div className="h-5 bg-slate-200 rounded w-24"></div>
+                </div>
                 <div className="flex gap-4">
-                    <div className="h-16 bg-slate-200 rounded-lg flex-1"></div>
-                    <div className="h-16 bg-slate-200 rounded-lg flex-1"></div>
+                    <div className="h-20 bg-slate-200/60 rounded-xl flex-1"></div>
+                    <div className="h-20 bg-slate-200/60 rounded-xl flex-1"></div>
                 </div>
             </div>
 
             {/* Academic Classification Skeleton */}
-            <div className="bg-slate-100 rounded-[12px] p-4">
-                <div className="h-4 bg-slate-200 rounded w-32 mb-4"></div>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="h-11 bg-slate-200 rounded-lg"></div>
-                    <div className="h-11 bg-slate-200 rounded-lg"></div>
+            <div className="bg-gradient-to-br from-blue-50 via-indigo-50/50 to-sky-50 rounded-2xl p-6 border border-blue-200/60">
+                <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-blue-100"></div>
+                    <div className="h-5 bg-blue-200 rounded w-32"></div>
                 </div>
-                <div className="h-11 bg-slate-200 rounded-lg"></div>
+                <div className="grid grid-cols-2 gap-5 mb-5">
+                    <div className="h-12 bg-white/60 rounded-xl"></div>
+                    <div className="h-12 bg-white/60 rounded-xl"></div>
+                </div>
+                <div className="h-12 bg-white/60 rounded-xl"></div>
             </div>
 
             {/* Teacher & Dates Skeleton */}
-            <div className="space-y-4">
-                <div className="h-11 bg-slate-200 rounded-lg"></div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="h-11 bg-slate-200 rounded-lg"></div>
-                    <div className="h-11 bg-slate-200 rounded-lg"></div>
+            <div className="space-y-5">
+                <div className="h-12 bg-slate-100 rounded-xl"></div>
+                <div className="grid grid-cols-2 gap-5">
+                    <div className="h-12 bg-slate-100 rounded-xl"></div>
+                    <div className="h-12 bg-slate-100 rounded-xl"></div>
                 </div>
-            </div>
-
-            {/* Name Section Skeleton */}
-            <div className="bg-slate-100 rounded-[12px] p-4">
-                <div className="h-4 bg-slate-200 rounded w-20 mb-4"></div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="h-11 bg-slate-200 rounded-lg"></div>
-                    <div className="h-11 bg-slate-200 rounded-lg"></div>
-                </div>
-            </div>
-
-            {/* Pricing Skeleton */}
-            <div className="bg-slate-100 rounded-[12px] p-4">
-                <div className="h-4 bg-slate-200 rounded w-16 mb-4"></div>
-                <div className="h-11 bg-slate-200 rounded-lg"></div>
             </div>
 
             {/* Description Skeleton */}
-            <div className="bg-slate-100 rounded-[12px] p-4">
-                <div className="h-4 bg-slate-200 rounded w-28 mb-4"></div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="h-24 bg-slate-200 rounded-lg"></div>
-                    <div className="h-24 bg-slate-200 rounded-lg"></div>
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-6 border border-slate-200/60">
+                <div className="h-5 bg-slate-200 rounded w-28 mb-4"></div>
+                <div className="grid grid-cols-2 gap-5">
+                    <div className="h-24 bg-white/60 rounded-xl"></div>
+                    <div className="h-24 bg-white/60 rounded-xl"></div>
                 </div>
             </div>
 
             {/* Image Skeleton */}
-            <div className="bg-slate-100 rounded-[12px] p-4">
-                <div className="h-4 bg-slate-200 rounded w-24 mb-4"></div>
-                <div className="h-32 bg-slate-200 rounded-lg"></div>
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-6 border border-slate-200/60">
+                <div className="h-5 bg-slate-200 rounded w-24 mb-4"></div>
+                <div className="flex items-start gap-5">
+                    <div className="w-32 h-24 bg-white rounded-xl border-2 border-dashed border-slate-300"></div>
+                    <div className="flex-1 space-y-3">
+                        <div className="h-11 bg-slate-200/80 rounded-xl w-40"></div>
+                        <div className="h-4 bg-slate-200/60 rounded w-48"></div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Status Toggles Skeleton */}
+            <div className="flex gap-8 p-4 bg-slate-50/50 rounded-xl border border-slate-200/50">
+                <div className="flex items-center gap-3">
+                    <div className="w-12 h-7 bg-slate-200 rounded-full"></div>
+                    <div className="h-4 bg-slate-200 rounded w-12"></div>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="w-12 h-7 bg-slate-200 rounded-full"></div>
+                    <div className="h-4 bg-slate-200 rounded w-20"></div>
+                </div>
             </div>
         </div>
     );
@@ -504,9 +545,9 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
     };
 
     const inputClass = (fieldName: string) =>
-        `w-full h-11 rounded-[12px] bg-soft-cloud border transition-all outline-none text-sm ${fieldErrors[fieldName]
-            ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-100'
-            : 'border-slate-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10'
+        `w-full h-12 rounded-xl bg-slate-50/80 border-2 transition-all duration-200 outline-none text-sm font-medium ${fieldErrors[fieldName]
+            ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100 bg-red-50/50'
+            : 'border-slate-200/80 focus:border-[#AF0C15] focus:ring-4 focus:ring-[#AF0C15]/10 focus:bg-white hover:border-slate-300'
         }`;
 
     return (
@@ -518,22 +559,22 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
             />
 
             {/* Modal */}
-            <div className="relative bg-white rounded-[20px] shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden animate-in zoom-in-95 fade-in duration-200">
+            <div className="relative bg-white rounded-[24px] shadow-2xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden animate-in zoom-in-95 fade-in duration-300" style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)' }}>
                 {/* Header */}
-                <div className="sticky top-0 bg-gradient-to-br from-amber-500 to-orange-600 px-6 py-5 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                            <BookOpen size={24} className="text-white" />
+                <div className="sticky top-0 bg-[#AF0C15] px-8 py-6 flex items-center justify-between" style={{ boxShadow: '0 4px 20px -4px rgba(175, 12, 21, 0.4)' }}>
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 shadow-lg">
+                            <BookOpen size={28} className="text-white" />
                         </div>
                         <div className="text-white">
-                            <h2 className="text-lg font-extrabold">تعديل الكورس</h2>
-                            <p className="text-xs text-white/80">{getBilingualValue(course.name, 'ar') || course.code}</p>
+                            <h2 className="text-xl font-extrabold tracking-tight">تعديل الكورس</h2>
+                            <p className="text-sm text-white/80 font-medium">{getBilingualValue(course.name, 'ar') || course.code}</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
                         disabled={loading}
-                        className="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors disabled:opacity-50"
+                        className="w-10 h-10 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-sm flex items-center justify-center text-white transition-all duration-200 hover:scale-105 disabled:opacity-50 border border-white/20"
                     >
                         <X size={20} />
                     </button>
@@ -543,25 +584,29 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                 {loadingData || !formData ? (
                     <LoadingSkeleton />
                 ) : (
-                    <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+                    <form onSubmit={handleSubmit} className="p-8 overflow-y-auto max-h-[calc(90vh-200px)]">
                         {/* Error Banner */}
                         {error && (
-                            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-[12px] text-sm flex items-center gap-2">
-                                <AlertCircle size={18} />
-                                {error}
+                            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-sm flex items-center gap-3 shadow-sm">
+                                <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                                    <AlertCircle size={20} className="text-red-600" />
+                                </div>
+                                <span className="font-medium">{error}</span>
                             </div>
                         )}
 
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             {/* Bilingual Name Section */}
-                            <div className="bg-slate-50 rounded-[12px] p-4">
-                                <h3 className="text-sm font-bold text-charcoal mb-3 flex items-center gap-2">
-                                    <BookOpen size={16} className="text-amber-600" />
+                            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-6 border border-slate-200/60 shadow-sm">
+                                <h3 className="text-base font-bold text-charcoal mb-4 flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center">
+                                        <BookOpen size={18} className="text-[#AF0C15]" />
+                                    </div>
                                     اسم الكورس
                                 </h3>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-5">
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 mb-1">بالعربية *</label>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-2">بالعربية *</label>
                                         <input
                                             type="text"
                                             value={formData.name_ar}
@@ -571,10 +616,10 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                                             disabled={loading}
                                             dir="rtl"
                                         />
-                                        {fieldErrors.name_ar && <p className="mt-1 text-xs text-red-500">{fieldErrors.name_ar}</p>}
+                                        {fieldErrors.name_ar && <p className="mt-2 text-xs text-red-500 font-medium">{fieldErrors.name_ar}</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 mb-1">بالإنجليزية *</label>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-2">بالإنجليزية *</label>
                                         <input
                                             type="text"
                                             value={formData.name_en}
@@ -584,16 +629,16 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                                             disabled={loading}
                                             dir="ltr"
                                         />
-                                        {fieldErrors.name_en && <p className="mt-1 text-xs text-red-500">{fieldErrors.name_en}</p>}
+                                        {fieldErrors.name_en && <p className="mt-2 text-xs text-red-500 font-medium">{fieldErrors.name_en}</p>}
                                     </div>
                                 </div>
                             </div>
 
                             {/* Code and Credits */}
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-3 gap-5">
                                 <div>
-                                    <label className="block text-xs font-semibold text-charcoal mb-1.5 flex items-center gap-1">
-                                        <Code size={14} />
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                                        <Code size={15} className="text-slate-500" />
                                         كود الكورس *
                                     </label>
                                     <input
@@ -601,14 +646,14 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                                         value={formData.code}
                                         onChange={(e) => handleChange('code', e.target.value.toUpperCase())}
                                         placeholder="MATH101"
-                                        className={`${inputClass('code')} px-4`}
+                                        className={`${inputClass('code')} px-4 font-mono`}
                                         disabled={loading}
                                         dir="ltr"
                                     />
-                                    {fieldErrors.code && <p className="mt-1 text-xs text-red-500">{fieldErrors.code}</p>}
+                                    {fieldErrors.code && <p className="mt-2 text-xs text-red-500 font-medium">{fieldErrors.code}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-charcoal mb-1.5">الساعات المعتمدة *</label>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">الساعات المعتمدة *</label>
                                     <input
                                         type="number"
                                         value={formData.credits}
@@ -618,11 +663,11 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                                         className={`${inputClass('credits')} px-4`}
                                         disabled={loading}
                                     />
-                                    {fieldErrors.credits && <p className="mt-1 text-xs text-red-500">{fieldErrors.credits}</p>}
+                                    {fieldErrors.credits && <p className="mt-2 text-xs text-red-500 font-medium">{fieldErrors.credits}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-charcoal mb-1.5 flex items-center gap-1">
-                                        <Clock size={14} />
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                                        <Clock size={15} className="text-slate-500" />
                                         مدة الكورس (ساعات)
                                     </label>
                                     <input
@@ -637,21 +682,23 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                                 </div>
                             </div>
                             {/* Pricing Section with Free Toggle */}
-                            <div className="bg-gradient-to-r from-green-50/50 to-emerald-50/50 rounded-[16px] p-5 border border-green-100">
-                                <h3 className="text-sm font-bold text-charcoal mb-4 flex items-center gap-2">
-                                    <DollarSign size={16} className="text-green-600" />
+                            <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 rounded-2xl p-6 border border-green-200/60 shadow-sm">
+                                <h3 className="text-base font-bold text-charcoal mb-5 flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center">
+                                        <DollarSign size={18} className="text-green-600" />
+                                    </div>
                                     التسعير
                                 </h3>
 
                                 {/* Free Course Toggle */}
-                                <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-green-200/50 mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                                            <Gift size={20} className="text-green-600" />
+                                <div className="flex items-center justify-between p-4 rounded-xl bg-white/80 backdrop-blur-sm border border-green-200/50 mb-5 shadow-sm">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center shadow-sm">
+                                            <Gift size={22} className="text-green-600" />
                                         </div>
                                         <div>
-                                            <span className="font-semibold text-charcoal text-sm">كورس مجاني</span>
-                                            <p className="text-xs text-slate-500">لن يتم تحصيل أي رسوم</p>
+                                            <span className="font-bold text-charcoal text-base">كورس مجاني</span>
+                                            <p className="text-sm text-slate-500">لن يتم تحصيل أي رسوم</p>
                                         </div>
                                     </div>
                                     <button
@@ -665,26 +712,26 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                                             }
                                         }}
                                         disabled={loading}
-                                        className={`relative w-14 h-7 rounded-full transition-all duration-300 ${formData.is_free ? 'bg-green-500' : 'bg-slate-300'
+                                        className={`relative w-16 h-8 rounded-full transition-all duration-300 shadow-inner ${formData.is_free ? 'bg-gradient-to-r from-green-500 to-emerald-500' : 'bg-slate-300'
                                             }`}
                                     >
                                         <span
-                                            className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 ${formData.is_free ? 'right-0.5' : 'right-7'
+                                            className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-lg transition-all duration-300 ${formData.is_free ? 'right-1' : 'right-8'
                                                 }`}
                                         />
                                     </button>
                                 </div>
 
                                 {formData.is_free ? (
-                                    <div className="flex items-center gap-2 p-3 rounded-lg bg-green-100 border border-green-300 text-green-700 text-sm font-medium">
-                                        <CheckCircle size={16} />
-                                        هذا الكورس مجاني بالكامل 🎉
+                                    <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300 text-green-700 shadow-sm">
+                                        <CheckCircle size={20} />
+                                        <span className="font-bold text-base">هذا الكورس مجاني بالكامل 🎉</span>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-2 gap-5">
                                         <div>
-                                            <label className="block text-xs font-semibold text-charcoal mb-1.5 flex items-center gap-1">
-                                                <DollarSign size={14} />
+                                            <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                                                <DollarSign size={15} className="text-slate-500" />
                                                 السعر الأصلي (ر.ع) *
                                             </label>
                                             <input
@@ -697,11 +744,11 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                                                 className={`${inputClass('old_price')} px-4`}
                                                 disabled={loading}
                                             />
-                                            {fieldErrors.old_price && <p className="mt-1 text-xs text-red-500">{fieldErrors.old_price}</p>}
+                                            {fieldErrors.old_price && <p className="mt-2 text-xs text-red-500 font-medium">{fieldErrors.old_price}</p>}
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-semibold text-charcoal mb-1.5 flex items-center gap-1">
-                                                <DollarSign size={14} className="text-green-600" />
+                                            <label className="block text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
+                                                <DollarSign size={15} className="text-green-600" />
                                                 السعر بعد الخصم (ر.ع)
                                             </label>
                                             <input
@@ -711,7 +758,7 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                                                 min={0}
                                                 step="0.01"
                                                 placeholder="40.00"
-                                                className={`${inputClass('price')} px-4`}
+                                                className={`${inputClass('price')} px-4 border-green-200 focus:border-green-500`}
                                                 disabled={loading}
                                             />
                                         </div>
@@ -720,40 +767,46 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                             </div>
 
                             {/* Course Type Toggle - Academic vs Skills */}
-                            <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-[16px] p-5 border border-slate-200">
-                                <h3 className="text-sm font-bold text-charcoal mb-3 flex items-center gap-2">
-                                    <GraduationCap size={16} className="text-amber-600" />
+                            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-6 border border-slate-200/60 shadow-sm">
+                                <h3 className="text-base font-bold text-[#1F1F1F] mb-5 flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center">
+                                        <GraduationCap size={18} className="text-[#AF0C15]" />
+                                    </div>
                                     نوع الكورس
                                 </h3>
-                                <div className="flex gap-3">
+                                <div className="flex gap-4">
                                     <button
                                         type="button"
                                         onClick={() => handleChange('is_academic', true)}
                                         disabled={loading}
-                                        className={`flex-1 h-14 rounded-[12px] border-2 transition-all duration-300 flex items-center justify-center gap-2 ${formData.is_academic
-                                            ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md'
-                                            : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+                                        className={`flex-1 h-20 rounded-xl border-2 transition-all duration-300 flex items-center justify-center gap-4 hover:scale-[1.02] ${formData.is_academic
+                                            ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-700 shadow-lg shadow-blue-500/20'
+                                            : 'border-slate-200 bg-white text-slate-500 hover:border-blue-300 hover:bg-blue-50/50'
                                             }`}
                                     >
-                                        <GraduationCap size={20} />
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${formData.is_academic ? 'bg-blue-100' : 'bg-slate-100'}`}>
+                                            <GraduationCap size={24} />
+                                        </div>
                                         <div className="text-right">
-                                            <span className="font-bold text-sm block">أكاديمي</span>
-                                            <span className="text-[10px] opacity-70">مرتبط بصف وترم</span>
+                                            <span className="font-bold text-base block">أكاديمي</span>
+                                            <span className="text-xs opacity-70">مرتبط بصف وترم</span>
                                         </div>
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => handleChange('is_academic', false)}
                                         disabled={loading}
-                                        className={`flex-1 h-14 rounded-[12px] border-2 transition-all duration-300 flex items-center justify-center gap-2 ${!formData.is_academic
-                                            ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-md'
-                                            : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+                                        className={`flex-1 h-20 rounded-xl border-2 transition-all duration-300 flex items-center justify-center gap-4 hover:scale-[1.02] ${!formData.is_academic
+                                            ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-fuchsia-50 text-purple-700 shadow-lg shadow-purple-500/20'
+                                            : 'border-slate-200 bg-white text-slate-500 hover:border-purple-300 hover:bg-purple-50/50'
                                             }`}
                                     >
-                                        <BookOpen size={20} />
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${!formData.is_academic ? 'bg-purple-100' : 'bg-slate-100'}`}>
+                                            <BookOpen size={24} />
+                                        </div>
                                         <div className="text-right">
-                                            <span className="font-bold text-sm block">مهارات</span>
-                                            <span className="text-[10px] opacity-70">قرآن، فقه، لغات</span>
+                                            <span className="font-bold text-base block">مهارات</span>
+                                            <span className="text-xs opacity-70">قرآن، فقه، لغات</span>
                                         </div>
                                     </button>
                                 </div>
@@ -761,16 +814,18 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
 
                             {/* Academic Fields - Only show if is_academic is true */}
                             {formData.is_academic && (
-                                <div className="bg-blue-50/50 rounded-[16px] p-5 border border-blue-100 space-y-4 animate-in slide-in-from-top-2 duration-200">
-                                    <h3 className="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2">
-                                        <GraduationCap size={16} />
+                                <div className="bg-gradient-to-br from-blue-50 via-indigo-50/50 to-sky-50 rounded-2xl p-6 border border-blue-200/60 shadow-sm space-y-5 animate-in slide-in-from-top-2 duration-300">
+                                    <h3 className="text-base font-bold text-blue-800 flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
+                                            <GraduationCap size={18} className="text-blue-600" />
+                                        </div>
                                         التصنيف الأكاديمي
                                     </h3>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-2 gap-5">
                                         <div>
-                                            <label className="block text-xs font-semibold text-charcoal mb-1.5 flex items-center gap-1">
-                                                <GraduationCap size={14} />
+                                            <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                                                <GraduationCap size={15} className="text-blue-500" />
                                                 المرحلة الدراسية *
                                             </label>
                                             <select
@@ -787,17 +842,16 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                                                     <option key={grade.id} value={grade.id}>{grade.name}</option>
                                                 ))}
                                             </select>
-                                            {fieldErrors.grade_id && <p className="mt-1 text-xs text-red-500">{fieldErrors.grade_id}</p>}
+                                            {fieldErrors.grade_id && <p className="mt-2 text-xs text-red-500 font-medium">{fieldErrors.grade_id}</p>}
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-semibold text-charcoal mb-1.5">الفصل الدراسي *</label>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-2">الفصل الدراسي *</label>
                                             <select
                                                 value={formData.semester_id || ''}
                                                 onChange={(e) => {
                                                     const val = parseInt(e.target.value) || null;
                                                     if (val) {
                                                         const selectedSemester = semesters.find(s => s.id === val);
-                                                        // Convert ISO date to yyyy-MM-dd format
                                                         const startDate = selectedSemester?.start_date?.split('T')[0] || '';
                                                         const endDate = selectedSemester?.end_date?.split('T')[0] || '';
                                                         setFormData(prev => prev ? {
@@ -819,12 +873,12 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                                                     <option key={semester.id} value={semester.id}>{semester.name}</option>
                                                 ))}
                                             </select>
-                                            {fieldErrors.semester_id && <p className="mt-1 text-xs text-red-500">{fieldErrors.semester_id}</p>}
+                                            {fieldErrors.semester_id && <p className="mt-2 text-xs text-red-500 font-medium">{fieldErrors.semester_id}</p>}
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-semibold text-charcoal mb-1.5">المادة *</label>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-2">المادة *</label>
                                         <select
                                             value={formData.subject_id || ''}
                                             onChange={(e) => handleChange('subject_id', parseInt(e.target.value) || null)}
@@ -836,15 +890,15 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                                                 <option key={subject.id} value={subject.id}>{subject.name}</option>
                                             ))}
                                         </select>
-                                        {fieldErrors.subject_id && <p className="mt-1 text-xs text-red-500">{fieldErrors.subject_id}</p>}
+                                        {fieldErrors.subject_id && <p className="mt-2 text-xs text-red-500 font-medium">{fieldErrors.subject_id}</p>}
                                     </div>
                                 </div>
                             )}
 
                             {/* Teacher - Always shown */}
                             <div>
-                                <label className="block text-xs font-semibold text-charcoal mb-1.5 flex items-center gap-1">
-                                    <User size={14} />
+                                <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                                    <User size={15} className="text-slate-500" />
                                     المدرس *
                                 </label>
                                 <select
@@ -858,14 +912,14 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                                         <option key={teacher.id} value={teacher.id}>{teacher.name}</option>
                                     ))}
                                 </select>
-                                {fieldErrors.teacher_id && <p className="mt-1 text-xs text-red-500">{fieldErrors.teacher_id}</p>}
+                                {fieldErrors.teacher_id && <p className="mt-2 text-xs text-red-500 font-medium">{fieldErrors.teacher_id}</p>}
                             </div>
 
                             {/* Date Range */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-5">
                                 <div>
-                                    <label className="block text-xs font-semibold text-charcoal mb-1.5 flex items-center gap-1">
-                                        <Calendar size={14} />
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                                        <Calendar size={15} className="text-slate-500" />
                                         تاريخ البداية
                                     </label>
                                     <input
@@ -878,8 +932,8 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-charcoal mb-1.5 flex items-center gap-1">
-                                        <Calendar size={14} />
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                                        <Calendar size={15} className="text-slate-500" />
                                         تاريخ الانتهاء
                                     </label>
                                     <input
@@ -894,27 +948,27 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                             </div>
 
                             {/* Description Section */}
-                            <div className="bg-slate-50 rounded-[12px] p-4">
-                                <h3 className="text-sm font-bold text-charcoal mb-3">الوصف (اختياري)</h3>
-                                <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-6 border border-slate-200/60 shadow-sm">
+                                <h3 className="text-base font-bold text-charcoal mb-4">الوصف (اختياري)</h3>
+                                <div className="grid grid-cols-2 gap-5">
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 mb-1">بالعربية</label>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-2">بالعربية</label>
                                         <textarea
                                             value={formData.description_ar}
                                             onChange={(e) => handleChange('description_ar', e.target.value)}
                                             placeholder="وصف الكورس بالعربية"
-                                            className="w-full h-20 rounded-[12px] bg-white border border-slate-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none text-sm p-3 resize-none"
+                                            className="w-full h-24 rounded-xl bg-white border-2 border-slate-200/80 focus:border-[#AF0C15] focus:ring-4 focus:ring-[#AF0C15]/10 outline-none text-sm p-4 resize-none transition-all duration-200 hover:border-slate-300"
                                             disabled={loading}
                                             dir="rtl"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 mb-1">بالإنجليزية</label>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-2">بالإنجليزية</label>
                                         <textarea
                                             value={formData.description_en}
                                             onChange={(e) => handleChange('description_en', e.target.value)}
                                             placeholder="Course description in English"
-                                            className="w-full h-20 rounded-[12px] bg-white border border-slate-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none text-sm p-3 resize-none"
+                                            className="w-full h-24 rounded-xl bg-white border-2 border-slate-200/80 focus:border-[#AF0C15] focus:ring-4 focus:ring-[#AF0C15]/10 outline-none text-sm p-4 resize-none transition-all duration-200 hover:border-slate-300"
                                             disabled={loading}
                                             dir="ltr"
                                         />
@@ -923,14 +977,14 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                             </div>
 
                             {/* Course Image */}
-                            <div>
-                                <label className="block text-xs font-semibold text-charcoal mb-2">صورة الكورس</label>
-                                <div className="flex items-start gap-4">
-                                    <div className="w-24 h-16 rounded-[12px] bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden">
+                            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-6 border border-slate-200/60 shadow-sm">
+                                <label className="block text-base font-bold text-charcoal mb-4">صورة الكورس</label>
+                                <div className="flex items-start gap-5">
+                                    <div className="w-32 h-24 rounded-xl bg-white border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shadow-inner">
                                         {imagePreview ? (
                                             <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                                         ) : (
-                                            <BookOpen size={24} className="text-slate-400" />
+                                            <BookOpen size={28} className="text-slate-400" />
                                         )}
                                     </div>
                                     <div className="flex-1">
@@ -942,14 +996,14 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                                             className="hidden"
                                             disabled={loading}
                                         />
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-3">
                                             <button
                                                 type="button"
                                                 onClick={() => fileInputRef.current?.click()}
                                                 disabled={loading}
-                                                className="h-9 px-4 rounded-[10px] bg-slate-100 hover:bg-slate-200 text-charcoal font-medium text-sm transition-colors flex items-center gap-2 disabled:opacity-50"
+                                                className="h-11 px-5 rounded-xl bg-white border-2 border-slate-200 hover:border-[#AF0C15] hover:bg-red-50 text-charcoal font-semibold text-sm transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
                                             >
-                                                <ImagePlus size={16} />
+                                                <ImagePlus size={18} />
                                                 <span>{imageFile || imagePreview ? 'تغيير' : 'اختيار صورة'}</span>
                                             </button>
                                             {(imageFile || imagePreview) && (
@@ -957,66 +1011,72 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                                                     type="button"
                                                     onClick={handleRemoveImage}
                                                     disabled={loading}
-                                                    className="w-9 h-9 rounded-[10px] bg-red-100 hover:bg-red-200 text-red-600 transition-colors flex items-center justify-center disabled:opacity-50"
+                                                    className="w-11 h-11 rounded-xl bg-red-50 border-2 border-red-200 hover:bg-red-100 hover:border-red-300 text-red-600 transition-all duration-200 flex items-center justify-center disabled:opacity-50"
                                                 >
-                                                    <Trash2 size={16} />
+                                                    <Trash2 size={18} />
                                                 </button>
                                             )}
                                         </div>
-                                        <p className="text-xs text-slate-400 mt-1">JPEG, PNG, SVG (الحد الأقصى 2MB)</p>
-                                        {fieldErrors.image && <p className="text-xs text-red-500 mt-1">{fieldErrors.image}</p>}
+                                        <p className="text-sm text-slate-500 mt-2">JPEG, PNG, SVG (الحد الأقصى 2MB)</p>
+                                        {fieldErrors.image && <p className="text-xs text-red-500 font-medium mt-1">{fieldErrors.image}</p>}
                                     </div>
                                 </div>
                             </div>
 
                             {/* Status Toggles */}
-                            <div className="flex gap-6">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.is_active}
-                                        onChange={(e) => handleChange('is_active', e.target.checked)}
-                                        className="w-4 h-4 rounded text-amber-600"
-                                        disabled={loading}
-                                    />
-                                    <span className="text-sm text-charcoal">نشط</span>
+                            <div className="flex gap-8 p-4 bg-slate-50/50 rounded-xl border border-slate-200/50">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <div className={`w-12 h-7 rounded-full transition-all duration-300 relative ${formData.is_active ? 'bg-gradient-to-r from-green-500 to-emerald-500' : 'bg-slate-300'}`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.is_active}
+                                            onChange={(e) => handleChange('is_active', e.target.checked)}
+                                            className="sr-only"
+                                            disabled={loading}
+                                        />
+                                        <span className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 ${formData.is_active ? 'right-0.5' : 'right-5'}`} />
+                                    </div>
+                                    <span className="text-sm font-semibold text-[#1F1F1F] group-hover:text-[#27AE60] transition-colors">نشط</span>
                                 </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.is_promoted}
-                                        onChange={(e) => handleChange('is_promoted', e.target.checked)}
-                                        className="w-4 h-4 rounded text-amber-500"
-                                        disabled={loading}
-                                    />
-                                    <span className="text-sm text-charcoal">مميز (Promoted)</span>
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <div className={`w-12 h-7 rounded-full transition-all duration-300 relative ${formData.is_promoted ? 'bg-[#AF0C15]' : 'bg-slate-300'}`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.is_promoted}
+                                            onChange={(e) => handleChange('is_promoted', e.target.checked)}
+                                            className="sr-only"
+                                            disabled={loading}
+                                        />
+                                        <span className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 ${formData.is_promoted ? 'right-0.5' : 'right-5'}`} />
+                                    </div>
+                                    <span className="text-sm font-semibold text-[#1F1F1F] group-hover:text-[#AF0C15] transition-colors">مميز (Promoted)</span>
                                 </label>
                             </div>
                         </div>
 
                         {/* Actions */}
-                        <div className="flex gap-3 mt-6 pt-4 border-t border-slate-100">
+                        <div className="flex gap-4 mt-8 pt-6 border-t border-slate-200">
                             <button
                                 type="button"
                                 onClick={onClose}
                                 disabled={loading}
-                                className="flex-1 h-12 rounded-pill bg-slate-100 hover:bg-slate-200 text-charcoal font-semibold text-sm transition-all disabled:opacity-50"
+                                className="flex-1 h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 text-charcoal font-bold text-base transition-all duration-200 disabled:opacity-50"
                             >
                                 إلغاء
                             </button>
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="flex-1 h-12 rounded-pill bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm shadow-lg transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center gap-2"
+                                className="flex-1 h-14 rounded-full bg-[#AF0C15] hover:bg-[#8E0A11] text-white font-bold text-base shadow-lg shadow-[#AF0C15]/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#AF0C15]/40 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-lg flex items-center justify-center gap-3"
                             >
                                 {loading ? (
                                     <>
-                                        <Loader2 size={18} className="animate-spin" />
+                                        <Loader2 size={20} className="animate-spin" />
                                         <span>جاري الحفظ...</span>
                                     </>
                                 ) : (
                                     <>
-                                        <Save size={18} />
+                                        <Save size={20} />
                                         <span>حفظ التغييرات</span>
                                     </>
                                 )}

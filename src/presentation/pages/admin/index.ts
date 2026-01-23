@@ -3,6 +3,7 @@ export { AdminAdminsPage } from './AdminAdminsPage';
 export { AdminUsersPage } from './AdminUsersPage';
 export { AdminGradesPage } from './AdminGradesPage';
 export { AdminCoursesPage } from './AdminCoursesPage';
+export { AdminCourseUnitsPage } from './AdminCourseUnitsPage';
 export { AdminTeachersPage } from './AdminTeachersPage';
 export { AdminSubscriptionsPage } from './AdminSubscriptionsPage';
 export { AdminReportsPage } from './AdminReportsPage';

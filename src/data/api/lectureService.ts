@@ -18,6 +18,9 @@ interface LectureData {
     end_time?: string;
     is_online?: boolean;
     remove_video?: boolean;
+    is_published?: boolean;
+    unit_id?: number | null;
+    order?: number;
 }
 
 interface ChunkUploadResult {
