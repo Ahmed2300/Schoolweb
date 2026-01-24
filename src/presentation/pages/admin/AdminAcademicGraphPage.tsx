@@ -29,7 +29,8 @@ import {
     Maximize2,
     Minimize2,
     LayoutGrid,
-    GripVertical
+    GripVertical,
+    Video
 } from 'lucide-react';
 import adminService from '../../../data/api/adminService';
 import { toast } from 'react-hot-toast';
@@ -68,7 +69,7 @@ const GradeNode = ({ data }: { data: any }) => {
                 </div>
                 <div>
                     <div className="text-sm font-bold text-gray-900">{data.label}</div>
-                    <div className="text-xs text-gray-500">Grade Level</div>
+                    <div className="text-xs text-gray-500">المرحلة</div>
                 </div>
             </div>
             {/* Larger Handle for easier interaction */}
@@ -88,7 +89,7 @@ const SemesterNode = ({ data }: { data: any }) => {
                 </div>
                 <div>
                     <div className="text-sm font-bold text-gray-900">{data.label}</div>
-                    <div className="text-xs text-gray-500">Semester</div>
+                    <div className="text-xs text-gray-500">الفصل</div>
                 </div>
             </div>
             <Handle type="source" position={Position.Left} className="w-4 h-4 bg-emerald-500 border-2 border-white shadow-sm hover:scale-125 transition-transform cursor-crosshair" />
@@ -107,7 +108,7 @@ const SubjectNode = ({ data }: { data: any }) => {
                 </div>
                 <div>
                     <div className="text-sm font-bold text-gray-900">{data.label}</div>
-                    <div className="text-xs text-gray-500">Subject</div>
+                    <div className="text-xs text-gray-500">المادة</div>
                 </div>
             </div>
             <Handle type="source" position={Position.Left} className="w-4 h-4 bg-amber-500 border-2 border-white shadow-sm hover:scale-125 transition-transform cursor-crosshair" />
@@ -115,10 +116,10 @@ const SubjectNode = ({ data }: { data: any }) => {
     );
 };
 
-// 4. Course Node (Leaf - no loading needed as it has no children)
+// 4. Course Node (Now expandable - has Units as children)
 const CourseNode = ({ data }: { data: any }) => {
     return (
-        <NodeWrapper isLoading={false} isDimmed={data.isDimmed} borderColor="border-slate-400">
+        <NodeWrapper isLoading={data.isLoading} isDimmed={data.isDimmed} borderColor="border-slate-400">
             <Handle type="target" position={Position.Right} className="w-4 h-4 bg-slate-400 border-2 border-white shadow-sm hover:scale-125 transition-transform cursor-crosshair" />
             <div className="flex items-center">
                 <div className="rounded-full bg-slate-100 p-2 mr-3">
@@ -126,7 +127,55 @@ const CourseNode = ({ data }: { data: any }) => {
                 </div>
                 <div>
                     <div className="text-sm font-bold text-gray-900">{data.label}</div>
-                    <div className="text-xs text-gray-500">Course</div>
+                    <div className="text-xs text-gray-500">الكورس</div>
+                </div>
+            </div>
+            <Handle type="source" position={Position.Left} className="w-4 h-4 bg-slate-400 border-2 border-white shadow-sm hover:scale-125 transition-transform cursor-crosshair" />
+        </NodeWrapper>
+    );
+};
+
+// 5. Unit Node (Child of Course, Parent of Lectures)
+const UnitNode = ({ data }: { data: any }) => {
+    return (
+        <NodeWrapper isLoading={data.isLoading} isDimmed={data.isDimmed} borderColor="border-violet-500">
+            <Handle type="target" position={Position.Right} className="w-4 h-4 bg-violet-500 border-2 border-white shadow-sm hover:scale-125 transition-transform cursor-crosshair" />
+            <div className="flex items-center">
+                <div className="rounded-full bg-violet-100 p-2 mr-3">
+                    <Layers size={20} className="text-violet-600" />
+                </div>
+                <div>
+                    <div className="text-sm font-bold text-gray-900">{data.label}</div>
+                    <div className="text-xs text-gray-500 flex items-center gap-1">
+                        الوحدة
+                        {data.is_published === false && (
+                            <span className="px-1 py-0.5 text-[9px] bg-amber-100 text-amber-600 rounded">مخفي</span>
+                        )}
+                    </div>
+                </div>
+            </div>
+            <Handle type="source" position={Position.Left} className="w-4 h-4 bg-violet-500 border-2 border-white shadow-sm hover:scale-125 transition-transform cursor-crosshair" />
+        </NodeWrapper>
+    );
+};
+
+// 6. Lecture Node (Leaf - no children)
+const LectureNode = ({ data }: { data: any }) => {
+    return (
+        <NodeWrapper isLoading={false} isDimmed={data.isDimmed} borderColor="border-pink-500">
+            <Handle type="target" position={Position.Right} className="w-4 h-4 bg-pink-500 border-2 border-white shadow-sm hover:scale-125 transition-transform cursor-crosshair" />
+            <div className="flex items-center">
+                <div className="rounded-full bg-pink-100 p-2 mr-3">
+                    <Video size={20} className="text-pink-600" />
+                </div>
+                <div>
+                    <div className="text-sm font-bold text-gray-900">{data.label}</div>
+                    <div className="text-xs text-gray-500 flex items-center gap-1">
+                        المحاضرة
+                        {data.is_published === false && (
+                            <span className="px-1 py-0.5 text-[9px] bg-amber-100 text-amber-600 rounded">مخفي</span>
+                        )}
+                    </div>
                 </div>
             </div>
         </NodeWrapper>
@@ -138,6 +187,8 @@ const nodeTypes: NodeTypes = {
     semester: SemesterNode,
     subject: SubjectNode,
     course: CourseNode,
+    unit: UnitNode,
+    lecture: LectureNode,
 };
 
 const AdminAcademicGraphPage = () => {
@@ -148,7 +199,7 @@ const AdminAcademicGraphPage = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [showPalette, setShowPalette] = useState(false); // Sidebar Toggle
-    const [unlinkedItems, setUnlinkedItems] = useState<{ semesters: any[], subjects: any[], courses: any[] }>({ semesters: [], subjects: [], courses: [] });
+    const [unlinkedItems, setUnlinkedItems] = useState<{ semesters: any[], subjects: any[], courses: any[], units: any[], lectures: any[] }>({ semesters: [], subjects: [], courses: [], units: [], lectures: [] });
     const [rfInstance, setRfInstance] = useState<any>(null); // React Flow Instance
     const [searchQuery, setSearchQuery] = useState('');
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -158,6 +209,8 @@ const AdminAcademicGraphPage = () => {
         grade: ['semester'],
         semester: ['subject'],
         subject: ['course'],
+        course: ['unit'],
+        unit: ['lecture'],
     };
 
     // Helper to extract error message
@@ -254,12 +307,14 @@ const AdminAcademicGraphPage = () => {
 
         const dbId = data.dbId;
 
-        // Determine child type
+        // Determine child type (API parameter that returns children)
         let childType = '';
         if (type === 'grade') childType = 'grade';
         else if (type === 'semester') childType = 'semester';
         else if (type === 'subject') childType = 'subject';
-        else return; // Courses have no children
+        else if (type === 'course') childType = 'course';  // Returns units
+        else if (type === 'unit') childType = 'unit';      // Returns lectures
+        else return; // Lectures have no children (leaf nodes)
 
         // Set loading state on clicked node by updating its data
         setLoadingNodeId(node.id);
@@ -292,15 +347,19 @@ const AdminAcademicGraphPage = () => {
                         });
                     }
 
-                    newEdges.push({
-                        id: `e-${node.id}-${childNode.id}`,
-                        source: node.id,
-                        target: childNode.id,
-                        type: 'smoothstep',
-                        markerEnd: { type: MarkerType.ArrowClosed },
-                        animated: true,
-                        style: { stroke: '#64748b' }
-                    });
+                    // Only add edge if it doesn't already exist
+                    const edgeId = `e-${node.id}-${childNode.id}`;
+                    if (!edges.find(e => e.id === edgeId)) {
+                        newEdges.push({
+                            id: edgeId,
+                            source: node.id,
+                            target: childNode.id,
+                            type: 'smoothstep',
+                            markerEnd: { type: MarkerType.ArrowClosed },
+                            animated: true,
+                            style: { stroke: '#64748b' }
+                        });
+                    }
                 });
 
                 // Update nodes: add children and clear loading on parent
@@ -308,7 +367,12 @@ const AdminAcademicGraphPage = () => {
                     ...nds.map(n => n.id === node.id ? { ...n, data: { ...n.data, isLoading: false } } : n),
                     ...newNodes
                 ]);
-                setEdges((eds) => [...eds, ...newEdges]);
+                // Filter out any edges that might already exist (defensive)
+                setEdges((eds) => {
+                    const existingIds = new Set(eds.map(e => e.id));
+                    const uniqueNewEdges = newEdges.filter(e => !existingIds.has(e.id));
+                    return [...eds, ...uniqueNewEdges];
+                });
                 setExpandedNodes((prev) => new Set(prev).add(node.id));
             } else {
                 toast('No items found inside this node', { icon: '📭' });
@@ -510,6 +574,8 @@ const AdminAcademicGraphPage = () => {
                 semesters: type === 'semester' ? prev.semesters.filter(i => i.id !== newNode.id) : prev.semesters,
                 subjects: type === 'subject' ? prev.subjects.filter(i => i.id !== newNode.id) : prev.subjects,
                 courses: type === 'course' ? prev.courses.filter(i => i.id !== newNode.id) : prev.courses,
+                units: type === 'unit' ? prev.units.filter(i => i.id !== newNode.id) : prev.units,
+                lectures: type === 'lecture' ? prev.lectures.filter(i => i.id !== newNode.id) : prev.lectures,
             }));
 
             setHasUnsavedChanges(true); // Mark as dirty
@@ -568,7 +634,7 @@ const AdminAcademicGraphPage = () => {
             : 'h-[calc(100vh-64px)]'
             }`}>
             {/* Header Toolbar */}
-            <div className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between z-10">
+            <div className="h-auto min-h-14 lg:h-16 bg-white border-b border-slate-200 px-3 lg:px-6 py-2 lg:py-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 z-10">
                 <div className="flex items-center gap-3">
                     <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600">
                         <Layers size={24} />
@@ -591,14 +657,14 @@ const AdminAcademicGraphPage = () => {
                         <span>إعادة تعيين</span>
                     </button>
 
-                    <div className="relative">
+                    <div className="relative hidden md:block">
                         <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="بحث..."
-                            className="pr-10 pl-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 w-64"
+                            className="pr-10 pl-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 w-40 lg:w-64"
                         />
                     </div>
 
@@ -650,7 +716,7 @@ const AdminAcademicGraphPage = () => {
                 </div>
 
                 {/* Entity Palette Sidebar */}
-                <div className={`absolute top-0 left-0 h-full bg-white border-r border-slate-200 shadow-xl transition-transform duration-300 z-40 w-80 flex flex-col ${showPalette ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className={`absolute top-0 left-0 h-full bg-white border-r border-slate-200 shadow-xl transition-transform duration-300 z-40 w-full sm:w-72 lg:w-80 flex flex-col ${showPalette ? 'translate-x-0' : '-translate-x-full'}`}>
                     <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                         <h2 className="font-bold text-slate-800 flex items-center gap-2">
                             <LayoutGrid size={18} className="text-indigo-600" />
@@ -711,16 +777,62 @@ const AdminAcademicGraphPage = () => {
                         {/* Courses */}
                         <div>
                             <h3 className="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-slate-400"></span> دورات غير مرتبطة
+                                <span className="w-2 h-2 rounded-full bg-slate-400"></span> كورسات غير مرتبطة
                             </h3>
                             <div className="space-y-2">
-                                {unlinkedItems.courses.length === 0 && <p className="text-xs text-slate-400 italic">لا توجد دورات غير مرتبطة</p>}
+                                {unlinkedItems.courses.length === 0 && <p className="text-xs text-slate-400 italic">لا توجد كورسات غير مرتبطة</p>}
                                 {unlinkedItems.courses.map(item => (
                                     <div
                                         key={item.id}
                                         draggable
                                         onDragStart={(e) => onDragStart(e, 'course', { ...item.data, id: item.id })}
-                                        className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm cursor-grab hover:border-blue-400 hover:shadow-md transition-all flex items-center gap-3 active:cursor-grabbing"
+                                        className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm cursor-grab hover:border-slate-400 hover:shadow-md transition-all flex items-center gap-3 active:cursor-grabbing"
+                                    >
+                                        <GripVertical size={16} className="text-slate-300" />
+                                        <div className="flex-1">
+                                            <div className="text-sm font-medium text-slate-700">{item.data.label}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Units */}
+                        <div>
+                            <h3 className="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-violet-500"></span> وحدات غير مرتبطة
+                            </h3>
+                            <div className="space-y-2">
+                                {unlinkedItems.units.length === 0 && <p className="text-xs text-slate-400 italic">لا توجد وحدات غير مرتبطة</p>}
+                                {unlinkedItems.units.map(item => (
+                                    <div
+                                        key={item.id}
+                                        draggable
+                                        onDragStart={(e) => onDragStart(e, 'unit', { ...item.data, id: item.id })}
+                                        className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm cursor-grab hover:border-violet-400 hover:shadow-md transition-all flex items-center gap-3 active:cursor-grabbing"
+                                    >
+                                        <GripVertical size={16} className="text-slate-300" />
+                                        <div className="flex-1">
+                                            <div className="text-sm font-medium text-slate-700">{item.data.label}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Lectures */}
+                        <div>
+                            <h3 className="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-pink-500"></span> محاضرات غير مرتبطة
+                            </h3>
+                            <div className="space-y-2">
+                                {unlinkedItems.lectures.length === 0 && <p className="text-xs text-slate-400 italic">لا توجد محاضرات غير مرتبطة</p>}
+                                {unlinkedItems.lectures.map(item => (
+                                    <div
+                                        key={item.id}
+                                        draggable
+                                        onDragStart={(e) => onDragStart(e, 'lecture', { ...item.data, id: item.id })}
+                                        className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm cursor-grab hover:border-pink-400 hover:shadow-md transition-all flex items-center gap-3 active:cursor-grabbing"
                                     >
                                         <GripVertical size={16} className="text-slate-300" />
                                         <div className="flex-1">
@@ -735,9 +847,18 @@ const AdminAcademicGraphPage = () => {
             </div>
 
             {/* Legend / Instructions */}
-            <div className={`absolute bottom-6 right-6 bg-white/90 backdrop-blur shadow-lg rounded-xl p-4 border border-slate-200 z-50`}>
+            <div className={`absolute bottom-2 right-2 sm:bottom-4 sm:right-4 lg:bottom-6 lg:right-6 bg-white/90 backdrop-blur shadow-lg rounded-xl p-2 sm:p-3 lg:p-4 border border-slate-200 z-50 max-w-[90vw] sm:max-w-xs lg:max-w-sm text-[10px] sm:text-xs`}>
+                <h3 className="text-xs font-bold text-slate-500 uppercase mb-2 text-right">أنواع العقد</h3>
+                <div className="flex flex-wrap gap-2 mb-3 justify-end">
+                    <span className="flex items-center gap-1 text-xs"><span className="w-2 h-2 rounded-full bg-indigo-500"></span>المرحلة</span>
+                    <span className="flex items-center gap-1 text-xs"><span className="w-2 h-2 rounded-full bg-emerald-500"></span>الفصل</span>
+                    <span className="flex items-center gap-1 text-xs"><span className="w-2 h-2 rounded-full bg-amber-500"></span>المادة</span>
+                    <span className="flex items-center gap-1 text-xs"><span className="w-2 h-2 rounded-full bg-slate-400"></span>الكورس</span>
+                    <span className="flex items-center gap-1 text-xs"><span className="w-2 h-2 rounded-full bg-violet-500"></span>الوحدة</span>
+                    <span className="flex items-center gap-1 text-xs"><span className="w-2 h-2 rounded-full bg-pink-500"></span>المحاضرة</span>
+                </div>
                 <h3 className="text-xs font-bold text-slate-500 uppercase mb-2 text-right">التعليمات</h3>
-                <ul className="text-sm space-y-2 text-slate-700">
+                <ul className="text-[10px] sm:text-xs lg:text-sm space-y-1 sm:space-y-2 text-slate-700 hidden sm:block">
                     <li className="flex items-center justify-end gap-2">
                         <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
                         <span className="font-bold text-indigo-600">لتوسيع/طي</span>

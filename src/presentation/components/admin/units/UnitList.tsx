@@ -42,7 +42,7 @@ interface UnitListProps {
     onMoveLecture: (lectureId: number, targetUnitId: number, order?: number) => void;
     onEdit: (unit: Unit) => void;
     onDelete: (unit: Unit) => void;
-    onTogglePublish: (unit: Unit) => void;
+    onTogglePublish?: (unit: Unit) => void;
     onAddLecture?: (unit: Unit) => void;
     onEditLecture?: (lecture: UnitLecture) => void;
     onDeleteLecture?: (lecture: UnitLecture) => void;

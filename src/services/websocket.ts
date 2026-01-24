@@ -9,11 +9,17 @@ declare global {
     }
 }
 
+// Disable Pusher logging in production and suppress connection errors
+Pusher.logToConsole = false;
+
 window.Pusher = Pusher;
 
 /**
  * WebSocket Configuration - using Reverb
+ * Set VITE_WEBSOCKET_ENABLED=false in .env to disable WebSocket
  */
+const WEBSOCKET_ENABLED = import.meta.env.VITE_WEBSOCKET_ENABLED !== 'false';
+
 const REVERB_CONFIG = {
     key: import.meta.env.VITE_REVERB_APP_KEY || 'school-reverb-key',
     host: import.meta.env.VITE_REVERB_HOST || 'localhost',
@@ -21,14 +27,24 @@ const REVERB_CONFIG = {
     scheme: import.meta.env.VITE_REVERB_SCHEME || 'http',
 };
 
+// Track connection status to prevent spamming
+let connectionFailed = false;
+
 let echoInstance: Echo<'reverb'> | null = null;
 let studentEchoInstance: Echo<'reverb'> | null = null;
 let parentEchoInstance: Echo<'reverb'> | null = null;
+let teacherEchoInstance: Echo<'reverb'> | null = null;
 
 /**
  * Initialize Laravel Echo with Reverb broadcaster (for Admin)
+ * Returns null if WebSocket is disabled
  */
-export function initializeEcho(authToken: string): Echo<'reverb'> {
+export function initializeEcho(authToken: string): Echo<'reverb'> | null {
+    // Skip WebSocket if disabled via environment
+    if (!WEBSOCKET_ENABLED) {
+        return null;
+    }
+
     if (echoInstance) {
         return echoInstance;
     }
@@ -273,4 +289,89 @@ export default {
     disconnectParentEcho,
     subscribeToParentChannel,
     unsubscribeFromParentChannel,
+    initializeTeacherEcho,
+    getTeacherEcho,
+    disconnectTeacherEcho,
+    subscribeToTeacherChannel,
+    unsubscribeFromTeacherChannel,
 };
+
+/**
+ * Initialize Laravel Echo with Reverb broadcaster (for Teacher)
+ */
+export function initializeTeacherEcho(authToken: string): Echo<'reverb'> {
+    if (teacherEchoInstance) {
+        return teacherEchoInstance;
+    }
+
+    const apiBaseUrl = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`;
+
+    teacherEchoInstance = new Echo({
+        broadcaster: 'reverb',
+        key: REVERB_CONFIG.key,
+        wsHost: REVERB_CONFIG.host,
+        wsPort: REVERB_CONFIG.port,
+        wssPort: REVERB_CONFIG.port,
+        forceTLS: REVERB_CONFIG.scheme === 'https',
+        enabledTransports: ['ws', 'wss'],
+        authEndpoint: `${apiBaseUrl}/api/broadcasting/auth/teacher`,
+        auth: {
+            headers: {
+                Authorization: `Bearer ${authToken}`,
+            },
+        },
+    });
+
+    return teacherEchoInstance;
+}
+
+/**
+ * Get the teacher Echo instance
+ */
+export function getTeacherEcho(): Echo<'reverb'> | null {
+    return teacherEchoInstance;
+}
+
+/**
+ * Disconnect and cleanup teacher Echo
+ */
+export function disconnectTeacherEcho(): void {
+    if (teacherEchoInstance) {
+        teacherEchoInstance.disconnect();
+        teacherEchoInstance = null;
+    }
+}
+
+/**
+ * Subscribe to teacher notification channel
+ */
+export function subscribeToTeacherChannel(
+    teacherId: number,
+    onNotification: (event: unknown) => void
+): void {
+    const echo = getTeacherEcho();
+    if (!echo) {
+        console.error('Teacher Echo not initialized. Call initializeTeacherEcho first.');
+        return;
+    }
+
+    echo
+        .private(`teacher.${teacherId}`)
+        .listen('.content.decision', (event: unknown) => { // Listening to specific event or generic notification?
+            // Event name in backend: ContentChangeDecided
+            // BroadcastAs 'content.decision'
+            console.log('Received teacher notification:', event);
+            onNotification(event);
+        });
+}
+
+/**
+ * Unsubscribe from teacher notification channel
+ */
+export function unsubscribeFromTeacherChannel(teacherId: number): void {
+    const echo = getTeacherEcho();
+    if (echo) {
+        echo.leave(`teacher.${teacherId}`);
+    }
+}
+

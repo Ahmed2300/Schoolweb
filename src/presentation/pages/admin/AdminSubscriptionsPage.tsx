@@ -67,6 +67,7 @@ export function AdminSubscriptionsPage() {
     const [selectedSubscription, setSelectedSubscription] = useState<AdminSubscription | null>(null);
     const [showReceiptModal, setShowReceiptModal] = useState(false);
     const [showRejectModal, setShowRejectModal] = useState(false);
+    const [showApproveModal, setShowApproveModal] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
 
@@ -117,11 +118,18 @@ export function AdminSubscriptionsPage() {
     }, [fetchSubscriptions]);
 
     // Handlers
-    const handleApprove = async (subscription: AdminSubscription) => {
-        if (!confirm(`هل تريد تفعيل اشتراك ${subscription.student?.name}؟`)) return;
+    const openApproveModal = (subscription: AdminSubscription) => {
+        setSelectedSubscription(subscription);
+        setShowApproveModal(true);
+    };
+
+    const handleApprove = async () => {
+        if (!selectedSubscription) return;
         setActionLoading(true);
         try {
-            await adminService.approveSubscription(subscription.id);
+            await adminService.approveSubscription(selectedSubscription.id);
+            setShowApproveModal(false);
+            setSelectedSubscription(null);
             fetchSubscriptions();
         } catch (err) {
             console.error('Error approving subscription:', err);
@@ -340,7 +348,7 @@ export function AdminSubscriptionsPage() {
                                                 {sub.status === 2 && (
                                                     <>
                                                         <button
-                                                            onClick={() => handleApprove(sub)}
+                                                            onClick={() => openApproveModal(sub)}
                                                             disabled={actionLoading}
                                                             className="py-2 px-4 rounded-[8px] bg-green-100 hover:bg-green-200 text-green-700 font-semibold text-xs transition-colors flex items-center gap-1 disabled:opacity-50"
                                                         >
@@ -382,124 +390,196 @@ export function AdminSubscriptionsPage() {
                             ))}
                         </div>
                     )}
-                </div>
-            )}
+                </div >
+            )
+            }
 
             {/* Receipt Preview Modal */}
-            {showReceiptModal && selectedSubscription && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowReceiptModal(false)}>
-                    <div className="bg-white rounded-[20px] max-w-lg w-full overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-                        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                            <h3 className="font-bold text-charcoal flex items-center gap-2">
-                                <Receipt size={20} />
-                                معاينة الإيصال
-                            </h3>
-                            <button onClick={() => setShowReceiptModal(false)} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
-                                <X size={18} className="text-slate-500" />
-                            </button>
-                        </div>
-                        <div className="p-6">
-                            {selectedSubscription.bill_image_path ? (
-                                <img
-                                    src={selectedSubscription.bill_image_path}
-                                    alt="إيصال الدفع"
-                                    className="w-full rounded-[12px] shadow-lg mb-6"
-                                />
-                            ) : (
-                                <div className="h-48 bg-gradient-to-br from-slate-100 to-slate-200 rounded-[12px] flex items-center justify-center mb-6">
-                                    <Receipt size={48} className="text-slate-400" />
+            {
+                showReceiptModal && selectedSubscription && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowReceiptModal(false)}>
+                        <div className="bg-white rounded-[20px] max-w-lg w-full overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+                            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                                <h3 className="font-bold text-charcoal flex items-center gap-2">
+                                    <Receipt size={20} />
+                                    معاينة الإيصال
+                                </h3>
+                                <button onClick={() => setShowReceiptModal(false)} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+                                    <X size={18} className="text-slate-500" />
+                                </button>
+                            </div>
+                            <div className="p-6">
+                                {selectedSubscription.bill_image_path ? (
+                                    <img
+                                        src={selectedSubscription.bill_image_path}
+                                        alt="إيصال الدفع"
+                                        className="w-full rounded-[12px] shadow-lg mb-6"
+                                    />
+                                ) : (
+                                    <div className="h-48 bg-gradient-to-br from-slate-100 to-slate-200 rounded-[12px] flex items-center justify-center mb-6">
+                                        <Receipt size={48} className="text-slate-400" />
+                                    </div>
+                                )}
+                                <div className="space-y-3 mb-6">
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-[10px]">
+                                        <User size={18} className="text-slate-400" />
+                                        <div>
+                                            <p className="text-xs text-slate-grey">الطالب</p>
+                                            <p className="font-semibold text-charcoal">{selectedSubscription.student?.name}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-[10px]">
+                                        <BookOpen size={18} className="text-slate-400" />
+                                        <div>
+                                            <p className="text-xs text-slate-grey">الدورة</p>
+                                            <p className="font-semibold text-charcoal">{getLocalizedName(selectedSubscription.course?.name)}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
-                            <div className="space-y-3 mb-6">
-                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-[10px]">
+                                {selectedSubscription.status === 2 && (
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={() => {
+                                                setShowReceiptModal(false);
+                                                openApproveModal(selectedSubscription);
+                                            }}
+                                            disabled={actionLoading}
+                                            className="flex-1 py-3 rounded-[12px] bg-green-600 hover:bg-green-700 text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                        >
+                                            <Check size={18} />
+                                            قبول الاشتراك
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setShowReceiptModal(false);
+                                                openRejectModal(selectedSubscription);
+                                            }}
+                                            className="flex-1 py-3 rounded-[12px] bg-red-100 hover:bg-red-200 text-red-600 font-bold text-sm transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <X size={18} />
+                                            رفض
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Reject Modal */}
+            {
+                showRejectModal && selectedSubscription && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowRejectModal(false)}>
+                        <div className="bg-white rounded-[20px] max-w-md w-full overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+                            <div className="px-6 py-4 border-b border-red-100 bg-red-50 flex items-center justify-between">
+                                <h3 className="font-bold text-red-700 flex items-center gap-2">
+                                    <XCircle size={20} />
+                                    رفض الاشتراك
+                                </h3>
+                                <button onClick={() => setShowRejectModal(false)} className="w-8 h-8 rounded-full bg-red-100 hover:bg-red-200 flex items-center justify-center">
+                                    <X size={18} className="text-red-600" />
+                                </button>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <p className="text-sm text-slate-600">
+                                    أنت على وشك رفض طلب اشتراك <strong>{selectedSubscription.student?.name}</strong> في دورة <strong>{getLocalizedName(selectedSubscription.course?.name)}</strong>
+                                </p>
+                                <div>
+                                    <label className="block text-sm font-medium text-charcoal mb-2">سبب الرفض *</label>
+                                    <textarea
+                                        value={rejectionReason}
+                                        onChange={(e) => setRejectionReason(e.target.value)}
+                                        placeholder="اكتب سبب رفض الطلب..."
+                                        className="w-full h-24 rounded-[12px] border border-slate-200 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none p-3 text-sm resize-none"
+                                    />
+                                </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setShowRejectModal(false)}
+                                        className="flex-1 py-3 rounded-[12px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors"
+                                    >
+                                        إلغاء
+                                    </button>
+                                    <button
+                                        onClick={handleReject}
+                                        disabled={actionLoading || !rejectionReason.trim()}
+                                        className="flex-1 py-3 rounded-[12px] bg-red-600 hover:bg-red-700 text-white font-bold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        {actionLoading ? (
+                                            <Loader2 size={18} className="animate-spin" />
+                                        ) : (
+                                            <XCircle size={18} />
+                                        )}
+                                        تأكيد الرفض
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Approve Confirm Modal */}
+            {showApproveModal && selectedSubscription && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowApproveModal(false)}>
+                    <div className="bg-white rounded-[20px] max-w-md w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                        <div className="px-6 py-5 border-b border-green-100 bg-gradient-to-r from-green-50 to-emerald-50">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                                    <Check size={28} className="text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-lg text-charcoal">تأكيد تفعيل الاشتراك</h3>
+                                    <p className="text-sm text-green-700">هل تريد تفعيل هذا الاشتراك؟</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="space-y-3 bg-slate-50 rounded-xl p-4">
+                                <div className="flex items-center gap-3">
                                     <User size={18} className="text-slate-400" />
                                     <div>
                                         <p className="text-xs text-slate-grey">الطالب</p>
                                         <p className="font-semibold text-charcoal">{selectedSubscription.student?.name}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-[10px]">
+                                <div className="flex items-center gap-3">
                                     <BookOpen size={18} className="text-slate-400" />
                                     <div>
                                         <p className="text-xs text-slate-grey">الدورة</p>
                                         <p className="font-semibold text-charcoal">{getLocalizedName(selectedSubscription.course?.name)}</p>
                                     </div>
                                 </div>
-                            </div>
-                            {selectedSubscription.status === 2 && (
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={() => {
-                                            setShowReceiptModal(false);
-                                            handleApprove(selectedSubscription);
-                                        }}
-                                        disabled={actionLoading}
-                                        className="flex-1 py-3 rounded-[12px] bg-green-600 hover:bg-green-700 text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                                    >
-                                        <Check size={18} />
-                                        قبول الاشتراك
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setShowReceiptModal(false);
-                                            openRejectModal(selectedSubscription);
-                                        }}
-                                        className="flex-1 py-3 rounded-[12px] bg-red-100 hover:bg-red-200 text-red-600 font-bold text-sm transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <X size={18} />
-                                        رفض
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Reject Modal */}
-            {showRejectModal && selectedSubscription && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowRejectModal(false)}>
-                    <div className="bg-white rounded-[20px] max-w-md w-full overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-                        <div className="px-6 py-4 border-b border-red-100 bg-red-50 flex items-center justify-between">
-                            <h3 className="font-bold text-red-700 flex items-center gap-2">
-                                <XCircle size={20} />
-                                رفض الاشتراك
-                            </h3>
-                            <button onClick={() => setShowRejectModal(false)} className="w-8 h-8 rounded-full bg-red-100 hover:bg-red-200 flex items-center justify-center">
-                                <X size={18} className="text-red-600" />
-                            </button>
-                        </div>
-                        <div className="p-6 space-y-4">
-                            <p className="text-sm text-slate-600">
-                                أنت على وشك رفض طلب اشتراك <strong>{selectedSubscription.student?.name}</strong> في دورة <strong>{getLocalizedName(selectedSubscription.course?.name)}</strong>
-                            </p>
-                            <div>
-                                <label className="block text-sm font-medium text-charcoal mb-2">سبب الرفض *</label>
-                                <textarea
-                                    value={rejectionReason}
-                                    onChange={(e) => setRejectionReason(e.target.value)}
-                                    placeholder="اكتب سبب رفض الطلب..."
-                                    className="w-full h-24 rounded-[12px] border border-slate-200 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none p-3 text-sm resize-none"
-                                />
+                                {selectedSubscription.course?.price && (
+                                    <div className="flex items-center gap-3">
+                                        <DollarSign size={18} className="text-slate-400" />
+                                        <div>
+                                            <p className="text-xs text-slate-grey">السعر</p>
+                                            <p className="font-semibold text-charcoal">{selectedSubscription.course.price} ر.ع</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <div className="flex gap-3">
                                 <button
-                                    onClick={() => setShowRejectModal(false)}
-                                    className="flex-1 py-3 rounded-[12px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors"
+                                    onClick={() => setShowApproveModal(false)}
+                                    disabled={actionLoading}
+                                    className="flex-1 py-3 rounded-[12px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors disabled:opacity-50"
                                 >
                                     إلغاء
                                 </button>
                                 <button
-                                    onClick={handleReject}
-                                    disabled={actionLoading || !rejectionReason.trim()}
-                                    className="flex-1 py-3 rounded-[12px] bg-red-600 hover:bg-red-700 text-white font-bold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                    onClick={handleApprove}
+                                    disabled={actionLoading}
+                                    className="flex-1 py-3 rounded-[12px] bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-green-500/25"
                                 >
                                     {actionLoading ? (
                                         <Loader2 size={18} className="animate-spin" />
                                     ) : (
-                                        <XCircle size={18} />
+                                        <Check size={18} />
                                     )}
-                                    تأكيد الرفض
+                                    تأكيد التفعيل
                                 </button>
                             </div>
                         </div>

@@ -33,6 +33,7 @@ export interface UnitLecture {
     is_online?: boolean;
     start_time?: string;
     end_time?: string;
+    video_url?: string;
 }
 
 export interface CreateUnitRequest {

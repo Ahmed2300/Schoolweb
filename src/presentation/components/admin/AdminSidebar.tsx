@@ -20,7 +20,9 @@ import {
     School,
     Wallet,
     PlayCircle,
-    Package
+    Package,
+    Clock,
+    CheckCircle
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../shared/constants';
@@ -69,6 +71,8 @@ const navGroups: NavGroup[] = [
             { icon: <ListTree size={18} />, label: 'المواد الدراسية', path: '/admin/subjects' },
             { icon: <BookOpen size={18} />, label: 'الكورسات', path: ROUTES.ADMIN_COURSES },
             { icon: <PlayCircle size={18} />, label: 'المحاضرات', path: ROUTES.ADMIN_LECTURES },
+            { icon: <Clock size={18} />, label: 'المواعيد', path: '/admin/time-slots' },
+            { icon: <CheckCircle size={18} />, label: 'طلبات التعديل', path: '/admin/content-approvals' },
             { icon: <Package size={18} />, label: 'الباقات', path: '/admin/packages' },
         ],
     },
@@ -96,9 +100,10 @@ const navGroups: NavGroup[] = [
 interface AdminSidebarProps {
     isCollapsed: boolean;
     onToggle: () => void;
+    className?: string;
 }
 
-export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps): React.ReactElement {
+export function AdminSidebar({ isCollapsed, onToggle, className = '' }: AdminSidebarProps): React.ReactElement {
     const location = useLocation();
     const navigate = useNavigate();
     const { logout } = useAuthStore();
@@ -138,6 +143,7 @@ export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps): Reac
                 fixed top-0 right-0 h-screen bg-white border-l border-slate-200
                 transition-all duration-300 z-50 flex flex-col
                 ${isCollapsed ? 'w-20' : 'w-72'}
+                ${className}
             `}
         >
             <div className="h-16 flex items-center justify-center border-b border-slate-100 px-4 shrink-0">

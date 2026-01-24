@@ -7,7 +7,8 @@ import { teacherAuthService } from '../../../data/api/teacherAuthService';
 import { ROUTES } from '../../../shared/constants';
 
 // Icons
-import { Search, Bell } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { TeacherNotificationMenu } from './TeacherNotificationMenu';
 
 // Assets
 import teacherPlaceholder from '../../../assets/images/teacher-placeholder.png';
@@ -34,6 +35,8 @@ interface TeacherLayoutProps {
     sessionTimeoutMinutes?: number;
     sessionWarningSeconds?: number;
 }
+
+
 
 export function TeacherLayout({
     sessionTimeoutMinutes = 30,
@@ -145,17 +148,7 @@ export function TeacherLayout({
 
                     {/* Right side - Notifications */}
                     <div className="flex items-center gap-4">
-                        {/* Notifications */}
-                        <button
-                            className="relative w-10 h-10 rounded-xl bg-[#F8F9FA] hover:bg-slate-100 border border-slate-200 flex items-center justify-center text-[#636E72] hover:text-[#1F1F1F] transition-all"
-                            aria-label="Notifications"
-                        >
-                            <Bell size={20} />
-                            {/* Notification badge */}
-                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-shibl-crimson text-white text-xs font-bold rounded-full flex items-center justify-center">
-                                3
-                            </span>
-                        </button>
+                        <TeacherNotificationMenu />
                     </div>
                 </header>
 

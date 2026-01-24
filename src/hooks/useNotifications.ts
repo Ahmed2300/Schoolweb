@@ -94,8 +94,13 @@ export function useNotifications(): UseNotificationsReturn {
         }
 
         try {
-            initializeEcho(token);
-            initializeEcho(token);
+            const echo = initializeEcho(token);
+            // If WebSocket is disabled, echo will be null - skip subscription silently
+            if (!echo) {
+                setIsConnected(false);
+                return;
+            }
+
             // Cast to any to bypass strict number check if user.id is string|number
             subscribeToAdminChannel(user.id as any, handleNotification as (event: unknown) => void);
             setIsConnected(true);

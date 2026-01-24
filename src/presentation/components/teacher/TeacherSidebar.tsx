@@ -41,7 +41,7 @@ const navItems: NavItem[] = [
     { id: 'dashboard', label: 'لوحة التحكم', icon: LayoutDashboard, path: ROUTES.TEACHER_DASHBOARD },
     { id: 'courses', label: 'الدورات', icon: BookOpen, path: ROUTES.TEACHER_COURSES },
     { id: 'students', label: 'الطلاب', icon: Users, path: '/teacher/students' },
-    { id: 'schedule', label: 'الجدول', icon: Calendar, path: '/teacher/schedule' },
+    { id: 'schedule', label: 'الجدول', icon: Calendar, path: '/teacher/time-slots' },
     { id: 'quizzes', label: 'الاختبارات', icon: ClipboardList, path: ROUTES.TEACHER_QUIZZES },
     { id: 'analytics', label: 'الإحصائيات', icon: BarChart3, path: ROUTES.TEACHER_ANALYTICS },
     { id: 'settings', label: 'الإعدادات', icon: Settings, path: '/teacher/settings' },

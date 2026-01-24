@@ -1945,6 +1945,105 @@ export const adminService = {
         const response = await apiClient.post(endpoints.admin.units.togglePublish(unitId));
         return response.data;
     },
+
+    // ==================== TIME SLOTS MANAGEMENT ====================
+
+    /**
+     * Get all time slots with optional filters
+     */
+    getTimeSlots: async (filters?: { status?: string; date?: string }) => {
+        const params = new URLSearchParams();
+        if (filters?.status) params.append('status', filters.status);
+        if (filters?.date) params.append('date', filters.date);
+
+        const url = params.toString()
+            ? `${endpoints.admin.timeSlots.list}?${params.toString()}`
+            : endpoints.admin.timeSlots.list;
+        const response = await apiClient.get(url);
+        return response.data;
+    },
+
+    /**
+     * Get a single time slot by ID
+     */
+    getTimeSlot: async (id: number) => {
+        const response = await apiClient.get(endpoints.admin.timeSlots.show(id));
+        return response.data;
+    },
+
+    /**
+     * Create a new time slot
+     */
+    createTimeSlot: async (data: { start_time: string; end_time: string; is_available?: boolean }) => {
+        const response = await apiClient.post(endpoints.admin.timeSlots.create, data);
+        return response.data;
+    },
+
+    /**
+     * Update a time slot
+     */
+    updateTimeSlot: async (id: number, data: { start_time?: string; end_time?: string; is_available?: boolean }) => {
+        const response = await apiClient.put(endpoints.admin.timeSlots.update(id), data);
+        return response.data;
+    },
+
+    /**
+     * Delete a time slot
+     */
+    deleteTimeSlot: async (id: number) => {
+        const response = await apiClient.delete(endpoints.admin.timeSlots.delete(id));
+        return response.data;
+    },
+
+    /**
+     * Get pending slot requests for approval
+     */
+    getPendingSlots: async () => {
+        const response = await apiClient.get(endpoints.admin.timeSlots.pending);
+        return response.data;
+    },
+
+    /**
+     * Get time slot statistics for dashboard
+     */
+    getTimeSlotStats: async () => {
+        const response = await apiClient.get(endpoints.admin.timeSlots.stats);
+        return response.data;
+    },
+
+    /**
+     * Approve a teacher's slot request
+     */
+    approveSlotRequest: async (id: number) => {
+        const response = await apiClient.post(endpoints.admin.timeSlots.approve(id));
+        return response.data;
+    },
+
+    /**
+     * Reject a teacher's slot request with reason
+     */
+    rejectSlotRequest: async (id: number, reason: string) => {
+        const response = await apiClient.post(endpoints.admin.timeSlots.reject(id), { reason });
+        return response.data;
+    },
+
+    /**
+     * Bulk create multiple time slots (with extended timeout for large batches)
+     */
+    bulkCreateTimeSlots: async (slots: Array<{ start_time: string; end_time: string }>) => {
+        const response = await apiClient.post(endpoints.admin.timeSlots.bulkCreate, { slots }, {
+            timeout: 120000, // 2 minutes for bulk operations
+        });
+        return response.data;
+    },
+
+    /**
+     * Delete all time slots
+     */
+    deleteAllTimeSlots: async () => {
+        const response = await apiClient.delete(endpoints.admin.timeSlots.deleteAll);
+        return response.data;
+    },
 };
 
 export default adminService;

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useLanguage } from '../../hooks';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useLanguage, useAuth } from '../../hooks';
 import { teacherService, TeacherCourse, getCourseName, getCourseDescription } from '../../../data/api';
+import { teacherContentApprovalService } from '../../../data/api/teacherContentApprovalService';
 
 // Icons
 import {
@@ -14,8 +15,14 @@ import {
     Eye,
     AlertCircle,
     RefreshCw,
-    Loader2
+    Loader2,
+    Trash2,
+    Clock
 } from 'lucide-react';
+
+import TeacherCourseModal from '../../components/teacher/courses/TeacherCourseModal';
+import { TeacherEditCourseRequestModal } from '../../components/teacher/courses/modals/TeacherEditCourseRequestModal';
+import Swal from 'sweetalert2';
 
 // ==================== TYPES ====================
 
@@ -46,9 +53,11 @@ interface CourseCardProps {
     course: TeacherCourse;
     onView?: (id: number) => void;
     onEdit?: (id: number) => void;
+    onDelete?: (id: number) => void;
+    hasPendingRequest?: boolean;
 }
 
-function CourseCard({ course, onView, onEdit }: CourseCardProps) {
+function CourseCard({ course, onView, onEdit, onDelete, hasPendingRequest }: CourseCardProps) {
     // Determine status based on is_active
     const status: 'active' | 'draft' | 'archived' = course.is_active ? 'active' : 'draft';
 
@@ -82,6 +91,13 @@ function CourseCard({ course, onView, onEdit }: CourseCardProps) {
                 <span className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-medium ${bg} ${text}`}>
                     {label}
                 </span>
+                {/* Pending Request Badge */}
+                {hasPendingRequest && (
+                    <span className="absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium bg-amber-500 text-white flex items-center gap-1 shadow-sm">
+                        <Clock size={12} />
+                        طلب معلق
+                    </span>
+                )}
                 {/* Actions Overlay */}
                 <div className="absolute inset-0 bg-charcoal/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-3">
                     <button
@@ -98,6 +114,12 @@ function CourseCard({ course, onView, onEdit }: CourseCardProps) {
                         className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all"
                     >
                         <Edit size={18} />
+                    </button>
+                    <button
+                        onClick={() => onDelete?.(course.id)}
+                        className="w-10 h-10 rounded-full bg-red-500/80 hover:bg-red-600 flex items-center justify-center text-white transition-all"
+                    >
+                        <Trash2 size={18} />
                     </button>
                 </div>
             </div>
@@ -146,8 +168,8 @@ function FilterTabs({ activeFilter, onFilterChange, counts }: FilterTabsProps) {
                     key={tab.key}
                     onClick={() => onFilterChange(tab.key)}
                     className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeFilter === tab.key
-                            ? 'bg-shibl-crimson text-white'
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-charcoal'
+                        ? 'bg-shibl-crimson text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-charcoal'
                         }`}
                 >
                     {tab.label}
@@ -161,7 +183,12 @@ function FilterTabs({ activeFilter, onFilterChange, counts }: FilterTabsProps) {
 
 export function TeacherCoursesPage() {
     const { isRTL } = useLanguage();
+    const { user } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
+
+    // Check if teacher is academic (cannot create courses)
+    // Need to cast user to TeacherData-like shape or check property existence
+    const isAcademic = (user as any)?.is_academic === true || (user as any)?.is_academic === 1;
 
     // Get initial values from URL
     const initialSearch = searchParams.get('search') || '';
@@ -173,6 +200,11 @@ export function TeacherCoursesPage() {
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState(initialSearch);
     const [activeFilter, setActiveFilter] = useState<CourseStatus>(initialFilter);
+    // Modal State
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedCourse, setSelectedCourse] = useState<TeacherCourse | undefined>(undefined);
+    // Track pending approval requests per course
+    const [pendingRequests, setPendingRequests] = useState<Record<number, boolean>>({});
 
     // Fetch courses
     const fetchCourses = useCallback(async () => {
@@ -180,7 +212,22 @@ export function TeacherCoursesPage() {
         setError(null);
         try {
             const response = await teacherService.getMyCourses({ per_page: 50 });
-            setCourses(response.data || []);
+            const fetchedCourses = response.data || [];
+            setCourses(fetchedCourses);
+
+            // Fetch pending counts for each course
+            const pendingMap: Record<number, boolean> = {};
+            await Promise.all(
+                fetchedCourses.map(async (course) => {
+                    try {
+                        const count = await teacherContentApprovalService.getPendingCount(course.id);
+                        pendingMap[course.id] = count > 0;
+                    } catch {
+                        pendingMap[course.id] = false;
+                    }
+                })
+            );
+            setPendingRequests(pendingMap);
         } catch (err: unknown) {
             console.error('Failed to fetch courses:', err);
             setError('فشل في تحميل الدورات');
@@ -192,6 +239,44 @@ export function TeacherCoursesPage() {
     useEffect(() => {
         fetchCourses();
     }, [fetchCourses]);
+
+    // Real-time updates for content approvals
+    useEffect(() => {
+        if (!user?.id) return;
+
+        // Subscribe to teacher channel
+        const handleNotification = (event: any) => {
+            console.log('Real-time update received:', event);
+
+            // Check if it's a content decision
+            // The event structure usually wraps the public properties
+            const approval = event.approval;
+
+            if (approval) {
+                // Determine if we need to refresh based on approvable_type
+                // Only refresh if it's relevant to this page (Course or related)
+                // But for now, just refreshing everything is safest
+                fetchCourses();
+
+                // Show toast notification
+                const status = approval.status;
+                const typeName = approval.type_name || 'Content';
+
+                // We could use a toast here if we imported it
+                // toast.success(`Request ${status}: ${approval.id}`);
+            }
+        };
+
+        import('../../../services/websocket').then(({ subscribeToTeacherChannel, unsubscribeFromTeacherChannel }) => {
+            subscribeToTeacherChannel(Number(user.id), handleNotification);
+        });
+
+        return () => {
+            import('../../../services/websocket').then(({ unsubscribeFromTeacherChannel }) => {
+                unsubscribeFromTeacherChannel(Number(user.id));
+            });
+        };
+    }, [user?.id, fetchCourses]);
 
     // Update URL when filters change
     useEffect(() => {
@@ -236,19 +321,61 @@ export function TeacherCoursesPage() {
         setSearchQuery(e.target.value);
     };
 
+    const navigate = useNavigate();
+
     const handleViewCourse = (id: number) => {
-        // TODO: Navigate to course details
-        console.log('View course:', id);
+        navigate(`/teacher/courses/${id}`);
     };
 
     const handleEditCourse = (id: number) => {
-        // TODO: Navigate to course edit
-        console.log('Edit course:', id);
+        const course = courses.find(c => c.id === id);
+        if (course) {
+            setSelectedCourse(course);
+            setIsModalOpen(true);
+        }
     };
 
     const handleAddCourse = () => {
-        // TODO: Open add course modal or navigate to create page
-        console.log('Add new course');
+        setSelectedCourse(undefined);
+        setIsModalOpen(true);
+    };
+
+    const handleDeleteCourse = async (id: number) => {
+        const result = await Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: "لن تتمكن من التراجع عن هذا الإجراء!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم، احذفها!',
+            cancelButtonText: 'إلغاء'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await teacherService.deleteCourse(id);
+                // Refresh list
+                setCourses(current => current.filter(c => c.id !== id));
+                Swal.fire(
+                    'تم الحذف!',
+                    'تم حذف الدورة بنجاح.',
+                    'success'
+                );
+            } catch (error) {
+                console.error('Delete failed', error);
+                Swal.fire(
+                    'خطأ',
+                    'حدث خطأ أثناء الحذف',
+                    'error'
+                );
+            }
+        }
+    };
+
+    const handleModalSuccess = () => {
+        fetchCourses();
+        setIsModalOpen(false);
     };
 
     return (
@@ -265,13 +392,15 @@ export function TeacherCoursesPage() {
                         )}
                     </p>
                 </div>
-                <button
-                    onClick={handleAddCourse}
-                    className="h-11 px-5 rounded-xl bg-shibl-crimson hover:bg-red-600 text-white font-medium flex items-center gap-2 transition-all hover:-translate-y-0.5 shadow-lg shadow-shibl-crimson/20"
-                >
-                    <Plus size={18} />
-                    <span>إضافة دورة جديدة</span>
-                </button>
+                {!isAcademic && (
+                    <button
+                        onClick={handleAddCourse}
+                        className="h-11 px-5 rounded-xl bg-shibl-crimson hover:bg-red-600 text-white font-medium flex items-center gap-2 transition-all hover:-translate-y-0.5 shadow-lg shadow-shibl-crimson/20"
+                    >
+                        <Plus size={18} />
+                        <span>إضافة دورة جديدة</span>
+                    </button>
+                )}
             </div>
 
             {/* Error State */}
@@ -336,6 +465,8 @@ export function TeacherCoursesPage() {
                             course={course}
                             onView={handleViewCourse}
                             onEdit={handleEditCourse}
+                            onDelete={handleDeleteCourse}
+                            hasPendingRequest={pendingRequests[course.id] || false}
                         />
                     ))}
                 </div>
@@ -350,14 +481,18 @@ export function TeacherCoursesPage() {
                     {courses.length === 0 ? (
                         <>
                             <h3 className="text-xl font-bold text-charcoal mb-2">لا توجد دورات بعد</h3>
-                            <p className="text-slate-500 mb-6">ابدأ بإنشاء دورتك الأولى</p>
-                            <button
-                                onClick={handleAddCourse}
-                                className="h-11 px-6 rounded-xl bg-shibl-crimson hover:bg-red-600 text-white font-medium inline-flex items-center gap-2 transition-all"
-                            >
-                                <Plus size={18} />
-                                <span>إنشاء دورة</span>
-                            </button>
+                            <p className="text-slate-500 mb-6">
+                                {isAcademic ? 'لم يتم تعيين أي دورات لك بعد من قبل الإدارة' : 'ابدأ بإنشاء دورتك الأولى'}
+                            </p>
+                            {!isAcademic && (
+                                <button
+                                    onClick={handleAddCourse}
+                                    className="h-11 px-6 rounded-xl bg-shibl-crimson hover:bg-red-600 text-white font-medium inline-flex items-center gap-2 transition-all"
+                                >
+                                    <Plus size={18} />
+                                    <span>إنشاء دورة</span>
+                                </button>
+                            )}
                         </>
                     ) : (
                         <>
@@ -374,6 +509,23 @@ export function TeacherCoursesPage() {
                     <Loader2 size={18} className="animate-spin text-shibl-crimson" />
                     <span className="text-charcoal text-sm">جاري التحديث...</span>
                 </div>
+            )}
+
+            {/* Modals */}
+            {selectedCourse ? (
+                <TeacherEditCourseRequestModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    courseData={selectedCourse}
+                    onSuccess={handleModalSuccess}
+                />
+            ) : (
+                <TeacherCourseModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSuccess={handleModalSuccess}
+                    initialData={undefined}
+                />
             )}
         </div>
     );

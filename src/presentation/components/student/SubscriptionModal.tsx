@@ -35,10 +35,10 @@ type Step = 'payment' | 'upload' | 'processing' | 'success' | 'error';
 
 // Bank info - In production, this would come from settings/API
 const BANK_INFO = {
-    bankName: 'بنك مسقط',
-    accountName: 'منصة شبل التعليمية',
-    accountNumber: '0123456789012345',
-    iban: 'OM12BMSC0123456789012345',
+    bankName: 'Bank Muscat',
+    accountName: 'ABDALLA MOHSEN KAMAL MOHAMMED ALI',
+    accountNumber: '0476079726660011',
+    iban: 'OM72BMSC0476079726660011',
 };
 
 const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
@@ -131,23 +131,15 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     };
 
     // Submit handlers
-    const handleProceedToUpload = async () => {
-        setLoading(true);
+    // First button just navigates to upload step - NO API call
+    const handleProceedToUpload = () => {
         setError(null);
-        try {
-            const subscription = await studentService.subscribeToCourse(course.id);
-            setSubscriptionId(subscription.id);
-            setStep('upload');
-        } catch (err: any) {
-            const message = err.response?.data?.message || 'حدث خطأ أثناء إنشاء الاشتراك';
-            setError(message);
-        } finally {
-            setLoading(false);
-        }
+        setStep('upload');
     };
 
+    // This creates subscription AND uploads receipt together
     const handleSubmitReceipt = async () => {
-        if (!selectedFile || !subscriptionId) {
+        if (!selectedFile) {
             setError('يرجى اختيار صورة الإيصال');
             return;
         }
@@ -156,10 +148,17 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         setError(null);
 
         try {
-            await studentService.uploadPaymentReceipt(subscriptionId, selectedFile);
+            // Step 1: Create the subscription
+            const subscription = await studentService.subscribeToCourse(course.id);
+
+            // Step 2: Upload the receipt
+            await studentService.uploadPaymentReceipt(subscription.id, selectedFile);
+
+            setSubscriptionId(subscription.id);
             setStep('success');
-        } catch (err: any) {
-            const message = err.response?.data?.message || 'حدث خطأ أثناء رفع الإيصال';
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            const message = error.response?.data?.message || 'حدث خطأ أثناء إرسال طلب الاشتراك';
             setError(message);
             setStep('upload');
         }
@@ -341,10 +340,10 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                                 onDrop={handleDrop}
                                 onClick={() => !selectedFile && fileInputRef.current?.click()}
                                 className={`relative border-2 border-dashed rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden ${dragActive
-                                        ? 'border-shibl-crimson bg-shibl-crimson/5 scale-[1.02]'
-                                        : selectedFile
-                                            ? 'border-emerald-300 bg-emerald-50/50'
-                                            : 'border-slate-200 hover:border-shibl-crimson/50 hover:bg-slate-50'
+                                    ? 'border-shibl-crimson bg-shibl-crimson/5 scale-[1.02]'
+                                    : selectedFile
+                                        ? 'border-emerald-300 bg-emerald-50/50'
+                                        : 'border-slate-200 hover:border-shibl-crimson/50 hover:bg-slate-50'
                                     }`}
                             >
                                 <input

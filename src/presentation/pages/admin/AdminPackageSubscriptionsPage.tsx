@@ -66,6 +66,7 @@ export function AdminPackageSubscriptionsPage() {
     const [showReceiptModal, setShowReceiptModal] = useState(false);
     const [showPackageModal, setShowPackageModal] = useState(false);
     const [showRejectModal, setShowRejectModal] = useState(false);
+    const [showApproveModal, setShowApproveModal] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
 
@@ -114,11 +115,18 @@ export function AdminPackageSubscriptionsPage() {
     }, [fetchSubscriptions]);
 
     // Handlers
-    const handleApprove = async (subscription: PackageSubscription) => {
-        if (!confirm(`هل تريد تفعيل اشتراك ${subscription.student?.name} في باقة ${subscription.package?.name}؟`)) return;
+    const openApproveModal = (subscription: PackageSubscription) => {
+        setSelectedSubscription(subscription);
+        setShowApproveModal(true);
+    };
+
+    const handleApprove = async () => {
+        if (!selectedSubscription) return;
         setActionLoading(true);
         try {
-            await packageService.approveSubscription(subscription.id);
+            await packageService.approveSubscription(selectedSubscription.id);
+            setShowApproveModal(false);
+            setSelectedSubscription(null);
             fetchSubscriptions();
         } catch (err) {
             console.error('Error approving subscription:', err);
@@ -383,7 +391,7 @@ export function AdminPackageSubscriptionsPage() {
                                     {sub.status === 'pending' && (
                                         <div className="flex items-center gap-2">
                                             <button
-                                                onClick={() => handleApprove(sub)}
+                                                onClick={() => openApproveModal(sub)}
                                                 disabled={actionLoading}
                                                 className="flex-1 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-green-500/20 font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                                             >
@@ -480,7 +488,7 @@ export function AdminPackageSubscriptionsPage() {
                                     <button
                                         onClick={() => {
                                             setShowReceiptModal(false);
-                                            handleApprove(selectedSubscription);
+                                            openApproveModal(selectedSubscription);
                                         }}
                                         disabled={actionLoading}
                                         className="flex-1 py-3 rounded-[12px] bg-green-600 hover:bg-green-700 text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
@@ -639,6 +647,80 @@ export function AdminPackageSubscriptionsPage() {
                             <button onClick={() => setShowPackageModal(false)} className="text-slate-500 hover:text-charcoal text-sm font-medium">
                                 إغلاق
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Approve Confirm Modal */}
+            {showApproveModal && selectedSubscription && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowApproveModal(false)}>
+                    <div className="bg-white rounded-[20px] max-w-md w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                        <div className="px-6 py-5 border-b border-green-100 bg-gradient-to-r from-green-50 to-emerald-50">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                                    <Check size={28} className="text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-lg text-charcoal">تأكيد تفعيل الاشتراك</h3>
+                                    <p className="text-sm text-green-700">هل تريد تفعيل هذا الاشتراك في الباقة؟</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="space-y-3 bg-slate-50 rounded-xl p-4">
+                                <div className="flex items-center gap-3">
+                                    <User size={18} className="text-slate-400" />
+                                    <div>
+                                        <p className="text-xs text-slate-grey">الطالب</p>
+                                        <p className="font-semibold text-charcoal">{selectedSubscription.student?.name}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Package size={18} className="text-slate-400" />
+                                    <div>
+                                        <p className="text-xs text-slate-grey">الباقة</p>
+                                        <p className="font-semibold text-charcoal">{selectedSubscription.package?.name}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <GraduationCap size={18} className="text-slate-400" />
+                                    <div>
+                                        <p className="text-xs text-slate-grey">عدد الدورات</p>
+                                        <p className="font-semibold text-charcoal">{selectedSubscription.package?.courses_count || selectedSubscription.package?.courses?.length || 0} دورات</p>
+                                    </div>
+                                </div>
+                                {selectedSubscription.package?.price && (
+                                    <div className="flex items-center gap-3">
+                                        <DollarSign size={18} className="text-slate-400" />
+                                        <div>
+                                            <p className="text-xs text-slate-grey">السعر</p>
+                                            <p className="font-semibold text-charcoal">{selectedSubscription.package.final_price ?? selectedSubscription.package.price} ر.ع</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowApproveModal(false)}
+                                    disabled={actionLoading}
+                                    className="flex-1 py-3 rounded-[12px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors disabled:opacity-50"
+                                >
+                                    إلغاء
+                                </button>
+                                <button
+                                    onClick={handleApprove}
+                                    disabled={actionLoading}
+                                    className="flex-1 py-3 rounded-[12px] bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-green-500/25"
+                                >
+                                    {actionLoading ? (
+                                        <Loader2 size={18} className="animate-spin" />
+                                    ) : (
+                                        <Check size={18} />
+                                    )}
+                                    تأكيد التفعيل
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

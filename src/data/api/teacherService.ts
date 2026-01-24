@@ -8,6 +8,8 @@
 
 import apiClient from './ApiClient';
 import { endpoints } from './endpoints';
+import type { TimeSlot } from '../../types/timeSlot';
+import type { CreateUnitRequest, UpdateUnitRequest, Unit } from '../../types/unit';
 
 // ==================== TYPES ====================
 
@@ -42,6 +44,16 @@ export interface TeacherCourse {
         id: number;
         name: string;
     };
+}
+
+export interface TeacherCourseStudent {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+    avatar: string | null;
+    subscribed_at: string;
+    subscription_id: number;
 }
 
 export interface TeacherCoursesResponse {
@@ -132,6 +144,16 @@ export const teacherService = {
     getCourse: async (id: number): Promise<TeacherCourse> => {
         const response = await apiClient.get(endpoints.teacher.myCourses.show(id));
         return response.data.data ?? response.data;
+    },
+
+    /**
+     * Get lectures for a specific course
+     */
+    getCourseLectures: async (courseId: number): Promise<any[]> => {
+        const response = await apiClient.get(endpoints.lectures.list, {
+            params: { course_id: courseId }
+        });
+        return response.data.data;
     },
 
     /**
@@ -251,6 +273,86 @@ export const teacherService = {
             totalStudents,
             totalLectures,
         };
+    },
+
+    /**
+     * Get enrolled students for a specific course
+     */
+    getCourseStudents: async (courseId: number): Promise<{ success: boolean; data: TeacherCourseStudent[]; count: number }> => {
+        const response = await apiClient.get(endpoints.teacher.myCourses.students(courseId));
+        return response.data;
+    },
+
+    // ==================== UNIT MANAGEMENT ====================
+
+    getUnits: async (courseId: number): Promise<{ success: boolean; data: Unit[] }> => {
+        const response = await apiClient.get(endpoints.teacher.myCourses.units.list(courseId));
+        return response.data;
+    },
+
+    createUnit: async (courseId: number, data: CreateUnitRequest): Promise<Unit> => {
+        const response = await apiClient.post(endpoints.teacher.myCourses.units.create(courseId), data);
+        return response.data.data;
+    },
+
+    updateUnit: async (courseId: number, unitId: number, data: UpdateUnitRequest): Promise<Unit> => {
+        const response = await apiClient.put(endpoints.teacher.myCourses.units.update(courseId, unitId), data);
+        return response.data.data;
+    },
+
+    deleteUnit: async (courseId: number, unitId: number): Promise<void> => {
+        await apiClient.delete(endpoints.teacher.myCourses.units.delete(courseId, unitId));
+    },
+
+    reorderUnits: async (courseId: number, order: number[]): Promise<void> => {
+        await apiClient.post(endpoints.teacher.myCourses.units.reorder(courseId), { order });
+    },
+
+    // ==================== TIME SLOTS ====================
+
+    /**
+     * Get available time slots for booking
+     */
+    getAvailableSlots: async (date?: string): Promise<TimeSlot[]> => {
+        const params = new URLSearchParams();
+        if (date) params.append('date', date);
+
+        const response = await apiClient.get(`${endpoints.teacher.timeSlots.available}?${params.toString()}`);
+        return response.data.data;
+    },
+
+    /**
+     * Get teacher's slot requests (history)
+     */
+    getMyRequests: async (): Promise<TimeSlot[]> => {
+        const response = await apiClient.get(endpoints.teacher.timeSlots.myRequests);
+        return response.data.data;
+    },
+
+    /**
+     * Request a specific time slot
+     */
+    requestSlot: async (id: number, lectureId: number, notes?: string): Promise<TimeSlot> => {
+        const response = await apiClient.post(endpoints.teacher.timeSlots.request(id), {
+            lecture_id: lectureId,
+            notes,
+        });
+        return response.data.data;
+    },
+
+    /**
+     * Cancel a pending slot request
+     */
+    cancelRequest: async (id: number): Promise<void> => {
+        await apiClient.post(endpoints.teacher.timeSlots.cancel(id));
+    },
+
+    /**
+     * Get details of a specific slot request
+     */
+    getSlotRequest: async (id: number): Promise<TimeSlot> => {
+        const response = await apiClient.get(endpoints.teacher.timeSlots.show(id));
+        return response.data.data;
     },
 };
 

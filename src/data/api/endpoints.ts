@@ -91,6 +91,17 @@ export const endpoints = {
             show: (id: number) => `/api/v1/my-courses/${id}`,
             update: (id: number) => `/api/v1/my-courses/${id}`,
             delete: (id: number) => `/api/v1/my-courses/${id}`,
+            // Nested units endpoints
+            units: {
+                list: (courseId: number) => `/api/v1/my-courses/${courseId}/units`,
+                create: (courseId: number) => `/api/v1/my-courses/${courseId}/units`,
+                show: (courseId: number, unitId: number) => `/api/v1/my-courses/${courseId}/units/${unitId}`,
+                update: (courseId: number, unitId: number) => `/api/v1/my-courses/${courseId}/units/${unitId}`,
+                delete: (courseId: number, unitId: number) => `/api/v1/my-courses/${courseId}/units/${unitId}`,
+                reorder: (courseId: number) => `/api/v1/my-courses/${courseId}/units/reorder`,
+            },
+            // Enrolled students endpoint
+            students: (courseId: number) => `/api/v1/my-courses/${courseId}/students`,
         },
         // Quizzes - Teacher's quizzes
         quizzes: {
@@ -99,6 +110,40 @@ export const endpoints = {
             show: (id: number) => `/api/v1/teacher/quizzes/${id}`,
             update: (id: number) => `/api/v1/teacher/quizzes/${id}`,
             delete: (id: number) => `/api/v1/teacher/quizzes/${id}`,
+        },
+        // Time Slots - Teacher's slot management
+        timeSlots: {
+            available: '/api/v1/teacher/timeslots',
+            request: (id: number) => `/api/v1/teacher/timeslots/${id}/request`,
+            myRequests: '/api/v1/teacher/timeslots/my-requests',
+            cancel: (id: number) => `/api/v1/teacher/timeslots/${id}/cancel`,
+            show: (id: number) => `/api/v1/teacher/timeslots/${id}`,
+        },
+        // Lectures
+        lectures: {
+            list: '/api/v1/lectures',
+            create: '/api/v1/lectures',
+            show: (id: number) => `/api/v1/lectures/${id}`,
+            update: (id: number) => `/api/v1/lectures/${id}`,
+            delete: (id: number) => `/api/v1/lectures/${id}`,
+            chunkedCreate: '/api/v1/lectures/chunked-create',
+            chunkedUpdate: (id: number) => `/api/v1/lectures/${id}/chunked-update`,
+        },
+        // Video Upload
+        videos: {
+            initiate: '/api/v1/videos/initiate',
+            chunk: '/api/v1/videos/chunk',
+            complete: '/api/v1/videos/complete',
+            progress: '/api/v1/videos/progress',
+            cancel: '/api/v1/videos/cancel',
+        },
+        // Content Approval Requests
+        contentApprovals: {
+            list: '/api/v1/content-approvals',
+            create: '/api/v1/content-approvals',
+            show: (id: number) => `/api/v1/content-approvals/${id}`,
+            delete: (id: number) => `/api/v1/content-approvals/${id}`,
+            pendingCount: (courseId: number) => `/api/v1/content-approvals/pending-count/${courseId}`,
         },
     },
 
@@ -264,6 +309,28 @@ export const endpoints = {
             reject: (id: number) => `/api/v1/admin/payments/${id}/reject`,
             statistics: '/api/v1/admin/payments/statistics/summary',
         },
+        // Time Slots Management
+        timeSlots: {
+            list: '/api/v1/admin/timeslots',
+            create: '/api/v1/admin/timeslots',
+            show: (id: number) => `/api/v1/admin/timeslots/${id}`,
+            update: (id: number) => `/api/v1/admin/timeslots/${id}`,
+            delete: (id: number) => `/api/v1/admin/timeslots/${id}`,
+            pending: '/api/v1/admin/timeslots-pending',
+            stats: '/api/v1/admin/timeslots-stats',
+            approve: (id: number) => `/api/v1/admin/timeslots/${id}/approve`,
+            reject: (id: number) => `/api/v1/admin/timeslots/${id}/reject`,
+            bulkCreate: '/api/v1/admin/timeslots-bulk',
+            deleteAll: '/api/v1/admin/timeslots-all',
+        },
+        // Content Approval Management
+        contentApprovals: {
+            list: '/api/v1/admin/content-approvals',
+            stats: '/api/v1/admin/content-approvals/stats',
+            show: (id: number) => `/api/v1/admin/content-approvals/${id}`,
+            approve: (id: number) => `/api/v1/admin/content-approvals/${id}/approve`,
+            reject: (id: number) => `/api/v1/admin/content-approvals/${id}/reject`,
+        },
     },
 
     // Grades (authenticated)
@@ -348,5 +415,14 @@ export const endpoints = {
         pendingSubscriptions: '/api/v1/package-subscriptions/pending',
         approveSubscription: (id: number) => `/api/v1/package-subscriptions/${id}/approve`,
         rejectSubscription: (id: number) => `/api/v1/package-subscriptions/${id}/reject`,
+    },
+
+    // User Notifications (Shared)
+    notifications: {
+        list: '/api/user/notifications',
+        unreadCount: '/api/user/notifications/unread',
+        markAsRead: '/api/user/notifications/mark-as-read',
+        markAllAsRead: '/api/user/notifications/mark-all-as-read',
+        delete: (id: string) => `/api/user/notifications/${id}`,
     },
 } as const;

@@ -2,6 +2,8 @@ export * from './home';
 export * from './auth';
 export * from './landing';
 export * from './dashboard';
+export * from './admin/approvals/AdminContentApprovalsPage';
 export * from './admin';
 export * from './teacher';
 export { NotFoundPage } from './NotFoundPage';
+export { MaintenancePage } from './MaintenancePage';

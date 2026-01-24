@@ -34,7 +34,7 @@ interface UnitCardProps {
     onToggleExpand: () => void;
     onEdit: (unit: Unit) => void;
     onDelete: (unit: Unit) => void;
-    onTogglePublish: (unit: Unit) => void;
+    onTogglePublish?: (unit: Unit) => void;
     onAddLecture?: (unit: Unit) => void;
     onEditLecture?: (lecture: UnitLecture) => void;
     onDeleteLecture?: (lecture: UnitLecture) => void;
@@ -133,29 +133,31 @@ export function UnitCard({
 
                 {/* Actions */}
                 <div className="flex items-center gap-1">
-                    {/* Toggle Publish */}
-                    <button
-                        onClick={() => onTogglePublish(unit)}
-                        disabled={isTogglingPublish}
-                        className={`
-                            p-2 rounded-lg transition-colors
-                            ${unit.is_published
-                                ? 'text-emerald-600 hover:bg-emerald-50'
-                                : 'text-slate-400 hover:bg-slate-100'
-                            }
-                            disabled:opacity-50
-                        `}
-                        title={unit.is_published ? 'إخفاء الوحدة' : 'نشر الوحدة'}
-                        aria-label={unit.is_published ? 'إخفاء الوحدة' : 'نشر الوحدة'}
-                    >
-                        {isTogglingPublish ? (
-                            <Loader2 size={18} className="animate-spin" />
-                        ) : unit.is_published ? (
-                            <Eye size={18} />
-                        ) : (
-                            <EyeOff size={18} />
-                        )}
-                    </button>
+                    {/* Toggle Publish - Only shown if handler provided */}
+                    {onTogglePublish && (
+                        <button
+                            onClick={() => onTogglePublish(unit)}
+                            disabled={isTogglingPublish}
+                            className={`
+                                p-2 rounded-lg transition-colors
+                                ${unit.is_published
+                                    ? 'text-emerald-600 hover:bg-emerald-50'
+                                    : 'text-slate-400 hover:bg-slate-100'
+                                }
+                                disabled:opacity-50
+                            `}
+                            title={unit.is_published ? 'إخفاء الوحدة' : 'نشر الوحدة'}
+                            aria-label={unit.is_published ? 'إخفاء الوحدة' : 'نشر الوحدة'}
+                        >
+                            {isTogglingPublish ? (
+                                <Loader2 size={18} className="animate-spin" />
+                            ) : unit.is_published ? (
+                                <Eye size={18} />
+                            ) : (
+                                <EyeOff size={18} />
+                            )}
+                        </button>
+                    )}
 
                     {/* Edit */}
                     <button
