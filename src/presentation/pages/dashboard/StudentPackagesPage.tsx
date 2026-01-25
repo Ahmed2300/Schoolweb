@@ -688,7 +688,75 @@ export function StudentPackagesPage() {
                                         <div className="bg-slate-50 rounded-xl p-4">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-slate-600">إجمالي المبلغ</span>
-                                                <span className="font-bold text-xl text-charcoal">{selectedPackage.price} ر.ع</span>
+                                                <span className="font-bold text-xl text-charcoal">{selectedPackage.final_price ?? selectedPackage.price} ر.ع</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Bank Account Info */}
+                                        <div className="space-y-3">
+                                            <h4 className="font-bold text-charcoal text-sm flex items-center gap-2">
+                                                <svg className="w-4 h-4 text-shibl-crimson" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="5" rx="2" /><path d="M2 10h20" /></svg>
+                                                معلومات الحساب البنكي
+                                            </h4>
+
+                                            {/* Bank Name */}
+                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-shibl-crimson/30 transition-colors group">
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs text-slate-400">اسم البنك</p>
+                                                    <p className="font-semibold text-charcoal text-sm" dir="ltr">Bank Muscat</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => { navigator.clipboard.writeText('Bank Muscat'); }}
+                                                    className="w-8 h-8 rounded-lg bg-white hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2 border border-slate-200"
+                                                    title="نسخ"
+                                                >
+                                                    <svg className="w-4 h-4 text-slate-400 group-hover:text-shibl-crimson" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                                                </button>
+                                            </div>
+
+                                            {/* Account Name */}
+                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-shibl-crimson/30 transition-colors group">
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs text-slate-400">اسم الحساب</p>
+                                                    <p className="font-semibold text-charcoal text-sm truncate" dir="ltr">ABDALLA MOHSEN KAMAL MOHAMMED ALI</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => { navigator.clipboard.writeText('ABDALLA MOHSEN KAMAL MOHAMMED ALI'); }}
+                                                    className="w-8 h-8 rounded-lg bg-white hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2 border border-slate-200"
+                                                    title="نسخ"
+                                                >
+                                                    <svg className="w-4 h-4 text-slate-400 group-hover:text-shibl-crimson" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                                                </button>
+                                            </div>
+
+                                            {/* Account Number */}
+                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-shibl-crimson/30 transition-colors group">
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs text-slate-400">رقم الحساب</p>
+                                                    <p className="font-semibold text-charcoal text-sm font-mono" dir="ltr">0476079726660011</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => { navigator.clipboard.writeText('0476079726660011'); }}
+                                                    className="w-8 h-8 rounded-lg bg-white hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2 border border-slate-200"
+                                                    title="نسخ"
+                                                >
+                                                    <svg className="w-4 h-4 text-slate-400 group-hover:text-shibl-crimson" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                                                </button>
+                                            </div>
+
+                                            {/* IBAN */}
+                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-shibl-crimson/30 transition-colors group">
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs text-slate-400">رقم IBAN</p>
+                                                    <p className="font-semibold text-charcoal text-sm font-mono" dir="ltr">OM72BMSC0476079726660011</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => { navigator.clipboard.writeText('OM72BMSC0476079726660011'); }}
+                                                    className="w-8 h-8 rounded-lg bg-white hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2 border border-slate-200"
+                                                    title="نسخ"
+                                                >
+                                                    <svg className="w-4 h-4 text-slate-400 group-hover:text-shibl-crimson" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                                                </button>
                                             </div>
                                         </div>
 
