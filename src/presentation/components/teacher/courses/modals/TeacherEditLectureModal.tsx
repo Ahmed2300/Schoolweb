@@ -257,48 +257,52 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                                     />
                                 </div>
 
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal flex items-center gap-2">
-                                        وقت البدء
-                                    </label>
-                                    <div className="relative">
-                                        <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                                        <input
-                                            type="datetime-local"
-                                            value={formData.startTime}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                                            disabled={!formData.isOnline}
-                                            className={`w-full h-10 pl-10 pr-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm ${!formData.isOnline ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal flex items-center gap-2">
-                                        وقت الانتهاء
-                                    </label>
-                                    <div className="relative">
-                                        <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                                        <input
-                                            type="datetime-local"
-                                            value={formData.endTime}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-                                            disabled={!formData.isOnline}
-                                            className={`w-full h-10 pl-10 pr-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm ${!formData.isOnline ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
-                                        />
-                                    </div>
-                                </div>
+                                {formData.isOnline && (
+                                    <>
+                                        <div className="space-y-1.5">
+                                            <label className="text-sm font-medium text-charcoal flex items-center gap-2">
+                                                وقت البدء
+                                            </label>
+                                            <div className="relative">
+                                                <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                                <input
+                                                    type="datetime-local"
+                                                    value={formData.startTime}
+                                                    onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+                                                    className="w-full h-10 pl-10 pr-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-sm font-medium text-charcoal flex items-center gap-2">
+                                                وقت الانتهاء
+                                            </label>
+                                            <div className="relative">
+                                                <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                                <input
+                                                    type="datetime-local"
+                                                    value={formData.endTime}
+                                                    onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+                                                    className="w-full h-10 pl-10 pr-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
 
-                                <div className="col-span-full pt-2">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={formData.isOnline}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, isOnline: e.target.checked }))}
-                                            className="w-4 h-4 rounded text-blue-600 focus:ring-offset-0 focus:ring-0 cursor-pointer"
-                                        />
-                                        <span className="text-sm text-charcoal select-none">محاضرة أونلاين (بث مباشر)</span>
-                                    </label>
-                                </div>
+                                {lecture.is_online && (
+                                    <div className="col-span-full pt-2">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.isOnline}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, isOnline: e.target.checked }))}
+                                                className="w-4 h-4 rounded text-blue-600 focus:ring-offset-0 focus:ring-0 cursor-pointer"
+                                            />
+                                            <span className="text-sm text-charcoal select-none">محاضرة أونلاين (بث مباشر)</span>
+                                        </label>
+                                    </div>
+                                )}
                             </div>
                         </form>
                     ) : (

@@ -33,11 +33,16 @@ export const useAuthStore = create<AuthState>()(
 
             setError: (error) => set({ error, isLoading: false }),
 
-            logout: () => set({
-                user: null,
-                isAuthenticated: false,
-                error: null
-            }),
+            logout: () => {
+                // Disconnect WebSocket on logout
+                import('../../services/websocket').then(({ disconnectEcho }) => disconnectEcho());
+
+                set({
+                    user: null,
+                    isAuthenticated: false,
+                    error: null
+                });
+            },
         }),
         {
             name: 'auth-storage',

@@ -241,42 +241,35 @@ export function TeacherCoursesPage() {
     }, [fetchCourses]);
 
     // Real-time updates for content approvals
+    // Listen for real-time approval updates via the global event dispatched by useTeacherNotifications hook
+    // This prevents conflicting Echo subscriptions/unsubscriptions on the same channel
     useEffect(() => {
-        if (!user?.id) return;
+        const handleApprovalUpdate = (e: CustomEvent) => {
+            console.log('TeacherCoursesPage: Real-time update received:', e.detail);
+            const approval = e.detail;
 
-        // Subscribe to teacher channel
-        const handleNotification = (event: any) => {
-            console.log('Real-time update received:', event);
+            // Allow time for backend to process if needed, then refresh
+            fetchCourses();
 
-            // Check if it's a content decision
-            // The event structure usually wraps the public properties
-            const approval = event.approval;
-
-            if (approval) {
-                // Determine if we need to refresh based on approvable_type
-                // Only refresh if it's relevant to this page (Course or related)
-                // But for now, just refreshing everything is safest
-                fetchCourses();
-
-                // Show toast notification
-                const status = approval.status;
-                const typeName = approval.type_name || 'Content';
-
-                // We could use a toast here if we imported it
-                // toast.success(`Request ${status}: ${approval.id}`);
+            // Be smart about optimistic updates if possible
+            if (approval && approval.approvable_type.includes('Course')) {
+                setCourses((prev) =>
+                    prev.map((course) => {
+                        if (course.id === approval.approvable_id) {
+                            return {
+                                ...course,
+                                pending_request_count: approval.status === 'pending' ? 1 : 0
+                            };
+                        }
+                        return course;
+                    })
+                );
             }
         };
 
-        import('../../../services/websocket').then(({ subscribeToTeacherChannel, unsubscribeFromTeacherChannel }) => {
-            subscribeToTeacherChannel(Number(user.id), handleNotification);
-        });
-
-        return () => {
-            import('../../../services/websocket').then(({ unsubscribeFromTeacherChannel }) => {
-                unsubscribeFromTeacherChannel(Number(user.id));
-            });
-        };
-    }, [user?.id, fetchCourses]);
+        window.addEventListener('teacher-approval-update', handleApprovalUpdate as EventListener);
+        return () => window.removeEventListener('teacher-approval-update', handleApprovalUpdate as EventListener);
+    }, [fetchCourses]);
 
     // Update URL when filters change
     useEffect(() => {

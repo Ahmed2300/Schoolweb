@@ -41,6 +41,7 @@ export interface ContentApprovalCreatePayload {
     approvable_type: 'course' | 'lecture' | 'unit';
     approvable_id: number;
     payload: Record<string, any>;
+    action?: string; // e.g., 'create_unit', 'create_lecture'
 }
 
 export interface ContentApprovalCreateResponse {
@@ -79,10 +80,35 @@ export const teacherContentApprovalService = {
     /**
      * Submit approval request
      */
-    async submitApprovalRequest(payload: ContentApprovalCreatePayload): Promise<ContentApprovalCreateResponse> {
+    async submitApprovalRequest(data: ContentApprovalCreatePayload): Promise<ContentApprovalCreateResponse> {
+        // Check if payload contains an image file
+        if (data.payload.image instanceof File || data.payload.image instanceof Blob) {
+            const formData = new FormData();
+            formData.append('approvable_type', data.approvable_type);
+            formData.append('approvable_id', data.approvable_id.toString());
+            if (data.action) formData.append('action', data.action);
+
+            // Extract image
+            formData.append('image', data.payload.image);
+
+            // Serialize the rest of the payload without the image
+            const { image, ...restPayload } = data.payload;
+            formData.append('payload', JSON.stringify(restPayload));
+
+            const response = await apiClient.post<ContentApprovalCreateResponse>(
+                endpoints.teacher.contentApprovals.create,
+                formData,
+                {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                }
+            );
+            return response.data;
+        }
+
+        // Standard JSON request
         const response = await apiClient.post<ContentApprovalCreateResponse>(
             endpoints.teacher.contentApprovals.create,
-            payload
+            data
         );
         return response.data;
     },

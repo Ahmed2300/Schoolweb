@@ -24,8 +24,11 @@ export function useTeacherNotifications() {
                 notificationService.getUnreadCount(),
                 notificationService.getNotifications()
             ]);
-            setUnreadCount(count);
-            setNotifications(list);
+            setUnreadCount(typeof count === 'number' ? count : (count as any)?.count ?? 0);
+
+            // Handle potentially wrapped response
+            const notificationsArray = Array.isArray(list) ? list : (list as any)?.data ?? [];
+            setNotifications(Array.isArray(notificationsArray) ? notificationsArray : []);
         } catch (error) {
             console.error('Failed to fetch notifications', error);
         }

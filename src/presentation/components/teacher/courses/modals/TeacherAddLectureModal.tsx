@@ -1,7 +1,10 @@
 import { useState, useCallback } from 'react';
-import { X, ChevronLeft, ChevronRight, Check, Video, FileText, Calendar, Loader2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Check, Video, FileText, Calendar, Loader2, Radio } from 'lucide-react';
 import { teacherLectureService } from '../../../../../data/api/teacherLectureService';
+import { teacherContentApprovalService } from '../../../../../data/api/teacherContentApprovalService';
 import { TeacherVideoUploader } from './TeacherVideoUploader';
+import { TimeSlotPicker } from '../../timeslots/TimeSlotPicker';
+import type { TimeSlot } from '../../../../../data/api/teacherTimeSlotService';
 import type { Unit } from '../../../../../types/unit';
 
 // Helper to get localized name
@@ -45,6 +48,7 @@ interface FormData {
     startTime: string;
     endTime: string;
     isOnline: boolean;
+    selectedSlotId: number | null;
 }
 
 export function TeacherAddLectureModal({
@@ -72,7 +76,10 @@ export function TeacherAddLectureModal({
         startTime: defaultStartTime || '',
         endTime: defaultEndTime || '',
         isOnline: false,
+        selectedSlotId: null,
     };
+
+    const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
 
     const [formData, setFormData] = useState<FormData>(initialFormData);
     const [loading, setLoading] = useState(false);
@@ -84,6 +91,7 @@ export function TeacherAddLectureModal({
         setStep(1);
         setError(null);
         setUploadedVideoPath(null);
+        setSelectedSlot(null);
     }, [initialFormData]);
 
     const handleClose = useCallback(() => {
@@ -103,6 +111,19 @@ export function TeacherAddLectureModal({
             return;
         }
 
+        // If online lecture, require slot selection
+        if (formData.isOnline && !selectedSlot) {
+            setError('يرجى اختيار فترة زمنية للبث المباشر');
+            return;
+        }
+
+        // For LIVE lectures: skip video upload, submit directly
+        if (formData.isOnline) {
+            await handleFinalSubmit();
+            return;
+        }
+
+        // For recorded lectures: go to video upload step
         setStep(2);
     };
 
@@ -117,21 +138,35 @@ export function TeacherAddLectureModal({
                 course_id: parseInt(formData.courseId),
                 unit_id: formData.unitId ? parseInt(formData.unitId) : undefined,
                 teacher_id: parseInt(formData.teacherId),
-                start_time: formData.startTime || undefined,
-                end_time: formData.endTime || undefined,
+                start_time: selectedSlot?.start_time || formData.startTime || undefined,
+                end_time: selectedSlot?.end_time || formData.endTime || undefined,
                 is_online: formData.isOnline,
+                video_path: uploadedVideoPath || undefined,
+                is_published: true,
+                time_slot_id: selectedSlot?.id || undefined,
             };
 
-            if (uploadedVideoPath) {
-                await teacherLectureService.createLectureWithVideo(lectureData, uploadedVideoPath);
-            } else {
-                await teacherLectureService.createLecture(lectureData);
-            }
+            // Switch to Approval Request Flow
+            await teacherContentApprovalService.submitApprovalRequest({
+                approvable_type: 'course',
+                approvable_id: parseInt(formData.courseId),
+                action: 'create_lecture',
+                payload: lectureData,
+            });
 
+            // if (uploadedVideoPath) {
+            //     await teacherLectureService.createLectureWithVideo(lectureData, uploadedVideoPath);
+            // } else {
+            //     await teacherLectureService.createLecture(lectureData);
+            // }
+
+            // onSuccess(); // Refresh list - wait, list won't have new item
+            // Maybe show specific success modal or toast?
+            // The modal will close and refresh, which is fine (pending count might update)
             onSuccess();
             resetForm();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'فشل إنشاء المحاضرة');
+            setError(err instanceof Error ? err.message : 'فشل إرسال طلب المحاضرة');
             setLoading(false);
         }
     };
@@ -239,48 +274,38 @@ export function TeacherAddLectureModal({
                                     />
                                 </div>
 
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal flex items-center gap-2">
-                                        وقت البدء
-                                    </label>
-                                    <div className="relative">
-                                        <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                                        <input
-                                            type="datetime-local"
-                                            value={formData.startTime}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                                            disabled={!formData.isOnline}
-                                            className={`w-full h-10 pl-10 pr-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm ${!formData.isOnline ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal flex items-center gap-2">
-                                        وقت الانتهاء
-                                    </label>
-                                    <div className="relative">
-                                        <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                                        <input
-                                            type="datetime-local"
-                                            value={formData.endTime}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-                                            disabled={!formData.isOnline}
-                                            className={`w-full h-10 pl-10 pr-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm ${!formData.isOnline ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
-                                        />
-                                    </div>
-                                </div>
-
                                 <div className="col-span-full pt-2">
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input
                                             type="checkbox"
                                             checked={formData.isOnline}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, isOnline: e.target.checked }))}
+                                            onChange={(e) => {
+                                                setFormData(prev => ({ ...prev, isOnline: e.target.checked }));
+                                                if (!e.target.checked) {
+                                                    setSelectedSlot(null);
+                                                }
+                                            }}
                                             className="w-4 h-4 rounded text-blue-600 focus:ring-offset-0 focus:ring-0 cursor-pointer"
                                         />
                                         <span className="text-sm text-charcoal select-none">محاضرة أونلاين (بث مباشر)</span>
                                     </label>
                                 </div>
+
+                                {formData.isOnline && (
+                                    <div className="col-span-full">
+                                        <label className="text-sm font-medium text-charcoal mb-3 block flex items-center gap-2">
+                                            <Radio size={16} className="text-blue-600" />
+                                            اختر فترة البث المباشر *
+                                        </label>
+                                        <TimeSlotPicker
+                                            onSelect={(slot) => {
+                                                setSelectedSlot(slot);
+                                                setFormData(prev => ({ ...prev, selectedSlotId: slot?.id || null }));
+                                            }}
+                                            selectedSlotId={selectedSlot?.id}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </form>
                     ) : (

@@ -85,7 +85,7 @@ export const TeacherNotificationMenu = () => {
                             </div>
                         ) : (
                             <div className="divide-y divide-slate-50">
-                                {notifications.map((notification) => (
+                                {Array.isArray(notifications) && notifications.map((notification) => (
                                     <div
                                         key={notification.id}
                                         className={`p-4 hover:bg-slate-50 transition-colors cursor-pointer relative group ${!notification.read_at ? 'bg-amber-50/30' : ''}`}

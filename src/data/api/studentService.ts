@@ -100,6 +100,7 @@ export interface Lecture {
     video_path?: string;
     is_free?: boolean;
     is_active?: boolean;
+    meeting_status?: 'scheduled' | 'ongoing' | 'completed';
     created_at?: string;
     updated_at?: string;
 }
@@ -573,8 +574,17 @@ export const studentService = {
     /**
      * Delete a scheduled lecture
      */
-    deleteSchedule: async (id: number): Promise<{ success: boolean; message?: string }> => {
-        const response = await apiClient.delete(endpoints.schedules.delete(id));
+    // ============================================================
+    // BBB Session Methods
+    // ============================================================
+
+    joinSession: async (lectureId: number): Promise<{ success: boolean; join_url: string; message?: string }> => {
+        const response = await apiClient.get(`/api/v1/lectures/${lectureId}/bbb/join`);
+        return response.data;
+    },
+
+    getMeetingStatus: async (lectureId: number): Promise<{ is_live: boolean; status: string }> => {
+        const response = await apiClient.get(`/api/v1/lectures/${lectureId}/bbb/status`);
         return response.data;
     },
 };

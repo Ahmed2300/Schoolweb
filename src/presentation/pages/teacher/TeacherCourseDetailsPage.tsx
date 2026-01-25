@@ -46,6 +46,7 @@ import { TeacherEditLectureModal } from '../../components/teacher/courses/modals
 import { TeacherEditCourseRequestModal } from '../../components/teacher/courses/modals/TeacherEditCourseRequestModal';
 import { UnitFormModal } from '../../components/admin/units';
 import { DeleteConfirmModal } from '../../components/admin/DeleteConfirmModal';
+import { CourseDetailsSkeleton } from '../../components/ui/CourseDetailsSkeleton';
 
 // Teacher Unit Hooks
 import {
@@ -158,31 +159,35 @@ function UnitCard({
                         </div>
                     ) : (
                         lectures.map((lecture) => (
-                            <div
-                                key={lecture.id}
-                                className="flex items-center justify-between px-5 py-3 hover:bg-slate-50/50 transition-colors"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Video className="w-4 h-4 text-shibl-crimson" />
-                                    <span className="text-slate-700">{getLocalizedTitle(lecture.title)}</span>
-                                    {!lecture.is_published && (
-                                        <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">مسودة</span>
-                                    )}
+                            <div key={lecture.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-0">
+                                <div className="flex items-center justify-between px-5 py-3">
+                                    <div className="flex items-center gap-3">
+                                        <Video className="w-4 h-4 text-shibl-crimson" />
+                                        <span className="text-slate-700">{getLocalizedTitle(lecture.title)}</span>
+                                        {!lecture.is_published && (
+                                            <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">مسودة</span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={() => onEditLecture(lecture)}
+                                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                        >
+                                            <Edit className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => onDeleteLecture(lecture)}
+                                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <button
-                                        onClick={() => onEditLecture(lecture)}
-                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                    >
-                                        <Edit className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => onDeleteLecture(lecture)}
-                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </div>
+                                {lecture.is_online && (
+                                    <div className="px-5 pb-3">
+                                        <LectureSessionControls lecture={lecture} />
+                                    </div>
+                                )}
                             </div>
                         ))
                     )}
@@ -196,6 +201,143 @@ function UnitCard({
                     </button>
                 </div>
             )}
+        </div>
+    );
+}
+
+// ==================== LECTURE SESSION CONTROLS ====================
+
+function LectureSessionControls({ lecture }: { lecture: UnitLecture }) {
+    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
+
+    // Auto-refresh timer: forces re-render every 30 seconds to update time-based status
+    // This fixes the "Mobile Timer Discrepancy" issue where UI doesn't update without refresh
+    const [, setTick] = useState(0);
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTick(t => t + 1); // Force re-render
+        }, 30000); // Every 30 seconds
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // Calculate session status based on time
+    const getSessionStatus = () => {
+        const now = new Date();
+        const startTime = lecture.start_time ? new Date(lecture.start_time) : null;
+        const endTime = lecture.end_time ? new Date(lecture.end_time) : null;
+
+        if (!startTime || !endTime) {
+            return { status: 'no_time', canStart: true }; // No time limits defined
+        }
+
+        // Allow starting 15 minutes before scheduled time
+        const earliestStart = new Date(startTime.getTime() - 15 * 60 * 1000);
+
+        if (now < earliestStart) {
+            return { status: 'pending', canStart: false, startsAt: startTime };
+        }
+
+        if (now > endTime) {
+            return { status: 'expired', canStart: false, endedAt: endTime };
+        }
+
+        return { status: 'active', canStart: true, endsAt: endTime };
+    };
+
+    const sessionState = getSessionStatus();
+
+    const handleStartSession = async () => {
+        try {
+            setIsLoading(true);
+            const response = await teacherLectureService.startSession(lecture.id);
+
+            if (response.success) {
+                navigate(`/classroom/${lecture.id}`);
+            } else {
+                toast.error(response.message || 'فشل في بدء الجلسة');
+            }
+        } catch (error: any) {
+            console.error('Start session error:', error);
+            toast.error(error.response?.data?.message || 'خطأ في الاتصال بالخادم');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Render based on session status
+    if (sessionState.status === 'expired') {
+        return (
+            <div className="flex items-center gap-3 mt-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                <div className="flex-1">
+                    <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                        <Video className="w-3 h-3" />
+                        انتهت فترة الجلسة
+                    </p>
+                </div>
+                <span className="px-3 py-1.5 bg-slate-200 text-slate-600 text-xs font-bold rounded-lg">
+                    منتهية
+                </span>
+            </div>
+        );
+    }
+
+    if (sessionState.status === 'pending') {
+        const timeUntil = sessionState.startsAt ? new Date(sessionState.startsAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '';
+        return (
+            <div className="flex items-center gap-3 mt-2 bg-amber-50/50 p-2 rounded-lg border border-amber-100">
+                <div className="flex-1">
+                    <p className="text-xs text-amber-700 font-medium flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        موعد البدء: {timeUntil}
+                    </p>
+                </div>
+                <span className="px-3 py-1.5 bg-amber-100 text-amber-700 text-xs font-bold rounded-lg">
+                    قريباً
+                </span>
+            </div>
+        );
+    }
+
+    // Active session window
+    const endsAt = sessionState.endsAt ? new Date(sessionState.endsAt) : null;
+    const now = new Date();
+    const minutesRemaining = endsAt ? Math.max(0, Math.floor((endsAt.getTime() - now.getTime()) / 60000)) : null;
+    const isLowTime = minutesRemaining !== null && minutesRemaining <= 5;
+
+    return (
+        <div className={`flex items-center gap-3 mt-2 p-2 rounded-lg border ${isLowTime ? 'bg-orange-50/50 border-orange-200' : 'bg-blue-50/50 border-blue-100'}`}>
+            <div className="flex-1">
+                <p className={`text-xs font-medium flex items-center gap-1 ${isLowTime ? 'text-orange-700' : 'text-blue-700'}`}>
+                    <Video className="w-3 h-3" />
+                    محاضرة مباشرة
+                    {lecture.start_time && (
+                        <span className="text-slate-500 font-normal">
+                            - {new Date(lecture.start_time).toLocaleString('ar-EG')}
+                        </span>
+                    )}
+                </p>
+                {/* Late Joiner Warning: Show remaining time */}
+                {minutesRemaining !== null && (
+                    <p className={`text-xs mt-1 flex items-center gap-1 ${isLowTime ? 'text-orange-600 font-medium' : 'text-slate-500'}`}>
+                        <Clock className="w-3 h-3" />
+                        {isLowTime ? (
+                            <>⚠️ تبقى {minutesRemaining} دقيقة فقط قبل انتهاء الجلسة!</>
+                        ) : (
+                            <>تبقى {minutesRemaining} دقيقة</>
+                        )}
+                    </p>
+                )}
+            </div>
+            <button
+                onClick={handleStartSession}
+                disabled={isLoading}
+                className={`flex items-center gap-2 px-3 py-1.5 text-white text-xs font-bold rounded-lg disabled:opacity-50 transition-colors ${isLowTime ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-600 hover:bg-blue-700'}`}
+            >
+                {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+                بدء البث
+            </button>
         </div>
     );
 }
@@ -390,11 +532,18 @@ export default function TeacherCourseDetailsPage() {
                 });
                 toast.success('تم تحديث الوحدة');
             } else {
-                await createUnit.mutateAsync({
-                    courseId,
-                    data: data as CreateUnitRequest,
+                // New Phase 6 Logic: Submit Request for Creation
+                await teacherContentApprovalService.submitApprovalRequest({
+                    approvable_type: 'course',
+                    approvable_id: courseId,
+                    action: 'create_unit',
+                    payload: data as any,
                 });
-                toast.success('تم إنشاء الوحدة');
+                // await createUnit.mutateAsync({
+                //     courseId,
+                //     data: data as CreateUnitRequest,
+                // });
+                toast.success('تم إرسال طلب إضافة الوحدة للمراجعة');
             }
             setShowUnitModal(false);
             setEditingUnit(null);
@@ -453,14 +602,7 @@ export default function TeacherCourseDetailsPage() {
 
     // Loading state
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="w-10 h-10 text-shibl-crimson animate-spin" />
-                    <p className="text-slate-500">جاري تحميل الكورس...</p>
-                </div>
-            </div>
-        );
+        return <CourseDetailsSkeleton />;
     }
 
     // Error state
@@ -744,6 +886,7 @@ export default function TeacherCourseDetailsPage() {
                         setSelectedLecture(null);
                     }}
                     onSuccess={handleLectureSaved}
+                    courseName={courseName}
                     lecture={{
                         id: selectedLecture.id,
                         title: selectedLecture.title,
@@ -752,7 +895,9 @@ export default function TeacherCourseDetailsPage() {
                         unit_id: selectedLecture.unit_id ?? undefined,
                         teacher_id: typeof user?.id === 'number' ? user.id : 0,
                         recording_path: selectedLecture.video_url,
-                        is_online: false,
+                        is_online: selectedLecture.is_online ?? false,
+                        start_time: selectedLecture.start_time,
+                        end_time: selectedLecture.end_time,
                     }}
                     units={units}
                 />

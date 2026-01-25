@@ -21,6 +21,8 @@ const statusLabels: Record<string, string> = {
     rejected: 'مرفوضة',
 };
 
+import { subscribeToAllAdminsChannel, unsubscribeFromAllAdminsChannel } from '../../../../services/websocket';
+
 export const AdminContentApprovalsPage = () => {
     const { isRTL } = useLanguage();
     const [statusFilter, setStatusFilter] = useState<'pending' | 'approved' | 'rejected'>('pending');
@@ -47,6 +49,21 @@ export const AdminContentApprovalsPage = () => {
 
     useEffect(() => {
         fetchRequests();
+    }, [fetchRequests]);
+
+    // Real-time updates
+    useEffect(() => {
+        const handleNotification = (event: any) => {
+            console.log('Real-time request received:', event);
+            // Refresh list to show new request
+            fetchRequests();
+        };
+
+        subscribeToAllAdminsChannel(handleNotification);
+
+        return () => {
+            unsubscribeFromAllAdminsChannel();
+        };
     }, [fetchRequests]);
 
     const handleStatusChange = (status: 'pending' | 'approved' | 'rejected') => {

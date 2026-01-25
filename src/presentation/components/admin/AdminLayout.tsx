@@ -6,12 +6,26 @@ import { Search, Menu, X } from 'lucide-react';
 import { useAuthStore } from '../../store';
 import { SessionManager } from './SessionManager';
 import { NotificationBell, NotificationToast } from '@/components/notifications';
+import { initializeEcho, disconnectEcho } from '../../../services/websocket';
+import { getToken } from '../../../data/api/ApiClient';
+import { useEffect } from 'react';
 
 export function AdminLayout() {
     const { isRTL } = useLanguage();
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const { user } = useAuthStore();
+
+    // Ensure WebSocket is initialized (safe to call repeatedly as it's a singleton)
+    // We call it here so it's ready before children components mount
+    const token = getToken();
+    if (token) {
+        initializeEcho(token);
+    }
+
+    // Cleanup on unmount
+    // Cleanup on unmount - REMOVED to prevent Strict Mode from killing the shared connection
+    // We rely on explicit logout or window close to disconnect
 
     return (
         <div className="min-h-screen bg-soft-cloud" dir={isRTL ? 'rtl' : 'ltr'}>

@@ -72,6 +72,9 @@ const queryClient = new QueryClient({
   },
 });
 
+// Classroom
+import LiveClassroomPage from './presentation/pages/classroom/LiveClassroomPage';
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -88,6 +91,16 @@ function App() {
             <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLoginPage />} />
             <Route path={ROUTES.TEACHER_LOGIN} element={<AdminLoginPage />} />
             <Route path={ROUTES.TEACHER_VERIFY_EMAIL} element={<TeacherVerifyEmailPage />} />
+
+            {/* Secure Classroom - Standalone Route */}
+            <Route
+              path="/classroom/:id"
+              element={
+                <ProtectedRoute allowedRoles={['student', 'teacher', 'admin']}>
+                  <LiveClassroomPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Protected Student Dashboard */}
             <Route

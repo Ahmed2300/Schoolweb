@@ -1,5 +1,6 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
+import { getToken } from '../data/api/ApiClient';
 
 // Make Pusher available globally for Laravel Echo
 declare global {
@@ -212,6 +213,61 @@ export function unsubscribeFromAdminChannel(adminId: number): void {
 }
 
 /**
+ * Subscribe to global admins channel (for content approvals etc)
+ * Self-initializing: will attempt to create Echo instance if token is available
+ * Uses deferred execution to handle module loading timing issues
+ */
+export function subscribeToAllAdminsChannel(
+    onNotification: (event: unknown) => void
+): void {
+    // Defer to next tick to ensure all modules are loaded
+    setTimeout(() => {
+        // Try to get existing instance
+        let echo = getEcho();
+
+        // If not initialized, try to initialize on demand
+        if (!echo) {
+            // Use direct localStorage access to avoid any import issues
+            const token = localStorage.getItem('auth_token');
+            console.log('WebSocket: Attempting init with token:', token ? 'present' : 'missing');
+
+            if (token) {
+                echo = initializeEcho(token);
+            }
+        }
+
+        if (!echo) {
+            // Token still not available - this is a genuine auth issue
+            console.warn('WebSocket: Cannot subscribe to admins channel - not authenticated');
+            return;
+        }
+
+        try {
+            echo
+                .private('admins')
+                .listen('ContentChangeRequested', (event: unknown) => {
+                    console.log('Received global admin notification:', event);
+                    onNotification(event);
+                });
+
+            console.log('WebSocket: Successfully subscribed to admins channel');
+        } catch (err) {
+            console.error('WebSocket: Error subscribing to admins channel:', err);
+        }
+    }, 100); // Increase delay slightly
+}
+
+/**
+ * Unsubscribe from global admins channel
+ */
+export function unsubscribeFromAllAdminsChannel(): void {
+    const echo = getEcho();
+    if (echo) {
+        echo.leave('admins');
+    }
+}
+
+/**
  * Subscribe to student notification channel
  */
 export function subscribeToStudentChannel(
@@ -294,6 +350,8 @@ export default {
     disconnectTeacherEcho,
     subscribeToTeacherChannel,
     unsubscribeFromTeacherChannel,
+    subscribeToAllAdminsChannel,
+    unsubscribeFromAllAdminsChannel,
 };
 
 /**
@@ -357,11 +415,9 @@ export function subscribeToTeacherChannel(
 
     echo
         .private(`teacher.${teacherId}`)
-        .listen('.content.decision', (event: unknown) => { // Listening to specific event or generic notification?
-            // Event name in backend: ContentChangeDecided
-            // BroadcastAs 'content.decision'
-            console.log('Received teacher notification:', event);
-            onNotification(event);
+        .notification((notification: any) => {
+            console.log('Received teacher notification:', notification);
+            onNotification(notification);
         });
 }
 

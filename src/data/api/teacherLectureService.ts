@@ -178,4 +178,21 @@ export const teacherLectureService = {
             videoUrl: completeResult.videoUrl,
         };
     },
+
+    // BBB Session Methods
+    startSession: async (lectureId: number): Promise<{ success: boolean; join_url: string; message?: string }> => {
+        const response = await apiClient.post(`/api/v1/lectures/${lectureId}/bbb/start`);
+        return response.data;
+    },
+
+    joinSession: async (lectureId: number): Promise<{ success: boolean; join_url: string }> => {
+        const response = await apiClient.get(`/api/v1/lectures/${lectureId}/bbb/join`);
+        return response.data;
+    },
+
+    getMeetingStatus: async (lectureId: number): Promise<{ is_live: boolean; status: string; participant_count: number }> => {
+        const response = await apiClient.get(`/api/v1/lectures/${lectureId}/bbb/status`);
+        return response.data;
+    },
 };
+

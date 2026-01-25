@@ -225,51 +225,33 @@ export function AdminTimeSlotsPage() {
         }
     };
 
-    // Handle create slot with smart time adjustment
+    // Handle create slot
     const handleCreateSlot = async () => {
         if (!newSlotDate || !newSlotStartTime || !newSlotEndTime) return;
 
         // Validate end time is after start time
         if (newSlotEndTime <= newSlotStartTime) return;
 
-        const today = new Date().toISOString().split('T')[0];
-        const now = new Date();
-        const currentHour = now.getHours();
-
-        // Parse times
-        const [startH] = newSlotStartTime.split(':').map(Number);
-        const [endH] = newSlotEndTime.split(':').map(Number);
-
-        let adjustedStartTime = newSlotStartTime;
-
-        // If today and times are involved
-        if (newSlotDate === today) {
-            // If entire range is in the past, block submission
-            if (endH <= currentHour) {
-                console.error('Cannot create slot entirely in the past');
-                return;
-            }
-
-            // If start is in past but end is in future, adjust start to next hour
-            if (startH <= currentHour) {
-                const nextHour = currentHour + 1;
-                adjustedStartTime = `${String(nextHour).padStart(2, '0')}:00`;
-
-                // If adjusted start >= end, block
-                if (nextHour >= endH) {
-                    console.error('Adjusted start time would be after end time');
-                    return;
-                }
-            }
-        }
+        // Note: Strict "past time" validation is already handled in the UI rendering
+        // so we don't need aggressive logic here that might block valid "near-future" times.
 
         setCreateModalError(null); // Clear previous errors
         try {
+            // Parses inputs using local browser time (e.g., Cairo)
+            const [startH, startM] = newSlotStartTime.split(':').map(Number);
+            const [endH, endM] = newSlotEndTime.split(':').map(Number);
+            const [year, month, day] = newSlotDate.split('-').map(Number);
+
+            // Create Date objects (Month is 0-indexed)
+            const startDate = new Date(year, month - 1, day, startH, startM);
+            const endDate = new Date(year, month - 1, day, endH, endM);
+
             await createMutation.mutateAsync({
-                start_time: `${newSlotDate}T${adjustedStartTime}:00`,
-                end_time: `${newSlotDate}T${newSlotEndTime}:00`,
+                start_time: startDate.toISOString(), // Send UTC
+                end_time: endDate.toISOString(),     // Send UTC
                 is_available: true,
             });
+
             toast.success('تم إنشاء الفترة الزمنية بنجاح');
             setCreateModalOpen(false);
             setNewSlotDate('');
@@ -279,10 +261,6 @@ export function AdminTimeSlotsPage() {
         } catch (error: unknown) {
             console.error('Error creating slot:', error);
             // Parse error response for validation messages (overlap detection)
-            // Handle multiple error structures:
-            // 1. Direct error message (from ApiClient transformation)
-            // 2. Laravel validation errors (response.data.errors.start_time)
-            // 3. Generic message (response.data.message)
             const err = error as {
                 message?: string;
                 response?: {
@@ -679,27 +657,42 @@ export function AdminTimeSlotsPage() {
                         <div className="md:hidden divide-y divide-slate-100">
                             {paginatedSlots.map((slot) => {
                                 const statusConfig = STATUS_CONFIG[slot.status];
+                                const isPast = new Date(slot.end_time) < new Date();
+                                // Expired applies to both 'available' and 'approved' slots
+                                const isExpired = (slot.status === 'available' || slot.status === 'approved') && isPast;
+                                const isRejected = slot.status === 'rejected';
+                                const isInactive = isExpired || isRejected;
+
+                                // Badge styling override for expired
+                                const displayConfig = isExpired ? {
+                                    label: 'منتهية',
+                                    color: 'text-slate-500',
+                                    bgColor: 'bg-slate-100',
+                                    borderColor: 'border-slate-200',
+                                    icon: <Clock size={14} />
+                                } : statusConfig;
+
                                 return (
-                                    <div key={slot.id} className="p-4 hover:bg-slate-50/50 transition">
+                                    <div key={slot.id} className={`p-4 border-b border-slate-100 transition ${isInactive ? 'bg-slate-50/80 opacity-75 hover:bg-slate-100' : 'hover:bg-slate-50/50'}`}>
                                         {/* Header: Date, Time & Status */}
                                         <div className="flex items-start justify-between gap-3 mb-3">
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <Calendar size={14} className="text-slate-400 flex-shrink-0" />
-                                                    <span className="font-medium text-charcoal text-sm">
+                                                    <span className={`font-medium text-sm ${isInactive ? 'text-slate-500' : 'text-charcoal'}`}>
                                                         {formatDate(slot.start_time)}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <Clock size={14} className="text-[#AF0C15] flex-shrink-0" />
-                                                    <span className="text-[#AF0C15] font-semibold text-sm">
+                                                    <Clock size={14} className={`${isInactive ? 'text-slate-400' : 'text-[#AF0C15]'} flex-shrink-0`} />
+                                                    <span className={`${isInactive ? 'text-slate-500' : 'text-[#AF0C15]'} font-semibold text-sm`}>
                                                         {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
                                                     </span>
                                                 </div>
                                             </div>
-                                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig.bgColor} ${statusConfig.color} border ${statusConfig.borderColor} flex-shrink-0`}>
-                                                {statusConfig.icon}
-                                                {statusConfig.label}
+                                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${displayConfig.bgColor} ${displayConfig.color} border ${displayConfig.borderColor} flex-shrink-0`}>
+                                                {displayConfig.icon}
+                                                {displayConfig.label}
                                             </span>
                                         </div>
 
@@ -708,7 +701,7 @@ export function AdminTimeSlotsPage() {
                                             <div className="flex flex-wrap gap-3 mb-3 text-sm">
                                                 {slot.teacher && (
                                                     <div className="flex items-center gap-2">
-                                                        <div className="w-6 h-6 bg-[#AF0C15] rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${isInactive ? 'bg-slate-400' : 'bg-[#AF0C15]'}`}>
                                                             {slot.teacher.name?.charAt(0) || 'م'}
                                                         </div>
                                                         <span className="text-slate-700 truncate max-w-[120px]">{slot.teacher.name}</span>
@@ -725,64 +718,83 @@ export function AdminTimeSlotsPage() {
 
                                         {/* Actions */}
                                         <div className="flex items-center gap-1 pt-2 border-t border-slate-100">
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedSlot(slot);
-                                                    setDetailModalOpen(true);
-                                                }}
-                                                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium transition"
-                                            >
-                                                <Eye size={16} />
-                                                عرض
-                                            </button>
-                                            {slot.status === 'pending' && (
-                                                <>
-                                                    <button
-                                                        onClick={() => handleApprove(slot.id)}
-                                                        disabled={approveMutation.isPending}
-                                                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-green-100 hover:bg-green-200 text-[#27AE60] text-sm font-medium transition disabled:opacity-50"
-                                                    >
-                                                        {approveMutation.isPending ? (
-                                                            <Loader2 size={16} className="animate-spin" />
-                                                        ) : (
-                                                            <CheckCircle size={16} />
-                                                        )}
-                                                        قبول
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedSlot(slot);
-                                                            setRejectModalOpen(true);
-                                                        }}
-                                                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 text-sm font-medium transition"
-                                                    >
-                                                        <XCircle size={16} />
-                                                        رفض
-                                                    </button>
-                                                </>
+                                            {/* Always allow View Details if teacher/lecture exists */}
+                                            {(slot.teacher || slot.lecture) && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedSlot(slot);
+                                                        setDetailModalOpen(true);
+                                                    }}
+                                                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium transition"
+                                                >
+                                                    <Eye size={16} />
+                                                    عرض
+                                                </button>
                                             )}
-                                            {slot.status === 'available' && (
+
+                                            {isInactive ? (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedSlot(slot);
+                                                        setDeleteModalOpen(true);
+                                                    }}
+                                                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 text-sm font-medium transition"
+                                                >
+                                                    <Trash2 size={16} />
+                                                    حذف
+                                                </button>
+                                            ) : (
                                                 <>
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedSlot(slot);
-                                                            handleEditClick(slot);
-                                                        }}
-                                                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-600 text-sm font-medium transition"
-                                                    >
-                                                        <Edit3 size={16} />
-                                                        تعديل
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedSlot(slot);
-                                                            setDeleteModalOpen(true);
-                                                        }}
-                                                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 text-sm font-medium transition"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                        حذف
-                                                    </button>
+                                                    {slot.status === 'pending' && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleApprove(slot.id)}
+                                                                disabled={approveMutation.isPending}
+                                                                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-green-100 hover:bg-green-200 text-[#27AE60] text-sm font-medium transition disabled:opacity-50"
+                                                            >
+                                                                {approveMutation.isPending ? (
+                                                                    <Loader2 size={16} className="animate-spin" />
+                                                                ) : (
+                                                                    <CheckCircle size={16} />
+                                                                )}
+                                                                قبول
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelectedSlot(slot);
+                                                                    setRejectModalOpen(true);
+                                                                }}
+                                                                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 text-sm font-medium transition"
+                                                            >
+                                                                <XCircle size={16} />
+                                                                رفض
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                    {slot.status === 'available' && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelectedSlot(slot);
+                                                                    handleEditClick(slot);
+                                                                }}
+                                                                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-600 text-sm font-medium transition"
+                                                            >
+                                                                <Edit3 size={16} />
+                                                                تعديل
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelectedSlot(slot);
+                                                                    setDeleteModalOpen(true);
+                                                                }}
+                                                                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 text-sm font-medium transition"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                                حذف
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </>
                                             )}
                                         </div>
@@ -807,22 +819,37 @@ export function AdminTimeSlotsPage() {
                                 <tbody>
                                     {paginatedSlots.map((slot) => {
                                         const statusConfig = STATUS_CONFIG[slot.status];
+                                        const isPast = new Date(slot.end_time) < new Date();
+                                        // Expired applies to both 'available' and 'approved' slots
+                                        const isExpired = (slot.status === 'available' || slot.status === 'approved') && isPast;
+                                        const isRejected = slot.status === 'rejected';
+                                        const isInactive = isExpired || isRejected;
+
+                                        // Badge styling override
+                                        const displayConfig = isExpired ? {
+                                            label: 'منتهية',
+                                            color: 'text-slate-500',
+                                            bgColor: 'bg-slate-100',
+                                            borderColor: 'border-slate-200',
+                                            icon: <Clock size={14} />
+                                        } : statusConfig;
+
                                         return (
-                                            <tr key={slot.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition">
+                                            <tr key={slot.id} className={`border-b border-slate-100 transition ${isInactive ? 'bg-slate-50/80 opacity-70 hover:bg-slate-100' : 'hover:bg-slate-50/50'}`}>
                                                 <td className="py-4 px-6">
                                                     <div className="flex items-center gap-2">
                                                         <div className="p-1.5 bg-slate-100 rounded-lg">
                                                             <Calendar size={14} className="text-slate-500" />
                                                         </div>
-                                                        <span className="font-medium text-charcoal">
+                                                        <span className={`font-medium ${isInactive ? 'text-slate-500' : 'text-charcoal'}`}>
                                                             {formatDate(slot.start_time)}
                                                         </span>
                                                     </div>
                                                 </td>
                                                 <td className="py-4 px-6">
                                                     <div className="flex items-center gap-2 font-medium">
-                                                        <Clock size={14} className="text-[#AF0C15]" />
-                                                        <span className="text-[#AF0C15]">
+                                                        <Clock size={14} className={isInactive ? 'text-slate-400' : 'text-[#AF0C15]'} />
+                                                        <span className={isInactive ? 'text-slate-500' : 'text-[#AF0C15]'}>
                                                             {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
                                                         </span>
                                                     </div>
@@ -830,10 +857,10 @@ export function AdminTimeSlotsPage() {
                                                 <td className="py-4 px-6">
                                                     {slot.teacher ? (
                                                         <div className="flex items-center gap-2">
-                                                            <div className="w-8 h-8 bg-[#AF0C15] rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${isInactive ? 'bg-slate-400' : 'bg-[#AF0C15]'}`}>
                                                                 {slot.teacher.name?.charAt(0) || 'م'}
                                                             </div>
-                                                            <span className="font-medium text-[#1F1F1F]">{slot.teacher.name}</span>
+                                                            <span className={`font-medium ${isInactive ? 'text-slate-600' : 'text-[#1F1F1F]'}`}>{slot.teacher.name}</span>
                                                         </div>
                                                     ) : (
                                                         <span className="text-slate-400">—</span>
@@ -842,79 +869,98 @@ export function AdminTimeSlotsPage() {
                                                 <td className="py-4 px-6">
                                                     {slot.lecture ? (
                                                         <div className="flex items-center gap-2">
-                                                            <BookOpen size={14} className="text-emerald-500" />
-                                                            <span className="text-slate-700">{slot.lecture.title}</span>
+                                                            <BookOpen size={14} className={isInactive ? 'text-slate-400' : 'text-emerald-500'} />
+                                                            <span className={`text-slate-700 ${isInactive ? 'text-slate-500' : ''}`}>{slot.lecture.title}</span>
                                                         </div>
                                                     ) : (
                                                         <span className="text-slate-400">—</span>
                                                     )}
                                                 </td>
                                                 <td className="py-4 px-6">
-                                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${statusConfig.bgColor} ${statusConfig.color} border ${statusConfig.borderColor}`}>
-                                                        {statusConfig.icon}
-                                                        {statusConfig.label}
+                                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${displayConfig.bgColor} ${displayConfig.color} border ${displayConfig.borderColor}`}>
+                                                        {displayConfig.icon}
+                                                        {displayConfig.label}
                                                     </span>
                                                 </td>
                                                 <td className="py-4 px-6">
                                                     <div className="flex items-center justify-center gap-1">
-                                                        <button
-                                                            onClick={() => {
-                                                                setSelectedSlot(slot);
-                                                                setDetailModalOpen(true);
-                                                            }}
-                                                            className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition"
-                                                            title="عرض التفاصيل"
-                                                        >
-                                                            <Eye size={18} />
-                                                        </button>
-                                                        {slot.status === 'pending' && (
-                                                            <>
-                                                                <button
-                                                                    onClick={() => handleApprove(slot.id)}
-                                                                    disabled={approveMutation.isPending}
-                                                                    className="p-2 rounded-lg hover:bg-green-100 text-[#27AE60] transition disabled:opacity-50"
-                                                                    title="موافقة"
-                                                                >
-                                                                    {approveMutation.isPending ? (
-                                                                        <Loader2 size={18} className="animate-spin" />
-                                                                    ) : (
-                                                                        <CheckCircle size={18} />
-                                                                    )}
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setSelectedSlot(slot);
-                                                                        setRejectModalOpen(true);
-                                                                    }}
-                                                                    className="p-2 rounded-lg hover:bg-red-100 text-red-600 transition"
-                                                                    title="رفض"
-                                                                >
-                                                                    <XCircle size={18} />
-                                                                </button>
-                                                            </>
+                                                        {/* Always allow View Details if teacher/lecture exists */}
+                                                        {(slot.teacher || slot.lecture) && (
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelectedSlot(slot);
+                                                                    setDetailModalOpen(true);
+                                                                }}
+                                                                className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition"
+                                                                title="عرض التفاصيل"
+                                                            >
+                                                                <Eye size={18} />
+                                                            </button>
                                                         )}
-                                                        {slot.status === 'available' && (
+
+                                                        {isInactive ? (
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelectedSlot(slot);
+                                                                    setDeleteModalOpen(true);
+                                                                }}
+                                                                className="p-2 rounded-lg hover:bg-red-50 text-red-400 hover:text-red-500 transition"
+                                                                title="حذف"
+                                                            >
+                                                                <Trash2 size={18} />
+                                                            </button>
+                                                        ) : (
                                                             <>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setSelectedSlot(slot);
-                                                                        handleEditClick(slot);
-                                                                    }}
-                                                                    className="p-2 rounded-lg hover:bg-blue-100 text-blue-600 transition"
-                                                                    title="تعديل"
-                                                                >
-                                                                    <Edit3 size={18} />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setSelectedSlot(slot);
-                                                                        setDeleteModalOpen(true);
-                                                                    }}
-                                                                    className="p-2 rounded-lg hover:bg-red-100 text-red-600 transition"
-                                                                    title="حذف"
-                                                                >
-                                                                    <Trash2 size={18} />
-                                                                </button>
+                                                                {slot.status === 'pending' && (
+                                                                    <>
+                                                                        <button
+                                                                            onClick={() => handleApprove(slot.id)}
+                                                                            disabled={approveMutation.isPending}
+                                                                            className="p-2 rounded-lg hover:bg-green-100 text-[#27AE60] transition disabled:opacity-50"
+                                                                            title="موافقة"
+                                                                        >
+                                                                            {approveMutation.isPending ? (
+                                                                                <Loader2 size={18} className="animate-spin" />
+                                                                            ) : (
+                                                                                <CheckCircle size={18} />
+                                                                            )}
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setSelectedSlot(slot);
+                                                                                setRejectModalOpen(true);
+                                                                            }}
+                                                                            className="p-2 rounded-lg hover:bg-red-100 text-red-600 transition"
+                                                                            title="رفض"
+                                                                        >
+                                                                            <XCircle size={18} />
+                                                                        </button>
+                                                                    </>
+                                                                )}
+                                                                {slot.status === 'available' && (
+                                                                    <>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setSelectedSlot(slot);
+                                                                                handleEditClick(slot);
+                                                                            }}
+                                                                            className="p-2 rounded-lg hover:bg-blue-100 text-blue-600 transition"
+                                                                            title="تعديل"
+                                                                        >
+                                                                            <Edit3 size={18} />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setSelectedSlot(slot);
+                                                                                setDeleteModalOpen(true);
+                                                                            }}
+                                                                            className="p-2 rounded-lg hover:bg-red-100 text-red-600 transition"
+                                                                            title="حذف"
+                                                                        >
+                                                                            <Trash2 size={18} />
+                                                                        </button>
+                                                                    </>
+                                                                )}
                                                             </>
                                                         )}
                                                     </div>
@@ -1074,29 +1120,21 @@ export function AdminTimeSlotsPage() {
                                     );
                                 }
 
-                                // Check if selected date is today and time is in the past
-                                if (newSlotDate === today) {
-                                    const startInPast = startH < currentHour || (startH === currentHour && startM <= currentMinute);
-                                    const nextHour = currentHour + 1;
+                                // Check if selected start time is in the past
+                                const [year, month, day] = newSlotDate.split('-').map(Number);
+                                const slotStartTime = new Date(year, month - 1, day, startH, startM);
 
-                                    if (startInPast && endH > currentHour) {
-                                        return (
-                                            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
-                                                <AlertCircle size={18} className="text-amber-500 mt-0.5 flex-shrink-0" />
-                                                <div className="text-sm text-amber-700">
-                                                    <p className="font-medium">وقت البداية في الماضي</p>
-                                                    <p>سيبدأ الحجز من الساعة {String(nextHour).padStart(2, '0')}:00 بدلاً من {newSlotStartTime}</p>
-                                                </div>
-                                            </div>
-                                        );
-                                    } else if (endH <= currentHour) {
-                                        return (
-                                            <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2">
-                                                <AlertCircle size={18} className="text-red-500 mt-0.5 flex-shrink-0" />
-                                                <p className="text-sm text-red-600">لا يمكن إنشاء فترة في الماضي. اختر وقتاً مستقبلياً.</p>
-                                            </div>
-                                        );
-                                    }
+                                // Buffer of 1 minute to allow for slow submission/seconds difference
+                                const nowWithBuffer = new Date();
+                                nowWithBuffer.setMinutes(nowWithBuffer.getMinutes() - 1);
+
+                                if (slotStartTime < nowWithBuffer) {
+                                    return (
+                                        <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2">
+                                            <AlertCircle size={18} className="text-red-500 mt-0.5 flex-shrink-0" />
+                                            <p className="text-sm text-red-600">لا يمكن إنشاء فترة في الماضي. اختر وقتاً مستقبلياً.</p>
+                                        </div>
+                                    );
                                 }
 
                                 return null;
@@ -1185,10 +1223,26 @@ export function AdminTimeSlotsPage() {
                                     <div>
                                         <label className="text-sm text-slate-500">الحالة</label>
                                         <div className="mt-1">
-                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${STATUS_CONFIG[selectedSlot.status].bgColor} ${STATUS_CONFIG[selectedSlot.status].color}`}>
-                                                {STATUS_CONFIG[selectedSlot.status].icon}
-                                                {STATUS_CONFIG[selectedSlot.status].label}
-                                            </span>
+                                            {(() => {
+                                                const isPast = new Date(selectedSlot.end_time) < new Date();
+                                                const isExpired = (selectedSlot.status === 'available' || selectedSlot.status === 'approved') && isPast;
+
+                                                if (isExpired) {
+                                                    return (
+                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                                                            <Clock size={14} />
+                                                            منتهية
+                                                        </span>
+                                                    );
+                                                }
+
+                                                return (
+                                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${STATUS_CONFIG[selectedSlot.status].bgColor} ${STATUS_CONFIG[selectedSlot.status].color}`}>
+                                                        {STATUS_CONFIG[selectedSlot.status].icon}
+                                                        {STATUS_CONFIG[selectedSlot.status].label}
+                                                    </span>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                     {selectedSlot.teacher && (

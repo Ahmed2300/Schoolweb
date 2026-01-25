@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { studentService, Course, Subscription, getLocalizedName } from '../../../data/api/studentService';
 import {
     ArrowRight,
@@ -410,6 +411,7 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
                                                                 </div>
                                                             )}
                                                         </div>
+                                                        <StudentSessionButton lecture={lecture} />
                                                     </div>
                                                     <div className="flex items-center gap-4">
                                                         {lecture.is_free && (
@@ -450,6 +452,99 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
                     studentService.getSubscriptionByCourse(courseId).then(setExistingSubscription);
                 }}
             />
+        </div>
+    );
+}
+
+// Student Session Button Component
+function StudentSessionButton({ lecture }: { lecture: import('../../../data/api/studentService').Lecture }) {
+    const [status, setStatus] = useState<string>('scheduled');
+    const [isLive, setIsLive] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
+
+    // Auto-refresh timer: forces re-render every 30 seconds to update time-based status
+    // This fixes the "Mobile Timer Discrepancy" issue where UI doesn't update without refresh
+    const [, setTick] = useState(0);
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTick(t => t + 1); // Force re-render to update isExpired check
+        }, 30000); // Every 30 seconds
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // Check if session is expired
+    const isExpired = () => {
+        if (!(lecture as any).end_time) return false;
+        const endTime = new Date((lecture as any).end_time);
+        return new Date() > endTime;
+    };
+
+    useEffect(() => {
+        if (lecture.is_active && (lecture as any).is_online && !isExpired()) {
+            checkStatus();
+        }
+    }, [lecture]);
+
+    const checkStatus = async () => {
+        try {
+            const res = await studentService.getMeetingStatus(lecture.id);
+            setIsLive(res.is_live);
+            setStatus(res.status);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const handleJoin = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            setIsLoading(true);
+            const res = await studentService.joinSession(lecture.id);
+            if (res.success) {
+                navigate(`/classroom/${lecture.id}`);
+            } else {
+                alert(res.message || 'فشل في الانضمام للجلسة');
+            }
+        } catch (e) {
+            alert('خطأ في الانضمام');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (!(lecture as any).is_online) return null;
+
+    // Show expired status
+    if (isExpired()) {
+        return (
+            <div className="flex items-center gap-2 mt-2" onClick={e => e.stopPropagation()}>
+                <span className="text-xs text-slate-400 flex items-center gap-1 bg-slate-100 px-3 py-1 rounded-full">
+                    <Clock size={12} />
+                    انتهت الجلسة
+                </span>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex items-center gap-2 mt-2" onClick={e => e.stopPropagation()}>
+            {isLive ? (
+                <button
+                    onClick={handleJoin}
+                    disabled={isLoading}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors animate-pulse"
+                >
+                    {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Video size={16} />}
+                    انضم للبث المباشر
+                </button>
+            ) : (
+                <span className="text-xs text-slate-400 flex items-center gap-1 bg-slate-100 px-3 py-1 rounded-full">
+                    <Clock size={12} />
+                    جلسة مجدولة
+                </span>
+            )}
         </div>
     );
 }

@@ -117,16 +117,18 @@ export function BulkSlotGeneratorModal({
                     // FIX: Use local date components instead of toISOString() to avoid UTC timezone bugs
                     const year = current.getFullYear();
                     const month = String(current.getMonth() + 1).padStart(2, '0');
-                    const day = String(current.getDate()).padStart(2, '0');
-                    const dateStr = `${year}-${month}-${day}`;
+                    const dayNum = current.getDate(); // Keep as number for Date constructor
+                    const dateStr = `${year}-${month}-${String(dayNum).padStart(2, '0')}`;
 
-                    // Format times as YYYY-MM-DDTHH:MM:SS
-                    const startTimeStr = `${dateStr}T${String(slotStartHour).padStart(2, '0')}:${String(slotStartMin).padStart(2, '0')}:00`;
-                    const endTimeStr = `${dateStr}T${String(slotEndHour).padStart(2, '0')}:${String(slotEndMin).padStart(2, '0')}:00`;
+                    // Create Date objects for start and end times
+                    // Note: We use the local components to creating a Date object, 
+                    // then convert to ISO (UTC) to send to backend.
+                    const slotStart = new Date(year, current.getMonth(), dayNum, slotStartHour, slotStartMin);
+                    const slotEnd = new Date(year, current.getMonth(), dayNum, slotEndHour, slotEndMin);
 
                     slots.push({
-                        start_time: startTimeStr,
-                        end_time: endTimeStr,
+                        start_time: slotStart.toISOString(),
+                        end_time: slotEnd.toISOString(),
                     });
 
                     currentMinutes += slotDuration;
