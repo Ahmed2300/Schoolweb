@@ -26,6 +26,7 @@ import {
     FileText,
     Download,
     Eye,
+    EyeOff,
     Trash2,
     Edit2,
     Video,
@@ -235,6 +236,7 @@ function UnitCard({
     onAddQuizToLecture,
     onEditQuiz,
     onDeleteQuiz,
+    onToggleQuizActive,
     onStartSession,
     quizzes,
     dragHandleProps
@@ -251,6 +253,7 @@ function UnitCard({
     onAddQuizToLecture: (lecture: any) => void;
     onEditQuiz: (quiz: Quiz) => void;
     onDeleteQuiz: (quiz: Quiz) => void;
+    onToggleQuizActive: (quiz: Quiz) => void;
     onStartSession?: (lectureId: number) => void;
     quizzes?: Quiz[];
     dragHandleProps?: any;
@@ -503,6 +506,13 @@ function UnitCard({
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-1">
+                                                                <button
+                                                                    onClick={() => onToggleQuizActive(quiz)}
+                                                                    className={`p-1 rounded-md transition-colors ${quiz.is_active ? 'text-emerald-500 hover:text-emerald-700' : 'text-slate-400 hover:text-slate-600'}`}
+                                                                    title={quiz.is_active ? 'إيقاف الاختبار' : 'تفعيل الاختبار'}
+                                                                >
+                                                                    {quiz.is_active ? <Eye size={14} /> : <EyeOff size={14} />}
+                                                                </button>
                                                                 <button onClick={() => onEditQuiz(quiz)} className="p-1 text-slate-400 hover:text-blue-600 rounded-md">
                                                                     <Edit2 size={14} />
                                                                 </button>
@@ -537,6 +547,13 @@ function UnitCard({
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-1">
+                                                        <button
+                                                            onClick={() => onToggleQuizActive(contentItem)}
+                                                            className={`p-1.5 rounded-md transition-colors ${contentItem.is_active ? 'text-emerald-500 hover:text-emerald-700' : 'text-slate-400 hover:text-slate-600'}`}
+                                                            title={contentItem.is_active ? 'إيقاف الاختبار' : 'تفعيل الاختبار'}
+                                                        >
+                                                            {contentItem.is_active ? <Eye size={16} /> : <EyeOff size={16} />}
+                                                        </button>
                                                         <button onClick={() => onEditQuiz(contentItem)} className="p-1.5 text-slate-400 hover:text-blue-600 rounded-md">
                                                             <Edit2 size={16} />
                                                         </button>
@@ -884,6 +901,28 @@ export function TeacherCourseDetailsPage() {
         }
     };
 
+    /**
+     * Toggle quiz is_active status
+     */
+    const handleToggleQuizActive = async (quiz: Quiz) => {
+        // Optimistic update
+        const previousQuizzes = [...allQuizzes];
+
+        setAllQuizzes(prev => prev.map(q =>
+            q.id === quiz.id ? { ...q, is_active: !q.is_active } : q
+        ));
+
+        try {
+            const result = await quizService.toggleActive(quiz.id);
+            toast.success(result.message);
+        } catch (error) {
+            console.error('Toggle quiz failed:', error);
+            toast.error('فشل في تغيير حالة الاختبار');
+            // Revert on failure
+            setAllQuizzes(previousQuizzes);
+        }
+    };
+
     // Mutations
     const createUnit = useMutation({
         mutationFn: async (data: CreateUnitRequest) => {
@@ -1083,6 +1122,7 @@ export function TeacherCourseDetailsPage() {
                                         }}
                                         onEditQuiz={handleEditQuiz}
                                         onDeleteQuiz={handleDeleteQuiz}
+                                        onToggleQuizActive={handleToggleQuizActive}
                                         onStartSession={handleStartSession}
                                         quizzes={allQuizzes} // Pass all quizzes for filtering inside UnitCard
                                     />

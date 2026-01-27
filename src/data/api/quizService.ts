@@ -209,6 +209,16 @@ export const quizService = {
         );
         return response.data;
     },
+
+    /**
+     * Toggle quiz is_active status
+     */
+    async toggleActive(id: number): Promise<{ success: boolean; data: Quiz; message: string }> {
+        const response = await apiClient.patch<{ success: boolean; data: Quiz; message: string }>(
+            `/api/v1/teacher/quizzes/${id}/toggle-active`
+        );
+        return response.data;
+    },
 };
 
 export default quizService;

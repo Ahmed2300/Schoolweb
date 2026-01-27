@@ -1,6 +1,18 @@
-import { FileQuestion, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { FileQuestion, Clock, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { QuizPlayer } from '../../components/student/quiz/QuizPlayer';
 
 export function StudentQuizzesPage() {
+    const { id } = useParams();
+    const navigate = useNavigate();
+
+    // If ID is present, show Quiz Player Stub (to be implemented fully later)
+    if (id) {
+        return (
+            <QuizPlayer quizId={id} onExit={() => navigate(-1)} />
+        );
+    }
+
     const quizzes = [
         { id: 1, title: 'اختبار الجبر النصفي', subject: 'الرياضيات', date: '30 ديسمبر 2024', duration: '60 دقيقة', status: 'pending', score: null },
         { id: 2, title: 'كويز ميكانيكا', subject: 'الفيزياء', date: '25 ديسمبر 2024', duration: '30 دقيقة', status: 'completed', score: '18/20' },

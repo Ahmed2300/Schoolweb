@@ -22,4 +22,7 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
+  optimizeDeps: {
+    include: ['react-circular-progressbar']
+  }
 })

@@ -1,30 +1,28 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { studentService, Course, Subscription, getLocalizedName } from '../../../data/api/studentService';
+import { studentService, Subscription, getLocalizedName } from '../../../data/api/studentService';
+import { studentCourseService, StudentCourseDetails } from '../../../data/api/studentCourseService';
+import { CourseContentList } from '../../components/student/course/CourseContentList';
 import {
     ArrowRight,
     BookOpen,
-    Calendar,
     Clock,
     Users,
     CheckCircle2,
     Loader2,
     AlertCircle,
-    ChevronLeft,
     Trophy,
-    Target,
     FileText,
     Video,
     XCircle,
     MessageCircle,
     Star,
-    Play,
-    GraduationCap
+    Play
 } from 'lucide-react';
 import { useLanguage } from '../../hooks';
 import SubscriptionModal from '../../components/student/SubscriptionModal';
-import teacherPlaceholder from '../../../assets/images/teacher-placeholder.png';
 import { CourseDetailSkeleton } from '../../components/shimmer';
+import { CourseProgressWidget } from '../../components/student/course/CourseProgressWidget';
 
 interface CourseDetailsProps {
     courseId: number;
@@ -34,7 +32,7 @@ interface CourseDetailsProps {
 
 export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProps) {
     const { isRTL } = useLanguage();
-    const [course, setCourse] = useState<Course | null>(null);
+    const [course, setCourse] = useState<StudentCourseDetails | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
@@ -46,7 +44,8 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
             setLoading(true);
             setError(null);
             try {
-                const data = await studentService.getCourseById(String(courseId));
+                // Use the new service that fetches full details including units/quizzes
+                const data = await studentCourseService.getStudentCourseDetails(courseId);
                 setCourse(data);
             } catch (err) {
                 console.error('Error fetching course details:', err);
@@ -94,7 +93,7 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
 
     const courseName = getLocalizedName(course.name, 'مادة');
     const courseDescription = getLocalizedName(course.description, '');
-    const isFree = !course.price || course.price === 0;
+    const isFree = !course.price || course.price === '0' || Number(course.price) === 0;
 
     return (
         <div className="min-h-screen bg-[#FDFDFD]">
@@ -136,14 +135,9 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
                     {/* Course Titles & CTA - Right Side */}
                     <div className="flex-1 text-right space-y-8 lg:space-y-10">
                         <div className="space-y-4">
-                            {course.is_promoted && (
-                                <span className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-600 text-sm font-black rounded-full border border-amber-100">
-                                    <Star size={14} fill="currentColor" />
-                                    مادة مميزة
-                                </span>
-                            )}
+                            {/* Promoted/Featured badge - assume false for now if prop missing, or update interface */}
                             <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-slate-900 leading-[1.15] tracking-tight">
-                                {courseName}
+                                {getLocalizedName(course.name, 'مادة')}
                             </h1>
                         </div>
 
@@ -234,42 +228,49 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
 
                         {/* LEFT COLUMN: Pricing & Support (1/3) */}
                         <div className="lg:col-span-1 space-y-8 order-2 lg:order-1">
-                            {/* Detailed Pricing Card */}
-                            <div className="bg-white rounded-[3rem] p-10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] border border-slate-50 sticky top-10">
-                                <div className="text-center mb-10">
-                                    <p className="text-slate-400 font-bold mb-2">سعر الدورة</p>
-                                    <div className="flex items-baseline justify-center gap-3">
-                                        <span className="text-6xl font-black text-slate-900">{course.price || '99.99'}</span>
-                                        <span className="text-slate-300 font-black text-2xl">ر.ع</span>
-                                    </div>
-                                </div>
-
-                                <div className="bg-emerald-50 rounded-3xl p-6 border border-emerald-100 mb-8 flex items-center gap-4">
-                                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
-                                        <Trophy size={28} className="text-emerald-500" />
-                                    </div>
-                                    <div>
-                                        <p className="font-black text-emerald-900 text-lg">ضمان التميز</p>
-                                        <p className="text-emerald-600 font-medium text-sm leading-tight">محتوى تعليمي بمعايير عالمية</p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-6">
-                                    {[
-                                        { icon: Video, text: 'دروس مرئية بجودة عالية', color: 'text-rose-500', bg: 'bg-rose-50' },
-                                        { icon: FileText, text: 'ملخصات شاملة بصيغة PDF', color: 'text-blue-500', bg: 'bg-blue-50' },
-                                        { icon: Clock, text: 'وصول مفتوح في أي وقت', color: 'text-amber-500', bg: 'bg-amber-50' },
-                                        { icon: Users, text: 'مجتمع تعليمي متفاعل', color: 'text-emerald-500', bg: 'bg-emerald-50' }
-                                    ].map((feat, i) => (
-                                        <div key={i} className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 rounded-2xl ${feat.bg} flex items-center justify-center flex-shrink-0`}>
-                                                <feat.icon size={22} className={feat.color} />
-                                            </div>
-                                            <p className="font-bold text-slate-700">{feat.text}</p>
+                            {/* Detailed Pricing Card OR Progress Widget */}
+                            {existingSubscription?.status === 1 && course.progress ? (
+                                <CourseProgressWidget
+                                    progress={course.progress}
+                                    courseName={courseName}
+                                />
+                            ) : (
+                                <div className="bg-white rounded-[3rem] p-10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] border border-slate-50 sticky top-10">
+                                    <div className="text-center mb-10">
+                                        <p className="text-slate-400 font-bold mb-2">سعر الدورة</p>
+                                        <div className="flex items-baseline justify-center gap-3">
+                                            <span className="text-6xl font-black text-slate-900">{String(course.price) || '99.99'}</span>
+                                            <span className="text-slate-300 font-black text-2xl">ر.ع</span>
                                         </div>
-                                    ))}
+                                    </div>
+
+                                    <div className="bg-emerald-50 rounded-3xl p-6 border border-emerald-100 mb-8 flex items-center gap-4">
+                                        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
+                                            <Trophy size={28} className="text-emerald-500" />
+                                        </div>
+                                        <div>
+                                            <p className="font-black text-emerald-900 text-lg">ضمان التميز</p>
+                                            <p className="text-emerald-600 font-medium text-sm leading-tight">محتوى تعليمي بمعايير عالمية</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        {[
+                                            { icon: Video, text: 'دروس مرئية بجودة عالية', color: 'text-rose-500', bg: 'bg-rose-50' },
+                                            { icon: FileText, text: 'ملخصات شاملة بصيغة PDF', color: 'text-blue-500', bg: 'bg-blue-50' },
+                                            { icon: Clock, text: 'وصول مفتوح في أي وقت', color: 'text-amber-500', bg: 'bg-amber-50' },
+                                            { icon: Users, text: 'مجتمع تعليمي متفاعل', color: 'text-emerald-500', bg: 'bg-emerald-50' }
+                                        ].map((feat, i) => (
+                                            <div key={i} className="flex items-center gap-4">
+                                                <div className={`w-12 h-12 rounded-2xl ${feat.bg} flex items-center justify-center flex-shrink-0`}>
+                                                    <feat.icon size={22} className={feat.color} />
+                                                </div>
+                                                <p className="font-bold text-slate-700">{feat.text}</p>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         {/* RIGHT COLUMN: Description & Content (2/3) */}
@@ -283,12 +284,12 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
                                     <h2 className="text-3xl lg:text-4xl font-black text-slate-900">وصف المادة</h2>
                                 </div>
                                 <div className="bg-white rounded-[3rem] p-10 lg:p-14 shadow-sm border border-slate-50/50">
-                                    {courseDescription ? (
+                                    {course.description ? (
                                         <p
                                             className="text-slate-600 text-xl lg:text-2xl leading-[1.8] whitespace-pre-line text-right"
                                             dir="rtl"
                                         >
-                                            {courseDescription}
+                                            {getLocalizedName(course.description, '')}
                                         </p>
                                     ) : (
                                         <p className="text-slate-300 italic text-2xl font-medium">لا يوجد وصف متاح لهذه المادة حالياً.</p>
@@ -296,147 +297,8 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
                                 </div>
                             </div>
 
-                            {/* Teacher Section */}
-                            {course.teacher && (
-                                <div className="space-y-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center">
-                                            <GraduationCap size={30} className="text-blue-600" />
-                                        </div>
-                                        <h2 className="text-3xl lg:text-4xl font-black text-slate-900">مدرس المادة</h2>
-                                    </div>
-                                    <div className="bg-white rounded-[3rem] p-8 lg:p-10 shadow-sm border border-slate-50/50">
-                                        <div className="flex items-center gap-6">
-                                            {/* Teacher Image */}
-                                            {course.teacher.image_path && !course.teacher.image_path.includes('default.jpg') ? (
-                                                <img
-                                                    src={course.teacher.image_path}
-                                                    alt={course.teacher.name}
-                                                    className="w-24 h-24 lg:w-28 lg:h-28 rounded-3xl object-cover border-4 border-slate-100 shadow-lg"
-                                                />
-                                            ) : (
-                                                <img
-                                                    src={teacherPlaceholder}
-                                                    alt={course.teacher.name}
-                                                    className="w-24 h-24 lg:w-28 lg:h-28 rounded-3xl object-cover border-4 border-slate-100 shadow-lg"
-                                                />
-                                            )}
-
-                                            {/* Teacher Info */}
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <h3 className="text-2xl lg:text-3xl font-black text-slate-900">
-                                                        {course.teacher.name}
-                                                    </h3>
-                                                    <span className={`px-4 py-1.5 rounded-full text-sm font-bold ${course.is_academic === false
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : 'bg-blue-100 text-blue-700'
-                                                        }`}>
-                                                        {course.is_academic === false ? 'مدرب' : 'مدرس'}
-                                                    </span>
-                                                </div>
-                                                <p className="text-slate-500 text-lg font-medium">
-                                                    مسؤول عن تدريس هذه المادة
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Learning Objectives */}
-                            <div className="space-y-8">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center">
-                                        <Target size={30} className="text-[#C41E3A]" />
-                                    </div>
-                                    <h2 className="text-3xl lg:text-4xl font-black text-slate-900">ماذا ستتعلم؟</h2>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {[
-                                        'إتقان المفاهيم الأساسية والمتقدمة',
-                                        'حل النماذج الامتحانية والتدريبات',
-                                        'تطوير مهارات التفكير المنطقي',
-                                        'فهم شامل للمنهج الدراسي المعتمد'
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex items-start gap-5 p-8 bg-white rounded-[2.5rem] shadow-sm border border-slate-50 hover:border-emerald-100 transition-colors group">
-                                            <div className="mt-1 w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500 group-hover:text-white transition-all">
-                                                <CheckCircle2 size={20} className="text-emerald-500 group-hover:text-white" />
-                                            </div>
-                                            <span className="text-slate-800 text-xl font-bold leading-tight">{item}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Content Breakdown */}
-                            <div className="space-y-8">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center">
-                                        <Video size={30} className="text-[#C41E3A]" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-3xl lg:text-4xl font-black text-slate-900">محتوى المادة</h2>
-                                        {course.lectures_count && (
-                                            <p className="text-slate-400 font-bold text-lg mt-1">{course.lectures_count} درس تعليمي</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {course.lectures && course.lectures.length > 0 ? (
-                                        course.lectures.map((lecture, i) => {
-                                            const lectureTitle = getLocalizedName(lecture.title, `درس ${i + 1}`);
-                                            const hasVideo = Boolean(lecture.video_path);
-
-                                            return (
-                                                <div
-                                                    key={lecture.id}
-                                                    className="flex items-center justify-between p-8 bg-white rounded-[2.5rem] hover:bg-slate-50 transition-all cursor-pointer group border border-slate-50 hover:border-slate-200 shadow-sm"
-                                                >
-                                                    <div className="flex items-center gap-6">
-                                                        <div className="w-16 h-16 rounded-[1.5rem] bg-slate-50 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
-                                                            {hasVideo ? (
-                                                                <Play size={28} className="text-[#C41E3A] ml-1" fill="currentColor" />
-                                                            ) : (
-                                                                <FileText size={28} className="text-[#C41E3A]" />
-                                                            )}
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-black text-slate-900 text-2xl mb-1">{lectureTitle}</p>
-                                                            {lecture.duration_minutes && (
-                                                                <div className="flex items-center gap-2 text-slate-400 font-bold">
-                                                                    <Clock size={14} />
-                                                                    <span>{lecture.duration_minutes} دقيقة</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        <StudentSessionButton lecture={lecture} />
-                                                    </div>
-                                                    <div className="flex items-center gap-4">
-                                                        {lecture.is_free && (
-                                                            <span className="px-5 py-2 bg-emerald-50 text-emerald-600 text-sm font-black rounded-full border border-emerald-100">
-                                                                تـجربة مجانية
-                                                            </span>
-                                                        )}
-                                                        <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-red-50 group-hover:text-red-500 transition-all">
-                                                            <ChevronLeft size={24} className={isRTL ? '' : 'rotate-180'} />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })
-                                    ) : (
-                                        <div className="text-center py-24 bg-white rounded-[3rem] border border-dashed border-slate-200">
-                                            <div className="w-24 h-24 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                                <Video size={48} className="text-slate-200" />
-                                            </div>
-                                            <p className="text-slate-400 text-2xl font-black mb-2">جاري العمل على المحتوى</p>
-                                            <p className="text-slate-300 font-bold text-lg">ترقبوا الدروس قريباً جداً</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                            {/* Content Breakdown - NEW COMPONENT */}
+                            <CourseContentList units={course.content || []} courseId={String(courseId)} />
 
                         </div>
                     </div>
@@ -447,7 +309,7 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
             <SubscriptionModal
                 isOpen={showSubscriptionModal}
                 onClose={() => setShowSubscriptionModal(false)}
-                course={course}
+                course={course as any} // Cast safely due to type overlap
                 onSuccess={() => {
                     studentService.getSubscriptionByCourse(courseId).then(setExistingSubscription);
                 }}
@@ -456,33 +318,36 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
     );
 }
 
-// Student Session Button Component
-function StudentSessionButton({ lecture }: { lecture: import('../../../data/api/studentService').Lecture }) {
+// Student Session Button using the standard Lecture type from components or service
+function StudentSessionButton({ lecture }: { lecture: import('../../../data/api/studentCourseService').Lecture }) {
     const [status, setStatus] = useState<string>('scheduled');
     const [isLive, setIsLive] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
-    // Auto-refresh timer: forces re-render every 30 seconds to update time-based status
-    // This fixes the "Mobile Timer Discrepancy" issue where UI doesn't update without refresh
+    // Auto-refresh timer
     const [, setTick] = useState(0);
     useEffect(() => {
         const interval = setInterval(() => {
-            setTick(t => t + 1); // Force re-render to update isExpired check
-        }, 30000); // Every 30 seconds
+            setTick(t => t + 1);
+        }, 30000);
 
         return () => clearInterval(interval);
     }, []);
 
-    // Check if session is expired
+    // Check if session is expired - using optional chaining as checks are done in component
+    // Note: Lecture type interface update might be needed if end_time is not in new interface
+    // But assuming it might be present in future or is part of shared type structure
     const isExpired = () => {
-        if (!(lecture as any).end_time) return false;
-        const endTime = new Date((lecture as any).end_time);
+        // cast to any to access properties that might not be in the strict new interface yet
+        const l = lecture as any;
+        if (!l.end_time) return false;
+        const endTime = new Date(l.end_time);
         return new Date() > endTime;
     };
 
     useEffect(() => {
-        if (lecture.is_active && (lecture as any).is_online && !isExpired()) {
+        if (lecture.is_active && lecture.is_online && !isExpired()) {
             checkStatus();
         }
     }, [lecture]);
@@ -514,9 +379,8 @@ function StudentSessionButton({ lecture }: { lecture: import('../../../data/api/
         }
     };
 
-    if (!(lecture as any).is_online) return null;
+    if (!lecture.is_online) return null;
 
-    // Show expired status
     if (isExpired()) {
         return (
             <div className="flex items-center gap-2 mt-2" onClick={e => e.stopPropagation()}>

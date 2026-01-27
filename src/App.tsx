@@ -51,7 +51,8 @@ import {
   TeacherQuizzesPage,
   TeacherSettingsPage,
   TeacherTimeSlotsPage,
-  NotFoundPage
+  NotFoundPage,
+  LecturePlayerPage
 } from './presentation/pages';
 import { AdminLayout } from './presentation/components/admin';
 import { TeacherLayout } from './presentation/components/teacher';
@@ -115,9 +116,11 @@ function App() {
               <Route index element={<StudentHomePage />} />
               <Route path="courses" element={<StudentCoursesPage />} />
               <Route path="courses/:id" element={<StudentCourseDetailPage />} />
+              <Route path="courses/:id/lecture/:lectureId" element={<LecturePlayerPage />} />
               <Route path="packages" element={<StudentPackagesPage />} />
               <Route path="schedule" element={<StudentSchedulePage />} />
               <Route path="quizzes" element={<StudentQuizzesPage />} />
+              <Route path="quizzes/:id" element={<StudentQuizzesPage />} />
               <Route path="live" element={<StudentLivePage />} />
               <Route path="profile" element={<StudentProfilePage />} />
               <Route path="parent-requests" element={<StudentParentRequestsPage />} />

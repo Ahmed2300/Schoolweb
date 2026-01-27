@@ -15,3 +15,5 @@ export { ParentHomePage } from './ParentHomePage';
 export { ParentChildrenPage } from './ParentChildrenPage';
 export { ParentFinancePage } from './ParentFinancePage';
 export { ParentSettingsPage } from './ParentSettingsPage';
+
+export { LecturePlayerPage } from '../student/LecturePlayerPage';
