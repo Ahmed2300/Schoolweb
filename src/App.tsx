@@ -29,6 +29,7 @@ import {
   AdminAcademicGraphPage,
   AdminTimeSlotsPage,
   AdminContentApprovalsPage,
+  AdminQuizzesPage,
   StudentLayout,
   StudentHomePage,
   StudentCoursesPage,
@@ -181,6 +182,7 @@ function App() {
               <Route path="academic-structure" element={<AdminAcademicGraphPage />} />
               <Route path="time-slots" element={<AdminTimeSlotsPage />} />
               <Route path="content-approvals" element={<AdminContentApprovalsPage />} />
+              <Route path="quizzes" element={<AdminQuizzesPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
             </Route>
 

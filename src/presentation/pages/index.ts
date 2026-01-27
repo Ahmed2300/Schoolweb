@@ -3,6 +3,7 @@ export * from './auth';
 export * from './landing';
 export * from './dashboard';
 export * from './admin/approvals/AdminContentApprovalsPage';
+export * from './admin/quizzes/AdminQuizzesPage';
 export * from './admin';
 export * from './teacher';
 export { NotFoundPage } from './NotFoundPage';

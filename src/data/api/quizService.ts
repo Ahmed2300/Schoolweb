@@ -32,6 +32,7 @@ export interface Quiz {
     description?: { en?: string; ar?: string };
     quiz_type: QuizType;
     course_id: number;
+    unit_id?: number | null;
     lecture_id?: number | null;
     teacher_id: number;
     duration_minutes: number;
@@ -41,11 +42,20 @@ export interface Quiz {
     questions_count?: number;
     created_at?: string;
     updated_at?: string;
+    admin_feedback?: string;
     // Relations
     course?: {
         id: number;
         name: { en?: string; ar?: string };
     };
+    unit?: {
+        id: number;
+        name: { en?: string; ar?: string };
+    } | null;
+    lecture?: {
+        id: number;
+        title: { en?: string; ar?: string };
+    } | null;
     questions?: QuizQuestion[];
 }
 
@@ -54,6 +64,7 @@ export interface CreateQuizData {
     description?: { en?: string; ar?: string };
     quiz_type: QuizType;
     course_id: number;
+    unit_id?: number | null;
     lecture_id?: number | null;
     duration_minutes?: number;
     passing_percentage?: number;
@@ -135,7 +146,7 @@ export const quizService = {
      * Get all quizzes for the authenticated teacher
      * Optionally filter by course_id or quiz_type
      */
-    async getMyQuizzes(params?: QuizzesListParams): Promise<QuizzesResponse> {
+    async getQuizzes(params?: QuizzesListParams): Promise<QuizzesResponse> {
         const response = await apiClient.get<QuizzesResponse>(
             endpoints.teacher.quizzes.list,
             { params }

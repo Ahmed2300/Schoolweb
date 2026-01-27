@@ -242,7 +242,7 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                                         className="w-full h-10 px-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none bg-white"
                                     >
                                         <option value="">اختر الوحدة (اختياري)</option>
-                                        {units.map(u => <option key={u.id} value={u.id}>{getLocalizedName(u.title)}</option>)}
+                                        {(units || []).map(u => <option key={u.id} value={u.id}>{getLocalizedName(u.title)}</option>)}
                                     </select>
                                 </div>
 

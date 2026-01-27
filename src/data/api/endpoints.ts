@@ -99,6 +99,8 @@ export const endpoints = {
                 update: (courseId: number, unitId: number) => `/api/v1/my-courses/${courseId}/units/${unitId}`,
                 delete: (courseId: number, unitId: number) => `/api/v1/my-courses/${courseId}/units/${unitId}`,
                 reorder: (courseId: number) => `/api/v1/my-courses/${courseId}/units/reorder`,
+                reorderLectures: (courseId: number, unitId: number) => `/api/v1/my-courses/${courseId}/units/${unitId}/reorder-lectures`,
+                reorderContent: (courseId: number, unitId: number) => `/api/v1/my-courses/${courseId}/units/${unitId}/reorder-content`,
             },
             // Enrolled students endpoint
             students: (courseId: number) => `/api/v1/my-courses/${courseId}/students`,
@@ -330,6 +332,13 @@ export const endpoints = {
             show: (id: number) => `/api/v1/admin/content-approvals/${id}`,
             approve: (id: number) => `/api/v1/admin/content-approvals/${id}/approve`,
             reject: (id: number) => `/api/v1/admin/content-approvals/${id}/reject`,
+        },
+        // Quizzes
+        quizzes: {
+            list: '/api/v1/admin/quizzes',
+            show: (id: number) => `/api/v1/admin/quizzes/${id}`,
+            approve: (id: number) => `/api/v1/admin/quizzes/${id}/approve`,
+            reject: (id: number) => `/api/v1/admin/quizzes/${id}/reject`,
         },
     },
 

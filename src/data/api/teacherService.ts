@@ -101,18 +101,19 @@ export interface CourseFilters {
 /**
  * Extract localized name from course name field
  */
-export const getCourseName = (name: string | { ar?: string; en?: string }): string => {
+export const getCourseName = (name: string | { ar?: string; en?: string } | null | undefined): string => {
+    if (!name && typeof name !== 'string') return '';
     if (typeof name === 'string') return name;
-    return name.ar || name.en || '';
+    return name?.ar || name?.en || '';
 };
 
 /**
  * Extract localized description from course description field
  */
 export const getCourseDescription = (description?: string | { ar?: string; en?: string }): string => {
-    if (!description) return '';
+    if (!description && typeof description !== 'string') return '';
     if (typeof description === 'string') return description;
-    return description.ar || description.en || '';
+    return description?.ar || description?.en || '';
 };
 
 // ==================== SERVICE ====================
@@ -306,6 +307,14 @@ export const teacherService = {
 
     reorderUnits: async (courseId: number, order: number[]): Promise<void> => {
         await apiClient.post(endpoints.teacher.myCourses.units.reorder(courseId), { order });
+    },
+
+    reorderLectures: async (courseId: number, unitId: number, order: number[]): Promise<void> => {
+        await apiClient.post(endpoints.teacher.myCourses.units.reorderLectures(courseId, unitId), { order });
+    },
+
+    reorderContent: async (courseId: number, unitId: number, items: { id: number; type: 'lecture' | 'quiz' }[]): Promise<void> => {
+        await apiClient.post(endpoints.teacher.myCourses.units.reorderContent(courseId, unitId), { items });
     },
 
     // ==================== TIME SLOTS ====================

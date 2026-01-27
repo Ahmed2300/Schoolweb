@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuthStore } from '@/presentation/store';
 import { getToken } from '@/data/api/ApiClient';
-import { initializeEcho, subscribeToAdminChannel, unsubscribeFromAdminChannel, disconnectEcho } from '@/services/websocket';
+import {
+    initializeEcho, subscribeToAdminChannel, unsubscribeFromAdminChannel, disconnectEcho,
+    initializeStudentEcho, subscribeToStudentChannel, unsubscribeFromStudentChannel, disconnectStudentEcho,
+    initializeTeacherEcho, subscribeToTeacherChannel, unsubscribeFromTeacherChannel, disconnectTeacherEcho,
+    initializeParentEcho, subscribeToParentChannel, unsubscribeFromParentChannel, disconnectParentEcho
+} from '@/services/websocket';
 import notificationService from '@/services/notificationService';
 import type { AdminNotification, WebSocketNotificationEvent } from '@/types/notification';
 
@@ -94,17 +99,41 @@ export function useNotifications(): UseNotificationsReturn {
         }
 
         try {
-            const echo = initializeEcho(token);
+            // Determine which Echo instance to initialize based on role
+            let echo;
+            if (user.role === 'student') {
+                echo = initializeStudentEcho(token);
+            } else if (user.role === 'teacher') {
+                echo = initializeTeacherEcho(token);
+            } else if (user.role === 'parent') {
+                echo = initializeParentEcho(token);
+            } else {
+                echo = initializeEcho(token);
+            }
+
             // If WebSocket is disabled, echo will be null - skip subscription silently
             if (!echo) {
                 setIsConnected(false);
                 return;
             }
 
-            // Cast to any to bypass strict number check if user.id is string|number
-            subscribeToAdminChannel(user.id as any, handleNotification as (event: unknown) => void);
+            // Subscribe based on role
+            if (user.role === 'student') {
+                subscribeToStudentChannel(Number(user.id), handleNotification as (event: unknown) => void);
+                console.log('WebSocket connected for student:', user.id);
+            } else if (user.role === 'teacher') {
+                subscribeToTeacherChannel(Number(user.id), handleNotification as (event: unknown) => void);
+                console.log('WebSocket connected for teacher:', user.id);
+            } else if (user.role === 'parent') {
+                subscribeToParentChannel(Number(user.id), handleNotification as (event: unknown) => void);
+                console.log('WebSocket connected for parent:', user.id);
+            } else {
+                // Default to admin for now, or check explicit admin role
+                subscribeToAdminChannel(Number(user.id), handleNotification as (event: unknown) => void);
+                console.log('WebSocket connected for admin:', user.id);
+            }
+
             setIsConnected(true);
-            console.log('WebSocket connected for admin:', user.id);
         } catch (err) {
             console.error('Failed to connect to WebSocket:', err);
             setIsConnected(false);
@@ -112,12 +141,19 @@ export function useNotifications(): UseNotificationsReturn {
 
         return () => {
             if (user?.id) {
-                unsubscribeFromAdminChannel(user.id as any);
+                if (user.role === 'student') unsubscribeFromStudentChannel(Number(user.id));
+                else if (user.role === 'teacher') unsubscribeFromTeacherChannel(Number(user.id));
+                else if (user.role === 'parent') unsubscribeFromParentChannel(Number(user.id));
+                else unsubscribeFromAdminChannel(Number(user.id));
             }
+            // Disconnect all to be safe, or specific one
             disconnectEcho();
+            disconnectStudentEcho();
+            disconnectTeacherEcho();
+            disconnectParentEcho();
             setIsConnected(false);
         };
-    }, [user?.id, isAuthenticated, handleNotification]);
+    }, [user?.id, user?.role, isAuthenticated, handleNotification]);
 
     // Fetch initial notifications
     useEffect(() => {

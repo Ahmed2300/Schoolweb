@@ -175,9 +175,9 @@ export function TeacherAddLectureModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" style={{ direction: 'rtl' }}>
-            <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-xl text-right">
+            <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-xl text-right">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-none">
                     <div>
                         <h2 className="text-lg font-bold text-charcoal">إضافة محاضرة جديدة</h2>
                         <p className="text-sm text-slate-500">الخطوة {step} من 2</p>
@@ -188,8 +188,8 @@ export function TeacherAddLectureModal({
                 </div>
 
                 {/* Steps Indicator */}
-                <div className="px-6 py-4">
-                    <div className="flex items-center justify-between relative">
+                <div className="px-6 py-4 flex-none border-b border-slate-50">
+                    <div className="flex items-center justify-between relative max-w-md mx-auto">
                         <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-100 -z-10" />
                         <div className={`flex flex-col items-center gap-2 bg-white px-2 ${step >= 1 ? 'text-blue-600' : 'text-slate-400'}`}>
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${step >= 1 ? 'border-blue-600 bg-blue-50' : 'border-slate-200 bg-white'}`}>
@@ -206,7 +206,7 @@ export function TeacherAddLectureModal({
                     </div>
                 </div>
 
-                <div className="p-6">
+                <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
                     {error && (
                         <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-2 text-sm">
                             <X size={18} />
@@ -215,8 +215,8 @@ export function TeacherAddLectureModal({
                     )}
 
                     {step === 1 ? (
-                        <form id="detailsForm" onSubmit={handleSubmitDetails} className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <form id="detailsForm" onSubmit={handleSubmitDetails} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-1.5">
                                     <label className="text-sm font-medium text-charcoal">عنوان المحاضرة (بالعربية) *</label>
                                     <input
@@ -224,7 +224,7 @@ export function TeacherAddLectureModal({
                                         required
                                         value={formData.titleAr}
                                         onChange={(e) => setFormData(prev => ({ ...prev, titleAr: e.target.value }))}
-                                        className="w-full h-10 px-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors"
+                                        className="w-full h-11 px-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none transition-colors"
                                         dir="rtl"
                                     />
                                 </div>
@@ -234,7 +234,7 @@ export function TeacherAddLectureModal({
                                         type="text"
                                         value={formData.titleEn}
                                         onChange={(e) => setFormData(prev => ({ ...prev, titleEn: e.target.value }))}
-                                        className="w-full h-10 px-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors"
+                                        className="w-full h-11 px-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none transition-colors"
                                         dir="ltr"
                                     />
                                 </div>
@@ -245,7 +245,7 @@ export function TeacherAddLectureModal({
                                         type="text"
                                         value={courseName}
                                         disabled
-                                        className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                                        className="w-full h-11 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
                                     />
                                 </div>
 
@@ -256,7 +256,7 @@ export function TeacherAddLectureModal({
                                     <select
                                         value={formData.unitId}
                                         onChange={(e) => setFormData(prev => ({ ...prev, unitId: e.target.value }))}
-                                        className="w-full h-10 px-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none bg-white"
+                                        className="w-full h-11 px-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none bg-white"
                                     >
                                         <option value="">اختر الوحدة (اختياري)</option>
                                         {units.map(u => <option key={u.id} value={u.id}>{getLocalizedName(u.title)}</option>)}
@@ -266,16 +266,16 @@ export function TeacherAddLectureModal({
                                 <div className="col-span-full">
                                     <label className="text-sm font-medium text-charcoal mb-1.5 block">الوصف (بالعربية)</label>
                                     <textarea
-                                        rows={3}
+                                        rows={4}
                                         value={formData.descriptionAr}
                                         onChange={(e) => setFormData(prev => ({ ...prev, descriptionAr: e.target.value }))}
-                                        className="w-full p-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors resize-none"
+                                        className="w-full p-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none transition-colors resize-none"
                                         dir="rtl"
                                     />
                                 </div>
 
                                 <div className="col-span-full pt-2">
-                                    <label className="flex items-center gap-2 cursor-pointer">
+                                    <label className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
                                         <input
                                             type="checkbox"
                                             checked={formData.isOnline}
@@ -285,16 +285,19 @@ export function TeacherAddLectureModal({
                                                     setSelectedSlot(null);
                                                 }
                                             }}
-                                            className="w-4 h-4 rounded text-blue-600 focus:ring-offset-0 focus:ring-0 cursor-pointer"
+                                            className="w-5 h-5 rounded text-blue-600 focus:ring-offset-0 focus:ring-0 cursor-pointer"
                                         />
-                                        <span className="text-sm text-charcoal select-none">محاضرة أونلاين (بث مباشر)</span>
+                                        <div>
+                                            <span className="text-sm font-bold text-charcoal block">محاضرة أونلاين (بث مباشر)</span>
+                                            <span className="text-xs text-slate-500">سيتم جدولة موعد للبث المباشر بدلاً من رفع فيديو مسجل</span>
+                                        </div>
                                     </label>
                                 </div>
 
                                 {formData.isOnline && (
-                                    <div className="col-span-full">
+                                    <div className="col-span-full border-t border-slate-100 pt-4">
                                         <label className="text-sm font-medium text-charcoal mb-3 block flex items-center gap-2">
-                                            <Radio size={16} className="text-blue-600" />
+                                            <Calendar size={18} className="text-blue-600" />
                                             اختر فترة البث المباشر *
                                         </label>
                                         <TimeSlotPicker
@@ -309,9 +312,9 @@ export function TeacherAddLectureModal({
                             </div>
                         </form>
                     ) : (
-                        <div className="space-y-6">
+                        <div className="space-y-6 max-w-2xl mx-auto">
                             <div className="text-center space-y-2">
-                                <h3 className="font-semibold text-charcoal">رفع فيديو المحاضرة</h3>
+                                <h3 className="font-semibold text-charcoal text-lg">رفع فيديو المحاضرة</h3>
                                 <p className="text-sm text-slate-500">يمكنك رفع فيديو مسجل للمحاضرة الآن أو تخطي هذه الخطوة</p>
                             </div>
 
@@ -320,12 +323,15 @@ export function TeacherAddLectureModal({
                                 onError={(msg) => console.error(msg)}
                             />
 
-                            <div className="p-4 bg-blue-50 text-blue-800 rounded-xl text-sm">
-                                <p className="font-semibold mb-1">معلومات عن الفيديو:</p>
-                                <ul className="list-disc list-inside space-y-1 opacity-80">
+                            <div className="p-5 bg-blue-50 text-blue-800 rounded-2xl text-sm border border-blue-100">
+                                <p className="font-bold mb-2 flex items-center gap-2">
+                                    <Video size={16} />
+                                    معلومات عن الفيديو المطلوب:
+                                </p>
+                                <ul className="list-disc list-inside space-y-1.5 opacity-90 pr-2">
                                     <li>الصيغ المدعومة: MP4, AVI, MOV, MKV</li>
-                                    <li>يتم دعم رفع الملفات الكبيرة (أكثر من 100MB) بتقنية التجزئة</li>
-                                    <li>يمكنك إغلاق هذه النافذة وسيكتمل الرفع في الخلفية (قريباً)</li>
+                                    <li>يتم دعم رفع الملفات الكبيرة (أكثر من 100MB)</li>
+                                    <li>ينصح باستخدام جودة 1080p للحصول على أفضل تجربة مشاهدة</li>
                                 </ul>
                             </div>
                         </div>
@@ -333,7 +339,7 @@ export function TeacherAddLectureModal({
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between flex-none rounded-b-2xl">
                     {step === 1 ? (
                         <>
                             <button
@@ -345,10 +351,20 @@ export function TeacherAddLectureModal({
                             <button
                                 type="submit"
                                 form="detailsForm"
-                                className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all flex items-center gap-2"
+                                disabled={loading}
+                                className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                التالي
-                                <ChevronLeft size={18} />
+                                {loading ? (
+                                    <>
+                                        <Loader2 size={18} className="animate-spin" />
+                                        <span>جاري المعالجة...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        {formData.isOnline ? 'حفظ ونشر' : 'التالي'}
+                                        {formData.isOnline ? <Check size={18} /> : <ChevronLeft size={18} />}
+                                    </>
+                                )}
                             </button>
                         </>
                     ) : (

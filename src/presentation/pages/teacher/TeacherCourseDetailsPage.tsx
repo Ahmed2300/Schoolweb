@@ -1,10 +1,12 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLanguage, useAuth } from '../../hooks';
-import { teacherService, TeacherCourse, getCourseName, getCourseDescription, TeacherCourseStudent } from '../../../data/api';
+import { teacherService, getCourseName, getCourseDescription, type TeacherCourse, type TeacherCourseStudent } from '../../../data/api';
 import { teacherLectureService } from '../../../data/api/teacherLectureService';
 import { teacherContentApprovalService } from '../../../data/api/teacherContentApprovalService';
-import { Unit, UnitLecture, CreateUnitRequest, UpdateUnitRequest } from '../../../types/unit';
+import type { Unit, CreateUnitRequest, UpdateUnitRequest } from '../../../types/unit';
+import { quizService, type Quiz } from '../../../data/api/quizService';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 
@@ -25,7 +27,7 @@ import {
     Download,
     Eye,
     Trash2,
-    Edit2 as Edit,
+    Edit2,
     Video,
     X,
     AlertCircle,
@@ -38,34 +40,42 @@ import {
     ChevronUp,
     RefreshCw,
     Loader2,
+    GripVertical,
+    HelpCircle,
+    PlayCircle
 } from 'lucide-react';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+    useDraggable,
+    useDroppable,
+    DragOverlay
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
-// Teacher Modals
+// Components
 import { TeacherAddLectureModal } from '../../components/teacher/courses/modals/TeacherAddLectureModal';
 import { TeacherEditLectureModal } from '../../components/teacher/courses/modals/TeacherEditLectureModal';
-import { TeacherEditCourseRequestModal } from '../../components/teacher/courses/modals/TeacherEditCourseRequestModal';
-import { UnitFormModal } from '../../components/admin/units';
+import { UnitFormModal } from '../../components/admin/units/UnitFormModal';
 import { DeleteConfirmModal } from '../../components/admin/DeleteConfirmModal';
-import { CourseDetailsSkeleton } from '../../components/ui/CourseDetailsSkeleton';
 
-// Teacher Unit Hooks
-import {
-    useTeacherCreateUnit,
-    useTeacherUpdateUnit,
-    useTeacherDeleteUnit,
-} from '../../../hooks/useTeacherUnits';
-
-
-// ==================== TYPES ====================
-
-type TabId = 'lectures' | 'students' | 'quizzes' | 'settings';
-
-interface CourseStats {
-    students: number;
-    lectures: number;
-    rating: number;
-    duration: string;
-}
+// Tabs
+import { CourseQuizzesTab } from '../../components/teacher/courses/CourseQuizzesTab';
+import { CreateQuizModal } from '../../components/teacher/CreateQuizModal';
+import { useMutation } from '@tanstack/react-query';
+import { CourseDetailsSkeleton } from '../../components/ui/skeletons/CourseDetailsSkeleton';
 
 // ==================== HELPER COMPONENTS ====================
 
@@ -83,12 +93,134 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
     );
 }
 
+const getQuizStatusStyle = (status: string) => {
+    switch (status) {
+        case 'published':
+        case 'approved':
+            return {
+                label: 'معتمد',
+                bgClass: 'bg-emerald-100',
+                textClass: 'text-emerald-700'
+            };
+        case 'pending':
+            return {
+                label: 'قيد المراجعة',
+                bgClass: 'bg-amber-100',
+                textClass: 'text-amber-700'
+            };
+        case 'rejected':
+            return {
+                label: 'مرفوض',
+                bgClass: 'bg-rose-100',
+                textClass: 'text-rose-700'
+            };
+        default:
+            return {
+                label: 'مسودة',
+                bgClass: 'bg-slate-100',
+                textClass: 'text-slate-600'
+            };
+    }
+};
+
 // Helper to get localized title
 const getLocalizedTitle = (title: string | { ar?: string; en?: string } | undefined): string => {
     if (!title) return 'بدون عنوان';
     if (typeof title === 'string') return title;
     return title.ar || title.en || 'بدون عنوان';
 };
+
+// Draggable Unassigned Quiz Wrapper
+function DraggableUnassignedQuiz({ quiz, children }: { quiz: Quiz, children: React.ReactNode }) {
+    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+        id: `unassigned-quiz-${quiz.id}`,
+        data: {
+            type: 'unassigned-quiz',
+            quiz
+        }
+    });
+
+    const style = transform ? {
+        transform: CSS.Translate.toString(transform),
+        zIndex: isDragging ? 50 : 1,
+        opacity: isDragging ? 0.8 : 1,
+        position: 'relative' as 'relative',
+        touchAction: 'none'
+    } : undefined;
+
+    return (
+        <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
+            {children}
+        </div>
+    );
+}
+
+// Sortable Unit Wrapper
+function SortableUnit({ unit, ...props }: { unit: Unit } & any) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: unit.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 10 : 1,
+        opacity: isDragging ? 0.5 : 1,
+        position: 'relative' as 'relative',
+    };
+
+    return (
+        <div ref={setNodeRef} style={style}>
+            <UnitCard
+                unit={unit}
+                {...props}
+                dragHandleProps={{ ...attributes, ...listeners }}
+            />
+        </div>
+    );
+}
+
+// Sortable Content Item Wrapper (Lecture or Quiz)
+function SortableContentItem({ id, item, type, renderItem }: { id: string, item: any, type: 'lecture' | 'quiz', renderItem: (item: any) => React.ReactNode }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 10 : 1,
+        opacity: isDragging ? 0.5 : 1,
+        position: 'relative' as 'relative',
+    };
+
+    return (
+        <div ref={setNodeRef} style={style}>
+            <div className="flex items-center gap-2">
+                <div
+                    className="p-1 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500"
+                    {...attributes}
+                    {...listeners}
+                >
+                    <GripVertical size={16} />
+                </div>
+                <div className="flex-1">
+                    {renderItem(item)}
+                </div>
+            </div>
+        </div>
+    );
+}
 
 function UnitCard({
     unit,
@@ -99,6 +231,13 @@ function UnitCard({
     onAddLecture,
     onEditLecture,
     onDeleteLecture,
+    onAddQuizToUnit,
+    onAddQuizToLecture,
+    onEditQuiz,
+    onDeleteQuiz,
+    onStartSession,
+    quizzes,
+    dragHandleProps
 }: {
     unit: Unit;
     isExpanded: boolean;
@@ -106,392 +245,416 @@ function UnitCard({
     onEditUnit: () => void;
     onDeleteUnit: () => void;
     onAddLecture: () => void;
-    onEditLecture: (lecture: UnitLecture) => void;
-    onDeleteLecture: (lecture: UnitLecture) => void;
+    onEditLecture: (lecture: any) => void;
+    onDeleteLecture: (lecture: any) => void;
+    onAddQuizToUnit: () => void;
+    onAddQuizToLecture: (lecture: any) => void;
+    onEditQuiz: (quiz: Quiz) => void;
+    onDeleteQuiz: (quiz: Quiz) => void;
+    onStartSession?: (lectureId: number) => void;
+    quizzes?: Quiz[];
+    dragHandleProps?: any;
 }) {
-    const lectures = unit.lectures || [];
-    const publishedCount = lectures.filter((l) => l.is_published).length;
+    const { isRTL } = useLanguage();
+
+    // Make Unit Droppable
+    const { setNodeRef, isOver } = useDroppable({
+        id: `unit-${unit.id}`,
+        data: {
+            type: 'unit',
+            unit
+        }
+    });
+
+    // Combine lectures and quizzes (if available in unit)
+    // Filter out quizzes that serve as nested content for lectures to avoid duplication
+    const allUnitQuizzes = unit.quizzes || (quizzes?.filter(q => q.unit_id == unit.id) || []);
+    const unitQuizzes = allUnitQuizzes.filter(q => !q.lecture_id);
+
+    // Merge lectures and quizzes for sorting
+    // We add a 'sortType' and 'uniqueId' to handle DND
+    const mixedContent = [
+        ...(unit.lectures || []).map((l: any) => ({ ...l, sortType: 'lecture', uniqueId: `l-${l.id}`, order: l.order || 0 })),
+        ...unitQuizzes.map((q: any) => ({ ...q, sortType: 'quiz', uniqueId: `q-${q.id}`, order: q.order || 0 }))
+    ].sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    const [items, setItems] = useState(mixedContent);
+
+    // Sync state when props change
+    useEffect(() => {
+        setItems(mixedContent);
+    }, [unit, quizzes]); // Added quizzes dependency
+
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (active.id !== over?.id) {
+            const oldIndex = items.findIndex((item) => item.uniqueId === active.id);
+            const newIndex = items.findIndex((item) => item.uniqueId === over?.id);
+
+            const newItems = arrayMove(items, oldIndex, newIndex);
+            setItems(newItems); // Optimistic update of local state
+
+            // Prepare payload
+            const payload = newItems.map(item => ({
+                id: item.id,
+                type: item.sortType as 'lecture' | 'quiz'
+            }));
+
+            try {
+                await teacherService.reorderContent(unit.course_id, unit.id, payload);
+                toast.success('تم تحديث الترتيب');
+            } catch (e) {
+                console.error('Reorder content failed', e);
+                toast.error('فشل حفظ الترتيب');
+                setItems(mixedContent); // Revert
+            }
+        }
+    };
 
     return (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+        <div
+            ref={setNodeRef}
+            className={`bg-white rounded-xl border transition-all shadow-sm ${isOver ? 'border-shibl-crimson ring-2 ring-shibl-crimson/20 bg-red-50/10' : 'border-slate-200'} overflow-hidden`}
+        >
             {/* Unit Header */}
-            <div className="flex items-center justify-between px-5 py-4 bg-slate-50/80">
-                <div
-                    className="flex items-center gap-3 flex-1 cursor-pointer hover:bg-slate-100/80 transition-colors -m-2 p-2 rounded-lg"
-                    onClick={onToggle}
-                >
-                    <Layers className="w-5 h-5 text-shibl-crimson" />
+            <div
+                className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${isExpanded ? 'bg-slate-50' : 'hover:bg-slate-50'}`}
+                onClick={onToggle}
+            >
+                <div className="flex items-center gap-3 flex-1">
+                    <div
+                        className="p-2 cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600"
+                        onClick={(e) => e.stopPropagation()}
+                        {...dragHandleProps}
+                    >
+                        <GripVertical size={20} />
+                    </div>
+                    <div className="w-10 h-10 rounded-lg bg-shibl-crimson/10 flex items-center justify-center text-shibl-crimson">
+                        <Layers className="w-5 h-5" />
+                    </div>
                     <div>
                         <h4 className="font-semibold text-slate-900">{getLocalizedTitle(unit.title)}</h4>
                         <p className="text-sm text-slate-500">
-                            {lectures.length} محاضرة • {publishedCount} منشور
+                            {unit.lectures?.length || 0} محاضرة • {unitQuizzes.length || 0} اختبار
                         </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-1">
+
+                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                     <button
-                        onClick={onEditUnit}
-                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="تعديل الوحدة"
+                        onClick={onAddLecture}
+                        className="p-2 text-slate-400 hover:text-shibl-crimson transition-colors"
+                        title="إضافة محاضرة"
                     >
-                        <Edit className="w-4 h-4" />
+                        <Video size={18} />
                     </button>
                     <button
-                        onClick={onDeleteUnit}
-                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="حذف الوحدة"
+                        onClick={onAddQuizToUnit}
+                        className="p-2 text-slate-400 hover:text-shibl-crimson transition-colors"
+                        title="إضافة اختبار"
                     >
-                        <Trash2 className="w-4 h-4" />
+                        <HelpCircle size={18} />
                     </button>
-                    <button onClick={onToggle} className="p-2 text-slate-400 hover:text-slate-600">
-                        {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                    <button onClick={onEditUnit} className="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+                        <Edit2 size={18} />
                     </button>
+                    <button onClick={onDeleteUnit} className="p-2 text-slate-400 hover:text-red-600 transition-colors">
+                        <Trash2 size={18} />
+                    </button>
+                    {isExpanded ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
                 </div>
             </div>
 
-            {/* Lectures List */}
+            {/* Expanded Content */}
             {isExpanded && (
-                <div className="divide-y divide-slate-100">
-                    {lectures.length === 0 ? (
-                        <div className="px-5 py-6 text-center text-slate-400">
-                            <Video className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                            <p className="text-sm">لا توجد محاضرات في هذه الوحدة</p>
-                        </div>
-                    ) : (
-                        lectures.map((lecture) => (
-                            <div key={lecture.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-0">
-                                <div className="flex items-center justify-between px-5 py-3">
-                                    <div className="flex items-center gap-3">
-                                        <Video className="w-4 h-4 text-shibl-crimson" />
-                                        <span className="text-slate-700">{getLocalizedTitle(lecture.title)}</span>
-                                        {!lecture.is_published && (
-                                            <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">مسودة</span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <button
-                                            onClick={() => onEditLecture(lecture)}
-                                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                        >
-                                            <Edit className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => onDeleteLecture(lecture)}
-                                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                                {lecture.is_online && (
-                                    <div className="px-5 pb-3">
-                                        <LectureSessionControls lecture={lecture} />
-                                    </div>
-                                )}
-                            </div>
-                        ))
-                    )}
-                    {/* Add Lecture Button */}
-                    <button
-                        onClick={onAddLecture}
-                        className="flex items-center gap-2 w-full px-5 py-3 text-sm text-shibl-crimson hover:bg-shibl-crimson/5 transition-colors"
+                <div className="border-t border-slate-100 p-4 space-y-3 bg-slate-50/50">
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
                     >
-                        <Plus className="w-4 h-4" />
-                        <span>إضافة محاضرة</span>
-                    </button>
+                        <SortableContext
+                            items={items.map(i => i.uniqueId)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            {items.length === 0 && (
+                                <div className="text-center py-8 text-slate-400 bg-white rounded-lg border border-dashed border-slate-200">
+                                    لا يوجد محتوى في هذه الوحدة
+                                </div>
+                            )}
+
+                            {items.map((item) => (
+                                <SortableContentItem
+                                    key={item.uniqueId}
+                                    id={item.uniqueId}
+                                    item={item}
+                                    type={item.sortType}
+                                    renderItem={(contentItem) => {
+                                        if (item.sortType === 'lecture') {
+                                            // Render Lecture
+                                            return (
+                                                <div className="flex flex-col gap-2 p-3 bg-white rounded-lg border border-slate-200 hover:shadow-sm transition-shadow">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${contentItem.is_online ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>
+                                                                {contentItem.is_online ? <Video size={16} /> : <PlayCircle size={16} />}
+                                                            </div>
+                                                            <div>
+                                                                <h5 className="text-sm font-medium text-slate-900">{getLocalizedTitle(contentItem.title)}</h5>
+                                                                <div className="flex flex-col gap-1">
+                                                                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                                                                        <span className={contentItem.is_published ? 'text-green-600' : 'text-slate-400'}>
+                                                                            {contentItem.is_published ? 'منشور' : 'مسودة'}
+                                                                        </span>
+                                                                        {contentItem.duration_minutes > 0 && <span>• {contentItem.duration_minutes} دقيقة</span>}
+                                                                    </div>
+                                                                    {contentItem.is_online && contentItem.start_time && (
+                                                                        <div className="flex items-center gap-1.5 text-xs text-blue-600 font-medium">
+                                                                            <Calendar size={12} />
+                                                                            <span>
+                                                                                {new Date(contentItem.start_time).toLocaleDateString('ar-EG')} • {new Date(contentItem.start_time).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                                                                                {contentItem.end_time && ` - ${new Date(contentItem.end_time).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}`}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            {contentItem.is_online && (
+                                                                (() => {
+                                                                    const now = new Date();
+                                                                    const startTime = contentItem.start_time ? new Date(contentItem.start_time) : null;
+                                                                    const endTime = contentItem.end_time ? new Date(contentItem.end_time) : null;
+
+                                                                    // Allow starting 15 mins before
+                                                                    const canStart = startTime ? new Date(startTime.getTime() - 15 * 60000) <= now : true;
+                                                                    const isEnded = endTime ? now > endTime : false;
+
+                                                                    if (isEnded) {
+                                                                        return (
+                                                                            <span className="px-2 py-1.5 text-xs font-medium text-slate-500 bg-slate-100 rounded-md flex items-center gap-1 mr-1">
+                                                                                <Clock size={14} />
+                                                                                <span>منتهية</span>
+                                                                            </span>
+                                                                        );
+                                                                    }
+
+                                                                    if (!canStart && startTime) {
+                                                                        return (
+                                                                            <span className="px-2 py-1.5 text-xs font-medium text-amber-600 bg-amber-50 rounded-md flex items-center gap-1 mr-1" title={`يبدأ في ${startTime.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}`}>
+                                                                                <Clock size={14} />
+                                                                                <span>لم يبدأ بعد</span>
+                                                                            </span>
+                                                                        );
+                                                                    }
+
+                                                                    return (
+                                                                        <button
+                                                                            onClick={() => onStartSession && onStartSession(contentItem.id)}
+                                                                            className="px-2 py-1.5 text-xs font-medium text-white bg-shibl-crimson hover:bg-shibl-crimson/90 rounded-md transition-colors flex items-center gap-1 shadow-sm mr-1"
+                                                                            title="بدء البث المباشر"
+                                                                        >
+                                                                            <Video size={14} />
+                                                                            <span>بدء البث</span>
+                                                                        </button>
+                                                                    );
+                                                                })()
+                                                            )}
+                                                            <button onClick={() => onAddQuizToLecture(contentItem)} className="p-1.5 text-slate-400 hover:text-shibl-crimson rounded-md" title="إضافة اختبار للمحاضرة">
+                                                                <HelpCircle size={16} />
+                                                            </button>
+                                                            <button onClick={() => onEditLecture(contentItem)} className="p-1.5 text-slate-400 hover:text-blue-600 rounded-md">
+                                                                <Edit2 size={16} />
+                                                            </button>
+                                                            <button onClick={() => onDeleteLecture(contentItem)} className="p-1.5 text-slate-400 hover:text-red-600 rounded-md">
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Nested Quizzes in Lecture */}
+                                                    {quizzes?.filter(q => q.lecture_id === contentItem.id).map(quiz => (
+                                                        <div key={quiz.id} className="mr-8 mt-2 flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-200 border-r-4 border-r-amber-500">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-6 h-6 rounded bg-amber-100 text-amber-600 flex items-center justify-center">
+                                                                    <HelpCircle size={14} />
+                                                                </div>
+                                                                <div>
+                                                                    <h6 className="text-xs font-semibold text-slate-800">{getLocalizedTitle(quiz.name)}</h6>
+                                                                    <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                                                                        <span className={`px-1 py-0.5 rounded text-[9px] ${quiz.status === 'approved' ? 'bg-green-100 text-green-700' :
+                                                                            quiz.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                                                                'bg-slate-100 text-slate-600'
+                                                                            }`}>
+                                                                            {quiz.status === 'approved' ? 'معتمد' :
+                                                                                quiz.status === 'pending' ? 'قيد المراجعة' : 'مسودة'}
+                                                                        </span>
+                                                                        <span>• {quiz.questions_count || 0} أسئلة</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-1">
+                                                                <button onClick={() => onEditQuiz(quiz)} className="p-1 text-slate-400 hover:text-blue-600 rounded-md">
+                                                                    <Edit2 size={14} />
+                                                                </button>
+                                                                <button onClick={() => onDeleteQuiz(quiz)} className="p-1 text-slate-400 hover:text-red-600 rounded-md">
+                                                                    <Trash2 size={14} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            );
+                                        } else {
+                                            // Render Quiz
+                                            return (
+                                                <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200 hover:shadow-sm transition-shadow border-l-4 border-l-amber-500">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                                                            <HelpCircle size={16} />
+                                                        </div>
+                                                        <div>
+                                                            <h5 className="text-sm font-medium text-slate-900">{getLocalizedTitle(contentItem.name)}</h5>
+                                                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                                                                <span className={`px-1.5 py-0.5 rounded text-[10px] ${contentItem.status === 'approved' ? 'bg-green-100 text-green-700' :
+                                                                    contentItem.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                                                        'bg-slate-100 text-slate-600'
+                                                                    }`}>
+                                                                    {contentItem.status === 'approved' ? 'معتمد' :
+                                                                        contentItem.status === 'pending' ? 'قيد المراجعة' : 'مسودة'}
+                                                                </span>
+                                                                <span>• {contentItem.questions_count || 0} أسئلة</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <button onClick={() => onEditQuiz(contentItem)} className="p-1.5 text-slate-400 hover:text-blue-600 rounded-md">
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                        <button onClick={() => onDeleteQuiz(contentItem)} className="p-1.5 text-slate-400 hover:text-red-600 rounded-md">
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+                                    }}
+                                />
+                            ))}
+                        </SortableContext>
+                    </DndContext>
                 </div>
             )}
         </div>
     );
 }
 
-// ==================== LECTURE SESSION CONTROLS ====================
 
-function LectureSessionControls({ lecture }: { lecture: UnitLecture }) {
-    const [isLoading, setIsLoading] = useState(false);
+
+export function TeacherCourseDetailsPage() {
+    const { id } = useParams<{ id: string }>();
+    const courseId = parseInt(id || '0');
     const navigate = useNavigate();
-
-    // Auto-refresh timer: forces re-render every 30 seconds to update time-based status
-    // This fixes the "Mobile Timer Discrepancy" issue where UI doesn't update without refresh
-    const [, setTick] = useState(0);
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setTick(t => t + 1); // Force re-render
-        }, 30000); // Every 30 seconds
-
-        return () => clearInterval(interval);
-    }, []);
-
-    // Calculate session status based on time
-    const getSessionStatus = () => {
-        const now = new Date();
-        const startTime = lecture.start_time ? new Date(lecture.start_time) : null;
-        const endTime = lecture.end_time ? new Date(lecture.end_time) : null;
-
-        if (!startTime || !endTime) {
-            return { status: 'no_time', canStart: true }; // No time limits defined
-        }
-
-        // Allow starting 15 minutes before scheduled time
-        const earliestStart = new Date(startTime.getTime() - 15 * 60 * 1000);
-
-        if (now < earliestStart) {
-            return { status: 'pending', canStart: false, startsAt: startTime };
-        }
-
-        if (now > endTime) {
-            return { status: 'expired', canStart: false, endedAt: endTime };
-        }
-
-        return { status: 'active', canStart: true, endsAt: endTime };
-    };
-
-    const sessionState = getSessionStatus();
-
-    const handleStartSession = async () => {
-        try {
-            setIsLoading(true);
-            const response = await teacherLectureService.startSession(lecture.id);
-
-            if (response.success) {
-                navigate(`/classroom/${lecture.id}`);
-            } else {
-                toast.error(response.message || 'فشل في بدء الجلسة');
-            }
-        } catch (error: any) {
-            console.error('Start session error:', error);
-            toast.error(error.response?.data?.message || 'خطأ في الاتصال بالخادم');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Render based on session status
-    if (sessionState.status === 'expired') {
-        return (
-            <div className="flex items-center gap-3 mt-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
-                <div className="flex-1">
-                    <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                        <Video className="w-3 h-3" />
-                        انتهت فترة الجلسة
-                    </p>
-                </div>
-                <span className="px-3 py-1.5 bg-slate-200 text-slate-600 text-xs font-bold rounded-lg">
-                    منتهية
-                </span>
-            </div>
-        );
-    }
-
-    if (sessionState.status === 'pending') {
-        const timeUntil = sessionState.startsAt ? new Date(sessionState.startsAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '';
-        return (
-            <div className="flex items-center gap-3 mt-2 bg-amber-50/50 p-2 rounded-lg border border-amber-100">
-                <div className="flex-1">
-                    <p className="text-xs text-amber-700 font-medium flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        موعد البدء: {timeUntil}
-                    </p>
-                </div>
-                <span className="px-3 py-1.5 bg-amber-100 text-amber-700 text-xs font-bold rounded-lg">
-                    قريباً
-                </span>
-            </div>
-        );
-    }
-
-    // Active session window
-    const endsAt = sessionState.endsAt ? new Date(sessionState.endsAt) : null;
-    const now = new Date();
-    const minutesRemaining = endsAt ? Math.max(0, Math.floor((endsAt.getTime() - now.getTime()) / 60000)) : null;
-    const isLowTime = minutesRemaining !== null && minutesRemaining <= 5;
-
-    return (
-        <div className={`flex items-center gap-3 mt-2 p-2 rounded-lg border ${isLowTime ? 'bg-orange-50/50 border-orange-200' : 'bg-blue-50/50 border-blue-100'}`}>
-            <div className="flex-1">
-                <p className={`text-xs font-medium flex items-center gap-1 ${isLowTime ? 'text-orange-700' : 'text-blue-700'}`}>
-                    <Video className="w-3 h-3" />
-                    محاضرة مباشرة
-                    {lecture.start_time && (
-                        <span className="text-slate-500 font-normal">
-                            - {new Date(lecture.start_time).toLocaleString('ar-EG')}
-                        </span>
-                    )}
-                </p>
-                {/* Late Joiner Warning: Show remaining time */}
-                {minutesRemaining !== null && (
-                    <p className={`text-xs mt-1 flex items-center gap-1 ${isLowTime ? 'text-orange-600 font-medium' : 'text-slate-500'}`}>
-                        <Clock className="w-3 h-3" />
-                        {isLowTime ? (
-                            <>⚠️ تبقى {minutesRemaining} دقيقة فقط قبل انتهاء الجلسة!</>
-                        ) : (
-                            <>تبقى {minutesRemaining} دقيقة</>
-                        )}
-                    </p>
-                )}
-            </div>
-            <button
-                onClick={handleStartSession}
-                disabled={isLoading}
-                className={`flex items-center gap-2 px-3 py-1.5 text-white text-xs font-bold rounded-lg disabled:opacity-50 transition-colors ${isLowTime ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-600 hover:bg-blue-700'}`}
-            >
-                {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
-                بدء البث
-            </button>
-        </div>
-    );
-}
-
-// ==================== MAIN COMPONENT ====================
-
-export default function TeacherCourseDetailsPage() {
-    const { id: courseIdParam } = useParams<{ id: string }>();
-    const courseId = Number(courseIdParam);
-    const navigate = useNavigate();
-    const { t } = useLanguage();
     const { user } = useAuth();
+    const { isRTL } = useLanguage();
 
     // State
-    const [activeTab, setActiveTab] = useState<TabId>('lectures');
     const [course, setCourse] = useState<TeacherCourse | null>(null);
-    const [units, setUnits] = useState<Unit[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [expandedUnits, setExpandedUnits] = useState<Set<number>>(new Set());
-    const [pendingApprovalCount, setPendingApprovalCount] = useState(0);
-    const [isSubmittingApproval, setIsSubmittingApproval] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<'content' | 'students' | 'quizzes' | 'settings'>('content');
 
-    // Modal states - Lectures
+    // Content State
+    const [units, setUnits] = useState<Unit[]>([]);
+    const [allQuizzes, setAllQuizzes] = useState<Quiz[]>([]); // All quizzes for the course
+    const [expandedUnits, setExpandedUnits] = useState<number[]>([]);
+
+    // Modal States
     const [showAddLecture, setShowAddLecture] = useState(false);
     const [showEditLecture, setShowEditLecture] = useState(false);
     const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
-    const [selectedLecture, setSelectedLecture] = useState<UnitLecture | null>(null);
+    const [selectedLecture, setSelectedLecture] = useState<any | null>(null);
+    const [deletingLecture, setDeletingLecture] = useState<any | null>(null);
 
-    // Modal states - Edit Request
-    const [showEditRequestModal, setShowEditRequestModal] = useState(false);
-
-    // Modal states - Units
+    // Unit Modal States
     const [showUnitModal, setShowUnitModal] = useState(false);
     const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
     const [deletingUnit, setDeletingUnit] = useState<Unit | null>(null);
-    const [deletingLecture, setDeletingLecture] = useState<UnitLecture | null>(null);
 
-    // Unit mutations
-    const createUnit = useTeacherCreateUnit();
-    const updateUnit = useTeacherUpdateUnit();
-    const deleteUnit = useTeacherDeleteUnit();
+    // Quiz Modal States
+    const [showQuizModal, setShowQuizModal] = useState(false);
+    const [quizContextUnit, setQuizContextUnit] = useState<Unit | null>(null);
+    const [quizContextLecture, setQuizContextLecture] = useState<any | null>(null);
+    const [selectedQuizForEdit, setSelectedQuizForEdit] = useState<Quiz | null>(null);
 
-    // Fetch course data
-    const fetchCourse = useCallback(async () => {
+    // Fetch Course Data
+    const fetchCourseData = useCallback(async () => {
         if (!courseId) return;
-        setIsLoading(true);
-        setError(null);
 
         try {
+            setLoading(true);
             const courseData = await teacherService.getCourse(courseId);
             setCourse(courseData);
 
-            // Fetch units
-            const unitsResponse = await teacherService.getUnits(courseId);
-            setUnits(unitsResponse.data || []);
-
-            // Fetch pending approval count
+            // Fetch Units
             try {
-                // Using generic pending count if teacherContentApprovalService is avail
-                // Pending count logic might exist in multiple places now, consolidation needed later
-                const count = await teacherContentApprovalService.getPendingCount(courseId);
-                // Also could fetch regular edits pending count?
-                // setPendingApprovalCount(count); 
-                // For now keeping existing pending approval logic if it relates to other content
+                // Corrected Call to Flat Method
+                const unitsResponse = await teacherService.getUnits(courseId);
+                // The API might return { success: true, data: [...] } or just [...]
+                // Based on service definition: Promise<{ success: boolean; data: Unit[] }>
+                const unitsList = unitsResponse.data || [];
 
-            } catch (e) {
-                // ignore
+                // Ensure units are sorted by order
+                const sortedUnits = unitsList.sort((a: Unit, b: Unit) => (a.order || 0) - (b.order || 0));
+                setUnits(sortedUnits);
+
+                // Expand first unit by default if none expanded
+                if (expandedUnits.length === 0 && sortedUnits.length > 0) {
+                    setExpandedUnits([sortedUnits[0].id]);
+                }
+            } catch (err) {
+                console.error('Failed to load units:', err);
+                setUnits([]);
             }
-        } catch (err) {
-            console.error('Error fetching course:', err);
-            setError('فشل في تحميل بيانات الكورس');
+
+            // Fetch All Quizzes to find unassigned ones
+            try {
+                const quizzesResponse = await quizService.getQuizzes({ course_id: courseId });
+                setAllQuizzes(quizzesResponse.data || []);
+            } catch (err) {
+                console.error('Failed to load quizzes:', err);
+            }
+
+        } catch (error) {
+            console.error('Error fetching course:', error);
+            toast.error('فشل تحميل بيانات الكورس');
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     }, [courseId]);
 
     useEffect(() => {
-        fetchCourse();
-    }, [fetchCourse]);
+        fetchCourseData();
+    }, [fetchCourseData]);
 
-    // Real-time updates
-    useEffect(() => {
-        if (!user?.id) return;
-
-        const handleNotification = (event: any) => {
-            console.log('Real-time update received:', event);
-            // Refresh course data on any content decision
-            fetchCourse();
-        };
-
-        import('../../../services/websocket').then(({ subscribeToTeacherChannel, unsubscribeFromTeacherChannel }) => {
-            subscribeToTeacherChannel(Number(user.id), handleNotification);
-        });
-
-        return () => {
-            import('../../../services/websocket').then(({ unsubscribeFromTeacherChannel }) => {
-                unsubscribeFromTeacherChannel(Number(user.id));
-            });
-        };
-    }, [user?.id, fetchCourse]);
-
-    // Students State
-    const [students, setStudents] = useState<TeacherCourseStudent[]>([]);
-    const [studentsLoading, setStudentsLoading] = useState(false);
-
-    // Fetch students when tab is active
-    const fetchStudents = useCallback(async () => {
-        if (activeTab !== 'students') return;
-
-        setStudentsLoading(true);
-        try {
-            const response = await teacherService.getCourseStudents(courseId); // Changed parseInt(id!) to courseId
-            if (response.success) {
-                setStudents(response.data);
-            }
-        } catch (error) {
-            console.error('Error fetching students:', error);
-        } finally {
-            setStudentsLoading(false);
-        }
-    }, [activeTab, courseId]); // Changed id to courseId
-
-    useEffect(() => {
-        fetchStudents();
-    }, [fetchStudents]);
-
-    // Derived stats
-    const stats = useMemo<CourseStats>(() => ({
-        students: students.length > 0 ? students.length : (course?.students_count || 0),
-        lectures: course?.lectures_count || 0,
-        rating: 4.5, // Mock rating
-        duration: '0 دقيقة', // Mock duration until we calculate real total
-    }), [course, students.length]);
-
-    // Bulk approval logic removed in favor of granular edit requests
-    // Future implementation will handle unit/lecture publish requests individually
-
-    // Toggle unit expansion
-    const toggleUnit = (unitId: number) => {
-        setExpandedUnits((prev) => {
-            const next = new Set(prev);
-            if (next.has(unitId)) {
-                next.delete(unitId);
-            } else {
-                next.add(unitId);
-            }
-            return next;
-        });
+    // Unit Handlers
+    const handleToggleUnit = (unitId: number) => {
+        setExpandedUnits(prev =>
+            prev.includes(unitId)
+                ? prev.filter(id => id !== unitId)
+                : [...prev, unitId]
+        );
     };
 
-    // ==================== UNIT HANDLERS ====================
-
-    const handleAddUnit = () => {
+    const handleCreateUnit = () => {
         setEditingUnit(null);
         setShowUnitModal(true);
     };
@@ -501,119 +664,271 @@ export default function TeacherCourseDetailsPage() {
         setShowUnitModal(true);
     };
 
-    const handleDeleteUnitClick = (unit: Unit) => {
+    const handleDeleteUnit = (unit: Unit) => {
         setDeletingUnit(unit);
     };
 
     const handleConfirmDeleteUnit = async () => {
-        if (deletingUnit) {
-            try {
-                await deleteUnit.mutateAsync({
-                    courseId,
-                    unitId: deletingUnit.id,
-                });
-                toast.success('تم حذف الوحدة');
-                setDeletingUnit(null);
-                fetchCourse();
-            } catch (err) {
-                console.error('Error deleting unit:', err);
-                toast.error('فشل في حذف الوحدة');
-            }
-        }
-    };
+        if (!deletingUnit) return;
 
-    const handleUnitFormSubmit = async (data: CreateUnitRequest | UpdateUnitRequest) => {
         try {
-            if (editingUnit) {
-                await updateUnit.mutateAsync({
-                    courseId,
-                    unitId: editingUnit.id,
-                    data: data as UpdateUnitRequest,
-                });
-                toast.success('تم تحديث الوحدة');
-            } else {
-                // New Phase 6 Logic: Submit Request for Creation
-                await teacherContentApprovalService.submitApprovalRequest({
-                    approvable_type: 'course',
-                    approvable_id: courseId,
-                    action: 'create_unit',
-                    payload: data as any,
-                });
-                // await createUnit.mutateAsync({
-                //     courseId,
-                //     data: data as CreateUnitRequest,
-                // });
-                toast.success('تم إرسال طلب إضافة الوحدة للمراجعة');
-            }
-            setShowUnitModal(false);
-            setEditingUnit(null);
-            fetchCourse();
-        } catch (err) {
-            console.error('Error saving unit:', err);
-            toast.error('فشل في حفظ الوحدة');
+            // Corrected Call to Flat Method
+            await teacherService.deleteUnit(courseId, deletingUnit.id);
+            toast.success('تم حذف الوحدة بنجاح');
+            setDeletingUnit(null);
+            fetchCourseData(); // Refresh list
+        } catch (error) {
+            console.error('Delete unit error:', error);
+            toast.error('فشل حذف الوحدة');
         }
     };
 
-    // ==================== LECTURE HANDLERS ====================
+    // Unit Drag and Drop
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
+    const handleGlobalDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (!over) return;
+
+        // CASE 1: Reordering Units (SortableUnit)
+        if (
+            active.data?.current?.sortable?.containerId === 'units-list' ||
+            (typeof active.id === 'number' && units.some(u => u.id === active.id))
+        ) {
+            if (active.id !== over.id) {
+                const oldIndex = units.findIndex((unit) => unit.id === active.id);
+                const newIndex = units.findIndex((unit) => unit.id === over.id);
+
+                if (oldIndex !== -1 && newIndex !== -1) {
+                    const newUnits = arrayMove(units, oldIndex, newIndex);
+                    setUnits(newUnits); // Optimistic
+
+                    // API Call
+                    const orderedIds = newUnits.map(u => u.id);
+                    try {
+                        await teacherService.reorderUnits(courseId, orderedIds);
+                        toast.success('تم تحديث ترتيب الوحدات');
+                    } catch (error) {
+                        console.error('Reorder units failed:', error);
+                        fetchCourseData(); // Revert
+                    }
+                }
+            }
+            return;
+        }
+
+        // CASE 2: Dropping Unassigned Quiz (DraggableUnassignedQuiz) into Unit (Droppable)
+        const isUnassignedQuiz = String(active.id).startsWith('unassigned-quiz-');
+        const isTargetUnit = String(over.id).startsWith('unit-');
+
+        if (isUnassignedQuiz && isTargetUnit) {
+            const quiz = active.data.current?.quiz;
+            const targetUnit = over.data.current?.unit;
+
+            if (quiz && targetUnit) {
+                // 1. Optimistic Update
+                const updatedQuizzes = allQuizzes.map(q =>
+                    q.id === quiz.id ? { ...q, unit_id: targetUnit.id } : q
+                );
+                setAllQuizzes(updatedQuizzes);
+
+                try {
+                    // 2. API Call
+                    const unitItems = [
+                        ...(targetUnit.lectures || []).map((l: any) => ({ id: l.id, type: 'lecture' as const, order: l.order || 0 })),
+                        ...(targetUnit.quizzes || []).map((q: any) => ({ id: q.id, type: 'quiz' as const, order: q.order || 0 })),
+                    ].sort((a, b) => a.order - b.order);
+
+                    unitItems.push({ id: quiz.id, type: 'quiz', order: unitItems.length + 1 });
+
+                    await teacherService.reorderContent(courseId, targetUnit.id, unitItems);
+
+                    toast.success(`تم نقل الاختبار إلى وحدة ${getLocalizedTitle(targetUnit.name)}`);
+                    fetchCourseData();
+
+                } catch (error) {
+                    console.error('Move quiz failed:', error);
+                    toast.error('فشل نقل الاختبار');
+                    fetchCourseData(); // Revert
+                }
+            }
+        }
+    };
+
+    // Lecture Handlers
     const handleAddLecture = (unit: Unit) => {
         setSelectedUnit(unit);
         setShowAddLecture(true);
     };
 
-    const handleEditLecture = (lecture: UnitLecture) => {
+    const handleEditLecture = (lecture: any) => {
         setSelectedLecture(lecture);
         setShowEditLecture(true);
     };
 
-    const handleDeleteLectureClick = (lecture: UnitLecture) => {
+    const handleDeleteLecture = (lecture: any) => {
         setDeletingLecture(lecture);
     };
 
     const handleConfirmDeleteLecture = async () => {
-        if (deletingLecture) {
-            try {
-                await teacherLectureService.deleteLecture(deletingLecture.id);
-                toast.success('تم حذف المحاضرة');
-                setDeletingLecture(null);
-                fetchCourse();
-            } catch (err) {
-                console.error('Error deleting lecture:', err);
-                toast.error('فشل في حذف المحاضرة');
-            }
+        if (!deletingLecture) return;
+
+        try {
+            await teacherLectureService.deleteLecture(deletingLecture.id);
+            toast.success('تم حذف المحاضرة بنجاح');
+            setDeletingLecture(null);
+            fetchCourseData();
+        } catch (error) {
+            console.error('Delete lecture error:', error);
+            toast.error('فشل حذف المحاضرة');
         }
     };
 
     const handleLectureSaved = () => {
         setShowAddLecture(false);
         setShowEditLecture(false);
-        setSelectedUnit(null);
-        setSelectedLecture(null);
-        fetchCourse();
+        // Refresh course to see new lectures
+        fetchCourseData();
+        toast.success('تم حفظ المحاضرة بنجاح');
     };
 
-    // Tabs
-    const tabs: { id: TabId; label: string; icon: React.ElementType }[] = [
-        { id: 'lectures', label: 'المحاضرات', icon: BookOpen },
-        { id: 'students', label: 'الطلاب', icon: Users },
-        { id: 'quizzes', label: 'الاختبارات', icon: FileQuestion },
-        { id: 'settings', label: 'الإعدادات', icon: Settings },
-    ];
+    const handleStartSession = async (lectureId: number) => {
+        try {
+            const loadingToast = toast.loading('جاري بدء الجلسة...');
+            const response = await teacherLectureService.startSession(lectureId);
+            toast.dismiss(loadingToast);
 
-    // Loading state
-    if (isLoading) {
+            if (response.join_url) {
+                // Open in new tab
+                window.open(response.join_url, '_blank');
+            } else {
+                toast.error('لم يتم استلام رابط الانضمام');
+            }
+        } catch (error: any) {
+            console.error('Start session error:', error);
+            const errorMessage = error.response?.data?.message || 'فشل بدء الجلسة';
+            toast.error(errorMessage);
+        }
+    };
+
+    // Quiz Handlers
+    const handleAddQuizToUnit = (unit: Unit) => {
+        setQuizContextUnit(unit);
+        setQuizContextLecture(null);
+        setShowQuizModal(true);
+    };
+
+    const handleAddQuizToLecture = (lecture: any) => {
+        // Find unit for this lecture
+        const unit = units.find(u => u.id === lecture.unit_id);
+        setQuizContextUnit(unit || null);
+        setQuizContextLecture(lecture);
+        setShowQuizModal(true);
+    };
+
+    const handleEditQuiz = async (quiz: Quiz) => {
+        try {
+            const response = await quizService.getQuiz(quiz.id);
+            setSelectedQuizForEdit(response.data);
+            setQuizContextUnit(quiz.unit_id ? units.find(u => u.id === quiz.unit_id) || null : null);
+            setQuizContextLecture(null);
+            setShowQuizModal(true);
+        } catch (err) {
+            toast.error('فشل في تحميل بيانات الاختبار');
+        }
+    };
+
+    const handleDeleteQuiz = async (quiz: Quiz) => {
+        const result = await Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: "لن تتمكن من التراجع عن هذا الإجراء!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم، احذفه!',
+            cancelButtonText: 'إلغاء'
+        });
+
+        if (result.isConfirmed) {
+            // Optimistic Updates
+            const previousQuizzes = [...allQuizzes];
+            const previousUnits = [...units];
+
+            // 1. Update All Quizzes List
+            setAllQuizzes(prev => prev.filter(q => q.id !== quiz.id));
+
+            // 2. Update Units (Deep update to remove quiz from any unit it might be in)
+            setUnits(prevUnits => prevUnits.map(unit => ({
+                ...unit,
+                quizzes: unit.quizzes ? unit.quizzes.filter(q => q.id !== quiz.id) : []
+            })));
+
+            try {
+                await quizService.deleteQuiz(quiz.id);
+                toast.success('تم حذف الاختبار بنجاح');
+            } catch (error) {
+                console.error('Delete quiz failed:', error);
+                toast.error('فشل حذف الاختبار');
+
+                // Revert on failure
+                setAllQuizzes(previousQuizzes);
+                setUnits(previousUnits);
+            }
+        }
+    };
+
+    // Mutations
+    const createUnit = useMutation({
+        mutationFn: async (data: CreateUnitRequest) => {
+            return await teacherService.createUnit(courseId, data);
+        }
+    });
+
+    const updateUnit = useMutation({
+        mutationFn: async (data: { unitId: number, req: UpdateUnitRequest }) => {
+            return await teacherService.updateUnit(courseId, data.unitId, data.req);
+        }
+    });
+
+    const handleUnitFormSubmit = async (data: CreateUnitRequest) => {
+        try {
+            if (editingUnit) {
+                await updateUnit.mutateAsync({ unitId: editingUnit.id, req: data });
+                toast.success('تم تحديث الوحدة بنجاح');
+            } else {
+                await createUnit.mutateAsync(data);
+                toast.success('تم إنشاء الوحدة بنجاح');
+            }
+            setShowUnitModal(false);
+            setEditingUnit(null);
+            fetchCourseData();
+        } catch (error) {
+            console.error('Unit form error:', error);
+            toast.error('حدث خطأ أثناء حفظ الوحدة');
+        }
+    };
+
+    // Derived State
+    const courseName = useMemo(() => course ? getCourseName(course.name) : '', [course]);
+
+    if (loading) {
         return <CourseDetailsSkeleton />;
     }
 
-    // Error state
-    if (error || !course) {
+    if (!course) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-                <AlertCircle className="w-12 h-12 text-red-500" />
-                <p className="text-slate-600">{error || 'الكورس غير موجود'}</p>
+            <div className="text-center py-12">
+                <h2 className="text-2xl font-bold text-slate-800">الكورس غير موجود</h2>
                 <button
                     onClick={() => navigate('/teacher/courses')}
-                    className="px-4 py-2 bg-shibl-crimson text-white rounded-lg hover:bg-shibl-crimson/90"
+                    className="mt-4 text-shibl-crimson hover:underline"
                 >
                     العودة للكورسات
                 </button>
@@ -621,319 +936,313 @@ export default function TeacherCourseDetailsPage() {
         );
     }
 
-    const courseName = getCourseName(course.name);
-    const courseDescription = getCourseDescription(course.description);
-
-
     return (
-        <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        <div className="container mx-auto px-4 py-8 pb-32">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => navigate('/teacher/courses')}
-                        className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                    >
-                        <ArrowRight className="w-5 h-5 text-slate-600" />
-                    </button>
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm mb-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-shibl-crimson to-shibl-red-500"></div>
+
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900">{courseName}</h1>
-                        <p className="text-sm text-slate-500 line-clamp-1">{courseDescription}</p>
+                        <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
+                            <span onClick={() => navigate('/teacher/courses')} className="cursor-pointer hover:text-shibl-crimson transition-colors">
+                                كورساتي
+                            </span>
+                            <ChevronDown className="w-4 h-4 -rotate-90 rtl:rotate-90" />
+                            <span className="text-slate-900 font-medium">تفاصيل الكورس</span>
+                        </div>
+                        <h1 className="text-2xl font-bold text-slate-900 mb-2">{courseName}</h1>
+                        <div className="flex items-center gap-4 text-sm text-slate-500">
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${course.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                }`}>
+                                {course.is_active ? 'نشط' : 'مسودة'}
+                            </span>
+                            <span className="flex items-center gap-1">
+                                <Users className="w-4 h-4" />
+                                {course.students_count || 0} طالب
+                            </span>
+                            <span className="flex items-center gap-1">
+                                <Star className="w-4 h-4 text-amber-400" />
+                                {course.rating || 0}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setActiveTab('settings')}
+                            className="p-2.5 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-xl transition-colors border border-slate-200"
+                        >
+                            <Settings className="w-5 h-5" />
+                        </button>
+                        <button
+                            className="px-4 py-2.5 bg-shibl-crimson hover:bg-shibl-red-600 text-white rounded-xl transition-colors flex items-center gap-2 font-medium shadow-lg shadow-shibl-crimson/20"
+                            onClick={fetchCourseData}
+                        >
+                            <RefreshCw className="w-4 h-4" />
+                            <span>تحديث</span>
+                        </button>
                     </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-3">
-                    {pendingApprovalCount > 0 && (
-                        <span className="px-3 py-1.5 bg-amber-100 text-amber-700 text-sm rounded-full flex items-center gap-1.5">
-                            <Clock className="w-4 h-4" />
-                            {pendingApprovalCount} طلب قيد الانتظار
-                        </span>
-                    )}
+                {/* Info Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+                    <StatCard icon={BookOpen} label="الوحدات" value={units.length} />
+                    <StatCard icon={Users} label="الطلاب" value={course.students_count || 0} />
+                    <StatCard icon={Video} label="المحاضرات" value={course.lectures_count || 0} />
+                    <StatCard icon={Clock} label="الساعات" value={0} />
+                </div>
 
-
+                {/* Tab Navigation */}
+                <div className="flex gap-1 overflow-x-auto pb-1 mt-8 border-b border-slate-200">
                     <button
-                        onClick={fetchCourse}
-                        className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                        title="تحديث"
+                        onClick={() => setActiveTab('content')}
+                        className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeTab === 'content'
+                            ? 'text-shibl-crimson border-b-2 border-shibl-crimson'
+                            : 'text-slate-500 hover:text-slate-700'
+                            }`}
                     >
-                        <RefreshCw className="w-5 h-5" />
+                        محتوى الكورس
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('students')}
+                        className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeTab === 'students'
+                            ? 'text-shibl-crimson border-b-2 border-shibl-crimson'
+                            : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                    >
+                        الطلاب
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('quizzes')}
+                        className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeTab === 'quizzes'
+                            ? 'text-shibl-crimson border-b-2 border-shibl-crimson'
+                            : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                    >
+                        الاختبارات
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('settings')}
+                        className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeTab === 'settings'
+                            ? 'text-shibl-crimson border-b-2 border-shibl-crimson'
+                            : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                    >
+                        الإعدادات
                     </button>
                 </div>
-            </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatCard icon={Users} label="الطلاب" value={stats.students} />
-                <StatCard icon={BookOpen} label="المحاضرات" value={stats.lectures} />
-                <StatCard icon={Star} label="التقييم" value={stats.rating} />
-                <StatCard icon={Clock} label="المدة" value={stats.duration} />
-            </div>
-
-            {/* Tabs */}
-            <div className="border-b border-slate-200">
-                <nav className="flex gap-1">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`
-                                flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors
-                                ${activeTab === tab.id
-                                    ? 'border-shibl-crimson text-shibl-crimson'
-                                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                                }
-                            `}
-                        >
-                            <tab.icon className="w-4 h-4" />
-                            {tab.label}
-                        </button>
-                    ))}
-                </nav>
             </div>
 
             {/* Tab Content */}
-            <div className="min-h-[400px]">
-                {/* Lectures Tab */}
-                {activeTab === 'lectures' && (
-                    <div className="space-y-4">
-                        {/* Add Unit Button */}
-                        <div className="flex justify-end">
-                            <button
-                                onClick={handleAddUnit}
-                                className="flex items-center gap-2 px-4 py-2 bg-shibl-crimson text-white rounded-lg hover:bg-shibl-crimson/90 transition-colors shadow-md"
-                            >
-                                <Plus className="w-4 h-4" />
-                                إضافة وحدة
-                            </button>
-                        </div>
+            {activeTab === 'content' && (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl font-bold text-slate-900">محتوى الكورس</h2>
+                        <button
+                            onClick={handleCreateUnit}
+                            className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+                        >
+                            <Plus size={18} />
+                            <span>إضافة وحدة</span>
+                        </button>
+                    </div>
 
-                        {units.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-16 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-                                <Layers className="w-12 h-12 text-slate-300 mb-4" />
-                                <p className="text-slate-500 mb-4">لم يتم إضافة وحدات بعد</p>
-                                <button
-                                    onClick={handleAddUnit}
-                                    className="flex items-center gap-2 px-4 py-2 bg-shibl-crimson text-white rounded-lg hover:bg-shibl-crimson/90"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    إضافة أول وحدة
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="space-y-3">
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleGlobalDragEnd}
+                    >
+                        {/* Units List */}
+                        <SortableContext
+                            id="units-list"
+                            items={units.map(u => u.id)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            <div className="space-y-4">
                                 {units.map((unit) => (
-                                    <UnitCard
+                                    <SortableUnit
                                         key={unit.id}
                                         unit={unit}
-                                        isExpanded={expandedUnits.has(unit.id)}
-                                        onToggle={() => toggleUnit(unit.id)}
+                                        isExpanded={expandedUnits.includes(unit.id)}
+                                        onToggle={() => handleToggleUnit(unit.id)}
                                         onEditUnit={() => handleEditUnit(unit)}
-                                        onDeleteUnit={() => handleDeleteUnitClick(unit)}
+                                        onDeleteUnit={() => handleDeleteUnit(unit)}
                                         onAddLecture={() => handleAddLecture(unit)}
                                         onEditLecture={handleEditLecture}
-                                        onDeleteLecture={handleDeleteLectureClick}
+                                        onDeleteLecture={handleDeleteLecture}
+                                        onAddQuizToUnit={() => {
+                                            setQuizContextUnit(unit);
+                                            setQuizContextLecture(null);
+                                            setShowQuizModal(true);
+                                        }}
+                                        onAddQuizToLecture={(lecture) => {
+                                            setQuizContextUnit(unit);
+                                            setQuizContextLecture(lecture);
+                                            setShowQuizModal(true);
+                                        }}
+                                        onEditQuiz={handleEditQuiz}
+                                        onDeleteQuiz={handleDeleteQuiz}
+                                        onStartSession={handleStartSession}
+                                        quizzes={allQuizzes} // Pass all quizzes for filtering inside UnitCard
                                     />
                                 ))}
                             </div>
-                        )}
-                    </div>
-                )}
+                        </SortableContext>
 
-                {/* Students Tab */}
-                {/* Students Tab */}
-                {activeTab === 'students' && (
-                    <div className="bg-white rounded-[16px] shadow-sm border border-slate-200 overflow-hidden">
-                        {studentsLoading ? (
-                            <div className="flex flex-col items-center justify-center py-16">
-                                <Loader2 className="w-10 h-10 text-shibl-crimson animate-spin mb-4" />
-                                <p className="text-slate-500">جاري تحميل قائمة الطلاب...</p>
-                            </div>
-                        ) : students.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="bg-slate-50 border-b border-slate-100">
-                                            <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الطالب</th>
-                                            <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">البريد الإلكتروني / الهاتف</th>
-                                            <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">تاريخ الاشتراك</th>
-                                            <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الحالة</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {students.map((student) => (
-                                            <tr key={student.subscription_id} className="hover:bg-slate-50/50 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
-                                                            {student.avatar ? (
-                                                                <img src={student.avatar} alt={student.name} className="w-full h-full object-cover" />
-                                                            ) : (
-                                                                <User className="w-5 h-5 text-slate-400" />
-                                                            )}
-                                                        </div>
-                                                        <span className="font-semibold text-charcoal">{student.name}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-sm text-charcoal mb-0.5">{student.email}</span>
-                                                        <span className="text-xs text-slate-500">{student.phone || '-'}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                                                        <Calendar className="w-4 h-4 text-slate-400" />
-                                                        <span>{student.subscribed_at}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <span className="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                                                        نشط
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center py-16">
-                                <GraduationCap className="w-16 h-16 text-slate-200 mb-4" />
-                                <h3 className="text-lg font-bold text-slate-700 mb-2">لا يوجد طلاب مشتركين</h3>
-                                <p className="text-slate-500 text-center max-w-sm">
-                                    لم يقم أي طالب بالاشتراك في هذه الدورة حتى الآن.
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Quizzes Tab */}
-                {activeTab === 'quizzes' && (
-                    <div className="flex flex-col items-center justify-center py-16 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-                        <FileQuestion className="w-12 h-12 text-slate-300 mb-4" />
-                        <p className="text-slate-500">إدارة اختبارات الكورس</p>
-                        <p className="text-sm text-slate-400 mt-2">قريباً - سيتم إضافة إمكانية إنشاء وإدارة الاختبارات</p>
-                    </div>
-                )}
-
-                {/* Settings Tab */}
-                {activeTab === 'settings' && (
-                    <div className="max-w-2xl mx-auto">
-                        <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-6">
-                            <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-                                <Settings className="w-5 h-5 text-slate-400" />
-                                <h3 className="font-semibold text-slate-900">إعدادات الكورس</h3>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center py-3">
-                                    <span className="text-slate-600">اسم الكورس</span>
-                                    <span className="font-medium text-slate-900">{courseName}</span>
-                                </div>
-                                <div className="flex justify-between items-center py-3 border-t border-slate-100">
-                                    <span className="text-slate-600">السعر</span>
-                                    <span className="font-medium text-slate-900">{course.price} ج.م</span>
-                                </div>
-                                <div className="flex justify-between items-center py-3 border-t border-slate-100">
-                                    <span className="text-slate-600">الحالة</span>
-                                    <span
-                                        className={`px-2 py-1 text-sm rounded-full ${course.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                                            }`}
-                                    >
-                                        {course.is_active ? 'نشط' : 'مسودة'}
+                        {/* Unassigned Quizzes Section */}
+                        {allQuizzes.filter(q => !q.unit_id).length > 0 && (
+                            <div className="mt-8">
+                                <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                    <FileQuestion className="text-amber-500" />
+                                    اختبارات غير مرتبطة بوحدة
+                                    <span className="text-xs font-normal text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+                                        {allQuizzes.filter(q => !q.unit_id).length}
                                     </span>
+                                </h3>
+                                <div className="grid gap-3">
+                                    {allQuizzes.filter(q => !q.unit_id).map(quiz => (
+                                        <DraggableUnassignedQuiz key={quiz.id} quiz={quiz}>
+                                            <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl border border-amber-100 cursor-grab active:cursor-grabbing hover:shadow-md transition-all">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-lg bg-white text-amber-500 flex items-center justify-center shadow-sm">
+                                                        <GripVertical size={20} className="text-slate-300" />
+                                                    </div>
+                                                    <div>
+                                                        <h5 className="font-medium text-slate-900">{getLocalizedTitle(quiz.name)}</h5>
+                                                        <p className="text-xs text-slate-500 mt-0.5">
+                                                            {quiz.questions_count || 0} أسئلة • {quiz.duration_minutes} دقيقة
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs text-amber-700 bg-amber-100/50 px-2 py-1 rounded">
+                                                        غير مرتبط
+                                                    </span>
+                                                    <button
+                                                        onPointerDown={(e) => e.stopPropagation()}
+                                                        onClick={() => handleEditQuiz(quiz)}
+                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded-lg transition-all"
+                                                    >
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button
+                                                        onPointerDown={(e) => e.stopPropagation()}
+                                                        onClick={() => handleDeleteQuiz(quiz)}
+                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-white rounded-lg transition-all"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </DraggableUnassignedQuiz>
+                                    ))}
                                 </div>
-                            </div>
-
-                            <div className="pt-4 border-t border-slate-100">
-                                <p className="text-sm text-slate-500 flex items-center gap-2">
-                                    <AlertCircle className="w-4 h-4" />
-                                    لتعديل معلومات الكورس الأساسية، يرجى التواصل مع الإدارة
+                                <p className="text-xs text-slate-400 mt-2 pr-1">
+                                    * اسحب الاختبار وأفلته داخل أي وحدة لربطه بها.
                                 </p>
                             </div>
-                        </div>
-                    </div>
-                )}
-            </div>
+                        )}
+                        <DragOverlay />
+                    </DndContext>
+                </div>
+            )}
 
-            {/* ==================== MODALS ==================== */}
+            {/* Quizzes Tab */}
+            {activeTab === 'quizzes' && (
+                <CourseQuizzesTab
+                    courseId={courseId}
+                    courseName={courseName}
+                    units={units}
+                    teacherId={user?.teacher_id || 0}
+                />
+            )}
 
-            {/* Add Lecture Modal */}
+            {/* Modals */}
             {showAddLecture && selectedUnit && (
                 <TeacherAddLectureModal
                     isOpen={showAddLecture}
-                    onClose={() => {
-                        setShowAddLecture(false);
-                        setSelectedUnit(null);
-                    }}
+                    onClose={() => setShowAddLecture(false)}
                     onSuccess={handleLectureSaved}
                     courseId={courseId}
                     courseName={courseName}
-                    teacherId={typeof user?.id === 'number' ? user.id : 0}
-                    initialUnitId={selectedUnit.id}
+                    teacherId={user?.teacher_id || 0}
                     units={units}
+                    initialUnitId={selectedUnit.id}
                 />
             )}
 
-            {/* Edit Lecture Modal */}
             {showEditLecture && selectedLecture && (
                 <TeacherEditLectureModal
                     isOpen={showEditLecture}
-                    onClose={() => {
-                        setShowEditLecture(false);
-                        setSelectedLecture(null);
-                    }}
+                    onClose={() => setShowEditLecture(false)}
+                    lecture={selectedLecture}
                     onSuccess={handleLectureSaved}
-                    courseName={courseName}
-                    lecture={{
-                        id: selectedLecture.id,
-                        title: selectedLecture.title,
-                        description: selectedLecture.description,
-                        course_id: courseId,
-                        unit_id: selectedLecture.unit_id ?? undefined,
-                        teacher_id: typeof user?.id === 'number' ? user.id : 0,
-                        recording_path: selectedLecture.video_url,
-                        is_online: selectedLecture.is_online ?? false,
-                        start_time: selectedLecture.start_time,
-                        end_time: selectedLecture.end_time,
-                    }}
                     units={units}
+                    courseName={courseName}
                 />
             )}
 
-            {/* Unit Form Modal */}
-            <UnitFormModal
-                isOpen={showUnitModal}
-                onClose={() => {
-                    setShowUnitModal(false);
-                    setEditingUnit(null);
-                }}
-                onSubmit={handleUnitFormSubmit}
-                unit={editingUnit}
-                isSubmitting={createUnit.isPending || updateUnit.isPending}
-            />
+            {showUnitModal && (
+                <UnitFormModal
+                    isOpen={showUnitModal}
+                    onClose={() => setShowUnitModal(false)}
+                    onSubmit={handleUnitFormSubmit}
+                    initialData={editingUnit || undefined}
+                    mode={editingUnit ? 'edit' : 'create'}
+                    isLoading={createUnit.isPending || updateUnit.isPending}
+                />
+            )}
 
-            {/* Delete Unit Confirmation */}
-            <DeleteConfirmModal
-                isOpen={!!deletingUnit}
-                title="حذف الوحدة"
-                message="هل أنت متأكد من حذف هذه الوحدة؟ سيتم حذف جميع المحاضرات المرتبطة بها."
-                itemName={deletingUnit ? getLocalizedTitle(deletingUnit.title) : undefined}
-                onConfirm={handleConfirmDeleteUnit}
-                onClose={() => setDeletingUnit(null)}
-            />
+            {deletingUnit && (
+                <DeleteConfirmModal
+                    isOpen={!!deletingUnit}
+                    onClose={() => setDeletingUnit(null)}
+                    onConfirm={handleConfirmDeleteUnit}
+                    title="حذف الوحدة"
+                    message={`هل أنت متأكد من حذف الوحدة "${getLocalizedTitle(deletingUnit.title)}"? سيتم حذف جميع المحتويات بداخلها.`}
+                />
+            )}
 
-            {/* Delete Lecture Confirmation */}
-            <DeleteConfirmModal
-                isOpen={!!deletingLecture}
-                title="حذف المحاضرة"
-                message="هل أنت متأكد من حذف هذه المحاضرة؟"
-                itemName={deletingLecture ? getLocalizedTitle(deletingLecture.title) : undefined}
-                onConfirm={handleConfirmDeleteLecture}
-                onClose={() => setDeletingLecture(null)}
-            />
+            {deletingLecture && (
+                <DeleteConfirmModal
+                    isOpen={!!deletingLecture}
+                    onClose={() => setDeletingLecture(null)}
+                    onConfirm={handleConfirmDeleteLecture}
+                    title="حذف المحاضرة"
+                    message={`هل أنت متأكد من حذف المحاضرة "${getLocalizedTitle(deletingLecture.title)}"?`}
+                />
+            )}
+
+            {/* Create Quiz Modal */}
+            {showQuizModal && (
+                <CreateQuizModal
+                    isOpen={showQuizModal}
+                    onClose={() => {
+                        setShowQuizModal(false);
+                        setQuizContextUnit(null);
+                        setQuizContextLecture(null);
+                        setSelectedQuizForEdit(null);
+                    }}
+                    onSuccess={() => {
+                        setShowQuizModal(false);
+                        setSelectedQuizForEdit(null);
+                        fetchCourseData();
+                    }}
+                    // Force the context
+                    courses={course ? [{
+                        id: course.id,
+                        name: course.name,
+                        description: course.description
+                    }] : []}
+                    lockedCourseId={courseId}
+                    lockedUnitId={quizContextUnit?.id}
+                    lockedLectureId={quizContextLecture?.id}
+                    quiz={selectedQuizForEdit}
+                />
+            )}
         </div>
     );
 }
+
+export default TeacherCourseDetailsPage;

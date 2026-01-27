@@ -7,7 +7,8 @@ import {
     CreateQuizData,
     QuizType,
     TeacherCourse,
-    Quiz
+    Quiz,
+    Unit
 } from '../../../data/api';
 
 // Icons
@@ -23,8 +24,10 @@ import {
     AlertCircle,
     Loader2,
     Clock,
-    BookOpen
+    BookOpen,
+    Send
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 // ==================== TYPES ====================
 
@@ -34,6 +37,12 @@ interface CreateQuizModalProps {
     onSuccess: () => void;
     courses: TeacherCourse[];
     quiz?: Quiz | null;
+    /** When provided, course is auto-selected and locked (not changeable) */
+    lockedCourseId?: number;
+    /** Optional unit context for creating nested quiz */
+    unitId?: number | null;
+    /** Optional lecture context for creating nested quiz */
+    lectureId?: number | null;
 }
 
 interface QuestionData {
@@ -56,32 +65,159 @@ interface QuestionData {
 // Step 1: Select Course and Quiz Type
 interface Step1Props {
     courses: TeacherCourse[];
+    units: Unit[];
+    loadingUnits: boolean;
     selectedCourse: number | null;
+    selectedUnit: number | null;
+    selectedLecture: number | null;
     quizType: QuizType | null;
     onSelectCourse: (id: number) => void;
+    onSelectUnit: (id: number | null) => void;
+    onSelectLecture: (id: number | null) => void;
     onSelectType: (type: QuizType) => void;
+    lockedCourseId?: number;
+    lockedUnitId?: number | null;
+    lockedLectureId?: number | null;
 }
 
-function Step1SelectType({ courses, selectedCourse, quizType, onSelectCourse, onSelectType }: Step1Props) {
+function Step1SelectType({
+    courses,
+    units,
+    loadingUnits,
+    selectedCourse,
+    selectedUnit,
+    selectedLecture,
+    quizType,
+    onSelectCourse,
+    onSelectUnit,
+    onSelectLecture,
+    onSelectType,
+    lockedCourseId,
+    lockedUnitId,
+    lockedLectureId
+}: Step1Props) {
+    // Find the locked course name if locked
+    const lockedCourse = lockedCourseId ? courses.find(c => c.id === lockedCourseId) : null;
+
+    // Get lectures for selected unit
+    const activeUnit = units.find(u => u.id === selectedUnit);
+    const lectures = activeUnit?.lectures || [];
+
+    // Determine what to show based on locking level
+    const showCourseSelect = !lockedCourseId;
+    const showUnitSelect = !lockedUnitId;
+    const showLectureSelect = !lockedLectureId;
+
+    // Calculate display strings for locked contexts
+    const lockedUnitName = lockedUnitId ? units.find(u => u.id === lockedUnitId)?.title : '';
+    const lockedLectureName = lockedLectureId ? (units.find(u => u.id === lockedUnitId)?.lectures.find((l: any) => l.id === lockedLectureId)?.title) : '';
+
     return (
         <div className="space-y-6">
-            {/* Course Selection */}
-            <div>
-                <label className="block text-sm font-medium text-[#1F1F1F] mb-2">
-                    اختر الدورة <span className="text-red-500">*</span>
-                </label>
-                <select
-                    value={selectedCourse || ''}
-                    onChange={(e) => onSelectCourse(Number(e.target.value))}
-                    className="w-full h-12 px-4 rounded-xl bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-[#1F1F1F]"
-                >
-                    <option value="">-- اختر الدورة --</option>
-                    {courses.map(course => (
-                        <option key={course.id} value={course.id}>
-                            {getCourseName(course.name)}
-                        </option>
-                    ))}
-                </select>
+            <div className={`grid grid-cols-1 ${lockedLectureId ? 'hidden' : 'md:grid-cols-2'} gap-4`}>
+                {/* Course Selection */}
+                {showCourseSelect ? (
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-[#1F1F1F] mb-2">
+                            الدورة <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                            value={selectedCourse || ''}
+                            onChange={(e) => {
+                                onSelectCourse(Number(e.target.value));
+                                onSelectUnit(null);
+                                onSelectLecture(null);
+                            }}
+                            className="w-full h-12 px-4 rounded-xl bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-[#1F1F1F]"
+                        >
+                            <option value="">-- اختر الدورة --</option>
+                            {courses.map(course => (
+                                <option key={course.id} value={course.id}>
+                                    {getCourseName(course.name)}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                ) : null}
+
+                {/* Unit Selection */}
+                {showUnitSelect && (
+                    <div className={showCourseSelect ? "" : "md:col-span-2"}>
+                        <label className="block text-sm font-medium text-[#1F1F1F] mb-2">
+                            الوحدة <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                            value={selectedUnit || ''}
+                            onChange={(e) => {
+                                onSelectUnit(Number(e.target.value) || null);
+                                onSelectLecture(null);
+                            }}
+                            disabled={!selectedCourse || loadingUnits}
+                            className="w-full h-12 px-4 rounded-xl bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-[#1F1F1F] disabled:opacity-50"
+                        >
+                            <option value="">{loadingUnits ? 'جاري التحميل...' : '-- اختر الوحدة --'}</option>
+                            {units.map(unit => (
+                                <option key={unit.id} value={unit.id}>
+                                    {typeof unit.title === 'string' ? unit.title : unit.title.ar || unit.title.en}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+
+
+                {/* Lecture Selection */}
+                {showLectureSelect && (
+                    <div className={showUnitSelect ? "" : "md:col-span-2"}>
+                        <label className="block text-sm font-medium text-[#1F1F1F] mb-2">
+                            المحاضرة <span className="text-xs text-slate-400">(اختياري)</span>
+                        </label>
+                        <select
+                            value={selectedLecture || ''}
+                            onChange={(e) => onSelectLecture(Number(e.target.value) || null)}
+                            disabled={!selectedUnit}
+                            className="w-full h-12 px-4 rounded-xl bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-[#1F1F1F] disabled:opacity-50"
+                        >
+                            <option value="">-- اختر المحاضرة --</option>
+                            {lectures.map((lecture: any) => (
+                                <option key={lecture.id} value={lecture.id}>
+                                    {typeof lecture.title === 'string' ? lecture.title : lecture.title.ar || lecture.title.en}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+            </div>
+
+            {/* Context Summary Badge (Shows what's locked/active) */}
+            <div className="flex flex-wrap gap-2 items-center text-sm text-[#636E72] bg-slate-50 p-3 rounded-lg border border-slate-100">
+                <span className="font-medium text-[#1F1F1F]">المسار المحدد:</span>
+
+                <div className="flex items-center gap-1">
+                    <BookOpen size={14} />
+                    <span>{lockedCourseId && lockedCourse ? getCourseName(lockedCourse.name) : (courses.find(c => c.id === selectedCourse)?.name && getCourseName(courses.find(c => c.id === selectedCourse)!.name) || 'غير محدد')}</span>
+                </div>
+
+                {(selectedUnit || lockedUnitId) && (
+                    <>
+                        <ChevronLeft size={14} className="text-slate-300 rtl:rotate-180" />
+                        <span className="font-medium text-shibl-crimson">
+                            {lockedUnitId
+                                ? typeof lockedUnitName === 'string' ? lockedUnitName : (lockedUnitName as any)?.ar
+                                : units.find(u => u.id === selectedUnit)?.title && (typeof units.find(u => u.id === selectedUnit)?.title === 'string' ? units.find(u => u.id === selectedUnit)?.title : (units.find(u => u.id === selectedUnit)?.title as any).ar)}
+                        </span>
+                    </>
+                )}
+
+                {(selectedLecture || lockedLectureId) && (
+                    <>
+                        <ChevronLeft size={14} className="text-slate-300 rtl:rotate-180" />
+                        <span>
+                            {lockedLectureId && lockedLectureName && (typeof lockedLectureName === 'string' ? lockedLectureName : (lockedLectureName as any).ar)}
+                            {!lockedLectureId && selectedLecture && lectures.find((l: any) => l.id === selectedLecture)?.title && (typeof lectures.find((l: any) => l.id === selectedLecture)?.title === 'string' ? lectures.find((l: any) => l.id === selectedLecture)?.title : (lectures.find((l: any) => l.id === selectedLecture)?.title as any).ar)}
+                        </span>
+                    </>
+                )}
             </div>
 
             {/* Quiz Type Selection */}
@@ -362,20 +498,51 @@ function Step3Settings({ quizName, durationMinutes, passingPercentage, onUpdateN
 
 // ==================== MAIN MODAL ====================
 
-export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz }: CreateQuizModalProps) {
+export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, lockedCourseId, unitId, lectureId }: CreateQuizModalProps) {
     const { isRTL } = useLanguage();
 
     // Step state
     const [currentStep, setCurrentStep] = useState(1);
     const totalSteps = 3;
 
-    // Form state
-    const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
+    // Form state - auto-set course if locked
+    const [selectedCourse, setSelectedCourse] = useState<number | null>(lockedCourseId || null);
+    const [selectedUnit, setSelectedUnit] = useState<number | null>(unitId || null);
+    const [selectedLecture, setSelectedLecture] = useState<number | null>(lectureId || null);
+    const [units, setUnits] = useState<Unit[]>([]);
+    const [loadingUnits, setLoadingUnits] = useState(false);
+
     const [quizType, setQuizType] = useState<QuizType | null>(null);
     const [quizName, setQuizName] = useState('');
     const [durationMinutes, setDurationMinutes] = useState(30);
     const [passingPercentage, setPassingPercentage] = useState(60);
     const [questions, setQuestions] = useState<QuestionData[]>([]);
+
+    // Fetch units when course changes (Moved to parent for validation)
+    useEffect(() => {
+        const fetchUnits = async () => {
+            const courseIdToUse = lockedCourseId || selectedCourse;
+            if (!courseIdToUse) {
+                setUnits([]);
+                return;
+            }
+
+            setLoadingUnits(true);
+            try {
+                const response = await teacherService.getUnits(courseIdToUse);
+                const sortedUnits = (response.data || []).sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+                setUnits(sortedUnits);
+            } catch (error) {
+                // If create mode and no course selected yet, silent fail. 
+                // But error might appear if selectedCourse is updated. 
+                console.error('Failed to fetch units', error);
+            } finally {
+                setLoadingUnits(false);
+            }
+        };
+
+        fetchUnits();
+    }, [selectedCourse, lockedCourseId]);
 
     // Initialize/Reset State
     useEffect(() => {
@@ -383,6 +550,8 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz }: C
             if (quiz) {
                 // Edit Mode
                 setSelectedCourse(quiz.course_id);
+                setSelectedUnit(quiz.unit_id || null);
+                setSelectedLecture(quiz.lecture_id || null);
                 setQuizType(quiz.quiz_type);
                 // Handle name translation properly
                 const name = typeof quiz.name === 'string'
@@ -415,7 +584,9 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz }: C
             } else {
                 // Create Mode - Reset
                 setCurrentStep(1);
-                setSelectedCourse(null);
+                setSelectedCourse(lockedCourseId || null);
+                setSelectedUnit(unitId || null);
+                setSelectedLecture(lectureId || null);
                 setQuizType(null);
                 setQuizName('');
                 setDurationMinutes(30);
@@ -472,6 +643,19 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz }: C
     const handleUpdateOption = useCallback((questionId: string, optionId: string, data: { option_text_ar?: string; option_text_en?: string; is_correct?: boolean }) => {
         setQuestions(prev => prev.map(q => {
             if (q.id === questionId && q.options) {
+                // If setting is_correct to true, deselect all other options (radio button behavior)
+                if (data.is_correct === true) {
+                    return {
+                        ...q,
+                        options: q.options.map(o => ({
+                            ...o,
+                            is_correct: o.id === optionId ? true : false,
+                            ...(o.id === optionId && data.option_text_ar !== undefined ? { option_text_ar: data.option_text_ar } : {}),
+                            ...(o.id === optionId && data.option_text_en !== undefined ? { option_text_en: data.option_text_en } : {})
+                        }))
+                    };
+                }
+                // Normal update (text changes only, or deselecting)
                 return {
                     ...q,
                     options: q.options.map(o => o.id === optionId ? { ...o, ...data } : o)
@@ -493,11 +677,38 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz }: C
         }));
     }, []);
 
-    // Navigation
+    // Navigation - check lockedCourseId OR selectedCourse for step 1
     const canGoNext = () => {
         switch (currentStep) {
-            case 1: return selectedCourse !== null && quizType !== null;
-            case 2: return questions.length > 0 && questions.every(q => q.question_text_ar.trim() !== '');
+            case 1:
+                const courseSelected = (lockedCourseId || selectedCourse !== null);
+                const unitSelected = (unitId || selectedUnit !== null);
+                // Require unit selection if units are available or loaded
+                // If units are loading, prevent next
+                if (loadingUnits) return false;
+
+                // If course has units, user MUST select one
+                const unitsAvailable = units.length > 0;
+
+                return courseSelected && quizType !== null && (!unitsAvailable || unitSelected);
+
+            case 2:
+                // Require at least one question with text
+                if (questions.length === 0) return false;
+                if (!questions.every(q => q.question_text_ar.trim() !== '')) return false;
+
+                // For MCQ: Each question must have exactly one correct answer
+                if (quizType === 'mcq') {
+                    const allHaveCorrectAnswer = questions.every(q => {
+                        if (!q.options || q.options.length === 0) return false;
+                        const correctCount = q.options.filter(o => o.is_correct).length;
+                        return correctCount === 1;
+                    });
+                    if (!allHaveCorrectAnswer) return false;
+                }
+
+                return true;
+
             case 3: return quizName.trim() !== '';
             default: return false;
         }
@@ -516,8 +727,12 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz }: C
     };
 
     // Submit
-    const handleSubmit = async () => {
-        if (!selectedCourse || !quizType || !quizName) return;
+    const handleSubmit = async (shouldSubmitForApproval: boolean = false) => {
+        const courseIdToUse = lockedCourseId || selectedCourse;
+        const unitIdToUse = unitId || selectedUnit;
+        const lectureIdToUse = lectureId || selectedLecture;
+
+        if (!courseIdToUse || !quizType || !quizName) return;
 
         setSubmitting(true);
         setError(null);
@@ -526,7 +741,9 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz }: C
             const quizData: CreateQuizData = {
                 name: { ar: quizName, en: quizName },
                 quiz_type: quizType,
-                course_id: selectedCourse,
+                course_id: courseIdToUse,
+                unit_id: unitIdToUse,
+                lecture_id: lectureIdToUse,
                 duration_minutes: durationMinutes,
                 passing_percentage: passingPercentage,
                 questions: questions.map(q => ({
@@ -545,11 +762,25 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz }: C
                 }))
             };
 
+            let quizId: number;
+
             if (quiz) {
                 await quizService.updateQuiz(quiz.id, quizData);
+                quizId = quiz.id;
             } else {
-                await quizService.createQuiz(quizData);
+                const response = await quizService.createQuiz(quizData);
+                // @ts-ignore
+                quizId = response.data?.id || response.id; // Adjust based on API response
             }
+
+            // If user wants to submit for approval immediately
+            if (shouldSubmitForApproval && quizId) {
+                await quizService.submitForApproval(quizId);
+                toast.success('تم إنشاء الاختبار وإرساله للموافقة');
+            } else {
+                toast.success(quiz ? 'تم تحديث الاختبار بنجاح' : 'تم حفظ الاختبار كمسودة');
+            }
+
             onSuccess();
             onClose();
         } catch (err) {
@@ -582,12 +813,6 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz }: C
                         </h2>
                         <p className="text-sm text-[#636E72]">الخطوة {currentStep} من {totalSteps}</p>
                     </div>
-                    <button
-                        onClick={handleClose}
-                        className="p-2 rounded-lg hover:bg-slate-100 text-[#636E72] transition-colors"
-                    >
-                        <X size={20} />
-                    </button>
                 </div>
 
                 {/* Progress Bar */}
@@ -603,10 +828,19 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz }: C
                     {currentStep === 1 && (
                         <Step1SelectType
                             courses={courses}
+                            units={units}
+                            loadingUnits={loadingUnits}
                             selectedCourse={selectedCourse}
+                            selectedUnit={selectedUnit}
+                            selectedLecture={selectedLecture}
                             quizType={quizType}
                             onSelectCourse={setSelectedCourse}
+                            onSelectUnit={setSelectedUnit}
+                            onSelectLecture={setSelectedLecture}
                             onSelectType={setQuizType}
+                            lockedCourseId={lockedCourseId}
+                            lockedUnitId={unitId}
+                            lockedLectureId={lectureId}
                         />
                     )}
                     {currentStep === 2 && quizType && (
@@ -662,27 +896,35 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz }: C
                             <NextIcon size={18} />
                         </button>
                     ) : (
-                        <button
-                            onClick={handleSubmit}
-                            disabled={!canGoNext() || submitting}
-                            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-shibl-crimson text-white font-medium hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {submitting ? (
-                                <>
+                        <div className="flex items-center gap-3">
+                            {/* Save as Draft Button */}
+                            <button
+                                onClick={() => handleSubmit(false)}
+                                disabled={!canGoNext() || submitting}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {submitting ? <Loader2 size={18} className="animate-spin" /> : <FileEdit size={18} />}
+                                {quiz ? 'حفظ التعديلات' : 'حفظ كمسودة'}
+                            </button>
+
+                            {/* Submit for Approval Button */}
+                            <button
+                                onClick={() => handleSubmit(true)}
+                                disabled={!canGoNext() || submitting}
+                                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-shibl-crimson text-white font-medium hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {submitting ? (
                                     <Loader2 size={18} className="animate-spin" />
-                                    {quiz ? 'جاري التحديث...' : 'جاري الإنشاء...'}
-                                </>
-                            ) : (
-                                <>
-                                    <CheckCircle size={18} />
-                                    {quiz ? 'تحديث الاختبار' : 'إنشاء الاختبار'}
-                                </>
-                            )}
-                        </button>
+                                ) : (
+                                    <Send size={18} />
+                                )}
+                                {quiz ? 'تحديث وإرسال للموافقة' : 'إنشاء وإرسال للموافقة'}
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

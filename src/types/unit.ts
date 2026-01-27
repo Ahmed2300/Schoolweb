@@ -14,8 +14,22 @@ export interface Unit {
     is_published: boolean;
     lectures?: UnitLecture[];
     lectures_count?: number;
+    quizzes?: UnitQuiz[];
+    quizzes_count?: number;
     created_at?: string;
     updated_at?: string;
+}
+
+export interface UnitQuiz {
+    id: number;
+    name: string | { ar?: string; en?: string };
+    description?: string | { ar?: string; en?: string };
+    unit_id: number | null;
+    lecture_id?: number | null;
+    course_id: number;
+    status: 'draft' | 'pending' | 'approved' | 'rejected';
+    questions_count?: number;
+    order?: number;
 }
 
 export interface UnitLecture {

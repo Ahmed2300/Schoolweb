@@ -664,6 +664,26 @@ export interface UpdateParentAssignmentRequest {
 }
 
 
+// Quiz Types
+export interface QuizData {
+    id: number;
+    name: { ar: string; en?: string } | string;
+    description?: { ar: string; en?: string } | string;
+    quiz_type: string;
+    duration_minutes: number;
+    passing_percentage: number;
+    is_active: boolean;
+    status: 'draft' | 'pending' | 'approved' | 'rejected';
+    admin_feedback?: string;
+    course_id: number;
+    teacher_id: number;
+    course?: { id: number; name: { ar: string; en?: string } | string };
+    teacher?: { id: number; name: string };
+    questions?: any[];
+    questions_count?: number;
+    created_at: string;
+}
+
 // Admin Auth Service
 export const adminService = {
     /**
@@ -2042,6 +2062,42 @@ export const adminService = {
      */
     deleteAllTimeSlots: async () => {
         const response = await apiClient.delete(endpoints.admin.timeSlots.deleteAll);
+        return response.data;
+    },
+
+    // ==================== QUIZ TYPES ====================
+
+    // ==================== QUIZ MANAGEMENT ====================
+
+    /**
+     * Get paginated list of quizzes
+     */
+    getQuizzes: async (params?: { status?: 'draft' | 'pending' | 'approved' | 'rejected'; page?: number; per_page?: number }) => {
+        const response = await apiClient.get(endpoints.admin.quizzes.list, { params });
+        return response.data;
+    },
+
+    /**
+     * Get single quiz details
+     */
+    getQuiz: async (id: number) => {
+        const response = await apiClient.get(endpoints.admin.quizzes.show(id));
+        return response.data;
+    },
+
+    /**
+     * Approve a quiz
+     */
+    approveQuiz: async (id: number) => {
+        const response = await apiClient.patch(endpoints.admin.quizzes.approve(id));
+        return response.data;
+    },
+
+    /**
+     * Reject a quiz
+     */
+    rejectQuiz: async (id: number, feedback: string) => {
+        const response = await apiClient.patch(endpoints.admin.quizzes.reject(id), { admin_feedback: feedback });
         return response.data;
     },
 };

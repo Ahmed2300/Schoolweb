@@ -72,7 +72,7 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
     const [menuOpen, setMenuOpen] = useState(false);
     const status = quiz.status || 'draft';
     const canEdit = status === 'draft' || status === 'rejected';
-    const canSubmit = status === 'draft';
+    const canSubmit = status === 'draft' || status === 'rejected';
 
     return (
         <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all group">
@@ -167,6 +167,19 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
                     <span>{quiz.passing_percentage || 0}% للنجاح</span>
                 </div>
             </div>
+
+            {/* Admin Feedback */}
+            {status === 'rejected' && quiz.admin_feedback && (
+                <div className="mb-4 bg-red-50 border border-red-100 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                        <AlertCircle size={16} className="text-red-600 mt-0.5" />
+                        <div>
+                            <p className="text-xs font-semibold text-red-700 mb-1">سبب الرفض:</p>
+                            <p className="text-sm text-red-600">{quiz.admin_feedback}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

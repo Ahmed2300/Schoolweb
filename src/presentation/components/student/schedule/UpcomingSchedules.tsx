@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
 import { format, parseISO, isAfter, isToday, isTomorrow, addMinutes } from 'date-fns';
 import { ar } from 'date-fns/locale';
@@ -11,6 +12,7 @@ interface UpcomingSchedulesProps {
 }
 
 export function UpcomingSchedules({ schedules }: UpcomingSchedulesProps) {
+    const navigate = useNavigate();
     const upcomingList = useMemo(() => {
         const now = new Date();
         return schedules
@@ -96,9 +98,24 @@ export function UpcomingSchedules({ schedules }: UpcomingSchedulesProps) {
                                 <div className="text-xs text-slate-500">
                                     {courseName} {duration && `• ${duration}`}
                                 </div>
-                                <button className="w-8 h-8 rounded-full bg-shibl-crimson/5 flex items-center justify-center text-shibl-crimson opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <PlayCircle size={16} />
-                                </button>
+
+                                {isLive && (isLectureToday || isLectureTomorrow) ? (
+                                    <button
+                                        onClick={() => {
+                                            if (schedule.lecture?.course?.id && schedule.lecture?.id) {
+                                                navigate(`/student/courses/${schedule.lecture.course.id}/lectures/${schedule.lecture.id}`);
+                                            }
+                                        }}
+                                        className="px-3 py-1.5 rounded-lg bg-shibl-crimson text-white text-xs font-semibold shadow-sm hover:bg-shibl-crimson/90 transition-colors flex items-center gap-1.5"
+                                    >
+                                        <Radio size={12} />
+                                        انضم الآن
+                                    </button>
+                                ) : (
+                                    <button className="w-8 h-8 rounded-full bg-shibl-crimson/5 flex items-center justify-center text-shibl-crimson opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <PlayCircle size={16} />
+                                    </button>
+                                )}
                             </div>
                         </div>
                     );
