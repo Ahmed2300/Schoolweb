@@ -414,10 +414,16 @@ function UnitCard({
                                                                 <h5 className="text-sm font-medium text-slate-900">{getLocalizedTitle(contentItem.title)}</h5>
                                                                 <div className="flex flex-col gap-1">
                                                                     <div className="flex items-center gap-2 text-xs text-slate-500">
-                                                                        <span className={contentItem.is_published ? 'text-green-600' : 'text-slate-400'}>
-                                                                            {contentItem.is_published ? 'منشور' : 'مسودة'}
-                                                                        </span>
-                                                                        {contentItem.duration_minutes > 0 && <span>• {contentItem.duration_minutes} دقيقة</span>}
+                                                                        {contentItem.is_pending_approval ? (
+                                                                            <span className="text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded font-medium border border-amber-200">
+                                                                                قيد المراجعة
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className={contentItem.is_published ? 'text-green-600' : 'text-slate-400'}>
+                                                                                {contentItem.is_published ? 'منشور' : 'مسودة'}
+                                                                            </span>
+                                                                        )}
+                                                                        {!contentItem.is_pending_approval && contentItem.duration_minutes > 0 && <span>• {contentItem.duration_minutes} دقيقة</span>}
                                                                     </div>
                                                                     {contentItem.is_online && (contentItem.start_time || contentItem.time_slot) && (() => {
                                                                         // Use time_slot times as fallback when lecture times aren't set
@@ -453,7 +459,7 @@ function UnitCard({
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center gap-1">
-                                                            {contentItem.is_online && (
+                                                            {!contentItem.is_pending_approval && contentItem.is_online && (
                                                                 (() => {
                                                                     const now = new Date();
                                                                     const startTime = contentItem.start_time ? new Date(contentItem.start_time) : null;
@@ -493,14 +499,22 @@ function UnitCard({
                                                                     );
                                                                 })()
                                                             )}
-                                                            <button onClick={() => onAddQuizToLecture(contentItem)} className="p-1.5 text-slate-400 hover:text-shibl-crimson rounded-md" title="إضافة اختبار للمحاضرة">
-                                                                <HelpCircle size={16} />
-                                                            </button>
-                                                            <button onClick={() => onEditLecture(contentItem)} className="p-1.5 text-slate-400 hover:text-blue-600 rounded-md">
-                                                                <Edit2 size={16} />
-                                                            </button>
-                                                            <button onClick={() => onDeleteLecture(contentItem)} className="p-1.5 text-slate-400 hover:text-red-600 rounded-md">
-                                                                <Trash2 size={16} />
+                                                            {!contentItem.is_pending_approval && (
+                                                                <>
+                                                                    <button onClick={() => onAddQuizToLecture(contentItem)} className="p-1.5 text-slate-400 hover:text-shibl-crimson rounded-md" title="إضافة اختبار للمحاضرة">
+                                                                        <HelpCircle size={16} />
+                                                                    </button>
+                                                                    <button onClick={() => onEditLecture(contentItem)} className="p-1.5 text-slate-400 hover:text-blue-600 rounded-md">
+                                                                        <Edit2 size={16} />
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            <button
+                                                                onClick={() => onDeleteLecture(contentItem)}
+                                                                className={`p-1.5 rounded-md ${contentItem.is_pending_approval ? 'text-rose-500 hover:bg-rose-50' : 'text-slate-400 hover:text-red-600'}`}
+                                                                title={contentItem.is_pending_approval ? 'إلغاء الطلب' : 'حذف المحاضرة'}
+                                                            >
+                                                                {contentItem.is_pending_approval ? <X size={16} /> : <Trash2 size={16} />}
                                                             </button>
                                                         </div>
                                                     </div>
@@ -642,6 +656,28 @@ export function TeacherCourseDetailsPage() {
             const courseData = await teacherService.getCourse(courseId);
             setCourse(courseData);
 
+            // Fetch Pending Approvals (Parallel)
+            let pendingLectures: any[] = [];
+            try {
+                // We assume approvals for creating lectures are attached to the Course
+                // approvable_type="Modules\Courses\App\Models\Course" (or however backend expects it, usually simple 'course')
+                // Actually backend service expects 'course' which maps to class.
+                // Filter specifically for action="create_lecture"
+                const approvals = await teacherContentApprovalService.getMyRequests({
+                    status: 'pending',
+                    approvable_type: 'course',
+                    approvable_id: Number(courseId),
+                    per_page: 50 // reasonable limit
+                });
+
+                // Filter for create_lecture action
+                pendingLectures = approvals.data.filter(req =>
+                    req.payload.action === 'create_lecture' || req.payload.unit_id // simplistic check if action missing
+                );
+            } catch (err) {
+                console.error('Failed to load pending approvals:', err);
+            }
+
             // Fetch Units
             try {
                 // Corrected Call to Flat Method
@@ -650,8 +686,46 @@ export function TeacherCourseDetailsPage() {
                 // Based on service definition: Promise<{ success: boolean; data: Unit[] }>
                 const unitsList = unitsResponse.data || [];
 
+                // MERGE PENDING LECTURES INTO UNITS
+                // Map approvals to "Fake" Lecture objects
+                const pendingLectureObjects = pendingLectures.map(req => {
+                    const payload = req.payload;
+                    return {
+                        id: `pending-${req.id}`, // String ID to avoid collision
+                        title: payload.title, // likely {ar:..., en:...} or string
+                        description: payload.description,
+                        unit_id: payload.unit_id,
+                        order: 9999, // Put at end or use payload order
+                        is_published: false,
+                        is_pending_approval: true, // Custom flag for UI
+                        type: 'lecture', // Ensure type is set
+                        sortType: 'lecture', // For sortable list
+                        created_at: req.created_at
+                    };
+                });
+
+                // Group by unit_id
+                const pendingByUnit = pendingLectureObjects.reduce((acc, lecture) => {
+                    const uId = lecture.unit_id;
+                    if (!acc[uId]) acc[uId] = [];
+                    acc[uId].push(lecture);
+                    return acc;
+                }, {} as Record<number, any[]>);
+
+                // Inject into units
+                const unitsWithPending = unitsList.map((unit: Unit) => {
+                    const pendingForThis = pendingByUnit[unit.id] || [];
+                    if (pendingForThis.length > 0) {
+                        return {
+                            ...unit,
+                            lectures: [...(unit.lectures || []), ...pendingForThis]
+                        };
+                    }
+                    return unit;
+                });
+
                 // Ensure units are sorted by order
-                const sortedUnits = unitsList.sort((a: Unit, b: Unit) => (a.order || 0) - (b.order || 0));
+                const sortedUnits = unitsWithPending.sort((a: Unit, b: Unit) => (a.order || 0) - (b.order || 0));
                 setUnits(sortedUnits);
 
                 // Expand first unit by default if none expanded
@@ -818,8 +892,16 @@ export function TeacherCourseDetailsPage() {
         if (!deletingLecture) return;
 
         try {
-            await teacherLectureService.deleteLecture(deletingLecture.id);
-            toast.success('تم حذف المحاضرة بنجاح');
+            // Check if it's a pending approval request
+            if (deletingLecture.is_pending_approval || String(deletingLecture.id).startsWith('pending-')) {
+                const id = parseInt(String(deletingLecture.id).replace('pending-', ''));
+                await teacherContentApprovalService.cancelRequest(id);
+                toast.success('تم إلغاء الطلب بنجاح');
+            } else {
+                await teacherLectureService.deleteLecture(deletingLecture.id);
+                toast.success('تم حذف المحاضرة بنجاح');
+            }
+
             setDeletingLecture(null);
             fetchCourseData();
         } catch (error) {

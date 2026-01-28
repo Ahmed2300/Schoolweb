@@ -90,6 +90,21 @@ export function TimeSlotPicker({ onSelect, selectedSlotId }: TimeSlotPickerProps
     useEffect(() => {
         // Invalidate and refetch to get the latest available slots
         queryClient.invalidateQueries({ queryKey: teacherTimeSlotKeys.available() });
+
+        // Setup Real-time listener
+        const channel = (window as any).Echo?.channel('time-slots');
+        if (channel) {
+            channel.listen('.TimeSlotUpdated', () => {
+                // When any slot is updated (booked or released), refresh the list
+                queryClient.invalidateQueries({ queryKey: teacherTimeSlotKeys.available() });
+            });
+        }
+
+        return () => {
+            if (channel) {
+                channel.stopListening('.TimeSlotUpdated');
+            }
+        };
     }, [queryClient]);
 
     // Auto-select first available date when slots load

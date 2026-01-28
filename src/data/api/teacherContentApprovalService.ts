@@ -64,11 +64,15 @@ export const teacherContentApprovalService = {
      */
     async getMyRequests(params?: {
         status?: 'pending' | 'approved' | 'rejected';
+        approvable_type?: string;
+        approvable_id?: number;
         per_page?: number;
         page?: number;
     }): Promise<ContentApprovalListResponse> {
         const queryParams = new URLSearchParams();
         if (params?.status) queryParams.append('status', params.status);
+        if (params?.approvable_type) queryParams.append('approvable_type', params.approvable_type);
+        if (params?.approvable_id) queryParams.append('approvable_id', String(params.approvable_id));
         if (params?.per_page) queryParams.append('per_page', String(params.per_page));
         if (params?.page) queryParams.append('page', String(params.page));
 
