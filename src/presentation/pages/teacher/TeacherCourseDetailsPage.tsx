@@ -5,7 +5,7 @@ import { useLanguage, useAuth } from '../../hooks';
 import { teacherService, getCourseName, getCourseDescription, type TeacherCourse, type TeacherCourseStudent } from '../../../data/api';
 import { teacherLectureService } from '../../../data/api/teacherLectureService';
 import { teacherContentApprovalService } from '../../../data/api/teacherContentApprovalService';
-import type { Unit, CreateUnitRequest, UpdateUnitRequest } from '../../../types/unit';
+import type { Unit, CreateUnitRequest, UpdateUnitRequest, UnitLecture } from '../../../types/unit';
 import { quizService, type Quiz } from '../../../data/api/quizService';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
@@ -957,13 +957,13 @@ export function TeacherCourseDetailsPage() {
         }
     });
 
-    const handleUnitFormSubmit = async (data: CreateUnitRequest) => {
+    const handleUnitFormSubmit = async (data: CreateUnitRequest | UpdateUnitRequest) => {
         try {
             if (editingUnit) {
                 await updateUnit.mutateAsync({ unitId: editingUnit.id, req: data });
                 toast.success('تم تحديث الوحدة بنجاح');
             } else {
-                await createUnit.mutateAsync(data);
+                await createUnit.mutateAsync(data as CreateUnitRequest);
                 toast.success('تم إنشاء الوحدة بنجاح');
             }
             setShowUnitModal(false);
@@ -1136,7 +1136,7 @@ export function TeacherCourseDetailsPage() {
                                             setQuizContextLecture(null);
                                             setShowQuizModal(true);
                                         }}
-                                        onAddQuizToLecture={(lecture) => {
+                                        onAddQuizToLecture={(lecture: UnitLecture) => {
                                             setQuizContextUnit(unit);
                                             setQuizContextLecture(lecture);
                                             setShowQuizModal(true);
@@ -1249,9 +1249,8 @@ export function TeacherCourseDetailsPage() {
                     isOpen={showUnitModal}
                     onClose={() => setShowUnitModal(false)}
                     onSubmit={handleUnitFormSubmit}
-                    initialData={editingUnit || undefined}
-                    mode={editingUnit ? 'edit' : 'create'}
-                    isLoading={createUnit.isPending || updateUnit.isPending}
+                    unit={editingUnit}
+                    isSubmitting={createUnit.isPending || updateUnit.isPending}
                 />
             )}
 
@@ -1293,8 +1292,8 @@ export function TeacherCourseDetailsPage() {
                     // Force the context
                     courses={course ? [course as TeacherCourse] : []}
                     lockedCourseId={courseId}
-                    lockedUnitId={quizContextUnit?.id}
-                    lockedLectureId={quizContextLecture?.id}
+                    unitId={quizContextUnit?.id}
+                    lectureId={quizContextLecture?.id}
                     quiz={selectedQuizForEdit}
                 />
             )}

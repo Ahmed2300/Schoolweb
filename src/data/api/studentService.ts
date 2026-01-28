@@ -574,6 +574,11 @@ export const studentService = {
     /**
      * Delete a scheduled lecture
      */
+    deleteSchedule: async (id: number): Promise<{ success: boolean }> => {
+        const response = await apiClient.delete(endpoints.schedules.delete(id));
+        return response.data;
+    },
+
     // ============================================================
     // BBB Session Methods
     // ============================================================

@@ -131,7 +131,7 @@ export const ContentApprovalDiffViewer: React.FC<ContentApprovalDiffViewerProps>
                     </span>
                 );
             }
-            return <span className="font-mono text-slate-600">ID: {val}</span>;
+            return <span className="font-mono text-slate-600">ID: {String(val)}</span>;
         }
 
         // Video Path Handling

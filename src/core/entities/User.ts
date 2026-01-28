@@ -10,6 +10,7 @@ export interface User {
   address?: string | null;
   phoneNumber?: string;
   gradeId?: number;
+  teacher_id?: number; // When user is a teacher, this is their teacher record ID
   updatedAt: Date;
 }
 

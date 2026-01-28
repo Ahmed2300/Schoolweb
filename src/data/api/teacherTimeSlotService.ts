@@ -15,8 +15,8 @@ export interface TimeSlot {
     is_available: boolean;
     teacher_id: number | null;
     lecture_id: number | null;
-    time_range?: string;
-    date?: string;
+    time_range: string | null;
+    date: string | null;
 }
 
 export interface TimeSlotResponse {

@@ -15,6 +15,7 @@ export interface Lecture {
     order: number;
     is_published: boolean;
     is_online: boolean;
+    is_active?: boolean;
     video_path: string | null;
     item_type: 'lecture';
     quizzes?: Quiz[]; // Nested quizzes inside lecture

@@ -7,9 +7,9 @@ import {
     CreateQuizData,
     QuizType,
     TeacherCourse,
-    Quiz,
-    Unit
+    Quiz
 } from '../../../data/api';
+import type { Unit } from '../../../types/unit';
 
 // Icons
 import {

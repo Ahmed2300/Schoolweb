@@ -28,6 +28,7 @@ export interface TeacherCourse {
     semester_id?: number;
     students_count?: number;
     lectures_count?: number;
+    rating?: number;
     status?: 'active' | 'draft' | 'archived';
     created_at?: string;
     updated_at?: string;
