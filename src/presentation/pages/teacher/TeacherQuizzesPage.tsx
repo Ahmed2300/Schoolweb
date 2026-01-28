@@ -261,7 +261,7 @@ export function TeacherQuizzesPage() {
         setError(null);
         try {
             const [quizzesResponse, coursesResponse] = await Promise.all([
-                quizService.getMyQuizzes(),
+                quizService.getQuizzes(),
                 teacherService.getMyCourses({ per_page: 100 })
             ]);
             setQuizzes(quizzesResponse.data || []);

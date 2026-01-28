@@ -4,11 +4,17 @@
  * A visual slot picker for teachers to select available time slots
  * when creating an online lecture. Shows slots grouped by date with
  * time ranges and availability status.
+ * 
+ * Uses React Query for cache management - automatically invalidates
+ * when teacher books a slot.
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Calendar, Clock, CheckCircle2, Loader2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { teacherTimeSlotService, TimeSlot } from '../../../../data/api/teacherTimeSlotService';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import teacherService from '../../../../data/api/teacherService';
+import { teacherTimeSlotKeys } from '../../../hooks/useTeacherTimeSlots';
+import type { TimeSlot } from '../../../../types/timeSlot';
 
 interface TimeSlotPickerProps {
     onSelect: (slot: TimeSlot | null) => void;
@@ -60,35 +66,39 @@ const groupSlotsByDate = (slots: TimeSlot[]): Map<string, TimeSlot[]> => {
 };
 
 export function TimeSlotPicker({ onSelect, selectedSlotId }: TimeSlotPickerProps) {
-    const [slots, setSlots] = useState<TimeSlot[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
+    const queryClient = useQueryClient();
 
-    // Fetch available slots
+    // Use React Query for data fetching with cache management
+    const {
+        data: slots = [],
+        isLoading: loading,
+        error,
+        refetch
+    } = useQuery({
+        queryKey: teacherTimeSlotKeys.available(),
+        queryFn: () => teacherService.getAvailableSlots(),
+        // Always refetch when component mounts to ensure fresh data
+        refetchOnMount: 'always',
+        // Data is considered stale immediately
+        staleTime: 0,
+        // Refetch when window gains focus
+        refetchOnWindowFocus: true,
+    });
+
+    // Force refetch on mount to ensure we have fresh data
     useEffect(() => {
-        const fetchSlots = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                const data = await teacherTimeSlotService.getAvailable();
-                setSlots(data);
+        // Invalidate and refetch to get the latest available slots
+        queryClient.invalidateQueries({ queryKey: teacherTimeSlotKeys.available() });
+    }, [queryClient]);
 
-                // Auto-select first available date
-                if (data.length > 0) {
-                    const firstDate = new Date(data[0].start_time).toISOString().split('T')[0];
-                    setSelectedDate(firstDate);
-                }
-            } catch (err) {
-                setError('فشل تحميل الفترات الزمنية المتاحة');
-                console.error('Failed to load slots:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchSlots();
-    }, []);
+    // Auto-select first available date when slots load
+    useEffect(() => {
+        if (slots.length > 0 && !selectedDate) {
+            const firstDate = new Date(slots[0].start_time).toISOString().split('T')[0];
+            setSelectedDate(firstDate);
+        }
+    }, [slots, selectedDate]);
 
     // Group slots by date
     const groupedSlots = useMemo(() => groupSlotsByDate(slots), [slots]);
@@ -135,9 +145,9 @@ export function TimeSlotPicker({ onSelect, selectedSlotId }: TimeSlotPickerProps
         return (
             <div className="flex flex-col items-center justify-center py-12 text-red-500">
                 <AlertCircle size={32} className="mb-3" />
-                <p className="text-sm">{error}</p>
+                <p className="text-sm">فشل تحميل الفترات الزمنية المتاحة</p>
                 <button
-                    onClick={() => window.location.reload()}
+                    onClick={() => refetch()}
                     className="mt-3 text-xs text-blue-600 hover:underline"
                 >
                     إعادة المحاولة
@@ -153,6 +163,13 @@ export function TimeSlotPicker({ onSelect, selectedSlotId }: TimeSlotPickerProps
                 <Calendar size={32} className="mb-3 opacity-50" />
                 <p className="text-sm font-medium">لا توجد فترات زمنية متاحة حالياً</p>
                 <p className="text-xs mt-1">يرجى التواصل مع الإدارة لإضافة فترات جديدة</p>
+                <button
+                    onClick={() => refetch()}
+                    className="mt-3 text-xs text-blue-600 hover:underline flex items-center gap-1"
+                >
+                    <Loader2 size={12} className="inline" />
+                    تحديث القائمة
+                </button>
             </div>
         );
     }
@@ -206,8 +223,8 @@ export function TimeSlotPicker({ onSelect, selectedSlotId }: TimeSlotPickerProps
                             type="button"
                             onClick={() => setSelectedDate(dateKey)}
                             className={`flex flex-col items-center min-w-[60px] px-3 py-2 rounded-xl transition-all ${isSelected
-                                    ? 'bg-blue-600 text-white shadow-lg'
-                                    : 'bg-white border border-slate-200 hover:border-blue-300 text-slate-600'
+                                ? 'bg-blue-600 text-white shadow-lg'
+                                : 'bg-white border border-slate-200 hover:border-blue-300 text-slate-600'
                                 }`}
                         >
                             <span className="text-[10px] uppercase">{dayName}</span>
@@ -230,8 +247,8 @@ export function TimeSlotPicker({ onSelect, selectedSlotId }: TimeSlotPickerProps
                             type="button"
                             onClick={() => handleSlotClick(slot)}
                             className={`relative p-4 rounded-xl border-2 transition-all text-center ${isSelected
-                                    ? 'border-blue-600 bg-blue-50 shadow-md'
-                                    : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/30'
+                                ? 'border-blue-600 bg-blue-50 shadow-md'
+                                : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/30'
                                 }`}
                         >
                             {isSelected && (

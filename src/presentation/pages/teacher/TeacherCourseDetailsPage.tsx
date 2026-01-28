@@ -419,15 +419,36 @@ function UnitCard({
                                                                         </span>
                                                                         {contentItem.duration_minutes > 0 && <span>• {contentItem.duration_minutes} دقيقة</span>}
                                                                     </div>
-                                                                    {contentItem.is_online && contentItem.start_time && (
-                                                                        <div className="flex items-center gap-1.5 text-xs text-blue-600 font-medium">
-                                                                            <Calendar size={12} />
-                                                                            <span>
-                                                                                {new Date(contentItem.start_time).toLocaleDateString('ar-EG')} • {new Date(contentItem.start_time).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
-                                                                                {contentItem.end_time && ` - ${new Date(contentItem.end_time).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}`}
-                                                                            </span>
-                                                                        </div>
-                                                                    )}
+                                                                    {contentItem.is_online && (contentItem.start_time || contentItem.time_slot) && (() => {
+                                                                        // Use time_slot times as fallback when lecture times aren't set
+                                                                        const displayStartTime = contentItem.start_time || contentItem.time_slot?.start_time;
+                                                                        const displayEndTime = contentItem.end_time || contentItem.time_slot?.end_time;
+                                                                        const slotStatus = contentItem.time_slot?.status;
+
+                                                                        if (!displayStartTime) return null;
+
+                                                                        return (
+                                                                            <div className="flex items-center gap-1.5 text-xs text-blue-600 font-medium flex-wrap">
+                                                                                <Calendar size={12} />
+                                                                                <span>
+                                                                                    {new Date(displayStartTime).toLocaleDateString('ar-EG')} • {new Date(displayStartTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                                                                                    {displayEndTime && ` - ${new Date(displayEndTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}`}
+                                                                                </span>
+                                                                                {/* Time Slot Status Badge */}
+                                                                                {slotStatus && (
+                                                                                    <span className={`mr-2 px-1.5 py-0.5 rounded text-[10px] font-medium ${slotStatus === 'approved' ? 'bg-green-100 text-green-700' :
+                                                                                        slotStatus === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                                                                            slotStatus === 'rejected' ? 'bg-rose-100 text-rose-700' :
+                                                                                                'bg-slate-100 text-slate-600'
+                                                                                        }`}>
+                                                                                        {slotStatus === 'approved' ? 'مجدول ✓' :
+                                                                                            slotStatus === 'pending' ? 'قيد الانتظار' :
+                                                                                                slotStatus === 'rejected' ? 'مرفوض' : ''}
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                        );
+                                                                    })()}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1270,11 +1291,7 @@ export function TeacherCourseDetailsPage() {
                         fetchCourseData();
                     }}
                     // Force the context
-                    courses={course ? [{
-                        id: course.id,
-                        name: course.name,
-                        description: course.description
-                    }] : []}
+                    courses={course ? [course as TeacherCourse] : []}
                     lockedCourseId={courseId}
                     lockedUnitId={quizContextUnit?.id}
                     lockedLectureId={quizContextLecture?.id}

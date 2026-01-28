@@ -125,12 +125,15 @@ export function useApproveSlotRequest() {
         mutationFn: (id: number) => adminService.approveSlotRequest(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: timeSlotKeys.all });
+            // Also invalidate teacher's available slots cache
+            queryClient.invalidateQueries({ queryKey: ['teacherTimeSlots'] });
         },
     });
 }
 
 /**
  * Hook to reject a teacher's slot request.
+ * When rejected, the slot becomes available again for other teachers.
  */
 export function useRejectSlotRequest() {
     const queryClient = useQueryClient();
@@ -140,6 +143,9 @@ export function useRejectSlotRequest() {
             adminService.rejectSlotRequest(id, reason),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: timeSlotKeys.all });
+            // Also invalidate teacher's available slots cache
+            // Rejected slots become available again for booking
+            queryClient.invalidateQueries({ queryKey: ['teacherTimeSlots'] });
         },
     });
 }

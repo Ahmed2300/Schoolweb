@@ -47,7 +47,10 @@ export function useRequestSlot() {
         mutationFn: ({ id, lectureId, notes }: { id: number; lectureId: number; notes?: string }) =>
             teacherService.requestSlot(id, lectureId, notes),
         onSuccess: () => {
+            // Invalidate teacher's available slots cache
             queryClient.invalidateQueries({ queryKey: teacherTimeSlotKeys.all });
+            // Also invalidate admin time slots to keep both views in sync
+            queryClient.invalidateQueries({ queryKey: ['timeSlots'] });
         },
     });
 }
