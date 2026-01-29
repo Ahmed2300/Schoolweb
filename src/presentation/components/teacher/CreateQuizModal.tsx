@@ -110,7 +110,7 @@ function Step1SelectType({
 
     // Calculate display strings for locked contexts
     const lockedUnitName = lockedUnitId ? units.find(u => u.id === lockedUnitId)?.title : '';
-    const lockedLectureName = lockedLectureId ? (units.find(u => u.id === lockedUnitId)?.lectures.find((l: any) => l.id === lockedLectureId)?.title) : '';
+    const lockedLectureName = lockedLectureId ? (units.find(u => u.id === lockedUnitId)?.lectures?.find((l: any) => l.id === lockedLectureId)?.title) : '';
 
     return (
         <div className="space-y-6">
