@@ -38,6 +38,16 @@ import {
 import type { TimeSlot, TimeSlotStatus } from '../../../types/timeSlot';
 import { BulkSlotGeneratorModal } from '../../components/admin/timeslots';
 
+// Helper function to extract localized text from translatable fields
+const getLocalizedText = (
+    value: string | { ar?: string; en?: string } | undefined | null,
+    lang: 'ar' | 'en' = 'ar'
+): string => {
+    if (!value) return '—';
+    if (typeof value === 'string') return value;
+    return value[lang] || value.en || value.ar || '—';
+};
+
 // Status configurations with colors and icons
 const STATUS_CONFIG: Record<TimeSlotStatus, {
     label: string;
@@ -173,10 +183,11 @@ export function AdminTimeSlotsPage() {
 
         if (!searchQuery) return slots;
 
-        return slots.filter(slot =>
-            slot.teacher?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            slot.lecture?.title?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        return slots.filter(slot => {
+            const lectureTitle = getLocalizedText(slot.lecture?.title);
+            return slot.teacher?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                lectureTitle.toLowerCase().includes(searchQuery.toLowerCase());
+        });
     }, [allSlots, pendingData, activeTab, searchQuery]);
 
     // Pagination calculations
@@ -710,7 +721,7 @@ export function AdminTimeSlotsPage() {
                                                 {slot.lecture && (
                                                     <div className="flex items-center gap-2">
                                                         <BookOpen size={14} className="text-emerald-500 flex-shrink-0" />
-                                                        <span className="text-slate-600 truncate max-w-[120px]">{slot.lecture.title}</span>
+                                                        <span className="text-slate-600 truncate max-w-[120px]">{getLocalizedText(slot.lecture.title)}</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -870,7 +881,7 @@ export function AdminTimeSlotsPage() {
                                                     {slot.lecture ? (
                                                         <div className="flex items-center gap-2">
                                                             <BookOpen size={14} className={isInactive ? 'text-slate-400' : 'text-emerald-500'} />
-                                                            <span className={`text-slate-700 ${isInactive ? 'text-slate-500' : ''}`}>{slot.lecture.title}</span>
+                                                            <span className={`text-slate-700 ${isInactive ? 'text-slate-500' : ''}`}>{getLocalizedText(slot.lecture.title)}</span>
                                                         </div>
                                                     ) : (
                                                         <span className="text-slate-400">—</span>
@@ -1259,7 +1270,7 @@ export function AdminTimeSlotsPage() {
                                             <label className="text-sm text-slate-500">المحاضرة</label>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <BookOpen size={16} className="text-slate-400" />
-                                                <span className="font-medium">{selectedSlot.lecture.title}</span>
+                                                <span className="font-medium">{getLocalizedText(selectedSlot.lecture.title)}</span>
                                             </div>
                                         </div>
                                     )}

@@ -37,7 +37,7 @@ export interface TimeSlot {
     };
     lecture?: {
         id: number;
-        title: string;
+        title: string | { ar?: string; en?: string };
         course?: {
             id: number;
             name: string | { ar?: string; en?: string };
