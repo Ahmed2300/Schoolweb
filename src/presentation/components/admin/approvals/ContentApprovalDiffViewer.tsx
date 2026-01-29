@@ -136,7 +136,7 @@ export const ContentApprovalDiffViewer: React.FC<ContentApprovalDiffViewerProps>
 
         // Video Path Handling
         if (key === 'video_path' && typeof val === 'string') {
-            const baseUrl = 'http://localhost:8000'; // Or use import.meta.env.VITE_API_URL
+            const baseUrl = import.meta.env.VITE_API_URL || '';
             const videoUrl = val.startsWith('http') ? val : `${baseUrl}/storage/${val}`;
 
             return (
@@ -157,7 +157,7 @@ export const ContentApprovalDiffViewer: React.FC<ContentApprovalDiffViewerProps>
 
         // Image Path/Thumbnail Handling
         if ((key === 'image_path' || key === 'thumbnail' || key === 'image') && typeof val === 'string') {
-            const baseUrl = 'http://localhost:8000';
+            const baseUrl = import.meta.env.VITE_API_URL || '';
             const imageUrl = val.startsWith('http') ? val : `${baseUrl}/storage/${val}`;
 
             return (
