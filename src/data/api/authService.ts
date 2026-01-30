@@ -27,6 +27,8 @@ export interface StudentRegisterRequest {
     city_id: number;
     parent_phone?: string;
     how_do_you_know_us?: string;
+    parent_name?: string;
+    parent_email?: string;
 }
 
 export interface ParentRegisterRequest {
@@ -34,6 +36,10 @@ export interface ParentRegisterRequest {
     email: string;
     password: string;
     password_confirmation: string;
+    phone?: string;
+    address?: string;
+    relationship?: 'father' | 'mother' | 'guardian' | 'other';
+    image_path?: File;
 }
 
 export interface VerifyEmailRequest {
@@ -65,6 +71,7 @@ export interface AuthResponse {
         student?: UserData;
         parent?: UserData;
         token?: string;
+        otp_sent?: boolean;
     };
 }
 
