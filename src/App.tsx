@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   LandingPage,
+  PrivacyPolicyPage,
   SignInPage,
   SignupPage,
   VerifyEmailPage,
@@ -85,6 +86,7 @@ function App() {
           <Routes>
             {/* Public routes */}
             <Route path={ROUTES.HOME} element={<LandingPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path={ROUTES.LOGIN} element={<SignInPage />} />
             <Route path={ROUTES.REGISTER} element={<SignupPage />} />
             <Route path={ROUTES.VERIFY_EMAIL} element={<VerifyEmailPage />} />
