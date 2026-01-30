@@ -27,7 +27,7 @@ const getLocalizedName = (name: { ar?: string; en?: string } | string | undefine
 interface TeacherAddLectureModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSuccess: () => void;
+    onSuccess: (lecture?: any) => void;
     courseId: number;
     courseName: string;
     teacherId: number;
@@ -160,10 +160,17 @@ export function TeacherAddLectureModal({
             //     await teacherLectureService.createLecture(lectureData);
             // }
 
-            // onSuccess(); // Refresh list - wait, list won't have new item
-            // Maybe show specific success modal or toast?
-            // The modal will close and refresh, which is fine (pending count might update)
-            onSuccess();
+            // Construct a "pending" lecture object for optimistic UI
+            const pendingLecture = {
+                id: `pending-${Date.now()}`, // Temporary ID
+                ...lectureData,
+                type: 'lecture',
+                sortType: 'lecture',
+                is_pending_approval: true,
+                order: 9999 // Put at end
+            };
+
+            onSuccess(pendingLecture);
             resetForm();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'فشل إرسال طلب المحاضرة');

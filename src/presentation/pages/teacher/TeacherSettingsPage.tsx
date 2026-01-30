@@ -1,7 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../../hooks';
-import { useAuthStore } from '../../store';
+import { useAuthStore } from '../../store/authStore';
 import { teacherAuthService } from '../../../data/api/teacherAuthService';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { profileFormSchema, passwordFormSchema, type ProfileFormValues, type PasswordFormValues } from './schemas/teacherSettingsSchema';
+import { toast } from 'react-hot-toast';
 
 // Icons
 import {
@@ -14,15 +18,16 @@ import {
     Save,
     Eye,
     EyeOff,
-    AlertCircle,
-    CheckCircle
+    Camera,
+    Languages,
+    Briefcase
 } from 'lucide-react';
 
 // Section component for grouping settings
-function SettingsSection({ title, children }: { title: string; children: React.ReactNode }) {
+function SettingsSection({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
     return (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
+        <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden ${className}`}>
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
                 <h2 className="text-lg font-bold text-charcoal">{title}</h2>
             </div>
             <div className="p-6">{children}</div>
@@ -31,14 +36,17 @@ function SettingsSection({ title, children }: { title: string; children: React.R
 }
 
 // Form field wrapper
-function FormField({ label, children, error }: { label: string; children: React.ReactNode; error?: string }) {
+function FormField({ label, children, error, required = false }: { label: string; children: React.ReactNode; error?: string; required?: boolean }) {
     return (
         <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-600">{label}</label>
+            <label className="block text-sm font-medium text-slate-700">
+                {label}
+                {required && <span className="text-red-500 mx-1">*</span>}
+            </label>
             {children}
             {error && (
-                <p className="text-red-500 text-xs flex items-center gap-1">
-                    <AlertCircle size={12} />
+                <p className="text-red-500 text-xs flex items-center gap-1 animate-fadeIn">
+                    <span className="inline-block w-1 h-1 rounded-full bg-red-500" />
                     {error}
                 </p>
             )}
@@ -47,317 +55,447 @@ function FormField({ label, children, error }: { label: string; children: React.
 }
 
 export function TeacherSettingsPage() {
-    const { isRTL } = useLanguage();
-    const { user } = useAuthStore();
+    const { isRTL, language } = useLanguage();
+    const { user, setUser } = useAuthStore();
 
-    // Profile form state
-    const [profileData, setProfileData] = useState({
-        name: user?.name || '',
-        email: user?.email || '',
-        phone: '',
-        specialization: '',
+    // Avatar State
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatar || null);
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Profile Form
+    const {
+        register: registerProfile,
+        handleSubmit: handleProfileSubmit,
+        formState: { errors: profileErrors, isSubmitting: isProfileSubmitting },
+        reset: resetProfile
+    } = useForm<ProfileFormValues>({
+        resolver: zodResolver(profileFormSchema),
+        defaultValues: {
+            name: user?.name || '',
+            email: user?.email || '',
+            phone: user?.phone || '',
+            specialization: (user as any)?.specialization || '',
+            qualification: (user as any)?.qualification || '',
+        }
     });
 
-    // Password form state
-    const [passwordData, setPasswordData] = useState({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-    });
+    // Password Form
     const [showPasswords, setShowPasswords] = useState({
         current: false,
         new: false,
         confirm: false,
     });
 
-    // Preferences state
+    const {
+        register: registerPassword,
+        handleSubmit: handlePasswordSubmit,
+        formState: { errors: passwordErrors, isSubmitting: isPasswordSubmitting },
+        reset: resetPassword
+    } = useForm<PasswordFormValues>({
+        resolver: zodResolver(passwordFormSchema),
+        defaultValues: {
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: '',
+        }
+    });
+
+    // Preferences state (Local only for now)
     const [preferences, setPreferences] = useState({
         emailNotifications: true,
         pushNotifications: true,
-        darkMode: false,
-        language: 'ar',
+        darkMode: localStorage.getItem('theme') === 'dark',
     });
 
-    // Loading and feedback states
-    const [isLoading, setIsLoading] = useState(false);
-    const [success, setSuccess] = useState('');
-    const [error, setError] = useState('');
+    // Handle Image Selection
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('حجم الصورة يجب أن لا يتجاوز 5 ميجابايت');
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                toast.error('يرجى اختيار ملف صورة صالح');
+                return;
+            }
 
-    const handleProfileSave = async () => {
-        setIsLoading(true);
-        setError('');
-        setSuccess('');
-        try {
-            await teacherAuthService.updateProfile({
-                name: profileData.name,
-                phone: profileData.phone || undefined,
-                specialization: profileData.specialization || undefined,
-            });
-            setSuccess('تم حفظ الملف الشخصي بنجاح');
-            setTimeout(() => setSuccess(''), 3000);
-        } catch (err: unknown) {
-            const error = err as { response?: { data?: { message?: string } }; message?: string };
-            setError(error.response?.data?.message || error.message || 'حدث خطأ أثناء الحفظ');
-        } finally {
-            setIsLoading(false);
+            setAvatarFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAvatarPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
         }
     };
 
-    const handlePasswordChange = async () => {
-        // Validate passwords
-        if (passwordData.newPassword !== passwordData.confirmPassword) {
-            setError('كلمات المرور غير متطابقة');
-            return;
-        }
-
-        if (passwordData.newPassword.length < 8) {
-            setError('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
-            return;
-        }
-
-        setIsLoading(true);
-        setError('');
-        setSuccess('');
+    // Submit Profile
+    const onProfileSubmit = async (data: ProfileFormValues) => {
         try {
-            await teacherAuthService.changePassword({
-                old_password: passwordData.currentPassword,
-                new_password: passwordData.newPassword,
-                new_password_confirmation: passwordData.confirmPassword,
+            const response = await teacherAuthService.updateProfile({
+                name: data.name,
+                phone: data.phone || undefined,
+                specialization: data.specialization || undefined,
+                qualification: data.qualification || undefined,
+                image: avatarFile || undefined
             });
-            setSuccess('تم تغيير كلمة المرور بنجاح');
-            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-            setTimeout(() => setSuccess(''), 3000);
-        } catch (err: unknown) {
-            const error = err as { response?: { data?: { message?: string } }; message?: string };
-            setError(error.response?.data?.message || error.message || 'فشل في تغيير كلمة المرور');
-        } finally {
-            setIsLoading(false);
+
+            if (response.success && response.data?.teacher) {
+                // Update local user store
+                setUser(response.data.teacher as any); // Type assertion if needed based on User type compat
+                toast.success('تم تحديث الملف الشخصي بنجاح');
+
+                // Reset form with new values (optional, but good practice)
+                resetProfile({
+                    name: response.data.teacher.name,
+                    email: response.data.teacher.email,
+                    phone: response.data.teacher.phone || '',
+                    specialization: response.data.teacher.specialization || '',
+                    qualification: response.data.teacher.qualification || '',
+                });
+                setAvatarFile(null); // Clear selected file
+            }
+        } catch (error: any) {
+            console.error('Update profile error:', error);
+            const msg = error.response?.data?.message || 'حدث خطأ أثناء تحديث الملف الشخصي';
+            toast.error(msg);
         }
+    };
+
+    // Submit Password
+    const onPasswordSubmit = async (data: PasswordFormValues) => {
+        try {
+            const response = await teacherAuthService.changePassword({
+                old_password: data.currentPassword,
+                new_password: data.newPassword,
+                new_password_confirmation: data.confirmPassword,
+            });
+
+            if (response.success) {
+                toast.success('تم تغيير كلمة المرور بنجاح');
+                resetPassword();
+            }
+        } catch (error: any) {
+            console.error('Change password error:', error);
+            const msg = error.response?.data?.message || 'فشل تغيير كلمة المرور';
+            toast.error(msg);
+        }
+    };
+
+    // Toggle Theme
+    const toggleTheme = () => {
+        const newMode = !preferences.darkMode;
+        setPreferences(p => ({ ...p, darkMode: newMode }));
+        localStorage.setItem('theme', newMode ? 'dark' : 'light');
+        if (newMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        toast.success(newMode ? 'تم تفعيل الوضع الداكن' : 'تم تفعيل الوضع الفاتح');
     };
 
     return (
-        <div className="space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="max-w-5xl mx-auto space-y-8 pb-10" dir={isRTL ? 'rtl' : 'ltr'}>
+
             {/* Header */}
             <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-charcoal">الإعدادات</h1>
-                <p className="text-slate-500 mt-1">إدارة ملفك الشخصي وتفضيلات الحساب</p>
+                <p className="text-slate-500 mt-1">إدارة ملفك الشخصي، الأمان، والتفضيلات</p>
             </div>
 
-            {/* Success/Error Messages */}
-            {success && (
-                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-3">
-                    <CheckCircle size={20} className="text-emerald-600" />
-                    <span className="text-emerald-700">{success}</span>
-                </div>
-            )}
-            {error && (
-                <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-center gap-3">
-                    <AlertCircle size={20} className="text-red-500" />
-                    <span className="text-red-700">{error}</span>
-                </div>
-            )}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-            {/* Profile Settings */}
-            <SettingsSection title="الملف الشخصي">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField label="الاسم الكامل">
-                        <div className="relative">
-                            <input
-                                type="text"
-                                value={profileData.name}
-                                onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                                className="w-full h-12 px-4 pr-12 rounded-xl bg-white border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-charcoal placeholder:text-slate-400"
-                                placeholder="محمد أحمد"
-                            />
-                            <User size={18} className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-slate-400`} />
-                        </div>
-                    </FormField>
+                {/* Main Content: Profile & Password */}
+                <div className="lg:col-span-2 space-y-8">
 
-                    <FormField label="البريد الإلكتروني">
-                        <div className="relative">
-                            <input
-                                type="email"
-                                value={profileData.email}
-                                onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                                className="w-full h-12 px-4 pr-12 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 cursor-not-allowed"
-                                placeholder="teacher@subol.edu"
-                                dir="ltr"
-                                disabled
-                            />
-                            <Mail size={18} className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-slate-400`} />
-                        </div>
-                    </FormField>
+                    {/* Profile Section */}
+                    <SettingsSection title="الملف الشخصي">
+                        <form onSubmit={handleProfileSubmit(onProfileSubmit)} className="space-y-8">
 
-                    <FormField label="رقم الهاتف">
-                        <div className="relative">
-                            <input
-                                type="tel"
-                                value={profileData.phone}
-                                onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                                className="w-full h-12 px-4 pr-12 rounded-xl bg-white border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-charcoal placeholder:text-slate-400"
-                                placeholder="+966 5XX XXX XXXX"
-                                dir="ltr"
-                            />
-                            <Phone size={18} className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-slate-400`} />
-                        </div>
-                    </FormField>
-
-                    <FormField label="التخصص">
-                        <input
-                            type="text"
-                            value={profileData.specialization}
-                            onChange={(e) => setProfileData({ ...profileData, specialization: e.target.value })}
-                            className="w-full h-12 px-4 rounded-xl bg-white border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-charcoal placeholder:text-slate-400"
-                            placeholder="الرياضيات والفيزياء"
-                        />
-                    </FormField>
-                </div>
-
-                <button
-                    onClick={handleProfileSave}
-                    disabled={isLoading}
-                    className="mt-6 h-11 px-6 rounded-xl bg-shibl-crimson hover:bg-red-600 text-white font-medium flex items-center gap-2 transition-all disabled:opacity-50"
-                >
-                    <Save size={18} />
-                    <span>حفظ التغييرات</span>
-                </button>
-            </SettingsSection>
-
-            {/* Password Settings */}
-            <SettingsSection title="تغيير كلمة المرور">
-                <div className="space-y-4 max-w-md">
-                    <FormField label="كلمة المرور الحالية">
-                        <div className="relative">
-                            <input
-                                type={showPasswords.current ? 'text' : 'password'}
-                                value={passwordData.currentPassword}
-                                onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                                className="w-full h-12 px-4 pr-12 rounded-xl bg-white border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-charcoal"
-                                dir="ltr"
-                            />
-                            <Lock size={18} className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-slate-400`} />
-                            <button
-                                type="button"
-                                onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
-                                className={`absolute ${isRTL ? 'left-4' : 'right-4'} top-1/2 -translate-y-1/2 text-slate-400 hover:text-charcoal`}
-                            >
-                                {showPasswords.current ? <EyeOff size={18} /> : <Eye size={18} />}
-                            </button>
-                        </div>
-                    </FormField>
-
-                    <FormField label="كلمة المرور الجديدة">
-                        <div className="relative">
-                            <input
-                                type={showPasswords.new ? 'text' : 'password'}
-                                value={passwordData.newPassword}
-                                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                                className="w-full h-12 px-4 pr-12 rounded-xl bg-white border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-charcoal"
-                                dir="ltr"
-                            />
-                            <Lock size={18} className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-slate-400`} />
-                            <button
-                                type="button"
-                                onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
-                                className={`absolute ${isRTL ? 'left-4' : 'right-4'} top-1/2 -translate-y-1/2 text-slate-400 hover:text-charcoal`}
-                            >
-                                {showPasswords.new ? <EyeOff size={18} /> : <Eye size={18} />}
-                            </button>
-                        </div>
-                    </FormField>
-
-                    <FormField label="تأكيد كلمة المرور">
-                        <div className="relative">
-                            <input
-                                type={showPasswords.confirm ? 'text' : 'password'}
-                                value={passwordData.confirmPassword}
-                                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                                className="w-full h-12 px-4 pr-12 rounded-xl bg-white border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-charcoal"
-                                dir="ltr"
-                            />
-                            <Lock size={18} className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-slate-400`} />
-                            <button
-                                type="button"
-                                onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
-                                className={`absolute ${isRTL ? 'left-4' : 'right-4'} top-1/2 -translate-y-1/2 text-slate-400 hover:text-charcoal`}
-                            >
-                                {showPasswords.confirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                            </button>
-                        </div>
-                    </FormField>
-
-                    <button
-                        onClick={handlePasswordChange}
-                        disabled={isLoading || !passwordData.currentPassword || !passwordData.newPassword}
-                        className="h-11 px-6 rounded-xl bg-shibl-crimson hover:bg-red-600 text-white font-medium flex items-center gap-2 transition-all disabled:opacity-50"
-                    >
-                        <Lock size={18} />
-                        <span>تغيير كلمة المرور</span>
-                    </button>
-                </div>
-            </SettingsSection>
-
-            {/* Preferences */}
-            <SettingsSection title="التفضيلات">
-                <div className="space-y-4">
-                    {/* Email Notifications */}
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-100">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                <Mail size={20} className="text-blue-600" />
+                            {/* Avatar Upload */}
+                            <div className="flex flex-col items-center sm:flex-row gap-6">
+                                <div className="relative group">
+                                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg bg-slate-100 relative">
+                                        {avatarPreview ? (
+                                            <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center bg-slate-200 text-slate-400">
+                                                <User size={40} />
+                                            </div>
+                                        )}
+                                        {/* Overlay loading/hover */}
+                                        <div
+                                            className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                            onClick={() => fileInputRef.current?.click()}
+                                        >
+                                            <Camera className="text-white" size={24} />
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-shibl-crimson text-white flex items-center justify-center shadow-md hover:bg-red-700 transition-colors"
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                        <Camera size={14} />
+                                    </button>
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleImageSelect}
+                                    />
+                                </div>
+                                <div className="text-center sm:text-right flex-1">
+                                    <h3 className="font-semibold text-charcoal">{user?.name || 'المعلم'}</h3>
+                                    <p className="text-sm text-slate-500 mb-2">{user?.email}</p>
+                                    <p className="text-xs text-slate-400">
+                                        صيغ المدعومة: JPG, PNG. الحد الأقصى: 5MB
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-charcoal font-medium">إشعارات البريد</p>
-                                <p className="text-slate-500 text-sm">تلقي إشعارات عبر البريد الإلكتروني</p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FormField label="الاسم الكامل" error={profileErrors.name?.message} required>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            {...registerProfile('name')}
+                                            className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-white border outline-none transition-all ${profileErrors.name ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'}`}
+                                            placeholder="الاسم الكامل"
+                                        />
+                                        <User size={18} className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 text-slate-400`} />
+                                    </div>
+                                </FormField>
+
+                                <FormField label="البريد الإلكتروني" error={profileErrors.email?.message} required>
+                                    <div className="relative">
+                                        <input
+                                            type="email"
+                                            {...registerProfile('email')}
+                                            readOnly
+                                            className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 cursor-not-allowed outline-none"
+                                            dir="ltr"
+                                        />
+                                        <Mail size={18} className={`absolute ${isRTL ? 'left-3 pl-1' : 'right-3'} top-1/2 -translate-y-1/2 text-slate-400`} />
+                                    </div>
+                                </FormField>
+
+                                <FormField label="رقم الهاتف" error={profileErrors.phone?.message}>
+                                    <div className="relative">
+                                        <input
+                                            type="tel"
+                                            {...registerProfile('phone')}
+                                            className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-white border outline-none transition-all ${profileErrors.phone ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'}`}
+                                            placeholder="+966 5XX XXX XXXX"
+                                            dir="ltr"
+                                        />
+                                        <Phone size={18} className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 text-slate-400`} />
+                                    </div>
+                                </FormField>
+
+                                <FormField label="التخصص" error={profileErrors.specialization?.message}>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            {...registerProfile('specialization')}
+                                            className="w-full h-12 px-4 rounded-xl bg-white border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all placeholder:text-slate-400"
+                                            placeholder="مثال: الرياضيات"
+                                        />
+                                        <Briefcase size={18} className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 text-slate-400`} />
+                                    </div>
+                                </FormField>
+
+                                <FormField label="المؤهل العلمي" error={profileErrors.qualification?.message}>
+                                    <input
+                                        type="text"
+                                        {...registerProfile('qualification')}
+                                        className="w-full h-12 px-4 rounded-xl bg-white border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all placeholder:text-slate-400"
+                                        placeholder="مثال: بكالوريوس تربية"
+                                    />
+                                </FormField>
+                            </div>
+
+                            <div className="flex justify-end pt-2">
+                                <button
+                                    type="submit"
+                                    disabled={isProfileSubmitting || (!avatarFile && !Object.keys(profileErrors).length && false)} // Simple check, keep valid always clickable usually
+                                    className="h-11 px-8 rounded-xl bg-shibl-crimson hover:bg-red-700 text-white font-medium shadow-lg shadow-red-600/20 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                >
+                                    {isProfileSubmitting ? (
+                                        <>
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            <span>جاري الحفظ...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save size={18} />
+                                            <span>حفظ التغييرات</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </SettingsSection>
+
+                    {/* Password Section */}
+                    <SettingsSection title="تغيير كلمة المرور">
+                        <form onSubmit={handlePasswordSubmit(onPasswordSubmit)} className="space-y-5 max-w-lg">
+
+                            <FormField label="كلمة المرور الحالية" error={passwordErrors.currentPassword?.message} required>
+                                <div className="relative">
+                                    <input
+                                        type={showPasswords.current ? 'text' : 'password'}
+                                        {...registerPassword('currentPassword')}
+                                        className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-white border outline-none transition-all ${passwordErrors.currentPassword ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'}`}
+                                        dir="ltr"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPasswords(p => ({ ...p, current: !p.current }))}
+                                        className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 text-slate-400 hover:text-charcoal`}
+                                    >
+                                        {showPasswords.current ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </FormField>
+
+                            <FormField label="كلمة المرور الجديدة" error={passwordErrors.newPassword?.message} required>
+                                <div className="relative">
+                                    <input
+                                        type={showPasswords.new ? 'text' : 'password'}
+                                        {...registerPassword('newPassword')}
+                                        className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-white border outline-none transition-all ${passwordErrors.newPassword ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'}`}
+                                        dir="ltr"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPasswords(p => ({ ...p, new: !p.new }))}
+                                        className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 text-slate-400 hover:text-charcoal`}
+                                    >
+                                        {showPasswords.new ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </FormField>
+
+                            <FormField label="تأكيد كلمة المرور" error={passwordErrors.confirmPassword?.message} required>
+                                <div className="relative">
+                                    <input
+                                        type={showPasswords.confirm ? 'text' : 'password'}
+                                        {...registerPassword('confirmPassword')}
+                                        className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-white border outline-none transition-all ${passwordErrors.confirmPassword ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'}`}
+                                        dir="ltr"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPasswords(p => ({ ...p, confirm: !p.confirm }))}
+                                        className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 text-slate-400 hover:text-charcoal`}
+                                    >
+                                        {showPasswords.confirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </FormField>
+
+                            <div className="pt-2">
+                                <button
+                                    type="submit"
+                                    disabled={isPasswordSubmitting}
+                                    className="h-11 px-8 rounded-xl bg-charcoal hover:bg-slate-800 text-white font-medium shadow-lg shadow-slate-800/20 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                >
+                                    {isPasswordSubmitting ? (
+                                        <>
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            <span>جاري التغيير...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Lock size={18} />
+                                            <span>تحديث كلمة المرور</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </SettingsSection>
+                </div>
+
+                {/* Sidebar: Preferences */}
+                <div className="space-y-6">
+                    <SettingsSection title="تفضيلات التطبيق">
+                        <div className="space-y-4">
+                            {/* Dark Mode */}
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100/50 hover:border-slate-200 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-lg bg-indigo-100/50 text-indigo-600 flex items-center justify-center">
+                                        <Moon size={18} />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-charcoal text-sm">الوضع الداكن</p>
+                                        <p className="text-xs text-slate-500">مظهر مريح للعين</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={toggleTheme}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${preferences.darkMode ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                                >
+                                    <span
+                                        className={`${preferences.darkMode ? '-translate-x-6' : '-translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                                        style={{ direction: 'ltr' }} // Fix wrapper direction issues
+                                    />
+                                </button>
+                            </div>
+
+                            {/* Notifications */}
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100/50 hover:border-slate-200 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-lg bg-blue-100/50 text-blue-600 flex items-center justify-center">
+                                        <Mail size={18} />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-charcoal text-sm">إشعارات البريد</p>
+                                        <p className="text-xs text-slate-500">تلقي التنبيهات المهمة</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setPreferences(p => ({ ...p, emailNotifications: !p.emailNotifications }))}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${preferences.emailNotifications ? 'bg-blue-600' : 'bg-slate-200'}`}
+                                >
+                                    <span
+                                        className={`${preferences.emailNotifications ? '-translate-x-6' : '-translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                                        style={{ direction: 'ltr' }}
+                                    />
+                                </button>
+                            </div>
+
+                            {/* Language - Example for future extension */}
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100/50 hover:border-slate-200 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-lg bg-emerald-100/50 text-emerald-600 flex items-center justify-center">
+                                        <Languages size={18} />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-charcoal text-sm">اللغة</p>
+                                        <p className="text-xs text-slate-500">العربية (الافتراضية)</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <button
-                            onClick={() => setPreferences({ ...preferences, emailNotifications: !preferences.emailNotifications })}
-                            className={`w-12 h-6 rounded-full transition-all ${preferences.emailNotifications ? 'bg-shibl-crimson' : 'bg-slate-300'}`}
-                        >
-                            <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${preferences.emailNotifications ? 'translate-x-6' : 'translate-x-0.5'}`} />
-                        </button>
+                    </SettingsSection>
+
+                    <div className="bg-gradient-to-br from-shibl-crimson/5 to-transparent rounded-2xl border border-shibl-crimson/10 p-6">
+                        <h3 className="text-shibl-crimson font-bold mb-2">أمان الحساب</h3>
+                        <p className="text-sm text-slate-600 mb-4 leading-relaxed">
+                            تأكد من استخدام كلمة مرور قوية تتكون من أحرف وأرقام ورموز. لا تشارك كلمة المرور الخاصة بك مع أي شخص.
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-slate-400">
+                            <Lock size={12} />
+                            <span>بياناتك مشفرة ومحمية</span>
+                        </div>
                     </div>
-
-                    {/* Push Notifications */}
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-100">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                                <Bell size={20} className="text-purple-600" />
-                            </div>
-                            <div>
-                                <p className="text-charcoal font-medium">إشعارات التطبيق</p>
-                                <p className="text-slate-500 text-sm">إشعارات فورية في المتصفح</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => setPreferences({ ...preferences, pushNotifications: !preferences.pushNotifications })}
-                            className={`w-12 h-6 rounded-full transition-all ${preferences.pushNotifications ? 'bg-shibl-crimson' : 'bg-slate-300'}`}
-                        >
-                            <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${preferences.pushNotifications ? 'translate-x-6' : 'translate-x-0.5'}`} />
-                        </button>
-                    </div>
-
-                    {/* Dark Mode */}
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-100">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                                <Moon size={20} className="text-indigo-600" />
-                            </div>
-                            <div>
-                                <p className="text-charcoal font-medium">الوضع الداكن</p>
-                                <p className="text-slate-500 text-sm">تفعيل المظهر الداكن</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => setPreferences({ ...preferences, darkMode: !preferences.darkMode })}
-                            className={`w-12 h-6 rounded-full transition-all ${preferences.darkMode ? 'bg-shibl-crimson' : 'bg-slate-300'}`}
-                        >
-                            <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${preferences.darkMode ? 'translate-x-6' : 'translate-x-0.5'}`} />
-                        </button>
-                    </div>
                 </div>
-            </SettingsSection>
+            </div>
         </div>
     );
 }

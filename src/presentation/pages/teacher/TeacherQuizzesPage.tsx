@@ -145,6 +145,25 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
                     )}
                 </div>
             </div>
+            {/* Quick Actions for Draft/Rejected */}
+            {(status === 'draft' || status === 'rejected') && (
+                <div className="flex items-center gap-2 mb-4">
+                    <button
+                        onClick={() => onEdit(quiz.id)}
+                        className="flex-1 h-9 rounded-lg bg-shibl-crimson/10 text-shibl-crimson hover:bg-shibl-crimson hover:text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                        <Edit size={16} />
+                        {status === 'draft' ? 'متابعة التعديل' : 'تعديل الاختبار'}
+                    </button>
+                    <button
+                        onClick={() => onSubmit(quiz.id)}
+                        className="h-9 px-3 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center justify-center"
+                        title="إرسال للموافقة"
+                    >
+                        <Send size={18} />
+                    </button>
+                </div>
+            )}
 
             {/* Badges Row */}
             <div className="flex flex-wrap items-center gap-2 mb-4">

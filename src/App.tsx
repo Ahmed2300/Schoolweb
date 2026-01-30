@@ -51,6 +51,7 @@ import {
   TeacherCourseDetailsPage,
   TeacherQuizzesPage,
   TeacherSettingsPage,
+  TeacherAnalyticsPage,
   TeacherTimeSlotsPage,
   NotFoundPage,
   LecturePlayerPage
@@ -157,6 +158,9 @@ function App() {
               <Route path="courses/:id" element={<TeacherCourseDetailsPage />} />
               <Route path="time-slots" element={<TeacherTimeSlotsPage />} />
               <Route path="quizzes" element={<TeacherQuizzesPage />} />
+              <Route path="time-slots" element={<TeacherTimeSlotsPage />} />
+              <Route path="quizzes" element={<TeacherQuizzesPage />} />
+              <Route path="analytics" element={<TeacherAnalyticsPage />} />
               <Route path="settings" element={<TeacherSettingsPage />} />
             </Route>
 
