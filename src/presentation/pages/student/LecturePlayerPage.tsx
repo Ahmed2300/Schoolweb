@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { studentCourseService, Lecture } from '../../../data/api/studentCourseService';
-import { Loader2, ArrowRight, CheckCircle2, FileText, ChevronRight, Menu } from 'lucide-react';
+import { Loader2, ArrowRight, CheckCircle2, FileText, ChevronRight, Menu, Clock, Radio, PlayCircle } from 'lucide-react';
 import { VideoPlayer } from '../../components/student/course/VideoPlayer';
 import { CourseContentSidebar } from '../../components/student/course/CourseContentSidebar';
 import { LiveSessionContent } from '../../components/student/course/LiveSessionContent';
 import { useLanguage } from '../../hooks';
 import { getLocalizedName } from '../../../data/api/studentService';
+import toast from 'react-hot-toast';
 
 export function LecturePlayerPage() {
     const { id: courseId, lectureId } = useParams();
@@ -15,6 +16,7 @@ export function LecturePlayerPage() {
     const { isRTL } = useLanguage();
     const queryClient = useQueryClient();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isCompleting, setIsCompleting] = useState(false);
 
     const { data: course, isLoading, error } = useQuery({
         queryKey: ['student-course', courseId],
@@ -61,12 +63,19 @@ export function LecturePlayerPage() {
     };
 
     const handleComplete = async () => {
-        if (!currentLecture) return;
+        if (!currentLecture || isCompleting) return;
+        setIsCompleting(true);
         try {
             await studentCourseService.markLectureComplete(currentLecture.id, currentLecture.duration_minutes * 60);
-            queryClient.invalidateQueries({ queryKey: ['student-course', courseId] }); // Refresh progress
-        } catch (err) {
+            // Force refetch to update is_completed status everywhere
+            await queryClient.refetchQueries({ queryKey: ['student-course', courseId] });
+            toast.success('تم تحديد الدرس كمكتمل بنجاح!', { icon: '✓' });
+        } catch (err: any) {
             console.error('Failed to mark complete', err);
+            const errorMessage = err?.response?.data?.message || 'حدث خطأ أثناء تحديد الدرس كمكتمل';
+            toast.error(errorMessage);
+        } finally {
+            setIsCompleting(false);
         }
     };
 
@@ -92,7 +101,25 @@ export function LecturePlayerPage() {
                                     {course?.name}
                                 </span>
                             </div>
-                            <h1 className="font-black text-slate-900 line-clamp-1 text-lg">{getLocalizedName(currentLecture.title, 'Lecture')}</h1>
+                            <h1 className="font-black text-slate-900 line-clamp-1 text-lg flex items-center gap-2">
+                                {getLocalizedName(currentLecture.title, 'Lecture')}
+                                {/* Session Status Badge */}
+                                {currentLecture.session_status === 'upcoming' && (
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                                        <Clock size={10} /> قريباً
+                                    </span>
+                                )}
+                                {currentLecture.session_status === 'live' && (
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider text-red-600 bg-red-50 px-2 py-0.5 rounded-full animate-pulse">
+                                        <Radio size={10} /> مباشر
+                                    </span>
+                                )}
+                                {currentLecture.session_status === 'ended' && currentLecture.has_recording && (
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                        <PlayCircle size={10} /> تسجيل
+                                    </span>
+                                )}
+                            </h1>
                         </div>
                     </div>
                     <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="lg:hidden p-2 text-slate-500 hover:text-[#AF0C15]">
@@ -144,12 +171,32 @@ export function LecturePlayerPage() {
                                         <button disabled className="h-14 px-8 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full font-black flex items-center gap-2 cursor-default">
                                             <CheckCircle2 size={24} /> مكتمل
                                         </button>
-                                    ) : (
+                                    ) : currentLecture.session_status === 'upcoming' ? (
+                                        <button disabled className="h-14 px-8 bg-amber-50 text-amber-600 border border-amber-100 rounded-full font-black flex items-center gap-2 cursor-not-allowed">
+                                            <Clock size={20} /> الجلسة لم تبدأ بعد
+                                        </button>
+                                    ) : currentLecture.session_status === 'live' && !currentLecture.can_complete ? (
+                                        <button disabled className="h-14 px-8 bg-red-50/50 text-red-400 border border-red-100 rounded-full font-black flex items-center gap-2 cursor-not-allowed">
+                                            <Radio size={20} /> انضم للجلسة أولاً
+                                        </button>
+                                    ) : currentLecture.can_complete !== false ? (
                                         <button
                                             onClick={handleComplete}
-                                            className="h-14 px-10 bg-[#AF0C15] text-white hover:bg-[#8E0A11] rounded-full font-black transition-all shadow-lg shadow-[#AF0C15]/25 hover:shadow-[#AF0C15]/40 active:scale-95 flex items-center gap-2"
+                                            disabled={isCompleting}
+                                            className={`h-14 px-10 bg-[#AF0C15] text-white hover:bg-[#8E0A11] rounded-full font-black transition-all shadow-lg shadow-[#AF0C15]/25 hover:shadow-[#AF0C15]/40 active:scale-95 flex items-center gap-2 ${isCompleting ? 'opacity-70 cursor-wait' : ''}`}
                                         >
-                                            تحديد كمكتمل
+                                            {isCompleting ? (
+                                                <>
+                                                    <Loader2 size={20} className="animate-spin" />
+                                                    جاري التحديد...
+                                                </>
+                                            ) : (
+                                                'تحديد كمكتمل'
+                                            )}
+                                        </button>
+                                    ) : (
+                                        <button disabled className="h-14 px-8 bg-slate-50 text-slate-400 border border-slate-100 rounded-full font-black flex items-center gap-2 cursor-not-allowed">
+                                            غير متاح
                                         </button>
                                     )}
                                 </div>

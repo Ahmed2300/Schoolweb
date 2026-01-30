@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { studentQuizService, QuizDetails, QuizSubmission, QuizResult } from '../../../../data/api/studentQuizService';
+import { useNavigate } from 'react-router-dom';
+import { studentQuizService, QuizDetails, QuizSubmission, QuizResult, CompletedQuizAttempt, QuizReviewQuestion, NextSyllabusItem } from '../../../../data/api/studentQuizService';
 import { useLanguage } from '../../../hooks';
-import { Loader2, Timer, AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, HelpCircle, Trophy, BarChart2, ArrowRight, XCircle } from 'lucide-react';
+import { Loader2, Timer, AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, HelpCircle, Trophy, BarChart2, ArrowRight, XCircle, Eye, Clock, Award, BookOpen, PlayCircle } from 'lucide-react';
 import { getLocalizedName } from '../../../../data/api/studentService';
 
 interface QuizPlayerProps {
@@ -9,29 +10,43 @@ interface QuizPlayerProps {
     onExit: () => void;
 }
 
+// Discriminated union for quiz state
+type QuizState =
+    | { status: 'loading' }
+    | { status: 'error'; message: string }
+    | { status: 'ready'; quiz: QuizDetails; attemptId: number }
+    | { status: 'completed'; quiz: { id: number; name: { ar?: string; en?: string }; course_id?: number }; attempt: CompletedQuizAttempt; nextItem?: NextSyllabusItem | null }
+    | { status: 'submitted'; result: QuizResult };
+
 export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
     const { isRTL } = useLanguage();
-    const [quiz, setQuiz] = useState<QuizDetails | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
 
-    // Quiz State
+    // State machine approach for cleaner logic
+    const [quizState, setQuizState] = useState<QuizState>({ status: 'loading' });
+
+    // Quiz-taking state (only used when status === 'ready')
     const [hasStarted, setHasStarted] = useState(false);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [answers, setAnswers] = useState<Record<number, any>>({}); // questionId -> answer
-    const [timeLeft, setTimeLeft] = useState(0); // in seconds
+    const [answers, setAnswers] = useState<Record<number, number | string>>({});
+    const [timeLeft, setTimeLeft] = useState(0);
     const [submitting, setSubmitting] = useState(false);
-    const [result, setResult] = useState<QuizResult | null>(null);
 
-    const timerRef = useRef<any>(null);
+    // Review mode state
+    const [reviewQuestionIndex, setReviewQuestionIndex] = useState(0);
+
+    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
         fetchQuiz();
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
     }, [quizId]);
 
-    // Timer Logic
+    // Timer Logic - only when quiz is in progress
     useEffect(() => {
-        if (hasStarted && timeLeft > 0 && !result) {
+        if (quizState.status === 'ready' && hasStarted && timeLeft > 0) {
             timerRef.current = setInterval(() => {
                 setTimeLeft((prev) => {
                     if (prev <= 1) {
@@ -42,19 +57,36 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                 });
             }, 1000);
         }
-        return () => clearInterval(timerRef.current);
-    }, [hasStarted, timeLeft, result]);
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, [quizState.status, hasStarted, timeLeft]);
 
     const fetchQuiz = async () => {
         try {
-            setLoading(true);
-            const data = await studentQuizService.getQuiz(quizId);
-            setQuiz(data);
-            setTimeLeft(data.duration_minutes * 60);
+            setQuizState({ status: 'loading' });
+            const response = await studentQuizService.getQuiz(quizId);
+
+            // Check if quiz is already completed
+            if (response.already_completed && response.attempt) {
+                setQuizState({
+                    status: 'completed',
+                    quiz: response.data as { id: number; name: { ar?: string; en?: string }; course_id?: number },
+                    attempt: response.attempt,
+                    nextItem: response.next_item || null
+                });
+            } else {
+                // New quiz - ready to start
+                const quizData = response.data as QuizDetails;
+                setQuizState({
+                    status: 'ready',
+                    quiz: quizData,
+                    attemptId: response.attempt_id || 0
+                });
+                setTimeLeft(quizData.duration_minutes * 60);
+            }
         } catch (err) {
-            setError('فشل في تحميل الاختبار');
-        } finally {
-            setLoading(false);
+            setQuizState({ status: 'error', message: 'فشل في تحميل الاختبار' });
         }
     };
 
@@ -62,21 +94,21 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
         setHasStarted(true);
     };
 
-    const handleAnswerDate = (questionId: number, answer: any) => {
+    const handleAnswerChange = (questionId: number, answer: number | string) => {
         setAnswers(prev => ({ ...prev, [questionId]: answer }));
     };
 
     const handleSubmit = async () => {
-        if (!quiz) return;
+        if (quizState.status !== 'ready') return;
+        const { quiz } = quizState;
 
-        // Prepare payload
         const payload: QuizSubmission = {
             answers: Object.entries(answers).map(([qId, val]) => {
                 const question = quiz.questions?.find(q => q.id === Number(qId));
                 if (question?.question_type === 'mcq') {
-                    return { question_id: Number(qId), selected_option_id: val };
+                    return { question_id: Number(qId), selected_option_id: val as number };
                 } else {
-                    return { question_id: Number(qId), essay_answer: val };
+                    return { question_id: Number(qId), essay_answer: val as string };
                 }
             })
         };
@@ -85,8 +117,8 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
         try {
             const res = await studentQuizService.submitQuiz(quizId, payload);
             if (res.success) {
-                setResult(res.data);
-                clearInterval(timerRef.current);
+                if (timerRef.current) clearInterval(timerRef.current);
+                setQuizState({ status: 'submitted', result: res.data });
             }
         } catch (err) {
             alert('حدث خطأ أثناء تسليم الاختبار');
@@ -99,59 +131,280 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
         handleSubmit();
     };
 
-    if (loading) return (
-        <div className="h-full flex items-center justify-center">
-            <Loader2 className="animate-spin text-shibl-crimson" size={40} />
-        </div>
-    );
+    // ================= LOADING STATE =================
+    if (quizState.status === 'loading') {
+        return (
+            <div className="h-full flex items-center justify-center">
+                <Loader2 className="animate-spin text-shibl-crimson" size={40} />
+            </div>
+        );
+    }
 
-    if (error || !quiz) return (
-        <div className="h-full flex flex-col items-center justify-center text-center p-6">
-            <AlertCircle size={48} className="text-red-500 mb-4" />
-            <h2 className="text-xl font-bold text-slate-800 mb-2">عذراً</h2>
-            <p className="text-slate-500 mb-6">{error || 'لم يتم العثور على الاختبار'}</p>
-            <button onClick={onExit} className="text-shibl-crimson font-bold hover:underline">العودة</button>
-        </div>
-    );
+    // ================= ERROR STATE =================
+    if (quizState.status === 'error') {
+        return (
+            <div className="h-full flex flex-col items-center justify-center text-center p-6">
+                <AlertCircle size={48} className="text-red-500 mb-4" />
+                <h2 className="text-xl font-bold text-slate-800 mb-2">عذراً</h2>
+                <p className="text-slate-500 mb-6">{quizState.message}</p>
+                <button onClick={onExit} className="text-shibl-crimson font-bold hover:underline">العودة</button>
+            </div>
+        );
+    }
 
-    // ================= RESULT VIEW =================
-    if (result) {
+    // ================= ALREADY COMPLETED - REVIEW MODE =================
+    if (quizState.status === 'completed') {
+        const { quiz, attempt, nextItem } = quizState;
+        const isPassed = attempt.status === 'passed';
+        const isPendingGrading = attempt.status === 'pending_grading';
+        const percentage = attempt.score !== null ? Math.round((attempt.score / attempt.total_possible_score) * 100) : null;
+        const results = attempt.results || [];
+        const currentReviewQuestion = results[reviewQuestionIndex];
+
+        // Navigate to next item in syllabus
+        const handleContinue = () => {
+            if (nextItem) {
+                if (nextItem.type === 'lecture') {
+                    navigate(`/dashboard/courses/${quiz.course_id}/lecture/${nextItem.id}`);
+                } else if (nextItem.type === 'quiz') {
+                    navigate(`/dashboard/quizzes/${nextItem.id}`);
+                }
+            } else {
+                // Fallback: go back to course page
+                if (quiz.course_id) {
+                    navigate(`/dashboard/courses/${quiz.course_id}`);
+                } else {
+                    onExit();
+                }
+            }
+        };
+
+        return (
+            <div className="max-w-5xl mx-auto p-4 md:p-8 pb-32 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                {/* Header Card with Result Summary */}
+                <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden mb-8 transform transition-all hover:scale-[1.01] duration-500">
+                    <div className={`h-40 relative overflow-hidden ${isPendingGrading
+                        ? 'bg-gradient-to-br from-amber-400 to-orange-500'
+                        : isPassed
+                            ? 'bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600'
+                            : 'bg-gradient-to-br from-red-500 via-red-600 to-rose-700'
+                        }`}>
+                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-soft-light"></div>
+                        <div className="absolute inset-0 bg-white/5 opacity-30 patterned-bg"></div>
+
+                        {/* Status Icon Bubble */}
+                        <div className="absolute -bottom-14 left-1/2 -translate-x-1/2 w-28 h-28 bg-white rounded-full p-2 shadow-xl shadow-slate-900/5 flex items-center justify-center z-10 ring-8 ring-white/20 backdrop-blur-sm">
+                            <div className="w-full h-full bg-slate-50 rounded-full flex items-center justify-center border border-slate-100">
+                                {isPendingGrading ? (
+                                    <Clock size={48} className="text-amber-500 drop-shadow-md" />
+                                ) : isPassed ? (
+                                    <Trophy size={48} className="text-emerald-500 drop-shadow-md" />
+                                ) : (
+                                    <AlertCircle size={48} className="text-red-500 drop-shadow-md" />
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="pt-20 pb-10 px-8 text-center relative z-0">
+                        <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-2 tracking-tight">
+                            {getLocalizedName(quiz.name)}
+                        </h2>
+                        <div className="flex items-center justify-center gap-2 mb-8 bg-slate-50 w-fit mx-auto px-4 py-1.5 rounded-full border border-slate-100">
+                            <Eye size={16} className="text-slate-400" />
+                            <span className="text-sm text-slate-500 font-bold uppercase tracking-wider">مراجعة الإجابات</span>
+                        </div>
+
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-3 gap-4 md:gap-8 max-w-2xl mx-auto">
+                            <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
+                                <p className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-wider group-hover:text-shibl-crimson transition-colors">الدرجة</p>
+                                <div className="flex items-baseline justify-center gap-1">
+                                    <p className={`text-3xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
+                                        {attempt.score !== null ? attempt.score : '---'}
+                                    </p>
+                                    <span className="text-sm font-bold text-slate-300">/{attempt.total_possible_score}</span>
+                                </div>
+                            </div>
+                            <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
+                                <p className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-wider group-hover:text-shibl-crimson transition-colors">النسبة</p>
+                                <p className={`text-3xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
+                                    {percentage !== null ? `${percentage}%` : '---'}
+                                </p>
+                            </div>
+                            <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
+                                <p className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-wider group-hover:text-shibl-crimson transition-colors">الحالة</p>
+                                <p className={`text-2xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
+                                    {isPendingGrading ? 'قيد التصحيح' : isPassed ? 'ناجح' : 'راسب'}
+                                </p>
+                            </div>
+                        </div>
+
+                        {isPendingGrading && (
+                            <div className="mt-8 mx-auto max-w-lg p-4 bg-amber-50/50 border border-amber-100 rounded-2xl text-sm font-medium text-amber-800 flex items-center justify-center gap-2">
+                                <Clock className="animate-pulse" size={18} />
+                                النتيجة النهائية ستظهر بعد تصحيح الأسئلة المقالية
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Question Navigation Pills */}
+                <div className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/40 border border-slate-100 mb-8 backdrop-blur-xl bg-white/80">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                                <BookOpen size={20} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-800">خريطة الأسئلة</h3>
+                                <p className="text-xs text-slate-400 font-bold">اضغط للتنقل بين الأسئلة</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> صحيحة</span>
+                            <span className="flex items-center gap-1 text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-lg"><div className="w-2 h-2 rounded-full bg-red-500"></div> خاطئة</span>
+                        </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2.5">
+                        {results.map((q, idx) => (
+                            <button
+                                key={q.question_id}
+                                onClick={() => setReviewQuestionIndex(idx)}
+                                className={`
+                                    w-11 h-11 rounded-2xl font-black text-sm transition-all duration-300 flex items-center justify-center
+                                    hover:scale-110 active:scale-95 shadow-sm
+                                    ${idx === reviewQuestionIndex
+                                        ? 'ring-4 ring-slate-100 z-10 scale-110 shadow-md'
+                                        : 'opacity-90 hover:opacity-100'
+                                    }
+                                    ${q.is_correct === null
+                                        ? 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                                        : q.is_correct
+                                            ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-emerald-200'
+                                            : 'bg-gradient-to-br from-red-400 to-red-600 text-white shadow-red-200'
+                                    }
+                                `}
+                                aria-label={`السؤال ${idx + 1}`}
+                            >
+                                {q.is_correct === null ? idx + 1 : q.is_correct ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Question Review Card */}
+                {currentReviewQuestion && (
+                    <QuestionReviewCard
+                        question={currentReviewQuestion}
+                        questionNumber={reviewQuestionIndex + 1}
+                        totalQuestions={results.length}
+                    />
+                )}
+
+
+                {/* Navigation Footer */}
+                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 md:px-10 z-20">
+                    <div className="max-w-4xl mx-auto flex items-center justify-between">
+                        <button
+                            disabled={reviewQuestionIndex === 0}
+                            onClick={() => setReviewQuestionIndex(prev => prev - 1)}
+                            className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-slate-500 disabled:opacity-50 hover:bg-slate-50 transition-colors"
+                        >
+                            <ChevronRight className={isRTL ? '' : 'rotate-180'} />
+                            السابق
+                        </button>
+
+                        {reviewQuestionIndex === results.length - 1 ? (
+                            <button
+                                onClick={handleContinue}
+                                className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20"
+                            >
+                                {nextItem ? (
+                                    <>
+                                        <PlayCircle size={18} />
+                                        {nextItem.type === 'lecture' ? 'الدرس التالي' : 'الاختبار التالي'}
+                                    </>
+                                ) : (
+                                    <>
+                                        العودة للدورة
+                                        <ArrowRight className={isRTL ? 'rotate-180' : ''} />
+                                    </>
+                                )}
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => setReviewQuestionIndex(prev => prev + 1)}
+                                className="flex items-center gap-2 px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-all shadow-lg shadow-slate-900/20"
+                            >
+                                التالي
+                                <ChevronLeft className={isRTL ? '' : 'rotate-180'} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ================= RESULT VIEW (after submission) =================
+    if (quizState.status === 'submitted') {
+        const { result } = quizState;
         const isPassed = result.status === 'passed';
-        const percentage = Math.round((result.score / result.total_possible_score) * 100);
+        const isPendingGrading = result.status === 'pending_grading';
+        const percentage = result.score !== null ? Math.round((result.score / result.total_possible_score) * 100) : null;
 
         return (
             <div className="max-w-3xl mx-auto p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden relative">
-                    <div className={`h-32 ${isPassed ? 'bg-emerald-500' : 'bg-red-500'} relative overflow-hidden`}>
+                    <div className={`h-32 ${isPendingGrading ? 'bg-amber-500' : isPassed ? 'bg-emerald-500' : 'bg-red-500'} relative overflow-hidden`}>
                         <div className="absolute inset-0 bg-white/10 opacity-50 patterned-bg"></div>
                         <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-24 h-24 bg-white rounded-full p-2 shadow-lg flex items-center justify-center">
-                            {isPassed ? <Trophy size={48} className="text-emerald-500" /> : <AlertCircle size={48} className="text-red-500" />}
+                            {isPendingGrading ? (
+                                <Clock size={48} className="text-amber-500" />
+                            ) : isPassed ? (
+                                <Trophy size={48} className="text-emerald-500" />
+                            ) : (
+                                <AlertCircle size={48} className="text-red-500" />
+                            )}
                         </div>
                     </div>
 
                     <div className="pt-16 pb-10 px-8 text-center">
-                        <h2 className="text-3xl font-black text-slate-800 mb-2">{isPassed ? 'أحسنت! اجتزت الاختبار' : 'للأسف، لم تجتز الاختبار'}</h2>
+                        <h2 className="text-3xl font-black text-slate-800 mb-2">
+                            {isPendingGrading
+                                ? 'تم تسليم الاختبار بنجاح'
+                                : isPassed
+                                    ? 'أحسنت! اجتزت الاختبار'
+                                    : 'للأسف، لم تجتز الاختبار'
+                            }
+                        </h2>
                         <p className="text-slate-500 font-medium mb-8">
-                            {isPassed ? 'إنجاز رائع، استمر في التقدم!' : 'لا تقلق، يمكنك مراجعة الدروس والمحاولة مرة أخرى.'}
+                            {isPendingGrading
+                                ? 'النتيجة النهائية ستظهر بعد تصحيح الأسئلة المقالية من قبل المعلم.'
+                                : isPassed
+                                    ? 'إنجاز رائع، استمر في التقدم!'
+                                    : 'لا تقلق، يمكنك مراجعة الدروس.'
+                            }
                         </p>
 
                         <div className="flex flex-wrap justify-center gap-4 mb-10">
                             <div className="bg-slate-50 rounded-2xl p-4 min-w-[120px] border border-slate-100">
                                 <p className="text-xs text-slate-400 font-bold mb-1">الدرجة النهائية</p>
-                                <p className={`text-2xl font-black ${isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
-                                    {result.score} <span className="text-sm text-slate-400">/ {result.total_possible_score}</span>
+                                <p className={`text-2xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
+                                    {result.score !== null ? result.score : '---'} <span className="text-sm text-slate-400">/ {result.total_possible_score}</span>
                                 </p>
                             </div>
                             <div className="bg-slate-50 rounded-2xl p-4 min-w-[120px] border border-slate-100">
                                 <p className="text-xs text-slate-400 font-bold mb-1">النسبة المئوية</p>
-                                <p className={`text-2xl font-black ${isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
-                                    {percentage}%
+                                <p className={`text-2xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
+                                    {percentage !== null ? `${percentage}%` : '---'}
                                 </p>
                             </div>
                             <div className="bg-slate-50 rounded-2xl p-4 min-w-[120px] border border-slate-100">
                                 <p className="text-xs text-slate-400 font-bold mb-1">الحالة</p>
-                                <p className={`text-xl font-black ${isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
-                                    {isPassed ? 'ناجح' : 'راسب'}
+                                <p className={`text-xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
+                                    {isPendingGrading ? 'قيد التصحيح' : isPassed ? 'ناجح' : 'راسب'}
                                 </p>
                             </div>
                         </div>
@@ -168,7 +421,10 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
         );
     }
 
-    // ================= START SCREEN =================
+    // ================= READY STATE - Quiz Taking Flow =================
+    const { quiz } = quizState;
+
+    // START SCREEN
     if (!hasStarted) {
         return (
             <div className="max-w-2xl mx-auto p-6 h-full flex items-center">
@@ -219,7 +475,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
         );
     }
 
-    // ================= ACTIVE QUIZ VIEW =================
+    // ACTIVE QUIZ VIEW
     const currentQuestion = quiz.questions?.[currentQuestionIndex];
     const isLastQuestion = currentQuestionIndex === (quiz.questions?.length || 0) - 1;
 
@@ -233,7 +489,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
             {/* Top Bar */}
             <div className="flex items-center justify-between mb-8 sticky top-0 bg-[#FDFDFD] z-10 py-4 border-b border-slate-100">
                 <div className="flex items-center gap-4">
-                    <button onClick={onExit} className="text-slate-400 hover:text-slate-600">
+                    <button onClick={onExit} className="text-slate-400 hover:text-slate-600" aria-label="إغلاق">
                         <XCircle size={24} />
                     </button>
                     <div className="flex flex-col">
@@ -293,7 +549,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                                             name={`question_${currentQuestion.id}`}
                                             value={option.id}
                                             checked={answers[currentQuestion.id] === option.id}
-                                            onChange={() => handleAnswerDate(currentQuestion.id, option.id)}
+                                            onChange={() => handleAnswerChange(currentQuestion.id, option.id)}
                                             className="peer sr-only"
                                         />
                                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${answers[currentQuestion.id] === option.id ? 'border-shibl-crimson' : 'border-slate-300'}`}>
@@ -321,7 +577,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                     {currentQuestion.question_type === 'essay' && (
                         <textarea
                             value={answers[currentQuestion.id] || ''}
-                            onChange={(e) => handleAnswerDate(currentQuestion.id, e.target.value)}
+                            onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
                             className="w-full h-48 p-4 rounded-xl border-2 border-slate-200 focus:border-shibl-crimson focus:ring-0 resize-none"
                             placeholder="اكتب إجابتك هنا..."
                         ></textarea>
@@ -365,7 +621,157 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
     );
 }
 
-// Renamed to avoid conflicts, though lucide-react exports Timer
+// ================= Question Review Card Component =================
+interface QuestionReviewCardProps {
+    question: QuizReviewQuestion;
+    questionNumber: number;
+    totalQuestions: number;
+}
+
+function QuestionReviewCard({ question, questionNumber, totalQuestions }: QuestionReviewCardProps) {
+    const isCorrect = question.is_correct;
+    const isPending = question.is_correct === null;
+
+    return (
+        <div className="bg-white rounded-[2rem] p-6 md:p-10 shadow-sm border border-slate-100">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold text-slate-400">
+                        السؤال {questionNumber} من {totalQuestions}
+                    </span>
+                    <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-lg text-xs font-bold">
+                        {question.points} درجات
+                    </span>
+                </div>
+
+                {/* Status Badge */}
+                <div className={`
+                    flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm
+                    ${isPending
+                        ? 'bg-amber-50 text-amber-600'
+                        : isCorrect
+                            ? 'bg-emerald-50 text-emerald-600'
+                            : 'bg-red-50 text-red-600'
+                    }
+                `}>
+                    {isPending ? (
+                        <>
+                            <Clock size={16} />
+                            <span>قيد التصحيح</span>
+                        </>
+                    ) : isCorrect ? (
+                        <>
+                            <CheckCircle2 size={16} />
+                            <span>صحيحة ({question.earned_points} درجات)</span>
+                        </>
+                    ) : (
+                        <>
+                            <XCircle size={16} />
+                            <span>خاطئة ({question.earned_points || 0} درجات)</span>
+                        </>
+                    )}
+                </div>
+            </div>
+
+            {/* Question Text */}
+            <h2 className="text-xl md:text-2xl font-bold text-slate-800 leading-relaxed mb-6">
+                {getLocalizedName(question.question_text)}
+            </h2>
+
+            {/* Question Image */}
+            {question.question_image_url && (
+                <div className="mb-6">
+                    <img
+                        src={question.question_image_url}
+                        alt="صورة السؤال"
+                        className="max-w-full max-h-80 rounded-xl border border-slate-200 object-contain"
+                    />
+                </div>
+            )}
+
+            {/* MCQ Options Review */}
+            {question.question_type === 'mcq' && question.options && (
+                <div className="space-y-3">
+                    {question.options.map((option) => {
+                        const isUserAnswer = question.user_answer === option.id;
+                        const isCorrectOption = question.correct_option_id === option.id;
+
+                        let optionStyle = 'border-slate-100 bg-white';
+                        let iconComponent = null;
+
+                        if (isCorrectOption) {
+                            optionStyle = 'border-emerald-500 bg-emerald-50';
+                            iconComponent = <CheckCircle2 className="text-emerald-500" size={20} />;
+                        } else if (isUserAnswer && !isCorrect) {
+                            optionStyle = 'border-red-500 bg-red-50';
+                            iconComponent = <XCircle className="text-red-500" size={20} />;
+                        }
+
+                        return (
+                            <div
+                                key={option.id}
+                                className={`flex items-center gap-4 p-5 rounded-xl border-2 ${optionStyle}`}
+                            >
+                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isUserAnswer ? 'border-slate-900 bg-slate-900' : 'border-slate-300'}`}>
+                                    {isUserAnswer && <div className="w-3 h-3 bg-white rounded-full" />}
+                                </div>
+                                <div className="flex-1 flex flex-col gap-2">
+                                    <span className={`font-medium ${isCorrectOption ? 'text-emerald-700' : isUserAnswer && !isCorrect ? 'text-red-700' : 'text-slate-600'}`}>
+                                        {getLocalizedName(option.option_text)}
+                                    </span>
+                                    {option.option_image_url && (
+                                        <img
+                                            src={option.option_image_url}
+                                            alt="صورة الخيار"
+                                            className="max-w-[200px] max-h-32 rounded-lg border border-slate-200 object-contain"
+                                        />
+                                    )}
+                                </div>
+                                {iconComponent}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            {/* Essay Answer Review */}
+            {question.question_type === 'essay' && (
+                <div className="space-y-4">
+                    {/* Student's Answer */}
+                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                        <p className="text-xs font-bold text-slate-400 mb-2">إجابتك:</p>
+                        <p className="text-slate-700 whitespace-pre-wrap">
+                            {question.user_answer || 'لم يتم الإجابة'}
+                        </p>
+                        {question.user_answer_image_url && (
+                            <img
+                                src={question.user_answer_image_url}
+                                alt="صورة الإجابة"
+                                className="mt-3 max-w-full max-h-48 rounded-lg border border-slate-200 object-contain"
+                            />
+                        )}
+                    </div>
+
+                    {/* Model Answer (if graded) */}
+                    {!isPending && question.model_answer && (
+                        <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                            <p className="text-xs font-bold text-emerald-600 mb-2">الإجابة النموذجية:</p>
+                            <p className="text-emerald-800 whitespace-pre-wrap">
+                                {typeof question.model_answer === 'string'
+                                    ? question.model_answer
+                                    : getLocalizedName(question.model_answer)
+                                }
+                            </p>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
+// Clock icon utility component
 function ClockIcon({ size, className }: { size: number, className?: string }) {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>

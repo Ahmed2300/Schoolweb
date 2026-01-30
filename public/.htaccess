@@ -1,6 +1,13 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+
+  # Ignore favicon if missing (prevents 404 logs)
+  RewriteCond %{REQUEST_URI} ^/favicon\.ico$
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule . - [R=204,L]
+
+  # Handle SPA routing
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
