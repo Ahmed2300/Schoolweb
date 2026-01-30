@@ -55,7 +55,7 @@ function FormField({ label, children, error, required = false }: { label: string
 }
 
 export function TeacherSettingsPage() {
-    const { isRTL, language, setLanguage } = useLanguage();
+    const { isRTL, language } = useLanguage();
     const { user, setUser } = useAuthStore();
 
     // Avatar State

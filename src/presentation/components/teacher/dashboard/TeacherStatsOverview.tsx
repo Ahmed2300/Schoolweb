@@ -27,10 +27,6 @@ export function TeacherStatsOverview({ stats, isLoading }: TeacherStatsOverviewP
             value: stats?.totalCourses ?? 0,
             change: stats?.activeCourses ? `${stats.activeCourses} نشطة` : undefined,
             changeType: 'positive' as const,
-            title: 'إجمالي الدورات',
-            value: stats?.totalCourses ?? 0,
-            change: stats?.activeCourses ? `${stats.activeCourses} نشطة` : undefined,
-            changeType: 'positive' as const,
             icon: BookOpen,
             color: 'shibl-crimson',
             delay: 0.1
