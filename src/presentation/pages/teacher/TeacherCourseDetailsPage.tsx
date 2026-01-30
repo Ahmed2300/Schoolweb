@@ -77,6 +77,8 @@ import { CourseQuizzesTab } from '../../components/teacher/courses/CourseQuizzes
 import { CreateQuizModal } from '../../components/teacher/CreateQuizModal';
 import { useMutation } from '@tanstack/react-query';
 import { CourseDetailsSkeleton } from '../../components/ui/skeletons/CourseDetailsSkeleton';
+import { formatTime, formatShortDate } from '../../../utils/timeUtils';
+
 
 // ==================== HELPER COMPONENTS ====================
 
@@ -437,8 +439,8 @@ function UnitCard({
                                                                             <div className="flex items-center gap-1.5 text-xs text-blue-600 font-medium flex-wrap">
                                                                                 <Calendar size={12} />
                                                                                 <span>
-                                                                                    {new Date(displayStartTime).toLocaleDateString('ar-EG')} • {new Date(displayStartTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
-                                                                                    {displayEndTime && ` - ${new Date(displayEndTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}`}
+                                                                                    {formatShortDate(displayStartTime)} • {formatTime(displayStartTime)}
+                                                                                    {displayEndTime && ` - ${formatTime(displayEndTime)}`}
                                                                                 </span>
                                                                                 {/* Time Slot Status Badge */}
                                                                                 {slotStatus && (
@@ -480,7 +482,7 @@ function UnitCard({
 
                                                                     if (!canStart && startTime) {
                                                                         return (
-                                                                            <span className="px-2 py-1.5 text-xs font-medium text-amber-600 bg-amber-50 rounded-md flex items-center gap-1 mr-1" title={`يبدأ في ${startTime.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}`}>
+                                                                            <span className="px-2 py-1.5 text-xs font-medium text-amber-600 bg-amber-50 rounded-md flex items-center gap-1 mr-1" title={`يبدأ في ${formatTime(contentItem.start_time)}`}>
                                                                                 <Clock size={14} />
                                                                                 <span>لم يبدأ بعد</span>
                                                                             </span>
@@ -542,11 +544,17 @@ function UnitCard({
                                                             </div>
                                                             <div className="flex items-center gap-1">
                                                                 <button
-                                                                    onClick={() => onToggleQuizActive(quiz)}
-                                                                    className={`p-1 rounded-md transition-colors ${quiz.is_active ? 'text-emerald-500 hover:text-emerald-700' : 'text-slate-400 hover:text-slate-600'}`}
-                                                                    title={quiz.is_active ? 'إيقاف الاختبار' : 'تفعيل الاختبار'}
+                                                                    onClick={() => (quiz.status || 'draft') !== 'draft' && onToggleQuizActive(quiz)}
+                                                                    disabled={!quiz.status || quiz.status === 'draft'}
+                                                                    className={`p-1 rounded-md transition-colors ${(!quiz.status || quiz.status === 'draft')
+                                                                        ? 'text-slate-300 cursor-not-allowed hidden'
+                                                                        : quiz.is_active
+                                                                            ? 'text-emerald-500 hover:text-emerald-700'
+                                                                            : 'text-slate-400 hover:text-slate-600'
+                                                                        }`}
+                                                                    title={(!quiz.status || quiz.status === 'draft') ? undefined : (quiz.is_active ? 'إيقاف الاختبار' : 'تفعيل الاختبار')}
                                                                 >
-                                                                    {quiz.is_active ? <Eye size={14} /> : <EyeOff size={14} />}
+                                                                    {(!quiz.status || quiz.status === 'draft') ? <EyeOff size={14} className="opacity-50" /> : (quiz.is_active ? <Eye size={14} /> : <EyeOff size={14} />)}
                                                                 </button>
                                                                 <button onClick={() => onEditQuiz(quiz)} className="p-1 text-slate-400 hover:text-blue-600 rounded-md">
                                                                     <Edit2 size={14} />
@@ -583,11 +591,17 @@ function UnitCard({
                                                     </div>
                                                     <div className="flex items-center gap-1">
                                                         <button
-                                                            onClick={() => onToggleQuizActive(contentItem)}
-                                                            className={`p-1.5 rounded-md transition-colors ${contentItem.is_active ? 'text-emerald-500 hover:text-emerald-700' : 'text-slate-400 hover:text-slate-600'}`}
-                                                            title={contentItem.is_active ? 'إيقاف الاختبار' : 'تفعيل الاختبار'}
+                                                            onClick={() => (contentItem.status || 'draft') !== 'draft' && onToggleQuizActive(contentItem)}
+                                                            disabled={!contentItem.status || contentItem.status === 'draft'}
+                                                            className={`p-1.5 rounded-md transition-colors ${(!contentItem.status || contentItem.status === 'draft')
+                                                                    ? 'text-slate-300 cursor-not-allowed hidden'
+                                                                    : contentItem.is_active
+                                                                        ? 'text-emerald-500 hover:text-emerald-700'
+                                                                        : 'text-slate-400 hover:text-slate-600'
+                                                                }`}
+                                                            title={(!contentItem.status || contentItem.status === 'draft') ? undefined : (contentItem.is_active ? 'إيقاف الاختبار' : 'تفعيل الاختبار')}
                                                         >
-                                                            {contentItem.is_active ? <Eye size={16} /> : <EyeOff size={16} />}
+                                                            {(!contentItem.status || contentItem.status === 'draft') ? <EyeOff size={16} className="opacity-50" /> : (contentItem.is_active ? <Eye size={16} /> : <EyeOff size={16} />)}
                                                         </button>
                                                         <button onClick={() => onEditQuiz(contentItem)} className="p-1.5 text-slate-400 hover:text-blue-600 rounded-md">
                                                             <Edit2 size={16} />
@@ -783,15 +797,20 @@ export function TeacherCourseDetailsPage() {
     const handleConfirmDeleteUnit = async () => {
         if (!deletingUnit) return;
 
+        // Optimistic State Update
+        const previousUnits = [...units];
+        setUnits(prev => prev.filter(u => u.id !== deletingUnit.id));
+        setExpandedUnits(prev => prev.filter(id => id !== deletingUnit.id));
+        setDeletingUnit(null);
+
         try {
-            // Corrected Call to Flat Method
             await teacherService.deleteUnit(courseId, deletingUnit.id);
             toast.success('تم حذف الوحدة بنجاح');
-            setDeletingUnit(null);
-            fetchCourseData(); // Refresh list
         } catch (error) {
             console.error('Delete unit error:', error);
             toast.error('فشل حذف الوحدة');
+            // Revert on failure
+            setUnits(previousUnits);
         }
     };
 
@@ -891,31 +910,71 @@ export function TeacherCourseDetailsPage() {
     const handleConfirmDeleteLecture = async () => {
         if (!deletingLecture) return;
 
+        // Optimistic State Update
+        const previousUnits = [...units];
+        const lectureId = deletingLecture.id;
+        const isPending = deletingLecture.is_pending_approval || String(lectureId).startsWith('pending-');
+
+        // Remove from UI immediately
+        setUnits(prevUnits => prevUnits.map(unit => ({
+            ...unit,
+            lectures: unit.lectures ? unit.lectures.filter((l: any) => l.id !== lectureId) : []
+        })));
+
+        setDeletingLecture(null);
+
         try {
             // Check if it's a pending approval request
-            if (deletingLecture.is_pending_approval || String(deletingLecture.id).startsWith('pending-')) {
-                const id = parseInt(String(deletingLecture.id).replace('pending-', ''));
+            if (isPending) {
+                const id = parseInt(String(lectureId).replace('pending-', ''));
                 await teacherContentApprovalService.cancelRequest(id);
                 toast.success('تم إلغاء الطلب بنجاح');
             } else {
-                await teacherLectureService.deleteLecture(deletingLecture.id);
+                await teacherLectureService.deleteLecture(lectureId);
                 toast.success('تم حذف المحاضرة بنجاح');
             }
-
-            setDeletingLecture(null);
-            fetchCourseData();
         } catch (error) {
             console.error('Delete lecture error:', error);
             toast.error('فشل حذف المحاضرة');
+            // Revert on failure
+            setUnits(previousUnits);
         }
     };
 
-    const handleLectureSaved = () => {
+    const handleLectureSaved = (savedLecture?: any) => {
         setShowAddLecture(false);
         setShowEditLecture(false);
-        // Refresh course to see new lectures
-        fetchCourseData();
-        toast.success('تم حفظ المحاضرة بنجاح');
+
+        if (savedLecture) {
+            const isEdit = !!selectedLecture;
+
+            setUnits(prevUnits => prevUnits.map(unit => {
+                // If this is the target unit
+                if (unit.id === (savedLecture.unit_id || selectedUnit?.id)) {
+                    const existingLectures = unit.lectures || [];
+
+                    if (isEdit) {
+                        // Update existing
+                        return {
+                            ...unit,
+                            lectures: existingLectures.map((l: any) => l.id === savedLecture.id ? { ...l, ...savedLecture } : l)
+                        };
+                    } else {
+                        // Add new
+                        return {
+                            ...unit,
+                            lectures: [...existingLectures, savedLecture]
+                        };
+                    }
+                }
+                // If moving lecture between units, we might need to remove from old unit (not handled yet for simplicity)
+                return unit;
+            }));
+
+            toast.success('تم حفظ المحاضرة بنجاح');
+        } else {
+            fetchCourseData(); // Fallback
+        }
     };
 
     const handleStartSession = async (lectureId: number) => {
@@ -1042,15 +1101,20 @@ export function TeacherCourseDetailsPage() {
     const handleUnitFormSubmit = async (data: CreateUnitRequest | UpdateUnitRequest) => {
         try {
             if (editingUnit) {
-                await updateUnit.mutateAsync({ unitId: editingUnit.id, req: data });
+                const updatedUnit = await updateUnit.mutateAsync({ unitId: editingUnit.id, req: data });
+
+                // Optimistic Update
+                setUnits(prev => prev.map(u => u.id === editingUnit.id ? updatedUnit : u));
                 toast.success('تم تحديث الوحدة بنجاح');
             } else {
-                await createUnit.mutateAsync(data as CreateUnitRequest);
+                const newUnit = await createUnit.mutateAsync(data as CreateUnitRequest);
+
+                // Optimistic Add
+                setUnits(prev => [...prev, newUnit]);
                 toast.success('تم إنشاء الوحدة بنجاح');
             }
             setShowUnitModal(false);
             setEditingUnit(null);
-            fetchCourseData();
         } catch (error) {
             console.error('Unit form error:', error);
             toast.error('حدث خطأ أثناء حفظ الوحدة');
@@ -1366,10 +1430,27 @@ export function TeacherCourseDetailsPage() {
                         setQuizContextLecture(null);
                         setSelectedQuizForEdit(null);
                     }}
-                    onSuccess={() => {
+                    onSuccess={(savedQuiz) => {
                         setShowQuizModal(false);
                         setSelectedQuizForEdit(null);
-                        fetchCourseData();
+
+                        // Optimistic Update
+                        if (savedQuiz) {
+                            if (selectedQuizForEdit) {
+                                // Update existing
+                                setAllQuizzes(prev => prev.map(q => q.id === savedQuiz.id ? { ...q, ...savedQuiz } : q));
+                                // Update inside units if needed (for display consistency)
+                                setUnits(prev => prev.map(u => ({
+                                    ...u,
+                                    quizzes: u.quizzes ? u.quizzes.map(q => q.id === savedQuiz.id ? { ...q, ...savedQuiz } : q) : []
+                                })));
+                            } else {
+                                // Add new
+                                setAllQuizzes(prev => [...prev, savedQuiz]);
+                            }
+                        } else {
+                            fetchCourseData();
+                        }
                     }}
                     // Force the context
                     courses={course ? [course as TeacherCourse] : []}

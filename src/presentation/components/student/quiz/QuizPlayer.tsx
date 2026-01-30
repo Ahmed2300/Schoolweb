@@ -263,6 +263,16 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                         <h2 className="text-xl md:text-2xl font-bold text-slate-800 leading-relaxed">
                             {getLocalizedName(currentQuestion.question_text)}
                         </h2>
+                        {/* Question Image */}
+                        {currentQuestion.question_image_url && (
+                            <div className="mt-4">
+                                <img
+                                    src={currentQuestion.question_image_url}
+                                    alt="صورة السؤال"
+                                    className="max-w-full max-h-80 rounded-xl border border-slate-200 object-contain"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {currentQuestion.question_type === 'mcq' && (
@@ -290,9 +300,19 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                                             {answers[currentQuestion.id] === option.id && <div className="w-3 h-3 bg-shibl-crimson rounded-full" />}
                                         </div>
                                     </div>
-                                    <span className={`flex-1 font-medium ${answers[currentQuestion.id] === option.id ? 'text-shibl-crimson' : 'text-slate-600'}`}>
-                                        {getLocalizedName(option.option_text)}
-                                    </span>
+                                    <div className="flex-1 flex flex-col gap-2">
+                                        <span className={`font-medium ${answers[currentQuestion.id] === option.id ? 'text-shibl-crimson' : 'text-slate-600'}`}>
+                                            {getLocalizedName(option.option_text)}
+                                        </span>
+                                        {/* Option Image */}
+                                        {option.option_image_url && (
+                                            <img
+                                                src={option.option_image_url}
+                                                alt="صورة الخيار"
+                                                className="max-w-[200px] max-h-32 rounded-lg border border-slate-200 object-contain"
+                                            />
+                                        )}
+                                    </div>
                                 </label>
                             ))}
                         </div>

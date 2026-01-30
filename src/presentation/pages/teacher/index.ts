@@ -4,3 +4,4 @@ export { TeacherQuizzesPage } from './TeacherQuizzesPage';
 export { TeacherSettingsPage } from './TeacherSettingsPage';
 export { TeacherTimeSlotsPage } from './TeacherTimeSlotsPage';
 export { TeacherCourseDetailsPage } from './TeacherCourseDetailsPage';
+export { TeacherAnalyticsPage } from './AnalyticsPage';

@@ -44,7 +44,7 @@ const getLocalizedName = (name: { ar?: string; en?: string } | string | undefine
 interface TeacherEditLectureModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSuccess: () => void;
+    onSuccess: (updatedLecture?: any) => void;
     lecture: {
         id: number;
         title: { ar?: string; en?: string } | string;
@@ -146,7 +146,12 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                 await teacherLectureService.updateLecture(lecture.id, lectureData);
             }
 
-            onSuccess();
+            // Merge existing ID with new data for optimistic update
+            const updated = {
+                ...lecture,
+                ...lectureData
+            };
+            onSuccess(updated);
             handleClose();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'فشل تعديل المحاضرة');

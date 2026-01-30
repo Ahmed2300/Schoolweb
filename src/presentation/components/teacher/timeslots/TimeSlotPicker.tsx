@@ -15,33 +15,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import teacherService from '../../../../data/api/teacherService';
 import { teacherTimeSlotKeys } from '../../../hooks/useTeacherTimeSlots';
 import type { TimeSlot } from '../../../../types/timeSlot';
+import { formatDate as formatDateArabic, formatTime } from '../../../../utils/timeUtils';
 
 interface TimeSlotPickerProps {
     onSelect: (slot: TimeSlot | null) => void;
     selectedSlotId?: number | null;
 }
 
-// Helper to format date in Arabic
-const formatDateArabic = (dateStr: string): string => {
-    const date = new Date(dateStr);
-    const options: Intl.DateTimeFormatOptions = {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    };
-    return date.toLocaleDateString('ar-EG', options);
-};
-
-// Helper to format time
-const formatTime = (dateStr: string): string => {
-    const date = new Date(dateStr);
-    return date.toLocaleTimeString('ar-EG', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-    });
-};
 
 // Group slots by date
 const groupSlotsByDate = (slots: TimeSlot[]): Map<string, TimeSlot[]> => {

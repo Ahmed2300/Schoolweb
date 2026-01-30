@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import { Calendar, Clock, User, BookOpen, Check, X, MessageSquare, Loader2 } from 'lucide-react';
 import { AdminTimeSlot, adminTimeSlotService } from '../../../../data/api/adminTimeSlotService';
+import { formatDate, formatTime } from '../../../../utils/timeUtils';
 
 interface SlotApprovalCardProps {
     slot: AdminTimeSlot;
@@ -15,34 +16,6 @@ interface SlotApprovalCardProps {
     onRejected: () => void;
 }
 
-// Format date in Arabic
-const formatDate = (dateString: string): string => {
-    try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('ar-EG', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        });
-    } catch {
-        return dateString;
-    }
-};
-
-// Format time in Arabic
-const formatTime = (dateString: string): string => {
-    try {
-        const date = new Date(dateString);
-        return date.toLocaleTimeString('ar-EG', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-        });
-    } catch {
-        return dateString;
-    }
-};
 
 export function SlotApprovalCard({ slot, onApproved, onRejected }: SlotApprovalCardProps) {
     const [loading, setLoading] = useState<'approve' | 'reject' | null>(null);

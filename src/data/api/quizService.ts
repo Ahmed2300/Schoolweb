@@ -15,6 +15,8 @@ export interface QuizOption {
     id?: number;
     option_text: { en?: string; ar?: string };
     is_correct: boolean;
+    option_image?: File | null;
+    option_image_url?: string | null;
 }
 
 export interface QuizQuestion {
@@ -24,6 +26,8 @@ export interface QuizQuestion {
     points: number;
     model_answer?: { en?: string; ar?: string };
     options?: QuizOption[];
+    question_image?: File | null;
+    question_image_url?: string | null;
 }
 
 export interface Quiz {
@@ -73,9 +77,11 @@ export interface CreateQuizData {
         question_type: 'mcq' | 'essay';
         points?: number;
         model_answer?: { en?: string; ar?: string };
+        question_image?: File | null;
         options?: Array<{
             option_text: { en?: string; ar?: string };
             is_correct: boolean;
+            option_image?: File | null;
         }>;
     }>;
 }
@@ -139,6 +145,81 @@ export function getQuizStatusStyle(status: QuizStatus): {
     }
 }
 
+/**
+ * Check if quiz data contains any images (question or option images)
+ */
+export function hasQuizImages(data: CreateQuizData): boolean {
+    return data.questions.some(q =>
+        q.question_image ||
+        q.options?.some(o => o.option_image)
+    );
+}
+
+/**
+ * Build FormData for quiz creation/update with image support
+ * Laravel expects nested array syntax: questions[0][question_text][ar]
+ */
+export function buildQuizFormData(data: CreateQuizData): FormData {
+    const formData = new FormData();
+
+    // Basic quiz fields
+    formData.append('name[ar]', data.name.ar || '');
+    formData.append('name[en]', data.name.en || '');
+    formData.append('quiz_type', data.quiz_type);
+    formData.append('course_id', String(data.course_id));
+
+    if (data.description?.ar) formData.append('description[ar]', data.description.ar);
+    if (data.description?.en) formData.append('description[en]', data.description.en);
+    if (data.unit_id) formData.append('unit_id', String(data.unit_id));
+    if (data.lecture_id) formData.append('lecture_id', String(data.lecture_id));
+    if (data.duration_minutes) formData.append('duration_minutes', String(data.duration_minutes));
+    if (data.passing_percentage) formData.append('passing_percentage', String(data.passing_percentage));
+
+    // Questions array
+    data.questions.forEach((question, qIdx) => {
+        const qPrefix = `questions[${qIdx}]`;
+
+        formData.append(`${qPrefix}[question_text][ar]`, question.question_text.ar || '');
+        if (question.question_text.en) {
+            formData.append(`${qPrefix}[question_text][en]`, question.question_text.en);
+        }
+        formData.append(`${qPrefix}[question_type]`, question.question_type);
+        formData.append(`${qPrefix}[points]`, String(question.points || 1));
+
+        if (question.model_answer?.ar) {
+            formData.append(`${qPrefix}[model_answer][ar]`, question.model_answer.ar);
+        }
+        if (question.model_answer?.en) {
+            formData.append(`${qPrefix}[model_answer][en]`, question.model_answer.en);
+        }
+
+        // Question image
+        if (question.question_image) {
+            formData.append(`${qPrefix}[question_image]`, question.question_image);
+        }
+
+        // Options for MCQ
+        if (question.options) {
+            question.options.forEach((option, oIdx) => {
+                const oPrefix = `${qPrefix}[options][${oIdx}]`;
+
+                formData.append(`${oPrefix}[option_text][ar]`, option.option_text.ar || '');
+                if (option.option_text.en) {
+                    formData.append(`${oPrefix}[option_text][en]`, option.option_text.en);
+                }
+                formData.append(`${oPrefix}[is_correct]`, option.is_correct ? '1' : '0');
+
+                // Option image
+                if (option.option_image) {
+                    formData.append(`${oPrefix}[option_image]`, option.option_image);
+                }
+            });
+        }
+    });
+
+    return formData;
+}
+
 // ==================== API SERVICE ====================
 
 export const quizService = {
@@ -167,8 +248,25 @@ export const quizService = {
     /**
      * Create a new quiz with questions
      * Quiz starts in 'draft' status
+     * Uses FormData for multipart upload when images are present
      */
     async createQuiz(data: CreateQuizData): Promise<QuizResponse> {
+        // Check if any images are present
+        if (hasQuizImages(data)) {
+            const formData = buildQuizFormData(data);
+            const response = await apiClient.post<QuizResponse>(
+                endpoints.teacher.quizzes.create,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+            return response.data;
+        }
+
+        // No images - use standard JSON
         const response = await apiClient.post<QuizResponse>(
             endpoints.teacher.quizzes.create,
             data

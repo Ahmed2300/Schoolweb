@@ -4,6 +4,7 @@ import { getLocalizedName } from './studentService';
 export interface QuizOption {
     id: number;
     option_text: string | { ar?: string; en?: string };
+    option_image_url?: string | null;
 }
 
 export interface QuizQuestion {
@@ -13,6 +14,7 @@ export interface QuizQuestion {
     points: number;
     options?: QuizOption[];
     order: number;
+    question_image_url?: string | null;
 }
 
 export interface MultiLangString {

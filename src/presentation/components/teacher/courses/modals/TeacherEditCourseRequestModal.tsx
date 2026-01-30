@@ -43,27 +43,48 @@ export function TeacherEditCourseRequestModal({ isOpen, onClose, onSuccess, cour
     const { isRTL } = useLanguage();
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'ar' | 'en'>('ar');
+    const [imageChanged, setImageChanged] = useState(false);
+
+    // Store original values for change detection
+    const [originalData, setOriginalData] = useState<{
+        name_ar: string;
+        name_en: string;
+        description_ar: string;
+        description_en: string;
+    } | null>(null);
 
     const {
         register,
         handleSubmit,
         setValue,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<CourseRequestFormData>({
         resolver: zodResolver(courseRequestSchema),
         defaultValues: {}
     });
 
+    // Watch form values for change detection
+    const watchedValues = watch();
+
     // Load Initial Data
     useEffect(() => {
         if (courseData && isOpen) {
-            setValue('name_ar', typeof courseData.name === 'string' ? courseData.name : courseData.name?.ar);
-            setValue('name_en', typeof courseData.name === 'object' ? courseData.name?.en : '');
-            setValue('description_ar', typeof courseData.description === 'string' ? courseData.description : courseData.description?.ar);
-            setValue('description_en', typeof courseData.description === 'object' ? courseData.description?.en : '');
+            const name_ar = typeof courseData.name === 'string' ? courseData.name : courseData.name?.ar || '';
+            const name_en = typeof courseData.name === 'object' ? courseData.name?.en || '' : '';
+            const description_ar = typeof courseData.description === 'string' ? courseData.description : courseData.description?.ar || '';
+            const description_en = typeof courseData.description === 'object' ? courseData.description?.en || '' : '';
+
+            setValue('name_ar', name_ar);
+            setValue('name_en', name_en);
+            setValue('description_ar', description_ar);
+            setValue('description_en', description_en);
+
+            // Store original data for comparison
+            setOriginalData({ name_ar, name_en, description_ar, description_en });
+            setImageChanged(false);
 
             if (courseData.image_path) {
-                // Check if it's a full URL or relative path
                 const imgUrl = courseData.image_path.startsWith('http')
                     ? courseData.image_path
                     : `${apiClient.defaults.baseURL?.replace('/api/v1', '')}/storage/${courseData.image_path}`;
@@ -72,15 +93,31 @@ export function TeacherEditCourseRequestModal({ isOpen, onClose, onSuccess, cour
         }
     }, [courseData, isOpen, setValue]);
 
+    // Check if there are any changes
+    const hasChanges = (): boolean => {
+        if (!originalData) return false;
+        if (imageChanged) return true;
+
+        return (
+            watchedValues.name_ar !== originalData.name_ar ||
+            watchedValues.name_en !== originalData.name_en ||
+            watchedValues.description_ar !== originalData.description_ar ||
+            watchedValues.description_en !== originalData.description_en
+        );
+    };
+
     const onSubmit = async (data: CourseRequestFormData) => {
+        // Check if there are actual changes
+        if (!hasChanges()) {
+            toast.error('لا توجد تغييرات للإرسال. قم بتعديل البيانات أولاً.');
+            return;
+        }
+
         try {
             // Prepare payload
             const payload: Record<string, any> = {
                 name: { ar: data.name_ar, en: data.name_en },
                 description: { ar: data.description_ar, en: data.description_en },
-                // Image handling: 
-                // We send the file object if present. The backend must handle 'multipart/form-data' or ignores it if strict JSON
-                // For this implementation, we mostly signal the intent.
                 ...(data.image ? { image: data.image } : {})
             };
 
@@ -156,6 +193,7 @@ export function TeacherEditCourseRequestModal({ isOpen, onClose, onSuccess, cour
                                     if (file) {
                                         setValue('image', file);
                                         setImagePreview(URL.createObjectURL(file));
+                                        setImageChanged(true);
                                     }
                                 }}
                             />

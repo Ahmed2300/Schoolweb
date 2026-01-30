@@ -37,6 +37,7 @@ import {
 } from '../../hooks/useTimeSlots';
 import type { TimeSlot, TimeSlotStatus } from '../../../types/timeSlot';
 import { BulkSlotGeneratorModal } from '../../components/admin/timeslots';
+import { formatTime, formatShortDate as formatDate, getDateForInput, getTimeForInput } from '../../../utils/timeUtils';
 
 // Helper function to extract localized text from translatable fields
 const getLocalizedText = (
@@ -211,30 +212,9 @@ export function AdminTimeSlotsPage() {
         setCurrentPage(1);
     };
 
-    // Format time display
-    const formatTime = (dateString: string) => {
-        try {
-            return new Date(dateString).toLocaleTimeString('ar-EG', {
-                hour: '2-digit',
-                minute: '2-digit',
-            });
-        } catch {
-            return '—';
-        }
-    };
+    // Time formatting now uses centralized utils with Cairo timezone
+    // Import: import { formatTime, formatShortDate as formatDate } from '../../../utils/timeUtils';
 
-    const formatDate = (dateString: string) => {
-        try {
-            return new Date(dateString).toLocaleDateString('ar-EG', {
-                weekday: 'short',
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-            });
-        } catch {
-            return '—';
-        }
-    };
 
     // Handle create slot
     const handleCreateSlot = async () => {
@@ -248,18 +228,14 @@ export function AdminTimeSlotsPage() {
 
         setCreateModalError(null); // Clear previous errors
         try {
-            // Parses inputs using local browser time (e.g., Cairo)
-            const [startH, startM] = newSlotStartTime.split(':').map(Number);
-            const [endH, endM] = newSlotEndTime.split(':').map(Number);
-            const [year, month, day] = newSlotDate.split('-').map(Number);
-
-            // Create Date objects (Month is 0-indexed)
-            const startDate = new Date(year, month - 1, day, startH, startM);
-            const endDate = new Date(year, month - 1, day, endH, endM);
+            // Send datetime WITHOUT timezone offset - Laravel APP_TIMEZONE=Cairo
+            // handles interpretation. Adding offset causes DOUBLE conversion.
+            const startTimeStr = `${newSlotDate}T${newSlotStartTime}:00`;
+            const endTimeStr = `${newSlotDate}T${newSlotEndTime}:00`;
 
             await createMutation.mutateAsync({
-                start_time: startDate.toISOString(), // Send UTC
-                end_time: endDate.toISOString(),     // Send UTC
+                start_time: startTimeStr,
+                end_time: endTimeStr,
                 is_available: true,
             });
 
@@ -304,19 +280,11 @@ export function AdminTimeSlotsPage() {
     // Handle edit click
     const handleEditClick = (slot: TimeSlot) => {
         setSelectedSlot(slot);
-        const startDate = new Date(slot.start_time);
-        const endDate = new Date(slot.end_time);
 
-        // Format date as YYYY-MM-DD
-        const dateStr = startDate.toISOString().split('T')[0];
-
-        // Format time as HH:MM
-        const startTimeStr = startDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
-        const endTimeStr = endDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-        setEditDate(dateStr);
-        setEditStartTime(startTimeStr);
-        setEditEndTime(endTimeStr);
+        // Use Cairo timezone utilities for consistent formatting
+        setEditDate(getDateForInput(slot.start_time));
+        setEditStartTime(getTimeForInput(slot.start_time));
+        setEditEndTime(getTimeForInput(slot.end_time));
         setEditModalOpen(true);
     };
 
@@ -325,6 +293,7 @@ export function AdminTimeSlotsPage() {
         if (!selectedSlot || !editDate || !editStartTime || !editEndTime) return;
 
         try {
+            // Send datetime WITHOUT timezone offset to avoid double conversion
             await updateMutation.mutateAsync({
                 id: selectedSlot.id,
                 data: {

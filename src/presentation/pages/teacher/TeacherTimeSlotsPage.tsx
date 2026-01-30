@@ -24,6 +24,17 @@ import {
 import type { TimeSlot } from '../../../types/timeSlot';
 import { useAuth } from '../../hooks/useAuth';
 import { getCourseName } from '../../../data/api/teacherService';
+import { formatTime, formatDate } from '../../../utils/timeUtils';
+
+// Helper function to extract localized text from translatable fields
+const getLocalizedText = (
+    value: string | { ar?: string; en?: string } | undefined | null,
+    lang: 'ar' | 'en' = 'ar'
+): string => {
+    if (!value) return '—';
+    if (typeof value === 'string') return value;
+    return value[lang] || value.en || value.ar || '—';
+};
 
 // Status configurations
 const STATUS_CONFIG: Record<string, {
@@ -120,26 +131,8 @@ export function TeacherTimeSlotsPage() {
         }
     };
 
-    // Format helpers
-    const formatTime = (dateString: string) => {
-        try {
-            return new Date(dateString).toLocaleTimeString('ar-EG', {
-                hour: '2-digit',
-                minute: '2-digit',
-            });
-        } catch { return '—'; }
-    };
+    // formatTime and formatDate imported from ../../../utils/timeUtils
 
-    const formatDate = (dateString: string) => {
-        try {
-            return new Date(dateString).toLocaleDateString('ar-EG', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-            });
-        } catch { return '—'; }
-    };
 
     return (
         <div className="space-y-6 pb-8 p-6">
@@ -292,7 +285,7 @@ export function TeacherTimeSlotsPage() {
                                             <td className="py-4 px-6">
                                                 <div className="flex items-center gap-2">
                                                     <BookOpen size={16} className="text-slate-400" />
-                                                    <span className="font-medium text-slate-700">{slot.lecture?.title || '—'}</span>
+                                                    <span className="font-medium text-slate-700">{getLocalizedText(slot.lecture?.title)}</span>
                                                 </div>
                                                 {slot.lecture?.course && (
                                                     <div className="text-xs text-slate-500 mt-1 mr-6">
