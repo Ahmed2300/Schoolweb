@@ -1,79 +1,228 @@
-import { FileQuestion, Clock, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { FileQuestion, Clock, CheckCircle2, AlertCircle, Loader2, HourglassIcon, RefreshCw } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { QuizPlayer } from '../../components/student/quiz/QuizPlayer';
+import { studentQuizService, QuizAttemptSummary } from '../../../data/api/studentQuizService';
+import { getLocalizedName } from '../../../data/api/studentService';
 
 export function StudentQuizzesPage() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const [attempts, setAttempts] = useState<QuizAttemptSummary[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // If ID is present, show Quiz Player Stub (to be implemented fully later)
-    if (id) {
-        return (
-            <QuizPlayer quizId={id} onExit={() => navigate(-1)} />
-        );
-    }
+    useEffect(() => {
+        if (!id) {
+            fetchAttempts();
+        }
+    }, [id]);
 
-    const quizzes = [
-        { id: 1, title: 'اختبار الجبر النصفي', subject: 'الرياضيات', date: '30 ديسمبر 2024', duration: '60 دقيقة', status: 'pending', score: null },
-        { id: 2, title: 'كويز ميكانيكا', subject: 'الفيزياء', date: '25 ديسمبر 2024', duration: '30 دقيقة', status: 'completed', score: '18/20' },
-        { id: 3, title: 'اختبار النحو', subject: 'اللغة العربية', date: '20 ديسمبر 2024', duration: '45 دقيقة', status: 'missed', score: null },
-    ];
-
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'pending': return <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1"><Clock size={12} /> قادم</span>;
-            case 'completed': return <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1"><CheckCircle2 size={12} /> مكتمل</span>;
-            case 'missed': return <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1"><AlertCircle size={12} /> فائت</span>;
+    const fetchAttempts = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await studentQuizService.getMyAttempts();
+            setAttempts(data);
+        } catch (err) {
+            console.error('Failed to fetch attempts:', err);
+            setError('فشل في تحميل سجل الاختبارات. يرجى المحاولة مرة أخرى.');
+        } finally {
+            setLoading(false);
         }
     };
 
-    return (
-        <div className="p-6">
-            <h1 className="text-2xl font-extrabold text-charcoal mb-6 flex items-center gap-2">
-                <FileQuestion className="text-shibl-crimson" />
-                الاختبارات والكويزات
-            </h1>
+    // If ID is present, show Quiz Player
+    if (id) {
+        return <QuizPlayer quizId={id} onExit={() => navigate(-1)} />;
+    }
 
-            <div className="grid gap-4">
-                {quizzes.map(quiz => (
-                    <div key={quiz.id} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center font-bold">
-                                {quiz.subject[0]}
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-charcoal">{quiz.title}</h3>
-                                <p className="text-xs text-slate-500">{quiz.subject} • {quiz.duration}</p>
-                            </div>
-                        </div>
+    const getStatusBadge = (status: QuizAttemptSummary['status']) => {
+        switch (status) {
+            case 'pending_grading':
+                return (
+                    <span className="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                        <HourglassIcon size={14} />
+                        قيد التصحيح
+                    </span>
+                );
+            case 'passed':
+                return (
+                    <span className="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                        <CheckCircle2 size={14} />
+                        ناجح
+                    </span>
+                );
+            case 'failed':
+                return (
+                    <span className="bg-red-100 text-red-700 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                        <AlertCircle size={14} />
+                        راسب
+                    </span>
+                );
+        }
+    };
 
-                        <div className="flex items-center gap-6">
-                            <div className="text-right">
-                                <p className="text-xs text-slate-400 mb-1">الموعد</p>
-                                <p className="text-sm font-bold text-slate-700">{quiz.date}</p>
-                            </div>
+    const formatDate = (dateString: string) => {
+        try {
+            return new Date(dateString).toLocaleDateString('ar-EG', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+            });
+        } catch {
+            return dateString;
+        }
+    };
 
-                            <div className="min-w-[100px] flex justify-center">
-                                {getStatusBadge(quiz.status)}
-                            </div>
+    const getScorePercentage = (attempt: QuizAttemptSummary) => {
+        if (attempt.score === null || attempt.total_possible_score === 0) return 0;
+        return Math.round((attempt.score / attempt.total_possible_score) * 100);
+    };
 
-                            <div className="min-w-[60px] text-center">
-                                {quiz.score ? (
-                                    <span className="font-extrabold text-lg text-charcoal">{quiz.score}</span>
-                                ) : (
-                                    <span className="text-slate-300">-</span>
-                                )}
-                            </div>
+    const getScoreColor = (attempt: QuizAttemptSummary) => {
+        if (attempt.status === 'pending_grading') return 'text-amber-600';
+        if (attempt.status === 'passed') return 'text-emerald-600';
+        return 'text-red-600';
+    };
 
-                            {quiz.status === 'pending' && (
-                                <button className="bg-shibl-crimson text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-800 transition-colors">
-                                    ابدأ الآن
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                ))}
+    if (loading) {
+        return (
+            <div className="min-h-[400px] flex flex-col items-center justify-center gap-4">
+                <Loader2 className="w-10 h-10 text-shibl-crimson animate-spin" />
+                <p className="text-slate-500 font-medium">جاري تحميل سجل الاختبارات...</p>
             </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-[400px] flex flex-col items-center justify-center gap-4 p-6">
+                <AlertCircle className="w-16 h-16 text-red-400" />
+                <p className="text-red-600 font-medium text-center">{error}</p>
+                <button
+                    onClick={fetchAttempts}
+                    className="flex items-center gap-2 px-6 py-2.5 bg-shibl-crimson text-white rounded-xl font-bold hover:bg-red-800 transition-all shadow-md"
+                >
+                    <RefreshCw size={16} />
+                    إعادة المحاولة
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="p-6 md:p-10 max-w-6xl mx-auto">
+            <div className="flex items-center justify-between mb-10">
+                <div>
+                    <h1 className="text-3xl font-extrabold text-charcoal flex items-center gap-4 mb-2">
+                        <div className="w-12 h-12 bg-gradient-to-br from-shibl-crimson to-red-700 rounded-2xl flex items-center justify-center shadow-lg shadow-red-900/10 rotate-3 transition-transform hover:rotate-6">
+                            <FileQuestion className="text-white" size={24} />
+                        </div>
+                        سجل الاختبارات
+                    </h1>
+                    <p className="text-slate-500 font-medium mr-[4.5rem]">تتبع تقدمك ونتائج اختباراتك السابقة</p>
+                </div>
+                <button
+                    onClick={fetchAttempts}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+                >
+                    <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                    <span>تحديث القائمة</span>
+                </button>
+            </div>
+
+            {attempts.length === 0 ? (
+                <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 p-16 text-center animate-in fade-in zoom-in-95 duration-500">
+                    <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <FileQuestion className="w-10 h-10 text-slate-300" />
+                    </div>
+                    <h3 className="text-xl font-extrabold text-slate-700 mb-2">لا توجد اختبارات مكتملة بعد</h3>
+                    <p className="text-slate-400 max-w-xs mx-auto">عندما تكمل الاختبارات، ستظهر نتائجك هنا للمراجعة والتحليل.</p>
+                </div>
+            ) : (
+                <div className="grid gap-5 animate-in slide-in-from-bottom-4 duration-700 stagger-100">
+                    {attempts.map((attempt, index) => (
+                        <div
+                            key={attempt.id}
+                            className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:scale-[1.01] hover:border-slate-200 transition-all duration-300 cursor-pointer group relative overflow-hidden"
+                            onClick={() => navigate(`/student/quizzes/${attempt.quiz_id}/result`)}
+                            style={{ animationDelay: `${index * 100}ms` }}
+                        >
+                            {/* Decorative gradient blob */}
+                            <div className={`absolute top-0 right-0 w-32 h-32 opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-opacity group-hover:opacity-10 
+                                ${attempt.status === 'passed' ? 'bg-emerald-500' : attempt.status === 'failed' ? 'bg-red-500' : 'bg-amber-500'}`}>
+                            </div>
+
+                            <div className="flex items-center justify-between flex-wrap gap-6 relative z-10">
+                                {/* Quiz Info */}
+                                <div className="flex items-center gap-5 flex-1 min-w-[240px]">
+                                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black text-xl shrink-0 shadow-inner
+                                        ${attempt.status === 'passed' ? 'bg-emerald-50 text-emerald-600' :
+                                            attempt.status === 'failed' ? 'bg-red-50 text-red-600' :
+                                                'bg-amber-50 text-amber-600'
+                                        }`}>
+                                        {getScorePercentage(attempt)}<span className="text-xs opacity-60 font-bold">%</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <h3 className="font-bold text-slate-800 text-lg group-hover:text-shibl-crimson transition-colors">
+                                            {getLocalizedName(attempt.quiz_title)}
+                                        </h3>
+                                        <div className="flex items-center gap-2 text-sm text-slate-500">
+                                            <span className="max-w-[200px] truncate block px-2 py-0.5 bg-slate-100 rounded-md">
+                                                {attempt.course_name ? getLocalizedName(attempt.course_name) : 'عام'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Stats & Date */}
+                                <div className="flex items-center gap-8 md:gap-12 flex-wrap">
+                                    <div className="text-right">
+                                        <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">تاريخ الإتمام</p>
+                                        <div className="flex items-center gap-1.5 text-slate-600 font-bold">
+                                            <Clock size={14} className="text-slate-400" />
+                                            {formatDate(attempt.completed_at)}
+                                        </div>
+                                    </div>
+
+                                    <div className="text-right pl-4 border-l border-slate-100">
+                                        <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">الدرجة</p>
+                                        <p className={`text-xl font-black ${getScoreColor(attempt)}`}>
+                                            {attempt.score !== null ? (
+                                                <>{attempt.score}<span className="text-sm text-slate-400 font-bold">/{attempt.total_possible_score}</span></>
+                                            ) : (
+                                                <span className="text-amber-500 text-base font-bold">---</span>
+                                            )}
+                                        </p>
+                                    </div>
+
+                                    <div className="min-w-[100px] flex justify-end">
+                                        {getStatusBadge(attempt.status)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Progress Bar */}
+                            <div className="mt-5 relative">
+                                <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1.5 px-1">
+                                    <span>معدل النجاح: {attempt.passing_percentage}%</span>
+                                    <span>النتيجة: {getScorePercentage(attempt)}%</span>
+                                </div>
+                                <div className="bg-slate-100 rounded-full h-2.5 overflow-hidden ring-1 ring-slate-100">
+                                    <div
+                                        className={`h-full rounded-full transition-all duration-1000 ease-out ${attempt.status === 'passed' ? 'bg-gradient-to-r from-emerald-400 to-emerald-600 shadow-[0_0_10px_rgba(16,185,129,0.3)]' :
+                                                attempt.status === 'failed' ? 'bg-gradient-to-r from-red-400 to-red-600 shadow-[0_0_10px_rgba(239,68,68,0.3)]' :
+                                                    'bg-gradient-to-r from-amber-400 to-amber-600'
+                                            }`}
+                                        style={{ width: `${getScorePercentage(attempt)}%` }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

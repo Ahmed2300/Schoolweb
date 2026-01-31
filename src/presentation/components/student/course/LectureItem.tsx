@@ -102,8 +102,11 @@ export function LectureItem({ lecture, courseId }: LectureItemProps) {
         actionText = 'شاهد';
     }
 
+    // A completed item should always be accessible, even if "locked" in progression
+    const isAccessible = lecture.is_completed || !lecture.is_locked;
+
     const handleClick = () => {
-        if (!lecture.is_locked) {
+        if (isAccessible) {
             navigate(`/dashboard/courses/${courseId}/lecture/${lecture.id}`);
         }
     };
@@ -132,7 +135,7 @@ export function LectureItem({ lecture, courseId }: LectureItemProps) {
         bg-white border border-slate-100 rounded-2xl
         hover:shadow-md ${hoverBorder} hover:-translate-y-0.5
         transition-all duration-300 cursor-pointer
-        ${lecture.is_locked ? 'opacity-60 pointer-events-none grayscale' : ''}
+        ${!isAccessible ? 'opacity-60 pointer-events-none grayscale' : ''}
         ${liveState === 'live' ? 'ring-2 ring-red-200 border-red-100' : ''}
       `}>
                 {/* Icon Container */}
@@ -171,7 +174,7 @@ export function LectureItem({ lecture, courseId }: LectureItemProps) {
 
                 {/* Action / State */}
                 <div className="shrink-0 flex items-center gap-3">
-                    {lecture.is_locked ? (
+                    {!isAccessible ? (
                         <Lock size={20} className="text-slate-300" />
                     ) : (
                         <button className={`

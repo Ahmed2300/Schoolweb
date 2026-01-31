@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Unit } from '../../../../data/api/studentCourseService';
 import { getLocalizedName } from '../../../../data/api/studentService';
-import { ChevronDown, Play, FileText, CheckCircle2, Lock, Radio, ClipboardCheck } from 'lucide-react';
+import { ChevronDown, Play, FileText, CheckCircle2, Lock, Radio, ClipboardCheck, Clock, PlayCircle } from 'lucide-react';
 import { useLanguage } from '../../../hooks';
 
 interface CourseContentSidebarProps {
@@ -107,9 +107,12 @@ function SidebarItem({ item, isActive, courseId, hasVideo, isQuiz }: any) {
         }
     };
 
+    // A completed item should always be accessible, even if "locked" in progression
+    const isAccessible = item.is_completed || !item.is_locked;
+
     return (
         <button
-            disabled={item.is_locked}
+            disabled={!isAccessible}
             onClick={handleClick}
             className={`
                 w-full flex items-center gap-3 p-3 rounded-xl text-right transition-all duration-200 relative
@@ -117,7 +120,7 @@ function SidebarItem({ item, isActive, courseId, hasVideo, isQuiz }: any) {
                     ? 'bg-[#AF0C15] text-white shadow-lg shadow-[#AF0C15]/20 scale-[1.02] font-bold z-10'
                     : 'text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm'
                 }
-                ${item.is_locked ? 'opacity-50 cursor-not-allowed saturate-0' : ''}
+                ${!isAccessible ? 'opacity-50 cursor-not-allowed saturate-0' : ''}
             `}
         >
             <div className={`
@@ -134,8 +137,24 @@ function SidebarItem({ item, isActive, courseId, hasVideo, isQuiz }: any) {
             </div>
 
             <div className="min-w-0 flex-1">
-                <div className="text-xs lg:text-sm truncate leading-snug">
+                <div className="text-xs lg:text-sm truncate leading-snug flex items-center gap-1.5">
                     {getLocalizedName(item.title, isQuiz ? 'Quiz' : 'Lecture')}
+                    {/* Session Status Badge */}
+                    {!isQuiz && item.session_status === 'upcoming' && (
+                        <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full shrink-0">
+                            <Clock size={8} /> قريباً
+                        </span>
+                    )}
+                    {!isQuiz && item.session_status === 'live' && (
+                        <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full shrink-0 animate-pulse">
+                            <Radio size={8} /> مباشر
+                        </span>
+                    )}
+                    {!isQuiz && item.session_status === 'ended' && item.has_recording && (
+                        <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full shrink-0">
+                            <PlayCircle size={8} /> تسجيل
+                        </span>
+                    )}
                 </div>
                 {isQuiz && <div className="text-[10px] text-amber-500 font-bold mt-0.5">اختبار قصير</div>}
             </div>
