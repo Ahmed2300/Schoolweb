@@ -25,6 +25,12 @@ export interface Lecture {
     time_slot?: TimeSlot;
     recording_url?: string;
     bbb_meeting_running?: boolean;
+    // Session status for progression rules
+    session_status?: 'upcoming' | 'live' | 'ended' | 'recorded';
+    can_complete?: boolean;
+    has_recording?: boolean;
+    start_time?: string | null;
+    end_time?: string | null;
 }
 
 export interface QuizAttempt {
@@ -108,7 +114,12 @@ export interface StudentCourseDetails {
 
 export const studentCourseService = {
     getStudentCourseDetails: async (courseId: string | number): Promise<StudentCourseDetails> => {
-        const response = await apiClient.get(`/api/v1/student/course/details/${courseId}`);
+        const response = await apiClient.get(`/api/v1/students/courses/${courseId}/details`);
+        return response.data.data;
+    },
+
+    getSyllabusStatus: async (courseId: string | number): Promise<SyllabusUnit[]> => {
+        const response = await apiClient.get(`/api/v1/students/courses/${courseId}/syllabus-status`);
         return response.data.data;
     },
 
@@ -118,3 +129,25 @@ export const studentCourseService = {
         });
     },
 };
+
+export interface SyllabusItem {
+    id: number;
+    type: 'lecture' | 'quiz' | 'unit_quiz';
+    title: string;
+    status: 'locked' | 'open' | 'completed';
+    is_locked: boolean;
+    is_completed: boolean;
+    // Live session status fields
+    session_status?: 'upcoming' | 'live' | 'ended' | 'recorded';
+    can_complete?: boolean;
+    has_recording?: boolean;
+    quizzes?: SyllabusItem[];
+}
+
+export interface SyllabusUnit {
+    id: number;
+    title: string;
+    order: number;
+    items: SyllabusItem[];
+    progress_percentage: number;
+}

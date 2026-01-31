@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { studentService, Subscription, getLocalizedName } from '../../../data/api/studentService';
-import { studentCourseService, StudentCourseDetails } from '../../../data/api/studentCourseService';
+import { studentCourseService, StudentCourseDetails, SyllabusUnit, Unit, CourseContentItem } from '../../../data/api/studentCourseService';
 import { CourseContentList } from '../../components/student/course/CourseContentList';
 import {
     ArrowRight,
@@ -33,6 +33,7 @@ interface CourseDetailsProps {
 export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProps) {
     const { isRTL } = useLanguage();
     const [course, setCourse] = useState<StudentCourseDetails | null>(null);
+    const [syllabus, setSyllabus] = useState<SyllabusUnit[]>([]); // New state for syllabus status
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
@@ -45,8 +46,13 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
             setError(null);
             try {
                 // Use the new service that fetches full details including units/quizzes
-                const data = await studentCourseService.getStudentCourseDetails(courseId);
-                setCourse(data);
+                const [detailsData, syllabusData] = await Promise.all([
+                    studentCourseService.getStudentCourseDetails(courseId),
+                    studentCourseService.getSyllabusStatus(courseId)
+                ]);
+
+                setCourse(detailsData);
+                setSyllabus(syllabusData);
             } catch (err) {
                 console.error('Error fetching course details:', err);
                 setError('فشل في تحميل تفاصيل المادة');
@@ -298,7 +304,61 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
                             </div>
 
                             {/* Content Breakdown - NEW COMPONENT */}
-                            <CourseContentList units={course.content || []} courseId={String(courseId)} />
+                            {/* Merge course content with syllabus status */}
+                            <CourseContentList
+                                units={course.content.map(unit => {
+                                    // Find corresponding unit in syllabus
+                                    const syllabusUnit = syllabus.find(u => u.id === unit.id);
+                                    if (!syllabusUnit) return unit;
+
+                                    return {
+                                        ...unit,
+                                        items: unit.items.map(item => {
+                                            // Find corresponding item in syllabus (flattened or nested)
+                                            // Syllabus structure might differ slightly, let's search carefully.
+                                            // SyllabusUnit items includes lectures and unit-quizzes.
+                                            // Lecture items in syllabus have nested quizzes.
+
+                                            // Find top-level item in unit (Lecture or Unit Quiz)
+                                            // Note: syllabus uses 'type' not 'item_type', match carefully
+                                            const sItem = syllabusUnit.items.find(si =>
+                                                si.id === item.id && (
+                                                    si.type === item.item_type ||
+                                                    (si.type === 'unit_quiz' && item.item_type === 'quiz')
+                                                )
+                                            );
+
+                                            if (!sItem) return item;
+
+                                            // Clone item to avoid mutation and cast to allow extra properties
+                                            const newItem: any = { ...item };
+
+                                            // Apply status from service
+                                            newItem.is_locked = sItem.is_locked;
+                                            newItem.is_completed = sItem.is_completed;
+
+                                            // Apply session status fields for live session rules
+                                            if (sItem.session_status) newItem.session_status = sItem.session_status;
+                                            if (sItem.can_complete !== undefined) newItem.can_complete = sItem.can_complete;
+                                            if (sItem.has_recording !== undefined) newItem.has_recording = sItem.has_recording;
+
+                                            // If it's a lecture, update nested quizzes
+                                            if (newItem.item_type === 'lecture' && newItem.quizzes && sItem.quizzes) {
+                                                newItem.quizzes = newItem.quizzes.map((q: any) => {
+                                                    const sQuiz = sItem.quizzes?.find(sq => sq.id === q.id);
+                                                    if (sQuiz) {
+                                                        return { ...q, is_locked: sQuiz.is_locked, is_completed: sQuiz.is_completed };
+                                                    }
+                                                    return q;
+                                                });
+                                            }
+
+                                            return newItem;
+                                        })
+                                    };
+                                })}
+                                courseId={String(courseId)}
+                            />
 
                         </div>
                     </div>
