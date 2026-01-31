@@ -114,21 +114,23 @@ export function BulkSlotGeneratorModal({
                     const slotEndHour = Math.floor(slotEndMinutes / 60);
                     const slotEndMin = slotEndMinutes % 60;
 
-                    // FIX: Use local date components instead of toISOString() to avoid UTC timezone bugs
+                    // FIX: Send local datetime strings WITHOUT timezone info
+                    // Laravel APP_TIMEZONE=Africa/Cairo will interpret these as Cairo time
+                    // Using toISOString() would convert to UTC, causing double timezone conversion
                     const year = current.getFullYear();
                     const month = String(current.getMonth() + 1).padStart(2, '0');
-                    const dayNum = current.getDate(); // Keep as number for Date constructor
-                    const dateStr = `${year}-${month}-${String(dayNum).padStart(2, '0')}`;
+                    const day = String(current.getDate()).padStart(2, '0');
+                    const dateStr = `${year}-${month}-${day}`;
 
-                    // Create Date objects for start and end times
-                    // Note: We use the local components to creating a Date object, 
-                    // then convert to ISO (UTC) to send to backend.
-                    const slotStart = new Date(year, current.getMonth(), dayNum, slotStartHour, slotStartMin);
-                    const slotEnd = new Date(year, current.getMonth(), dayNum, slotEndHour, slotEndMin);
+                    // Format time components with leading zeros
+                    const startHourStr = String(slotStartHour).padStart(2, '0');
+                    const startMinStr = String(slotStartMin).padStart(2, '0');
+                    const endHourStr = String(slotEndHour).padStart(2, '0');
+                    const endMinStr = String(slotEndMin).padStart(2, '0');
 
                     slots.push({
-                        start_time: slotStart.toISOString(),
-                        end_time: slotEnd.toISOString(),
+                        start_time: `${dateStr}T${startHourStr}:${startMinStr}:00`,
+                        end_time: `${dateStr}T${endHourStr}:${endMinStr}:00`,
                     });
 
                     currentMinutes += slotDuration;

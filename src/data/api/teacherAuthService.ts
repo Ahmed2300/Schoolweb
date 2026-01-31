@@ -14,6 +14,7 @@ import { endpoints } from './endpoints';
 export interface TeacherLoginRequest {
     email: string;
     password: string;
+    remember_me?: boolean;
 }
 
 export interface TeacherRegisterRequest {

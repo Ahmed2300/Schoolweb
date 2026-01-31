@@ -114,6 +114,7 @@ export function AdminLoginPage() {
                 const response = await teacherAuthService.login({
                     email: formData.email,
                     password: formData.password,
+                    remember_me: rememberMe,
                 });
 
                 if (response.success && response.data?.teacher) {
@@ -348,8 +349,8 @@ export function AdminLoginPage() {
                         <div className="flex items-center">
                             <label className="flex items-center gap-2 cursor-pointer group select-none">
                                 <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all duration-200 ${rememberMe
-                                        ? 'bg-[#AF0C15] border-[#AF0C15]'
-                                        : 'bg-white border-slate-300 group-hover:border-[#AF0C15]'
+                                    ? 'bg-[#AF0C15] border-[#AF0C15]'
+                                    : 'bg-white border-slate-300 group-hover:border-[#AF0C15]'
                                     }`}>
                                     <input
                                         type="checkbox"

@@ -6,8 +6,8 @@
  * by always displaying times in Cairo timezone (Africa/Cairo, UTC+2/+3).
  */
 
-// Cairo timezone identifier
-const CAIRO_TIMEZONE = 'Africa/Cairo';
+// Oman timezone identifier
+const OMAN_TIMEZONE = 'Asia/Muscat';
 
 /**
  * Format a date string to time display in Cairo timezone
@@ -24,7 +24,7 @@ export const formatTime = (dateString: string | null | undefined, use24Hour = fa
             hour: '2-digit',
             minute: '2-digit',
             hour12: !use24Hour,
-            timeZone: CAIRO_TIMEZONE,
+            timeZone: OMAN_TIMEZONE,
         });
     } catch {
         return '—';
@@ -47,7 +47,7 @@ export const formatDate = (dateString: string | null | undefined): string => {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
-            timeZone: CAIRO_TIMEZONE,
+            timeZone: OMAN_TIMEZONE,
         });
     } catch {
         return '—';
@@ -70,7 +70,7 @@ export const formatShortDate = (dateString: string | null | undefined): string =
             year: 'numeric',
             month: 'short',
             day: 'numeric',
-            timeZone: CAIRO_TIMEZONE,
+            timeZone: OMAN_TIMEZONE,
         });
     } catch {
         return '—';
@@ -108,7 +108,7 @@ export const getDateForInput = (dateString: string | null | undefined): string =
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
-            timeZone: CAIRO_TIMEZONE,
+            timeZone: OMAN_TIMEZONE,
         });
 
         return formatter.format(date); // Returns YYYY-MM-DD
@@ -132,7 +132,7 @@ export const getTimeForInput = (dateString: string | null | undefined): string =
             hour: '2-digit',
             minute: '2-digit',
             hour12: false,
-            timeZone: CAIRO_TIMEZONE,
+            timeZone: OMAN_TIMEZONE,
         });
 
         return formatter.format(date); // Returns HH:MM
