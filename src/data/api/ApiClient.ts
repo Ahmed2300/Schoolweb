@@ -112,8 +112,12 @@ apiClient.interceptors.response.use(
             }
         }
 
-        // Handle other errors
-        const message = (error.response?.data as { message?: string })?.message || error.message;
+        // Handle other errors - preserve the response for validation errors (422)
+        if (error.response) {
+            // Preserve the original axios error with response data for proper handling
+            return Promise.reject(error);
+        }
+        const message = error.message;
         return Promise.reject(new Error(message));
     }
 );
