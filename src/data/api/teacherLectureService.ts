@@ -194,5 +194,45 @@ export const teacherLectureService = {
         const response = await apiClient.get(`/api/v1/lectures/${lectureId}/bbb/status`);
         return response.data;
     },
+
+    // Recording Management
+    getRecordings: async (params?: {
+        course_id?: number;
+        from_date?: string;
+        to_date?: string;
+        page?: number;
+        per_page?: number;
+    }) => {
+        const response = await apiClient.get('/api/v1/teachers/recordings', { params });
+        return response.data;
+    },
+
+    getRecordingStats: async (): Promise<{
+        success: boolean;
+        data: {
+            total_recordings: number;
+            total_views: number;
+            recordings_this_month: number;
+            pending_recordings: number;
+        };
+    }> => {
+        const response = await apiClient.get('/api/v1/teachers/recordings/stats');
+        return response.data;
+    },
+
+    getRecording: async (id: number) => {
+        const response = await apiClient.get(`/api/v1/teachers/recordings/${id}`);
+        return response.data;
+    },
+
+    trackRecordingView: async (id: number): Promise<{ success: boolean; view_count: number }> => {
+        const response = await apiClient.post(`/api/v1/recordings/${id}/view`);
+        return response.data;
+    },
+
+    deleteRecording: async (id: number): Promise<{ success: boolean; message: string }> => {
+        const response = await apiClient.delete(`/api/v1/teachers/recordings/${id}`);
+        return response.data;
+    },
 };
 

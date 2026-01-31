@@ -53,6 +53,7 @@ import {
   TeacherSettingsPage,
   TeacherAnalyticsPage,
   TeacherTimeSlotsPage,
+  TeacherRecordingsPage,
   NotFoundPage,
   LecturePlayerPage
 } from './presentation/pages';
@@ -162,6 +163,7 @@ function App() {
               <Route path="quizzes" element={<TeacherQuizzesPage />} />
               <Route path="analytics" element={<TeacherAnalyticsPage />} />
               <Route path="settings" element={<TeacherSettingsPage />} />
+              <Route path="recordings" element={<TeacherRecordingsPage />} />
             </Route>
 
             {/* Admin Routes - Protected for admin role only */}

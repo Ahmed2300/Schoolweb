@@ -100,7 +100,7 @@ export interface Lecture {
     video_path?: string;
     is_free?: boolean;
     is_active?: boolean;
-    meeting_status?: 'scheduled' | 'ongoing' | 'completed';
+    meeting_status?: 'scheduled' | 'ready' | 'ongoing' | 'completed';
     created_at?: string;
     updated_at?: string;
 }

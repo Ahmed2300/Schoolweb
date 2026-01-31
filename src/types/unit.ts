@@ -48,6 +48,11 @@ export interface UnitLecture {
     start_time?: string;
     end_time?: string;
     video_url?: string;
+    // Recording fields
+    has_recording?: boolean;
+    recording_url?: string | null;
+    meeting_status?: 'scheduled' | 'ready' | 'ongoing' | 'completed' | null;
+    view_count?: number;
 }
 
 export interface CreateUnitRequest {

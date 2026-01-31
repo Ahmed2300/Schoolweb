@@ -41,6 +41,9 @@ export function LiveSessionContent({ lecture, onJoin }: LiveSessionContentProps)
         // Check if BBB meeting is running
         if (lecture.bbb_meeting_running) return 'live';
 
+        // Check meeting_status for 'ready' state (meeting prepared but teacher not joined)
+        if (lecture.meeting_status === 'ready') return 'starting_soon'; // Show "starting soon" UI
+
         if (!startTime) return 'not_scheduled';
 
         const now = new Date();
@@ -55,7 +58,7 @@ export function LiveSessionContent({ lecture, onJoin }: LiveSessionContentProps)
 
         if (diffMs <= fifteenMinutes) return 'starting_soon';
         return 'upcoming';
-    }, [timeSlot, startTime, endTime, lecture.bbb_meeting_running]);
+    }, [timeSlot, startTime, endTime, lecture.bbb_meeting_running, lecture]);
 
     // Countdown timer
     useEffect(() => {
@@ -242,6 +245,9 @@ export function LiveSessionContent({ lecture, onJoin }: LiveSessionContentProps)
                 );
 
             case 'ended':
+                // Determine if recording is being processed
+                const isRecordingProcessing = lecture.meeting_status === 'completed' && !lecture.recording_url;
+
                 return (
                     <div className="text-center">
                         <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
@@ -261,6 +267,16 @@ export function LiveSessionContent({ lecture, onJoin }: LiveSessionContentProps)
                                     <Video size={24} />
                                     شاهد التسجيل
                                 </a>
+                            </>
+                        ) : isRecordingProcessing ? (
+                            <>
+                                <div className="flex items-center justify-center gap-2 text-amber-600 mb-4">
+                                    <Loader2 size={20} className="animate-spin" />
+                                    <p className="font-medium">جاري تجهيز التسجيل...</p>
+                                </div>
+                                <p className="text-slate-400 text-sm">
+                                    سيكون التسجيل متاحًا خلال دقائق، يرجى المحاولة لاحقًا
+                                </p>
                             </>
                         ) : (
                             <p className="text-slate-400 font-medium">لا يوجد تسجيل متاح لهذه الجلسة</p>
