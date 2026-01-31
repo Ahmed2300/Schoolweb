@@ -25,6 +25,7 @@ export interface Lecture {
     time_slot?: TimeSlot;
     recording_url?: string;
     bbb_meeting_running?: boolean;
+    meeting_status?: 'scheduled' | 'ready' | 'ongoing' | 'completed';
     // Session status for progression rules
     session_status?: 'upcoming' | 'live' | 'ended' | 'recorded';
     can_complete?: boolean;

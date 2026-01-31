@@ -472,11 +472,30 @@ function UnitCard({
                                                                     const isEnded = endTime ? now > endTime : false;
 
                                                                     if (isEnded) {
+                                                                        // Check if recording is available
+                                                                        const hasRecording = contentItem.has_recording || contentItem.recording_url || contentItem.video_path;
+
                                                                         return (
-                                                                            <span className="px-2 py-1.5 text-xs font-medium text-slate-500 bg-slate-100 rounded-md flex items-center gap-1 mr-1">
-                                                                                <Clock size={14} />
-                                                                                <span>منتهية</span>
-                                                                            </span>
+                                                                            <div className="flex items-center gap-1">
+                                                                                {hasRecording ? (
+                                                                                    <button
+                                                                                        onClick={() => {
+                                                                                            const url = contentItem.recording_url || contentItem.video_path;
+                                                                                            if (url) window.open(url, '_blank');
+                                                                                        }}
+                                                                                        className="px-2 py-1.5 text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors flex items-center gap-1 mr-1"
+                                                                                        title="مشاهدة التسجيل"
+                                                                                    >
+                                                                                        <PlayCircle size={14} />
+                                                                                        <span>مشاهدة التسجيل</span>
+                                                                                    </button>
+                                                                                ) : (
+                                                                                    <span className="px-2 py-1.5 text-xs font-medium text-slate-500 bg-slate-100 rounded-md flex items-center gap-1 mr-1">
+                                                                                        <Clock size={14} />
+                                                                                        <span>منتهية</span>
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
                                                                         );
                                                                     }
 
@@ -594,10 +613,10 @@ function UnitCard({
                                                             onClick={() => (contentItem.status || 'draft') !== 'draft' && onToggleQuizActive(contentItem)}
                                                             disabled={!contentItem.status || contentItem.status === 'draft'}
                                                             className={`p-1.5 rounded-md transition-colors ${(!contentItem.status || contentItem.status === 'draft')
-                                                                    ? 'text-slate-300 cursor-not-allowed hidden'
-                                                                    : contentItem.is_active
-                                                                        ? 'text-emerald-500 hover:text-emerald-700'
-                                                                        : 'text-slate-400 hover:text-slate-600'
+                                                                ? 'text-slate-300 cursor-not-allowed hidden'
+                                                                : contentItem.is_active
+                                                                    ? 'text-emerald-500 hover:text-emerald-700'
+                                                                    : 'text-slate-400 hover:text-slate-600'
                                                                 }`}
                                                             title={(!contentItem.status || contentItem.status === 'draft') ? undefined : (contentItem.is_active ? 'إيقاف الاختبار' : 'تفعيل الاختبار')}
                                                         >

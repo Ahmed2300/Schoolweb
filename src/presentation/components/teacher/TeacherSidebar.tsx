@@ -5,7 +5,6 @@ import { useAuthStore } from '../../store';
 import { teacherAuthService } from '../../../data/api/teacherAuthService';
 import { ROUTES } from '../../../shared/constants';
 
-// Lucide Icons
 import {
     LayoutDashboard,
     BookOpen,
@@ -17,7 +16,8 @@ import {
     ChevronLeft,
     GraduationCap,
     Users,
-    Calendar
+    Calendar,
+    Video
 } from 'lucide-react';
 
 // Assets
@@ -43,6 +43,7 @@ const navItems: NavItem[] = [
     { id: 'students', label: 'الطلاب', icon: Users, path: '/teacher/students' },
     { id: 'schedule', label: 'الجدول', icon: Calendar, path: '/teacher/time-slots' },
     { id: 'quizzes', label: 'الاختبارات', icon: ClipboardList, path: ROUTES.TEACHER_QUIZZES },
+    { id: 'recordings', label: 'التسجيلات', icon: Video, path: '/teacher/recordings' },
     { id: 'analytics', label: 'الإحصائيات', icon: BarChart3, path: ROUTES.TEACHER_ANALYTICS },
     { id: 'settings', label: 'الإعدادات', icon: Settings, path: '/teacher/settings' },
 ];
