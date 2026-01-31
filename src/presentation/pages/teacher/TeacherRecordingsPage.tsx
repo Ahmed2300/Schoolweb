@@ -199,7 +199,7 @@ export default function TeacherRecordingsPage() {
                             <>
                                 <button
                                     onClick={() => handlePlay(recording)}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-colors"
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-shibl-crimson hover:bg-shibl-crimson-dark text-white rounded-xl font-bold text-sm transition-colors shadow-crimson"
                                 >
                                     <Play size={16} />
                                     مشاهدة
@@ -249,25 +249,25 @@ export default function TeacherRecordingsPage() {
                         icon={Film}
                         label="إجمالي التسجيلات"
                         value={stats.total_recordings}
-                        gradient="bg-gradient-to-br from-blue-500 to-blue-600"
+                        gradient="bg-gradient-to-br from-purple-500 to-purple-700"
                     />
                     <StatCard
                         icon={Eye}
                         label="إجمالي المشاهدات"
                         value={stats.total_views}
-                        gradient="bg-gradient-to-br from-emerald-500 to-emerald-600"
+                        gradient="bg-gradient-to-br from-teal-400 to-teal-600"
                     />
                     <StatCard
                         icon={TrendingUp}
                         label="تسجيلات هذا الشهر"
                         value={stats.recordings_this_month}
-                        gradient="bg-gradient-to-br from-violet-500 to-violet-600"
+                        gradient="bg-gradient-to-br from-amber-400 to-yellow-500"
                     />
                     <StatCard
                         icon={Clock}
                         label="قيد التجهيز"
                         value={stats.pending_recordings}
-                        gradient="bg-gradient-to-br from-amber-500 to-amber-600"
+                        gradient="bg-gradient-to-br from-rose-500 to-shibl-crimson"
                     />
                 </div>
             )}
