@@ -105,7 +105,9 @@ export function SignInPage() {
             }
         } catch (err: any) {
             // Handle specific error cases
-            if (err.message?.includes('verify your email')) {
+            const errorMsg = err.response?.data?.message || err.message || '';
+
+            if (errorMsg.includes('verify your email')) {
                 setError('يرجى التحقق من بريدك الإلكتروني أولاً');
                 // Optionally navigate to verification page
                 setTimeout(() => {
@@ -113,10 +115,10 @@ export function SignInPage() {
                         state: { email: formData.email, userType }
                     });
                 }, 2000);
-            } else if (err.message?.includes('Invalid credentials')) {
+            } else if (errorMsg.includes('Invalid credentials') || err.response?.status === 401) {
                 setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
             } else {
-                setError(err.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
+                setError(err.response?.data?.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
             }
         } finally {
             setIsLoading(false);

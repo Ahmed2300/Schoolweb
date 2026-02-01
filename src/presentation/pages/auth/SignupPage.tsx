@@ -309,10 +309,12 @@ export function SignupPage() {
             });
         } catch (err: any) {
             // Handle validation errors
-            if (err.message?.includes('already registered') || err.message?.includes('already been taken')) {
+            const errorMsg = err.response?.data?.message || err.message || '';
+
+            if (errorMsg.includes('already registered') || errorMsg.includes('already been taken')) {
                 setError('هذا البريد الإلكتروني مسجل بالفعل');
             } else {
-                setError(err.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
+                setError(err.response?.data?.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
             }
         } finally {
             setIsLoading(false);

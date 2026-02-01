@@ -127,7 +127,11 @@ export function VerifyEmailPage() {
                 }, 1500);
             }
         } catch (err: any) {
-            setError(err.message || 'رمز التحقق غير صحيح أو منتهي الصلاحية');
+            if (err.response?.status === 401) {
+                setError('رمز التحقق غير صحيح أو منتهي الصلاحية');
+            } else {
+                setError(err.response?.data?.message || 'حدث خطأ أثناء التحقق');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -151,7 +155,7 @@ export function VerifyEmailPage() {
             setOtp(['', '', '', '', '', '']);
             setTimeout(() => setSuccess(''), 3000);
         } catch (err: any) {
-            setError(err.message || 'فشل في إرسال الرمز');
+            setError(err.response?.data?.message || 'فشل في إرسال الرمز');
         } finally {
             setIsResending(false);
         }

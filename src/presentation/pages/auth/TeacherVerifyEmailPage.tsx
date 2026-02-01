@@ -147,10 +147,10 @@ export function TeacherVerifyEmailPage() {
                 }, 1500);
             }
         } catch (err: any) {
-            if (err.response?.status === 400 || err.response?.data?.message?.includes('Invalid')) {
+            if (err.response?.status === 400 || err.response?.status === 401 || err.response?.data?.message?.includes('Invalid')) {
                 setError('رمز التحقق غير صحيح أو منتهي الصلاحية');
             } else {
-                setError(err.response?.data?.message || err.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
+                setError(err.response?.data?.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
             }
             // Clear OTP on error
             setOtp(['', '', '', '', '', '']);

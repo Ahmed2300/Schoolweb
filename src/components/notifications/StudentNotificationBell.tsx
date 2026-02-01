@@ -128,8 +128,12 @@ export function StudentNotificationBell() {
         if (!notification.is_read) {
             await markAsRead(notification.id);
         }
-        // Navigate to dashboard when clicking subscription notifications
-        if (notification.data?.subscription_id) {
+        // Navigate based on notification content
+        if (notification.data?.course_id) {
+            window.location.href = `/dashboard/courses/${notification.data.course_id}`;
+        } else if (notification.data?.subscription_id) {
+            window.location.href = `/dashboard/courses`;
+        } else {
             window.location.href = `/dashboard`;
         }
         setIsOpen(false);

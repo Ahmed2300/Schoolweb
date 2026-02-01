@@ -29,10 +29,48 @@ export function NotificationBell() {
         if (!notification.is_read) {
             await markAsRead(notification.id);
         }
-        // Navigate to subscription if applicable
-        if (notification.data?.subscription_id) {
-            window.location.href = `/admin/subscriptions?highlight=${notification.data.subscription_id}`;
+
+        const data = notification.data || {};
+
+        // Navigate based on notification type
+        switch (notification.type) {
+            case 'new_subscription':
+            case 'subscription_approved':
+            case 'subscription_rejected':
+                if (data.subscription_id) {
+                    window.location.href = `/admin/subscriptions?highlight=${data.subscription_id}`;
+                }
+                break;
+
+            case 'content_approval_requested':
+                if (data.approval_id) {
+                    window.location.href = `/admin/content-approvals?requestId=${data.approval_id}`;
+                }
+                break;
+
+            case 'new_payment':
+                // Assuming data contains payment_id or id
+                const paymentId = data.payment_id || data.id;
+                if (paymentId) {
+                    window.location.href = `/admin/payments?highlight=${paymentId}`;
+                }
+                break;
+
+            case 'new_package_subscription':
+                const pkgSubId = data.package_subscription_id || data.id;
+                if (pkgSubId) {
+                    window.location.href = `/admin/package-subscriptions?highlight=${pkgSubId}`;
+                }
+                break;
+
+            default:
+                // Fallback for older notifications or unknown types
+                if (data.subscription_id) {
+                    window.location.href = `/admin/subscriptions?highlight=${data.subscription_id}`;
+                }
+                break;
         }
+
         setIsOpen(false);
     };
 
