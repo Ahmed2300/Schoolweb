@@ -126,7 +126,7 @@ export function SignInPage() {
             } else if (err.message?.includes('Invalid credentials')) {
                 setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
             } else {
-                setError(err.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
+                setError(err.response?.data?.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
             }
         } finally {
             setIsLoading(false);

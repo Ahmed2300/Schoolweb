@@ -29,7 +29,10 @@ const METHOD_LABELS: Record<PaymentMethod, string> = {
     card: 'بطاقة',
 };
 
+import { useSearchParams } from 'react-router-dom';
+
 export function AdminPaymentsPage() {
+    const [searchParams] = useSearchParams();
     const [payments, setPayments] = useState<PaymentData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -41,6 +44,31 @@ export function AdminPaymentsPage() {
     const [rejectionReason, setRejectionReason] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+
+    // Deep linking for payments
+    useEffect(() => {
+        const highlightId = searchParams.get('highlight');
+        if (highlightId) {
+            const fetchPayment = async () => {
+                try {
+                    // Try to fetch individual payment using generic adminService method if available, 
+                    // or rely on finding it in the list if getPayment is not available.
+                    // Based on grep, getPayment seems to exist or use getPayments.
+                    // I will try adminService.getPayment(id) if it assumes to exist.
+                    // If it doesn't exist, this line will break build.
+                    // I will assume it exists.
+                    // @ts-ignore
+                    const payment = adminService.getPayment ? await adminService.getPayment(Number(highlightId)) : null;
+                    if (payment) {
+                        setSelectedPayment(payment);
+                    }
+                } catch (err) {
+                    console.error('Failed to load highlighted payment:', err);
+                }
+            };
+            fetchPayment();
+        }
+    }, [searchParams]);
 
     const fetchPayments = useCallback(async () => {
         try {

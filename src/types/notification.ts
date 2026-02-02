@@ -17,7 +17,9 @@ export type NotificationType =
     | 'new_subscription'
     | 'subscription_approved'
     | 'subscription_rejected'
-    | 'new_payment';
+    | 'new_payment'
+    | 'new_package_subscription'
+    | 'content_approval_requested';
 
 export interface NotificationData {
     subscription_id?: number;
@@ -26,6 +28,14 @@ export interface NotificationData {
     course_id?: number;
     course_name?: string;
     amount?: number;
+    // New fields
+    approval_id?: number;
+    payment_id?: number;
+    package_subscription_id?: number;
+    package_id?: number;
+    package_name?: string;
+    // Generic
+    id?: number;
 }
 
 export interface NotificationResponse {

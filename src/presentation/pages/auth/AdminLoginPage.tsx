@@ -138,12 +138,14 @@ export function AdminLoginPage() {
                 }
             }
         } catch (err: any) {
-            if (err.message?.includes('Invalid credentials') || err.response?.status === 401) {
+            const errorMsg = err.response?.data?.message || err.message || '';
+
+            if (errorMsg.includes('Invalid credentials') || err.response?.status === 401) {
                 setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
             } else if (err.response?.data?.message) {
                 setError(err.response.data.message);
             } else {
-                setError(err.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
+                setError('حدث خطأ. يرجى المحاولة مرة أخرى');
             }
         } finally {
             setIsLoading(false);

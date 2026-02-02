@@ -5,8 +5,10 @@ import { useTeacherNotifications } from '../../../hooks/useTeacherNotifications'
 import { useLanguage } from '../../hooks';
 import { formatDistanceToNow } from 'date-fns';
 import { ar, enUS } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 
 export const TeacherNotificationMenu = () => {
+    const navigate = useNavigate();
     const {
         unreadCount,
         notifications,
@@ -38,6 +40,23 @@ export const TeacherNotificationMenu = () => {
             });
         } catch (e) {
             return date;
+        }
+    };
+
+    const handleNotificationClick = (notification: any) => {
+        markAsRead(notification.id);
+
+        // Navigation Logic
+        if (notification.data?.approval) {
+            const approval = notification.data.approval;
+            // Use course_id if available (added in backend)
+            if (notification.data.course_id) {
+                navigate(`/teacher/courses/${notification.data.course_id}`);
+            } else if (approval.approvable_type?.includes('Course') && approval.approvable_id) {
+                navigate(`/teacher/courses/${approval.approvable_id}`);
+            }
+        } else if (notification.data?.course_id) {
+            navigate(`/teacher/courses/${notification.data.course_id}`);
         }
     };
 
@@ -89,7 +108,7 @@ export const TeacherNotificationMenu = () => {
                                     <div
                                         key={notification.id}
                                         className={`p-4 hover:bg-slate-50 transition-colors cursor-pointer relative group ${!notification.read_at ? 'bg-amber-50/30' : ''}`}
-                                        onClick={() => markAsRead(notification.id)}
+                                        onClick={() => handleNotificationClick(notification)}
                                     >
                                         <div className="flex gap-3">
                                             <div className={`mt-1 shrink-0 w-2 h-2 rounded-full ${!notification.read_at ? 'bg-shibl-crimson' : 'bg-transparent'}`} />

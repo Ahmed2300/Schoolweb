@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
     Package,
     Search,
@@ -52,6 +53,7 @@ const StatusColors: Record<string, string> = {
 
 export function AdminPackageSubscriptionsPage() {
     // State
+    const [searchParams] = useSearchParams();
     const [subscriptions, setSubscriptions] = useState<PackageSubscription[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -69,6 +71,23 @@ export function AdminPackageSubscriptionsPage() {
     const [showApproveModal, setShowApproveModal] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
+
+    // Deep linking for package subscriptions
+    useEffect(() => {
+        const highlightId = searchParams.get('highlight');
+        if (highlightId && subscriptions.length > 0) {
+            const found = subscriptions.find(s => s.id === Number(highlightId));
+            if (found) {
+                // If found, open receipt modal if applicable, or package modal
+                setSelectedSubscription(found);
+                if (found.bill_image_url) {
+                    setShowReceiptModal(true);
+                } else {
+                    setShowPackageModal(true);
+                }
+            }
+        }
+    }, [searchParams, subscriptions]);
 
     // Fetch subscriptions
     const fetchSubscriptions = useCallback(async () => {
