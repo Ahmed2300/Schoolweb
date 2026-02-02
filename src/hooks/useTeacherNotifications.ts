@@ -1,5 +1,5 @@
 
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { useAuth } from '../presentation/hooks/useAuth';
 import { getToken } from '../data/api/ApiClient';
 import {
@@ -9,6 +9,20 @@ import {
 } from '../services/websocket';
 import { notificationService, NotificationItem } from '../data/api/NotificationService';
 import toast from 'react-hot-toast';
+import notificationSound from '../assets/sounds/notifications.mp3';
+
+// Utility function to play notification sound
+const playNotificationSound = () => {
+    try {
+        const audio = new Audio(notificationSound);
+        audio.volume = 0.5; // 50% volume
+        audio.play().catch(err => {
+            console.warn('Could not play notification sound:', err);
+        });
+    } catch (err) {
+        console.warn('Error creating audio for notification:', err);
+    }
+};
 
 export function useTeacherNotifications() {
     const { user, isAuthenticated } = useAuth();
@@ -38,13 +52,53 @@ export function useTeacherNotifications() {
     const handleNotification = useCallback((event: any) => {
         console.log('Teacher Notification Received:', event);
 
-        // Refresh counts
-        // setUnreadCount(prev => prev + 1); // Optimistic update or fetch? 
-        // Better to fetch to ensure consistency or append if we know the structure
+        // Refresh notification counts
         fetchNotifications();
 
+        // Handle quiz approval/rejection notifications
+        const notificationType = event.type;
+        console.log('Processing notification type:', notificationType);
+
+        if (notificationType === 'quiz_approved' || notificationType === 'quiz_rejected') {
+            console.log('Quiz notification detected, showing toast...');
+            const isApproved = notificationType === 'quiz_approved';
+
+            // Play notification sound
+            playNotificationSound();
+
+            // Show toast notification
+            if (isApproved) {
+                console.log('Showing success toast for quiz approval');
+                toast.success(event.title || 'تمت الموافقة على الاختبار', {
+                    duration: 5000,
+                    icon: '✅'
+                });
+            } else {
+                console.log('Showing error toast for quiz rejection');
+                toast.error(event.title || 'تم رفض الاختبار', {
+                    duration: 5000,
+                    icon: '❌'
+                });
+            }
+
+            // Dispatch event for quiz list refresh
+            console.log('Dispatching quiz-status-change event');
+            window.dispatchEvent(new CustomEvent('quiz-status-change', {
+                detail: {
+                    quizId: event.data?.quiz_id,
+                    status: isApproved ? 'approved' : 'rejected',
+                    feedback: event.data?.admin_feedback
+                }
+            }));
+            return;
+        }
+
+        // Handle content approval notifications (existing flow)
         const approval = event.approval;
         if (approval) {
+            // Play notification sound
+            playNotificationSound();
+
             const status = approval.status;
             if (status === 'approved') {
                 toast.success('تمت الموافقة على طلب التعديل الخاص بك', { duration: 5000, icon: '✅' });

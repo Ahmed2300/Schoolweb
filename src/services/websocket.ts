@@ -245,7 +245,7 @@ export function subscribeToAllAdminsChannel(
         try {
             echo
                 .private('admins')
-                .listen('ContentChangeRequested', (event: unknown) => {
+                .listen('.ContentChangeRequested', (event: unknown) => {
                     console.log('Received global admin notification:', event);
                     onNotification(event);
                 });
@@ -415,9 +415,13 @@ export function subscribeToTeacherChannel(
 
     echo
         .private(`teacher.${teacherId}`)
-        .notification((notification: any) => {
-            console.log('Received teacher notification:', notification);
-            onNotification(notification);
+        .listen('.notification', (event: unknown) => {
+            console.log('Received teacher notification:', event);
+            onNotification(event);
+        })
+        .listen('.content.decision', (event: unknown) => {
+            console.log('Received content decision:', event);
+            onNotification(event);
         });
 }
 

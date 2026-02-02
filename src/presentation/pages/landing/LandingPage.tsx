@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../hooks';
 import { ROUTES } from '../../../shared/constants';
 import { Footer } from '../../components/common/Footer';
+import { SEO } from '../../components/seo/SEO';
 
 // Lucide Icons
 import {
@@ -19,16 +20,16 @@ import {
     GraduationCap,
     Building2,
     BadgeCheck,
-    Globe,
     UserPlus,
     LogIn,
     Menu,
-    X
+    X,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export function LandingPage() {
     const navigate = useNavigate();
-    const { isRTL, language, toggleLanguage } = useLanguage();
+    const { isRTL } = useLanguage();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -36,6 +37,10 @@ export function LandingPage() {
 
     return (
         <div className="min-h-screen bg-soft-cloud overflow-x-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
+            <SEO
+                title="سُبُل - علم يوصل للمستقبل"
+                description="منصة تعليمية متكاملة تجمع بين الفصول التفاعلية والمتابعة الدقيقة لضمان أفضل تجربة تعليمية. انضم لآلاف الطلاب الناجحين الآن."
+            />
             {/* Navigation */}
             <header className="fixed top-0 left-0 right-0 z-[1000] bg-white/90 backdrop-blur-md border-b border-slate-200">
                 <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
@@ -59,13 +64,7 @@ export function LandingPage() {
 
                     {/* Desktop Actions */}
                     <div className="hidden md:flex items-center gap-2 lg:gap-3">
-                        <button
-                            className="btn-secondary-pro flex items-center gap-1.5 lg:gap-2 px-3 lg:px-4 shadow-sm text-sm lg:text-base"
-                            onClick={toggleLanguage}
-                        >
-                            <Globe size={18} />
-                            <span>{language === 'ar' ? 'EN' : 'عربي'}</span>
-                        </button>
+
                         <Link to={ROUTES.LOGIN} className="btn-secondary-pro flex items-center gap-1.5 lg:gap-2 px-4 lg:px-6 text-sm lg:text-base">
                             <LogIn size={18} />
                             <span className="hidden sm:inline">تسجيل الدخول</span>
@@ -79,13 +78,7 @@ export function LandingPage() {
 
                     {/* Mobile Menu Button */}
                     <div className="flex md:hidden items-center gap-2">
-                        <button
-                            className="btn-secondary-pro flex items-center gap-1 px-2 py-2 shadow-sm text-xs"
-                            onClick={toggleLanguage}
-                        >
-                            <Globe size={16} />
-                            <span>{language === 'ar' ? 'EN' : 'ع'}</span>
-                        </button>
+
                         <button
                             className="p-2 rounded-xl hover:bg-slate-100 transition-colors"
                             onClick={toggleMobileMenu}
@@ -135,99 +128,154 @@ export function LandingPage() {
             </header>
 
             {/* Hero Banner Section */}
-            <section className="pt-16 sm:pt-20" id="home">
+            <section className="pt-16 sm:pt-20">
                 <div className="relative w-full overflow-hidden">
                     <img
                         src="/images/subol-hero.png"
                         alt="سُبُل - علم يوصل للمستقبل"
                         className="w-full h-auto object-cover min-h-[200px] sm:min-h-[300px] md:min-h-[400px] lg:min-h-[500px]"
                     />
-                    {/* Navigation Arrows (optional) */}
-                    <button className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all">
-                        <ArrowLeft size={20} className="text-charcoal" style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
-                    </button>
                 </div>
             </section>
 
-            {/* Content Section */}
-            <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-                {/* Text Content */}
-                <div className="flex flex-col items-center lg:items-start text-center lg:text-right order-2 lg:order-1">
-                    <div className="inline-flex items-center gap-2 bg-shibl-crimson/10 text-shibl-crimson px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-bold text-xs sm:text-sm mb-4 sm:mb-6 md:mb-8">
-                        <CheckCircle size={20} />
-                        <span>المنصة التعليمية الأولى في المنطقة</span>
-                    </div>
-
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-charcoal leading-[1.2] mb-4 sm:mb-6">
-                        <span className="block">مستقبلك</span>
-                        <span className="text-shibl-crimson block my-1 sm:my-2">التعليمي</span>
-                        <span className="text-charcoal block">يبدأ من هنا</span>
-                    </h1>
-
-                    <p className="text-sm sm:text-base md:text-lg text-slate-500 max-w-lg leading-relaxed mb-6 sm:mb-8 md:mb-10 px-2 sm:px-0">
-                        منصة متكاملة تجمع بين الفصول التفاعلية، المتابعة الدقيقة،
-                        والمحتوى المتميز لتضمن لك أفضل تجربة تعليمية.
-                    </p>
-
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto mb-8 sm:mb-10 md:mb-12 px-2 sm:px-0">
-                        <Link to={ROUTES.REGISTER} className="btn-primary-pro btn-lg h-12 sm:h-14 md:h-16 px-6 sm:px-8 text-base sm:text-lg md:text-xl shadow-crimson-lg hover:shadow-crimson justify-center">
-                            <span>ابدأ رحلتك الآن</span>
-                            <ArrowLeft size={24} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
-                        </Link>
-                        <button className="btn-secondary-pro btn-lg h-12 sm:h-14 md:h-16 px-4 sm:px-6 md:px-8 text-sm sm:text-base md:text-lg text-slate-grey hover:text-shibl-crimson flex items-center gap-3 justify-center">
-                            <span className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-shibl-crimson/10 text-shibl-crimson flex items-center justify-center flex-shrink-0">
-                                <Play size={24} />
-                            </span>
-                            <span className="whitespace-nowrap pb-1">شاهد الفيديو التعريفي</span>
-                        </button>
-                    </div>
-
-                    <div className="flex flex-col items-center lg:items-start gap-2 sm:gap-3">
-                        <p className="text-slate-grey font-medium text-sm sm:text-base">
-                            يثق بنا أكثر من <strong className="text-shibl-crimson font-extrabold">10,000</strong> طالب وطالبة
-                        </p>
-                        <div className="flex flex-wrap justify-center lg:justify-start gap-2">
-                            {['أكاديمية', 'جامعة', 'تعليم'].map(tag => (
-                                <span key={tag} className="px-3 sm:px-4 md:px-5 py-1 sm:py-1.5 bg-white border border-slate-200 rounded-full text-xs sm:text-sm font-bold text-slate-600 shadow-sm">
-                                    {tag}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
+            {/* Unified Hero Section */}
+            <section className="relative min-h-[90vh] flex items-center py-12 lg:py-0 overflow-hidden" id="home">
+                {/* Dynamic Background Elements */}
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-red-50 rounded-full blur-3xl opacity-60" />
+                    <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-indigo-50 rounded-full blur-3xl opacity-50" />
                 </div>
 
-                {/* Visual Content */}
-                <div className="relative flex justify-center items-center h-[280px] sm:h-[350px] md:h-[400px] lg:h-[500px] order-1 lg:order-2">
-                    <div className="relative w-[220px] sm:w-[280px] md:w-[340px] lg:w-[400px] h-[220px] sm:h-[280px] md:h-[340px] lg:h-[400px] bg-gradient-to-br from-red-100 to-rose-50 rounded-3xl flex items-center justify-center p-2 sm:p-3 md:p-4 shadow-lg border border-red-100">
-                        {/* Main Image */}
-                        <img
-                            src="/images/hero-student.png"
-                            alt="Student studying"
-                            className="w-full h-full object-cover rounded-2xl drop-shadow-xl z-0"
-                        />
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full grid lg:grid-cols-2 gap-12 lg:gap-8 items-center relative z-10">
+
+                    {/* Text Content */}
+                    <div className="flex flex-col items-center lg:items-start text-center lg:text-right order-2 lg:order-1">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                            className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-red-100 text-shibl-crimson px-4 py-2 rounded-full font-bold text-sm mb-6 sm:mb-8 shadow-sm"
+                        >
+                            <span className="w-2 h-2 rounded-full bg-shibl-crimson animate-pulse" />
+                            <span>المنصة التعليمية الأولى في المنطقة</span>
+                        </motion.div>
+
+                        <motion.h1
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-charcoal leading-[1.15] mb-6 tracking-tight"
+                        >
+                            <span className="block mb-2">مستقبلك</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-shibl-crimson to-rose-600 block my-2 pb-2">التعليمي</span>
+                            <span className="text-charcoal block">يبدأ من هنا</span>
+                        </motion.h1>
+
+                        <motion.p
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            className="text-base sm:text-lg md:text-xl text-slate-500 max-w-lg leading-relaxed mb-8 sm:mb-10"
+                        >
+                            منصة متكاملة تجمع بين الفصول التفاعلية والمتابعة الدقيقة،
+                            والمحتوى المتميز لتضمن لك أفضل تجربة تعليمية.
+                        </motion.p>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.3 }}
+                            className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-4 sm:px-0"
+                        >
+                            <Link to={ROUTES.REGISTER} className="btn-primary-pro btn-lg h-14 sm:h-16 px-8 text-lg sm:text-xl shadow-crimson-lg hover:shadow-crimson hover:-translate-y-1 transition-all duration-300 justify-center group">
+                                <span>ابدأ رحلتك الآن</span>
+                                <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                            </Link>
+                            <button className="h-14 sm:h-16 px-6 sm:px-8 rounded-full text-lg sm:text-xl text-slate-grey hover:text-charcoal hover:-translate-y-1 transition-all duration-300 inline-flex items-center justify-center gap-3 bg-white shadow-sm border border-slate-200 group">
+                                <span className="w-10 h-10 rounded-full bg-red-50 text-shibl-crimson flex items-center justify-center flex-shrink-0 group-hover:bg-shibl-crimson group-hover:text-white transition-colors">
+                                    <Play size={22} className="fill-current" />
+                                </span>
+                                <span className="font-bold">شاهد الفيديو</span>
+                            </button>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.5, delay: 0.4 }}
+                            className="mt-12 flex flex-col items-center lg:items-start gap-4"
+                        >
+                            <div className="flex -space-x-3 space-x-reverse">
+                                {[1, 2, 3, 4].map((i) => (
+                                    <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500 relative z-0">
+                                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt="User" className="w-full h-full rounded-full" />
+                                    </div>
+                                ))}
+                                <div className="w-10 h-10 rounded-full border-2 border-white bg-shibl-crimson text-white flex items-center justify-center text-xs font-bold relative z-10">
+                                    +10k
+                                </div>
+                            </div>
+                            <p className="text-slate-500 text-sm font-medium">
+                                انضم لأكثر من <strong className="text-shibl-crimson">10,000</strong> طالب وطالبة يثقون بنا
+                            </p>
+                        </motion.div>
                     </div>
 
-                    {/* Floating Card - Top Right (Grade/Success - Green) */}
-                    <div className="absolute -top-2 sm:top-0 right-0 sm:right-4 md:right-0 p-2 sm:p-3 md:p-4 flex items-center gap-2 sm:gap-3 animate-float z-10 scale-75 sm:scale-90 md:scale-100 origin-top-right backdrop-blur-xl border border-white/20 shadow-2xl text-white rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.95) 0%, rgba(22, 163, 74, 0.95) 100%)' }}>
-                        <div className="w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center">
-                            <CheckCircle size={28} className="text-white" />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] sm:text-xs text-white/80 font-bold uppercase tracking-wider">النتيجة</span>
-                            <span className="text-white font-extrabold text-sm sm:text-base md:text-lg">A+ ممتاز</span>
-                        </div>
-                    </div>
+                    {/* Visual Content (Unified) */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.7 }}
+                        className="relative flex justify-center items-center order-1 lg:order-2"
+                    >
+                        {/* Abstract background shapes behind image */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-red-100/50 to-transparent rounded-full blur-2xl transform scale-90" />
 
-                    {/* Floating Card - Bottom Left (Achievement - Amber/Gold) */}
-                    <div className="absolute -bottom-2 sm:bottom-0 left-0 sm:left-4 md:left-0 p-2 sm:p-3 md:p-5 flex items-center gap-2 sm:gap-3 md:gap-4 animate-float animation-delay-3000 z-10 scale-75 sm:scale-90 md:scale-100 origin-bottom-left backdrop-blur-xl border border-white/20 shadow-2xl text-white rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.95) 0%, rgba(217, 119, 6, 0.95) 100%)' }}>
-                        <div className="w-10 sm:w-12 md:w-14 h-10 sm:h-12 md:h-14 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center">
-                            <Trophy size={32} className="text-white" />
+                        <div className="relative w-full max-w-[500px] aspect-square">
+                            <div className="absolute inset-4 bg-gradient-to-br from-red-50 to-white rounded-[2.5rem] rotate-3 shadow-2xl border border-white" />
+                            <div className="absolute inset-4 bg-white rounded-[2.5rem] -rotate-3 shadow-xl overflow-hidden border border-slate-100">
+                                <img
+                                    src="/images/hero-student.png"
+                                    alt="Student studying with tablet"
+                                    className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
+                                />
+                                {/* Overlay Gradient */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                            </div>
+
+                            {/* Floating Card - Top Right (Success) */}
+                            <motion.div
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.5 }}
+                                className="absolute top-12 -right-4 sm:-right-8 p-4 bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl rounded-2xl flex items-center gap-3 animate-float"
+                            >
+                                <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center text-green-600">
+                                    <CheckCircle size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">النتيجة النهائية</p>
+                                    <p className="text-lg font-extrabold text-slate-800">98% ممتاز</p>
+                                </div>
+                            </motion.div>
+
+                            {/* Floating Card - Bottom Left (Courses) */}
+                            <motion.div
+                                initial={{ y: -20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.7 }}
+                                className="absolute bottom-16 -left-4 sm:-left-8 p-4 bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl rounded-2xl flex items-center gap-3 animate-float animation-delay-2000"
+                            >
+                                <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center text-amber-500">
+                                    <Trophy size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-lg font-extrabold text-slate-800">+50 دورة</p>
+                                    <p className="text-xs text-slate-500 font-bold">متوفرة الآن</p>
+                                </div>
+                            </motion.div>
                         </div>
-                        <div className="flex flex-col">
-                            <span className="text-white font-extrabold text-sm sm:text-base md:text-lg">إنجاز جديد!</span>
-                            <span className="text-white/80 text-xs sm:text-sm">تم إكمال دورة الفيزياء</span>
-                        </div>
-                    </div>
+                    </motion.div>
                 </div>
             </section>
 
@@ -247,13 +295,20 @@ export function LandingPage() {
                             { icon: <FileQuestion size={36} />, title: 'اختبارات ذكية', desc: 'اختبارات MCQ مع تصحيح تلقائي وتقييم فوري', color: 'text-shibl-crimson-dark' },
                             { icon: <LineChart size={36} />, title: 'متابعة دقيقة', desc: 'تقارير مفصلة لأولياء الأمور عن تقدم الأبناء', color: 'text-shibl-crimson-dark' },
                         ].map((feature, idx) => (
-                            <div key={idx} className="bg-soft-cloud border border-slate-100 p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl group hover:border-shibl-crimson hover:bg-white transition-all cursor-default">
-                                <div className={`${feature.color} mb-4 sm:mb-5 md:mb-6 bg-white w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform`}>
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                                key={idx}
+                                className="bg-soft-cloud border border-slate-100 p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl group hover:border-shibl-crimson hover:bg-white hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-default"
+                            >
+                                <div className={`${feature.color} mb-4 sm:mb-5 md:mb-6 bg-white w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 group-hover:shadow-md transition-all`}>
                                     {feature.icon}
                                 </div>
                                 <h3 className="text-base sm:text-lg md:text-xl font-bold text-charcoal mb-2 sm:mb-3">{feature.title}</h3>
                                 <p className="text-slate-grey leading-relaxed text-sm sm:text-base">{feature.desc}</p>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </div>
@@ -274,17 +329,24 @@ export function LandingPage() {
                             { icon: <GraduationCap size={48} />, title: 'الدورة الثالثة', desc: 'تحضير شامل للجامعة', color: 'from-red-50 to-rose-100', iconColor: 'text-shibl-crimson-dark' },
                             { icon: <Building2 size={48} />, title: 'المرحلة الجامعية', desc: 'دورات متخصصة ومتقدمة', color: 'from-rose-100 to-red-50', iconColor: 'text-shibl-crimson-dark' },
                         ].map((stage, idx) => (
-                            <div key={idx} className={`p-5 sm:p-6 md:p-8 rounded-3xl sm:rounded-[32px] md:rounded-[40px] bg-gradient-to-br ${stage.color} border border-white flex flex-col items-center text-center group hover:-translate-y-2 transition-transform shadow-sm`}>
-                                <div className={`${stage.iconColor} mb-4 sm:mb-6 md:mb-8 group-hover:scale-110 transition-transform`}>
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                                key={idx}
+                                className={`p-5 sm:p-6 md:p-8 rounded-3xl sm:rounded-[32px] md:rounded-[40px] bg-gradient-to-br ${stage.color} border border-white flex flex-col items-center text-center group hover:-translate-y-2 hover:shadow-xl transition-all duration-300 shadow-sm`}
+                            >
+                                <div className={`${stage.iconColor} mb-4 sm:mb-6 md:mb-8 group-hover:scale-110 transition-transform duration-300`}>
                                     {stage.icon}
                                 </div>
                                 <h3 className="text-lg sm:text-xl md:text-2xl font-extrabold text-charcoal mb-2 sm:mb-3">{stage.title}</h3>
                                 <p className="text-slate-grey font-bold mb-4 sm:mb-5 md:mb-6 opacity-80 text-sm sm:text-base">{stage.desc}</p>
-                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full font-extrabold text-charcoal text-sm sm:text-base cursor-pointer hover:bg-white/50 transition-colors" style={{ lineHeight: 1 }}>
+                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full font-extrabold text-charcoal text-sm sm:text-base cursor-pointer hover:bg-white/80 hover:shadow-sm transition-all" style={{ lineHeight: 1 }}>
                                     <span style={{ display: 'flex', alignItems: 'center' }}>تصفح الدورات</span>
-                                    <ArrowLeft size={16} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                                    <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
                                 </div>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </div>

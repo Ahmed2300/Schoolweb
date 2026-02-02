@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
 import {
   LandingPage,
   PrivacyPolicyPage,
@@ -84,6 +85,16 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            duration: 5000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+            },
+          }}
+        />
         <MaintenanceWrapper>
           <Routes>
             {/* Public routes */}

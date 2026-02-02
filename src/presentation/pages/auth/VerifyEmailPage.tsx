@@ -127,10 +127,18 @@ export function VerifyEmailPage() {
                 }, 1500);
             }
         } catch (err: any) {
-            if (err.response?.status === 401) {
-                setError('رمز التحقق غير صحيح أو منتهي الصلاحية');
+            // Extract Arabic error message from API response
+            // Handle both axios error response and potential nested structures
+            const errorData = err.response?.data;
+            const arabicMessage = errorData?.message_ar;
+            const englishMessage = errorData?.message;
+
+            if (arabicMessage) {
+                setError(arabicMessage);
+            } else if (englishMessage && !englishMessage.includes('status code')) {
+                setError(englishMessage);
             } else {
-                setError(err.response?.data?.message || 'حدث خطأ أثناء التحقق');
+                setError('رمز التحقق غير صحيح أو منتهي الصلاحية');
             }
         } finally {
             setIsLoading(false);

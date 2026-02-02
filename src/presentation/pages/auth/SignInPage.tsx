@@ -104,18 +104,26 @@ export function SignInPage() {
                 }
             }
         } catch (err: any) {
-            // Handle specific error cases
-            const errorMsg = err.response?.data?.message || err.message || '';
+            // Extract Arabic message from API response if available
+            const apiResponse = err.response?.data;
+            const arabicMessage = apiResponse?.message_ar;
+            const errorCode = apiResponse?.error_code;
 
-            if (errorMsg.includes('verify your email')) {
-                setError('يرجى التحقق من بريدك الإلكتروني أولاً');
-                // Optionally navigate to verification page
+            if (errorCode === 'email_not_verified') {
+                // Email not verified, redirect to verification page
+                setError(arabicMessage || 'البريد الإلكتروني غير مفعل. يرجى التحقق من بريدك الإلكتروني أولاً.');
                 setTimeout(() => {
                     navigate(ROUTES.VERIFY_EMAIL, {
                         state: { email: formData.email, userType }
                     });
                 }, 2000);
-            } else if (errorMsg.includes('Invalid credentials') || err.response?.status === 401) {
+            } else if (errorCode === 'invalid_credentials') {
+                setError(arabicMessage || 'البريد الإلكتروني أو كلمة المرور غير صحيحة');
+            } else if (arabicMessage) {
+                setError(arabicMessage);
+            } else if (err.message?.includes('verify your email')) {
+                setError('يرجى التحقق من بريدك الإلكتروني أولاً');
+            } else if (err.message?.includes('Invalid credentials')) {
                 setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
             } else {
                 setError(err.response?.data?.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
