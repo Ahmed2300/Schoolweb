@@ -1162,6 +1162,7 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
                 lecture_id: lectureIdToUse,
                 duration_minutes: durationMinutes,
                 passing_percentage: passingPercentage,
+                submit_for_approval: shouldSubmitForApproval, // Include flag here
                 questions: questions.map(q => ({
                     question_text: { ar: q.question_text_ar, en: q.question_text_en || undefined },
                     question_type: quizType,
@@ -1183,7 +1184,13 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
             let quizId: number;
 
             if (quiz) {
-                await quizService.updateQuiz(quiz.id, quizData);
+                // Determine if we're submitting explicitly
+                const updateData = {
+                    ...quizData,
+                    submit_for_approval: shouldSubmitForApproval
+                };
+
+                await quizService.updateQuiz(quiz.id, updateData);
                 quizId = quiz.id;
             } else {
                 const response = await quizService.createQuiz(quizData);
@@ -1191,9 +1198,7 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
                 quizId = response.data?.id || response.id; // Adjust based on API response
             }
 
-            // If user wants to submit for approval immediately
-            if (shouldSubmitForApproval && quizId) {
-                await quizService.submitForApproval(quizId);
+            if (shouldSubmitForApproval) {
                 toast.success('تم إنشاء الاختبار وإرساله للموافقة');
             } else {
                 toast.success(quiz ? 'تم تحديث الاختبار بنجاح' : 'تم حفظ الاختبار كمسودة');
@@ -1207,6 +1212,8 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
                 name: typeof quizData.name === 'string' ? quizData.name : quizData.name.ar || quizData.name.en,
                 questions_count: questions.length,
                 is_active: quiz ? quiz.is_active : true, // Default to true if new?
+                // Set status correctly for immediate UI update
+                status: shouldSubmitForApproval ? 'pending' : 'draft',
             };
             onSuccess(optimisticQuiz);
             onClose();

@@ -8,7 +8,7 @@ interface MainLayoutProps {
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
-    const { isRTL, t, toggleLanguage, language } = useLanguage();
+    const { isRTL, t } = useLanguage();
     const { theme, setTheme, sidebarOpen, toggleSidebar } = useUIStore();
 
     return (
@@ -25,10 +25,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 </div>
 
                 <div className="header-end">
-                    {/* Language Toggle */}
-                    <button className="lang-btn" onClick={toggleLanguage}>
-                        {language === 'ar' ? 'EN' : 'عربي'}
-                    </button>
+
 
                     {/* Theme Toggle */}
                     <button

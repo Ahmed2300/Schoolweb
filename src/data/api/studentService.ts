@@ -592,6 +592,31 @@ export const studentService = {
         const response = await apiClient.get(`/api/v1/lectures/${lectureId}/bbb/status`);
         return response.data;
     },
+
+    // ============================================================
+    // Quiz Methods
+    // ============================================================
+
+    /**
+     * Get all quiz attempts for the authenticated student
+     */
+    getQuizAttempts: async (): Promise<QuizAttempt[]> => {
+        const response = await apiClient.get('/api/v1/student/attempts');
+        return response.data.data || [];
+    },
 };
+
+export interface QuizAttempt {
+    id: number;
+    quiz_id: number;
+    quiz_title: string | { ar?: string; en?: string };
+    course_name?: string | { ar?: string; en?: string };
+    score: number | null; // null if pending grading
+    total_possible_score: number;
+    passing_percentage: number;
+    status: 'passed' | 'failed' | 'pending_grading';
+    started_at: string;
+    completed_at: string;
+}
 
 export default studentService;
