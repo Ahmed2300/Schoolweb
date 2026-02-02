@@ -163,7 +163,7 @@ export function VerifyEmailPage() {
             setOtp(['', '', '', '', '', '']);
             setTimeout(() => setSuccess(''), 3000);
         } catch (err: any) {
-            setError(err.message || 'فشل في إرسال الرمز');
+            setError(err.response?.data?.message || 'فشل في إرسال الرمز');
         } finally {
             setIsResending(false);
         }

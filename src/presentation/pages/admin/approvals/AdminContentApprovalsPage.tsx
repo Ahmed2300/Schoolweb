@@ -23,13 +23,34 @@ const statusLabels: Record<string, string> = {
 
 import { subscribeToAllAdminsChannel, unsubscribeFromAllAdminsChannel } from '../../../../services/websocket';
 
+import { useSearchParams } from 'react-router-dom';
+
 export const AdminContentApprovalsPage = () => {
     const { isRTL } = useLanguage();
+    const [searchParams] = useSearchParams();
     const [statusFilter, setStatusFilter] = useState<'pending' | 'approved' | 'rejected'>('pending');
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<ContentApprovalListResponse | null>(null);
     const [selectedRequest, setSelectedRequest] = useState<ContentApprovalRequest | null>(null);
     const [page, setPage] = useState(1);
+
+    // Deep linking handling
+    useEffect(() => {
+        const requestId = searchParams.get('requestId');
+        if (requestId) {
+            const fetchSpecificRequest = async () => {
+                try {
+                    const response = await adminContentApprovalService.getRequest(Number(requestId));
+                    if (response && response.data) {
+                        setSelectedRequest(response.data);
+                    }
+                } catch (err) {
+                    console.error('Failed to load specific request:', err);
+                }
+            };
+            fetchSpecificRequest();
+        }
+    }, [searchParams]);
 
     const fetchRequests = useCallback(async () => {
         setLoading(true);
