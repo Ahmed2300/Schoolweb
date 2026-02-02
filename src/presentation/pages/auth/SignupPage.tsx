@@ -308,11 +308,26 @@ export function SignupPage() {
                 }
             });
         } catch (err: any) {
-            // Handle validation errors
-            if (err.message?.includes('already registered') || err.message?.includes('already been taken')) {
+            // Handle validation errors with specific Arabic messages
+            const apiErrors = err.response?.data?.errors;
+            const apiMessage = err.response?.data?.message || err.message;
+
+            if (apiErrors) {
+                // Check for specific field errors
+                if (apiErrors.email) {
+                    setError('البريد الإلكتروني للطالب مسجل بالفعل');
+                    setFieldErrors(prev => ({ ...prev, email: 'هذا البريد الإلكتروني مسجل بالفعل' }));
+                } else if (apiErrors.parent_email) {
+                    setError('البريد الإلكتروني لولي الأمر مسجل بالفعل');
+                    setFieldErrors(prev => ({ ...prev, parentEmail: 'هذا البريد الإلكتروني مسجل بالفعل' }));
+                } else {
+                    // Generic validation error
+                    setError(apiMessage || 'يرجى التحقق من البيانات المدخلة');
+                }
+            } else if (apiMessage?.includes('already registered') || apiMessage?.includes('already been taken')) {
                 setError('هذا البريد الإلكتروني مسجل بالفعل');
             } else {
-                setError(err.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
+                setError(apiMessage || 'حدث خطأ. يرجى المحاولة مرة أخرى');
             }
         } finally {
             setIsLoading(false);

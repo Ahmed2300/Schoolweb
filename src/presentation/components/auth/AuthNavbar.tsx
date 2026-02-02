@@ -3,10 +3,10 @@ import { useLanguage } from '../../hooks';
 import { ROUTES } from '../../../shared/constants';
 
 // Lucide Icons
-import { Globe } from 'lucide-react';
+// Lucide Icons
 
 export function AuthNavbar() {
-    const { language, toggleLanguage, isRTL } = useLanguage();
+    const { isRTL } = useLanguage();
 
     return (
         <header className="fixed top-0 left-0 right-0 z-[1000] bg-white/90 backdrop-blur-md border-b border-slate-200">
@@ -16,13 +16,7 @@ export function AuthNavbar() {
                     <span className="text-xl font-bold text-charcoal">سُبُل</span>
                 </Link>
 
-                <button
-                    className="btn-secondary-pro flex items-center gap-2 px-4 shadow-sm"
-                    onClick={toggleLanguage}
-                >
-                    <Globe size={18} />
-                    <span>{language === 'ar' ? 'English' : 'عربي'}</span>
-                </button>
+
             </nav>
         </header>
     );

@@ -72,6 +72,7 @@ export interface CreateQuizData {
     lecture_id?: number | null;
     duration_minutes?: number;
     passing_percentage?: number;
+    submit_for_approval?: boolean; // Added flag
     questions: Array<{
         question_text: { en?: string; ar?: string };
         question_type: 'mcq' | 'essay';
@@ -174,6 +175,7 @@ export function buildQuizFormData(data: CreateQuizData): FormData {
     if (data.lecture_id) formData.append('lecture_id', String(data.lecture_id));
     if (data.duration_minutes) formData.append('duration_minutes', String(data.duration_minutes));
     if (data.passing_percentage) formData.append('passing_percentage', String(data.passing_percentage));
+    if (data.submit_for_approval) formData.append('submit_for_approval', '1');
 
     // Questions array
     data.questions.forEach((question, qIdx) => {
@@ -278,6 +280,25 @@ export const quizService = {
      * Update an existing quiz
      */
     async updateQuiz(id: number, data: UpdateQuizData): Promise<QuizResponse> {
+        // Check if any images are present
+        const hasImages = data.questions && hasQuizImages(data as CreateQuizData);
+
+        if (hasImages) {
+            const formData = buildQuizFormData(data as CreateQuizData);
+            formData.append('_method', 'PUT');
+
+            const response = await apiClient.post<QuizResponse>(
+                endpoints.teacher.quizzes.update(id),
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+            return response.data;
+        }
+
         const response = await apiClient.put<QuizResponse>(
             endpoints.teacher.quizzes.update(id),
             data

@@ -790,6 +790,46 @@ export function TeacherCourseDetailsPage() {
         fetchCourseData();
     }, [fetchCourseData]);
 
+    // Listen for real-time quiz status changes (WebSocket notifications)
+    useEffect(() => {
+        const handleQuizStatusChange = async (event: Event) => {
+            const customEvent = event as CustomEvent;
+            console.log('TeacherCourseDetailsPage: Quiz status changed, refreshing data...', customEvent.detail);
+
+            // Refresh quizzes only (not the entire course to avoid full page reload flicker)
+            try {
+                const quizzesResponse = await quizService.getQuizzes({ course_id: courseId });
+                setAllQuizzes(quizzesResponse.data || []);
+                console.log('TeacherCourseDetailsPage: Quiz data refreshed successfully');
+            } catch (err) {
+                console.error('Failed to refresh quizzes after status change:', err);
+            }
+        };
+
+        console.log('TeacherCourseDetailsPage: Adding quiz-status-change event listener');
+        window.addEventListener('quiz-status-change', handleQuizStatusChange);
+        return () => {
+            window.removeEventListener('quiz-status-change', handleQuizStatusChange);
+        };
+    }, [courseId]);
+
+    // Listen for lecture/content approval updates
+    useEffect(() => {
+        const handleApprovalUpdate = (event: Event) => {
+            const customEvent = event as CustomEvent;
+            console.log('TeacherCourseDetailsPage: Content approval update received:', customEvent.detail);
+
+            // Refresh full course data to update units/lectures list
+            fetchCourseData();
+        };
+
+        console.log('TeacherCourseDetailsPage: Adding teacher-approval-update listener');
+        window.addEventListener('teacher-approval-update', handleApprovalUpdate);
+        return () => {
+            window.removeEventListener('teacher-approval-update', handleApprovalUpdate);
+        };
+    }, [fetchCourseData]);
+
     // Unit Handlers
     const handleToggleUnit = (unitId: number) => {
         setExpandedUnits(prev =>
