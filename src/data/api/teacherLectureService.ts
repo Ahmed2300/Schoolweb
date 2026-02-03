@@ -195,6 +195,23 @@ export const teacherLectureService = {
         return response.data;
     },
 
+    /**
+     * Generate a secure, one-time-use embed token for live sessions.
+     * This prevents URL sharing - the token expires in 30 seconds and is consumed on first use.
+     */
+    generateSecureEmbedToken: async (lectureId: number): Promise<{
+        success: boolean;
+        data?: {
+            embed_url: string;
+            expires_at: string;
+            expires_in_seconds: number;
+        };
+        message?: string
+    }> => {
+        const response = await apiClient.post(`/api/v1/lectures/${lectureId}/bbb/generate-secure-token`);
+        return response.data;
+    },
+
     // Recording Management
     getRecordings: async (params?: {
         course_id?: number;
