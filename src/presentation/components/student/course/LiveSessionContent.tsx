@@ -6,32 +6,62 @@ import {
     Play,
     CheckCircle2,
     Calendar,
-    Loader2
+    Loader2,
+    AlertCircle
 } from 'lucide-react';
 import { Lecture } from '../../../../data/api/studentCourseService';
-import apiClient from '../../../../data/api/ApiClient';
 import { BBBEmbedModal } from './BBBEmbedModal';
+import { useJoinLiveSession, LiveSessionErrorCode } from '../../../../hooks/useLiveSession';
+import { parseLocalDate, formatSessionTime, getCountdownText } from '../../../../utils/dateUtils';
 
 interface LiveSessionContentProps {
     lecture: Lecture;
     onJoin?: () => void;
 }
 
-type SessionState = 'not_scheduled' | 'pending' | 'upcoming' | 'starting_soon' | 'live' | 'ended';
+type SessionState = 'not_scheduled' | 'pending' | 'upcoming' | 'starting_soon' | 'live' | 'ended' | 'error';
 
 export function LiveSessionContent({ lecture, onJoin }: LiveSessionContentProps) {
-    const [isJoining, setIsJoining] = useState(false);
-    const [countdown, setCountdown] = useState<string>('');
     const [embedUrl, setEmbedUrl] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [errorState, setErrorState] = useState<{ code: LiveSessionErrorCode | null; message: string | null }>({ code: null, message: null });
+    const [countdown, setCountdown] = useState<string>('');
 
-    // Parse time slot if available
+    // Use the new hook with graceful error handling
+    const { mutate: joinSession, isPending: isJoining, data: joinData, error: joinError } = useJoinLiveSession();
+
+    // Parse time slot if available (using timezone-aware parsing)
     const timeSlot = lecture.time_slot;
-    const startTime = timeSlot?.start_time ? new Date(timeSlot.start_time) : null;
-    const endTime = timeSlot?.end_time ? new Date(timeSlot.end_time) : null;
+    const startTime = parseLocalDate(timeSlot?.start_time);
+    const endTime = parseLocalDate(timeSlot?.end_time);
+
+    // Handle join response - open modal with embed URL
+    useEffect(() => {
+        if (joinData?.success && joinData.join_url) {
+            setEmbedUrl(joinData.join_url);
+            setIsModalOpen(true);
+            setErrorState({ code: null, message: null });
+            onJoin?.();
+        }
+    }, [joinData, onJoin]);
+
+    // Handle join error - update error state
+    useEffect(() => {
+        if (joinError) {
+            const err = joinError as any;
+            const errorCode = err?.response?.data?.error_code as LiveSessionErrorCode | undefined;
+            const message = err?.response?.data?.message || 'حدث خطأ أثناء الانضمام للجلسة';
+            setErrorState({ code: errorCode ?? null, message });
+        }
+    }, [joinError]);
 
     // Determine session state
     const sessionState = useMemo((): SessionState => {
+        // Check for specific error states that should change the UI
+        if (errorState.code === 'NOT_ENROLLED') return 'error';
+        if (errorState.code === 'SESSION_ENDED') return 'ended';
+        if (errorState.code === 'MEETING_NOT_RUNNING') return 'upcoming';
+
         if (!timeSlot) return 'live'; // No schedule = assume available to join
 
         if (timeSlot.status === 'pending') return 'pending';
@@ -58,7 +88,7 @@ export function LiveSessionContent({ lecture, onJoin }: LiveSessionContentProps)
 
         if (diffMs <= fifteenMinutes) return 'starting_soon';
         return 'upcoming';
-    }, [timeSlot, startTime, endTime, lecture.bbb_meeting_running, lecture]);
+    }, [timeSlot, startTime, endTime, lecture.bbb_meeting_running, lecture, errorState]);
 
     // Countdown timer
     useEffect(() => {
@@ -95,44 +125,53 @@ export function LiveSessionContent({ lecture, onJoin }: LiveSessionContentProps)
         return () => clearInterval(interval);
     }, [startTime, sessionState]);
 
-    // Join session handler (Secure Embed)
-    const handleJoinSession = async () => {
-        setIsJoining(true);
-        try {
-            // Use secure token generation endpoint
-            const response = await apiClient.post(`/api/v1/students/bbb/generate-token/${lecture.id}`);
-            const secureEmbedUrl = response.data.data?.embed_url;
-
-            if (secureEmbedUrl) {
-                setEmbedUrl(secureEmbedUrl);
-                setIsModalOpen(true);
-                onJoin?.();
-            } else {
-                console.error('No embed URL returned');
-            }
-        } catch (error) {
-            console.error('Failed to join session:', error);
-            // Optionally show error toast here
-        } finally {
-            setIsJoining(false);
-        }
+    // Join session handler using the hook
+    const handleJoinSession = () => {
+        setErrorState({ code: null, message: null }); // Clear previous errors
+        joinSession(lecture.id);
     };
 
-    // Format date/time
-    const formatDateTime = (date: Date) => {
-        return date.toLocaleDateString('ar-EG', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
+
+    // Format date/time using timezone-aware utility
+    const formatDateTime = (date: Date) => formatSessionTime(date, 'ar');
 
     // Render based on state
     const renderContent = () => {
         switch (sessionState) {
+            case 'error':
+                return (
+                    <div className="text-center">
+                        <div className="w-24 h-24 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                            <AlertCircle size={48} className="text-red-400" />
+                        </div>
+                        <h3 className="text-2xl font-black text-red-600 mb-2">
+                            {errorState.code === 'NOT_ENROLLED' ? 'غير مشترك في الدورة' : 'حدث خطأ'}
+                        </h3>
+                        <p className="text-slate-500 font-medium mb-6">
+                            {errorState.code === 'NOT_ENROLLED'
+                                ? 'يجب الاشتراك في الدورة أولاً للانضمام للجلسة المباشرة'
+                                : errorState.message || 'يرجى المحاولة مرة أخرى'}
+                        </p>
+                        {errorState.code === 'NOT_ENROLLED' && (
+                            <button
+                                onClick={() => window.location.href = '/student/courses'}
+                                className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-all"
+                            >
+                                استعرض الدورات
+                            </button>
+                        )}
+                        {errorState.code !== 'NOT_ENROLLED' && (
+                            <button
+                                onClick={handleJoinSession}
+                                disabled={isJoining}
+                                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all disabled:opacity-50"
+                            >
+                                {isJoining ? <Loader2 size={20} className="animate-spin mx-auto" /> : 'إعادة المحاولة'}
+                            </button>
+                        )}
+                    </div>
+                );
+
             case 'not_scheduled':
                 return (
                     <div className="text-center">
@@ -145,6 +184,7 @@ export function LiveSessionContent({ lecture, onJoin }: LiveSessionContentProps)
                 );
 
             case 'pending':
+
                 return (
                     <div className="text-center">
                         <div className="w-24 h-24 bg-amber-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
@@ -296,6 +336,11 @@ export function LiveSessionContent({ lecture, onJoin }: LiveSessionContentProps)
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 embedUrl={embedUrl}
+                lectureId={lecture.id}
+                onSessionEnded={() => {
+                    setIsModalOpen(false);
+                    setErrorState({ code: 'SESSION_ENDED' as const, message: 'انتهت الجلسة المباشرة' });
+                }}
             />
         </>
     );
