@@ -32,7 +32,7 @@ const apiClient: AxiosInstance = axios.create({
     timeout: 30000,
 });
 
-// Request interceptor - add auth token
+// Request interceptor - add auth token and headers
 apiClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
         const token = localStorage.getItem(TOKEN_KEY);
@@ -44,6 +44,16 @@ apiClient.interceptors.request.use(
         const language = localStorage.getItem('language') || 'ar';
         if (config.headers) {
             config.headers['Accept-Language'] = language;
+        }
+
+        // Add timezone header for proper date/time handling
+        // This allows the backend to optionally convert times to user's timezone
+        if (config.headers) {
+            try {
+                config.headers['X-Timezone'] = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            } catch {
+                config.headers['X-Timezone'] = 'UTC';
+            }
         }
 
         // For FormData requests, remove Content-Type to let axios set it with proper boundary

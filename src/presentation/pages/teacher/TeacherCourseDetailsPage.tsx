@@ -78,6 +78,7 @@ import { CreateQuizModal } from '../../components/teacher/CreateQuizModal';
 import { useMutation } from '@tanstack/react-query';
 import { CourseDetailsSkeleton } from '../../components/ui/skeletons/CourseDetailsSkeleton';
 import { formatTime, formatShortDate } from '../../../utils/timeUtils';
+import { LiveSessionEmbedModal } from '../../components/shared/LiveSessionEmbedModal';
 
 
 // ==================== HELPER COMPONENTS ====================
@@ -680,6 +681,10 @@ export function TeacherCourseDetailsPage() {
     const [quizContextLecture, setQuizContextLecture] = useState<any | null>(null);
     const [selectedQuizForEdit, setSelectedQuizForEdit] = useState<Quiz | null>(null);
 
+    // Live Session Modal States
+    const [liveSessionEmbedUrl, setLiveSessionEmbedUrl] = useState<string | null>(null);
+    const [isLiveSessionModalOpen, setIsLiveSessionModalOpen] = useState(false);
+
     // Fetch Course Data
     const fetchCourseData = useCallback(async () => {
         if (!courseId) return;
@@ -1038,21 +1043,31 @@ export function TeacherCourseDetailsPage() {
 
     const handleStartSession = async (lectureId: number) => {
         try {
-            const loadingToast = toast.loading('جاري بدء الجلسة...');
-            const response = await teacherLectureService.startSession(lectureId);
+            const loadingToast = toast.loading('جاري بدء الجلسة المباشرة...');
+
+            // Generate secure one-time-use embed token
+            const response = await teacherLectureService.generateSecureEmbedToken(lectureId);
             toast.dismiss(loadingToast);
 
-            if (response.join_url) {
-                // Open in new tab
-                window.open(response.join_url, '_blank');
+            if (response.success && response.data?.embed_url) {
+                // Open in secure embed modal
+                setLiveSessionEmbedUrl(response.data.embed_url);
+                setIsLiveSessionModalOpen(true);
+                toast.success('تم بدء الجلسة بنجاح');
             } else {
-                toast.error('لم يتم استلام رابط الانضمام');
+                toast.error(response.message || 'لم يتم استلام رابط الجلسة');
             }
         } catch (error: any) {
             console.error('Start session error:', error);
             const errorMessage = error.response?.data?.message || 'فشل بدء الجلسة';
             toast.error(errorMessage);
         }
+    };
+
+    // Close live session modal
+    const handleCloseLiveSession = () => {
+        setIsLiveSessionModalOpen(false);
+        setLiveSessionEmbedUrl(null);
     };
 
     // Quiz Handlers
@@ -1519,6 +1534,14 @@ export function TeacherCourseDetailsPage() {
                     quiz={selectedQuizForEdit}
                 />
             )}
+
+            {/* Live Session Embed Modal */}
+            <LiveSessionEmbedModal
+                isOpen={isLiveSessionModalOpen}
+                onClose={handleCloseLiveSession}
+                embedUrl={liveSessionEmbedUrl}
+                title="جلستك المباشرة"
+            />
         </div>
     );
 }

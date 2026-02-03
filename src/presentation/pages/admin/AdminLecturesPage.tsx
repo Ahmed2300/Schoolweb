@@ -27,6 +27,9 @@ interface Lecture {
     course_id: number;
     teacher_id: number;
     recording_path?: string;
+    recording_url?: string;
+    has_recording?: boolean;
+    video_path?: string;
     start_time?: string;
     end_time?: string;
     is_online: boolean;
@@ -185,7 +188,7 @@ export function AdminLecturesPage() {
                 </div>
                 <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="h-11 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all flex items-center gap-2"
+                    className="h-11 px-5 rounded-xl bg-shibl-crimson hover:bg-shibl-crimson-dark text-white font-medium shadow-lg shadow-crimson/25 hover:shadow-xl hover:shadow-crimson/30 transition-all flex items-center gap-2"
                 >
                     <Plus size={18} />
                     إضافة محاضرة
@@ -195,8 +198,8 @@ export function AdminLecturesPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-sm">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                            <PlayCircle size={24} className="text-blue-600" />
+                        <div className="w-12 h-12 rounded-xl bg-shibl-crimson/10 flex items-center justify-center">
+                            <PlayCircle size={24} className="text-shibl-crimson" />
                         </div>
                         <div>
                             <p className="text-2xl font-bold text-charcoal">{stats.total}</p>
@@ -311,7 +314,7 @@ export function AdminLecturesPage() {
                                     <tr key={lecture.id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white">
+                                                <div className="w-10 h-10 rounded-lg bg-shibl-crimson/10 flex items-center justify-center text-shibl-crimson">
                                                     <PlayCircle size={18} />
                                                 </div>
                                                 <div>
@@ -339,7 +342,7 @@ export function AdminLecturesPage() {
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-center">
-                                            {lecture.recording_path ? (
+                                            {(lecture.has_recording || lecture.recording_url || lecture.video_path) ? (
                                                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">
                                                     <Video size={12} />
                                                     متوفر
@@ -352,9 +355,21 @@ export function AdminLecturesPage() {
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center justify-center gap-1">
+                                                {(lecture.has_recording || lecture.recording_url || lecture.video_path) && (
+                                                    <button
+                                                        onClick={() => {
+                                                            const url = lecture.recording_url || lecture.video_path;
+                                                            if (url) window.open(url, '_blank');
+                                                        }}
+                                                        className="w-8 h-8 rounded-lg hover:bg-green-100 text-green-500 hover:text-green-600 flex items-center justify-center transition-colors"
+                                                        title="مشاهدة التسجيل"
+                                                    >
+                                                        <PlayCircle size={16} />
+                                                    </button>
+                                                )}
                                                 <button
                                                     onClick={() => handleEdit(lecture)}
-                                                    className="w-8 h-8 rounded-lg hover:bg-blue-100 text-slate-400 hover:text-blue-600 flex items-center justify-center transition-colors"
+                                                    className="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-shibl-crimson flex items-center justify-center transition-colors"
                                                     title="تعديل"
                                                 >
                                                     <Edit2 size={16} />
