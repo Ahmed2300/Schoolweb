@@ -9,6 +9,7 @@ import { ROUTES } from '../../../shared/constants';
 // Icons
 import { Search } from 'lucide-react';
 import { TeacherNotificationMenu } from './TeacherNotificationMenu';
+import { TeacherFirstLoginPopup } from './TeacherFirstLoginPopup'; // Imported Wizard
 
 // Assets
 import teacherPlaceholder from '../../../assets/images/teacher-placeholder.png';
@@ -93,6 +94,9 @@ export function TeacherLayout({
                     navigate(ROUTES.TEACHER_LOGIN);
                 }}
             />
+
+            {/* First Login Wizard - Shows only if not seen before */}
+            <TeacherFirstLoginPopup />
 
             {/* Sidebar - Fixed, doesn't re-render on route change */}
             <TeacherSidebar

@@ -153,6 +153,56 @@ export interface UpdateParentRequest {
     status?: 'active' | 'inactive';
 }
 
+export interface UpsertSettingRequest {
+    key: string;
+    value: string;
+    type?: 'text' | 'boolean' | 'json' | 'number' | 'date';
+    description?: string;
+}
+
+// Schedule Settings Types
+export type BookingMode = 'individual' | 'multiple';
+
+export interface BreakInterval {
+    id?: string;
+    start: string; // HH:mm
+    end: string;   // HH:mm
+}
+
+export interface DayScheduleSettingData {
+    id?: number;
+    grade_id: number;
+    day_of_week: number;
+    is_active: boolean;
+    start_time: string;
+    end_time: string;
+    slot_duration_minutes: number;
+    gap_minutes: number;
+    booking_mode: BookingMode;
+    breaks: BreakInterval[];
+}
+
+export interface ScheduleSettingsResponse {
+    success: boolean;
+    data: {
+        grade: GradeData;
+        days: Record<number, DayScheduleSettingData>;
+    };
+}
+
+export interface SaveScheduleSettingsRequest {
+    days: Array<{
+        day_of_week: number;
+        is_active?: boolean;
+        start_time?: string;
+        end_time?: string;
+        slot_duration_minutes?: number;
+        gap_minutes?: number;
+        booking_mode?: BookingMode;
+        breaks?: BreakInterval[];
+    }>;
+}
+
 // Create student request based on backend StoreStudentRequest
 export interface CreateStudentRequest {
     name: string;
@@ -203,6 +253,7 @@ export interface CreateTeacherRequest {
     balance?: number;
     status?: 'active' | 'inactive' | 'on-leave';
     is_academic?: boolean; // true = teacher (academic), false = instructor (skills)
+    grade_ids?: number[];
 }
 
 // Create admin request based on backend StoreAdminRequest
@@ -1463,6 +1514,11 @@ export const adminService = {
         return response.data.data;
     },
 
+    upsertSetting: async (data: UpsertSettingRequest): Promise<SettingData> => {
+        const response = await apiClient.post(endpoints.admin.settings.upsert, data);
+        return response.data.data;
+    },
+
     deleteSetting: async (id: number): Promise<void> => {
         await apiClient.delete(endpoints.admin.settings.delete(id));
     },
@@ -1664,6 +1720,16 @@ export const adminService = {
             payments: payments.data as PaymentStatistics,
             subscriptions: subscriptions.data as SubscriptionStatistics,
         };
+    },
+
+    // ==================== SEMESTERS ====================
+
+    /**
+     * Get semesters for a specific grade.
+     */
+    getSemestersByGrade: async (gradeId: number): Promise<SemesterData[]> => {
+        const response = await apiClient.get(endpoints.grades.semestersByGrade(gradeId));
+        return response.data.data || response.data;
     },
 
     // ==================== PACKAGES ====================
@@ -2098,6 +2164,32 @@ export const adminService = {
      */
     rejectQuiz: async (id: number, feedback: string) => {
         const response = await apiClient.patch(endpoints.admin.quizzes.reject(id), { admin_feedback: feedback });
+        return response.data;
+    },
+
+    // ==================== SCHEDULE SETTINGS ====================
+
+    /**
+     * Get schedule settings for a grade
+     */
+    getScheduleSettings: async (gradeId: number): Promise<ScheduleSettingsResponse> => {
+        const response = await apiClient.get(endpoints.admin.schedule.getSettings(gradeId));
+        return response.data;
+    },
+
+    /**
+     * Save schedule settings for a grade
+     */
+    saveScheduleSettings: async (gradeId: number, data: SaveScheduleSettingsRequest): Promise<{ success: boolean; message: string }> => {
+        const response = await apiClient.post(endpoints.admin.schedule.saveSettings(gradeId), data);
+        return response.data;
+    },
+
+    /**
+     * Generate slots for a semester
+     */
+    generateSlots: async (semesterId: number) => {
+        const response = await apiClient.post(endpoints.admin.schedule.generateSlots(semesterId));
         return response.data;
     },
 };

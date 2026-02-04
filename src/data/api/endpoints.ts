@@ -212,13 +212,18 @@ export const endpoints = {
             update: (id: number) => `/api/v1/admin/grades/${id}`,
             delete: (id: number) => `/api/v1/admin/grades/${id}`,
         },
-        // Semesters
         semesters: {
             list: '/api/v1/admin/semesters',
             create: '/api/v1/admin/semesters',
             show: (id: number) => `/api/v1/admin/semesters/${id}`,
             update: (id: number) => `/api/v1/admin/semesters/${id}`,
             delete: (id: number) => `/api/v1/admin/semesters/${id}`,
+        },
+        // Schedule Settings
+        schedule: {
+            getSettings: (gradeId: number) => `/api/v1/admin/schedule/settings/${gradeId}`,
+            saveSettings: (gradeId: number) => `/api/v1/admin/schedule/settings/${gradeId}`,
+            generateSlots: (semesterId: number) => `/api/v1/admin/schedule/generate/${semesterId}`,
         },
         // Courses
         courses: {
@@ -270,6 +275,7 @@ export const endpoints = {
         settings: {
             list: '/api/v1/admin/settings',
             create: '/api/v1/admin/settings',
+            upsert: '/api/v1/admin/settings/upsert',
             show: (id: number) => `/api/v1/admin/settings/${id}`,
             update: (id: number) => `/api/v1/admin/settings/${id}`,
             delete: (id: number) => `/api/v1/admin/settings/${id}`,

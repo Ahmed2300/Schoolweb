@@ -96,6 +96,7 @@ const navGroups: NavGroup[] = [
         icon: <Settings size={18} />,
         items: [
             { icon: <BarChart3 size={18} />, label: 'التقارير', path: ROUTES.ADMIN_REPORTS },
+            { icon: <Calendar size={18} />, label: 'إعدادات الجدولة', path: '/admin/schedule-config' },
             { icon: <Settings size={18} />, label: 'الإعدادات', path: ROUTES.ADMIN_SETTINGS },
         ],
     },
