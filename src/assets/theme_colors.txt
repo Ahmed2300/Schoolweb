@@ -1,0 +1,102 @@
+=================================================================
+SHIBL PROJECT - UNIFIED DESIGN SYSTEM & THEME
+=================================================================
+Source: LandingPage.tsx & Tailwind Config
+For: Frontend (React) & Mobile (Flutter) Developers
+
+-----------------------------------------------------------------
+1. BRAND IDENTITY COLORS
+-----------------------------------------------------------------
+Primary Brand Color (Shibl Crimson)
+Hex: #AF0C15
+Tailwind: bg-shibl-crimson / text-shibl-crimson
+Flutter: Color(0xFFAF0C15)
+
+Primary Dark (Hover/Active)
+Hex: #8B0A11
+Tailwind: bg-shibl-crimson-dark
+Flutter: Color(0xFF8B0A11)
+
+Primary Light (Accents)
+Hex: #D41420
+Tailwind: bg-shibl-crimson-light
+Flutter: Color(0xFFD41420)
+
+-----------------------------------------------------------------
+2. NEUTRAL PALETTE
+-----------------------------------------------------------------
+Background / Base (Soft Cloud)
+Hex: #F8F9FA
+Tailwind: bg-soft-cloud
+Flutter: Color(0xFFF8F9FA)
+
+Primary Text / Headings (Charcoal)
+Hex: #1F1F1F
+Tailwind: text-charcoal
+Flutter: Color(0xFF1F1F1F)
+
+Secondary Text / Body (Slate Grey)
+Hex: #636E72
+Tailwind: text-slate-grey
+Flutter: Color(0xFF636E72)
+
+White (Pure)
+Hex: #FFFFFF
+Tailwind: bg-white
+Flutter: Colors.white
+
+-----------------------------------------------------------------
+3. SEMANTIC COLORS
+-----------------------------------------------------------------
+Success Green
+Hex: #27AE60
+Tailwind: text-success-green
+Flutter: Color(0xFF27AE60)
+
+Standard Red (Rose 600 - Secondary Gradient)
+Hex: #E11D48
+Tailwind: rose-600
+Flutter: Color(0xFFE11D48)
+
+-----------------------------------------------------------------
+4. UI GRADIENTS (CSS / FLUTTER)
+-----------------------------------------------------------------
+
+[A] Main Text Gradient (Hero Titles)
+Direction: Right to Left (RTL) / Left to Right (LTR)
+Colors: Shibl Crimson (#AF0C15) -> Rose 600 (#E11D48)
+CSS: linear-gradient(to right, #AF0C15, #E11D48)
+
+[B] CTA Button Gradient (Primary Action)
+Direction: Right to Left
+Colors: Shibl Crimson (#AF0C15) -> Shibl Crimson Dark (#8B0A11)
+CSS: linear-gradient(to right, #AF0C15, #8B0A11)
+
+[C] Card Background Gradients (Stages)
+1. Style A (Light Red Mix):
+   Colors: Red 50 (#FEF2F2) -> Rose 50 (#FFF1F2)
+   CSS: linear-gradient(to bottom right, #FEF2F2, #FFF1F2)
+
+2. Style B (Deep Rose Mix):
+   Colors: Red 50 (#FEF2F2) -> Rose 100 (#FFE4E6)
+   CSS: linear-gradient(to bottom right, #FEF2F2, #FFE4E6)
+
+-----------------------------------------------------------------
+5. SHADOWS
+-----------------------------------------------------------------
+Crimson Shadow (Glow Effect)
+Color: rgba(175, 12, 21, 0.39) -> #AF0C15 with 39% opacity
+CSS: 0 4px 14px 0 rgba(175, 12, 21, 0.39)
+
+Crimson Large (Hero Buttons)
+Color: rgba(175, 12, 21, 0.45) -> #AF0C15 with 45% opacity
+CSS: 0 8px 24px 0 rgba(175, 12, 21, 0.45)
+
+-----------------------------------------------------------------
+6. TYPOGRAPHY
+-----------------------------------------------------------------
+Font Family: 'Cairo' (Arabic), 'Tajawal' (Secondary/Headings)
+Weights: 
+- Regular (400)
+- Bold (700)
+- ExtraBold (800)
