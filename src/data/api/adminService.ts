@@ -196,6 +196,7 @@ export interface UpdateTeacherRequest {
     specialization?: string;
     qualification?: string;
     status?: 'active' | 'inactive' | 'on-leave';
+    grade_ids?: number[];
 }
 
 // Create teacher request based on backend StoreTeacherRequest

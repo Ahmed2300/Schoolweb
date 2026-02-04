@@ -1450,6 +1450,7 @@ export function TeacherCourseDetailsPage() {
                     teacherId={user?.teacher_id || 0}
                     units={units}
                     initialUnitId={selectedUnit.id}
+                    gradeId={course?.grade_id || course?.grade?.id}
                 />
             )}
 
