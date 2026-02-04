@@ -6,6 +6,7 @@ import { TeacherVideoUploader } from './TeacherVideoUploader';
 import { TimeSlotPicker } from '../../timeslots/TimeSlotPicker';
 import type { TimeSlot } from '../../../../../data/api/teacherTimeSlotService';
 import type { Unit } from '../../../../../types/unit';
+import { useMyRequests } from '../../../../hooks/useTeacherTimeSlots';
 
 // Helper to get localized name
 const getLocalizedName = (name: { ar?: string; en?: string } | string | undefined): string => {
@@ -35,6 +36,7 @@ interface TeacherAddLectureModalProps {
     initialUnitId?: number;
     defaultStartTime?: string;
     defaultEndTime?: string;
+    gradeId?: number;
 }
 
 interface FormData {
@@ -61,9 +63,11 @@ export function TeacherAddLectureModal({
     units,
     initialUnitId,
     defaultStartTime,
-    defaultEndTime
+    defaultEndTime,
+    gradeId
 }: TeacherAddLectureModalProps) {
     const [step, setStep] = useState(1);
+    const { data: bookedSlots = [] } = useMyRequests();
 
     const initialFormData: FormData = {
         titleAr: '',
@@ -313,6 +317,8 @@ export function TeacherAddLectureModal({
                                                 setFormData(prev => ({ ...prev, selectedSlotId: slot?.id || null }));
                                             }}
                                             selectedSlotId={selectedSlot?.id}
+                                            bookedSlots={bookedSlots}
+                                            currentData={{ course: { grade_id: gradeId } }}
                                         />
                                     </div>
                                 )}

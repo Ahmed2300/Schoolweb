@@ -41,6 +41,10 @@ export interface TimeSlot {
         course?: {
             id: number;
             name: string | { ar?: string; en?: string };
+            grade?: {
+                id: number;
+                name: string;
+            };
         };
     };
     approver?: {

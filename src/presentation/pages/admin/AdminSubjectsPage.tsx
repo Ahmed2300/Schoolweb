@@ -14,8 +14,9 @@ import {
     Calendar,
     ChevronDown,
     FolderOpen,
+    User,
 } from 'lucide-react';
-import { adminService, SubjectData } from '../../../data/api/adminService';
+import { adminService, SubjectData, UserData } from '../../../data/api/adminService';
 
 interface GradeOption {
     id: number;
@@ -34,6 +35,7 @@ interface FormDataType {
     description: string;
     grade_id: number | null;
     study_term_id: number | null;
+    teacher_id: number | null;
 }
 
 const extractName = (name: string | { ar?: string; en?: string } | undefined): string => {
@@ -90,6 +92,7 @@ export function AdminSubjectsPage(): React.ReactElement {
         description: '',
         grade_id: null,
         study_term_id: null,
+        teacher_id: null,
     });
     const [submitting, setSubmitting] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
@@ -98,6 +101,7 @@ export function AdminSubjectsPage(): React.ReactElement {
 
     const [grades, setGrades] = useState<GradeOption[]>([]);
     const [semesters, setSemesters] = useState<SemesterOption[]>([]);
+    const [teachers, setTeachers] = useState<UserData[]>([]);
     const [loadingDropdowns, setLoadingDropdowns] = useState(false);
     const [nameAvailability, setNameAvailability] = useState<'idle' | 'checking' | 'available' | 'taken' | 'warning'>('idle');
     const [nameAvailabilityMessage, setNameAvailabilityMessage] = useState('');
@@ -124,9 +128,10 @@ export function AdminSubjectsPage(): React.ReactElement {
     const fetchDropdownData = useCallback(async () => {
         setLoadingDropdowns(true);
         try {
-            const [gradesRes, semestersRes] = await Promise.allSettled([
+            const [gradesRes, semestersRes, teachersRes] = await Promise.allSettled([
                 adminService.getGrades({ per_page: 100 }),
                 adminService.getSemesters({ per_page: 100 }),
+                adminService.getTeachers({ is_academic: true, per_page: 100 }),
             ]);
 
             if (gradesRes.status === 'fulfilled') {
@@ -142,6 +147,10 @@ export function AdminSubjectsPage(): React.ReactElement {
                     name: extractName(s.name),
                     grade_id: s.grade_id
                 })));
+            }
+
+            if (teachersRes.status === 'fulfilled') {
+                setTeachers(teachersRes.value.data || []);
             }
         } catch (err) {
             console.error('Error fetching dropdown data:', err);
@@ -187,10 +196,11 @@ export function AdminSubjectsPage(): React.ReactElement {
                 description: subject.description || '',
                 grade_id: gradeId || null,
                 study_term_id: studyTermId,
+                teacher_id: subject.teacher_id || subject.teacher?.id || null,
             });
         } else {
             setEditingSubject(null);
-            setFormData({ name: '', code: '', description: '', grade_id: null, study_term_id: null });
+            setFormData({ name: '', code: '', description: '', grade_id: null, study_term_id: null, teacher_id: null });
         }
         setFormError(null);
         setIsModalOpen(true);
@@ -281,6 +291,10 @@ export function AdminSubjectsPage(): React.ReactElement {
             setFormError('يجب اختيار الفصل الدراسي');
             return;
         }
+        if (!formData.teacher_id) {
+            setFormError('يجب اختيار مدرس للمادة');
+            return;
+        }
 
         setSubmitting(true);
         setFormError(null);
@@ -314,6 +328,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                 code: formData.code.trim(),
                 description: formData.description.trim() || undefined,
                 study_term_id: formData.study_term_id,
+                teacher_id: formData.teacher_id,
             };
 
             console.log('[DEBUG] Submitting payload:', payload);
@@ -357,7 +372,7 @@ export function AdminSubjectsPage(): React.ReactElement {
         <div className="p-6 space-y-6">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-shibl-crimson to-shibl-crimson-light flex items-center justify-center shadow-lg shadow-crimson/20">
                         <BookOpen className="text-white" size={24} />
                     </div>
                     <div>
@@ -367,7 +382,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
-                    className="h-11 px-6 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold text-sm shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
+                    className="h-11 px-6 rounded-xl bg-shibl-crimson hover:bg-shibl-crimson-dark text-white font-semibold text-sm shadow-lg shadow-crimson/30 transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
                 >
                     <Plus size={18} />
                     <span>إضافة مادة جديدة</span>
@@ -382,7 +397,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                         placeholder="البحث في المواد الدراسية..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full h-11 pr-12 pl-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none text-sm"
+                        className="w-full h-11 pr-12 pl-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm"
                         dir="rtl"
                     />
                 </div>
@@ -454,7 +469,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                             }
 
                                             return gradeName ? (
-                                                <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full">
+                                                <span className="px-2 py-0.5 bg-red-50 text-shibl-crimson text-xs rounded-full font-medium">
                                                     {gradeName}
                                                 </span>
                                             ) : (
@@ -485,7 +500,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                         <div className="flex items-center gap-2">
                                             <button
                                                 onClick={() => handleOpenModal(subject)}
-                                                className="w-8 h-8 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-600 flex items-center justify-center transition-colors"
+                                                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
                                                 title="تعديل"
                                             >
                                                 <Edit2 size={16} />
@@ -537,7 +552,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                             <button
                                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                 disabled={currentPage === totalPages}
-                                className="px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-4 py-2 rounded-lg bg-shibl-crimson hover:bg-shibl-crimson-dark text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-crimson/20"
                             >
                                 التالي
                             </button>
@@ -556,8 +571,8 @@ export function AdminSubjectsPage(): React.ReactElement {
                         <div className="px-8 pt-8 pb-2">
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
-                                        <BookOpen size={20} className="text-orange-600" />
+                                    <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+                                        <BookOpen size={20} className="text-shibl-crimson" />
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-bold text-charcoal">
@@ -603,7 +618,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                                 }));
                                             }}
                                             placeholder="مثال: الرياضيات"
-                                            className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-orange-400 focus:ring-4 focus:ring-orange-500/10 outline-none text-sm placeholder:text-slate-300 transition-all"
+                                            className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm placeholder:text-slate-300 transition-all"
                                             dir="rtl"
                                             disabled={submitting}
                                         />
@@ -642,7 +657,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                             value={formData.code}
                                             onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
                                             placeholder="مثال: MATH101"
-                                            className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-orange-400 focus:ring-4 focus:ring-orange-500/10 outline-none text-sm font-mono placeholder:text-slate-300 transition-all"
+                                            className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-mono placeholder:text-slate-300 transition-all"
                                             dir="ltr"
                                             disabled={submitting}
                                         />
@@ -656,10 +671,32 @@ export function AdminSubjectsPage(): React.ReactElement {
                                         onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                                         placeholder="وصف المادة الدراسية (اختياري)"
                                         rows={2}
-                                        className="w-full px-4 py-3 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-orange-400 focus:ring-4 focus:ring-orange-500/10 outline-none text-sm placeholder:text-slate-300 transition-all resize-none"
+                                        className="w-full px-4 py-3 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm placeholder:text-slate-300 transition-all resize-none"
                                         dir="rtl"
                                         disabled={submitting}
                                     />
+                                </div>
+
+                                <div>
+                                    <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mb-1.5">
+                                        <User size={13} className="text-slate-400" />
+                                        مدرس المادة *
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            value={formData.teacher_id || ''}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, teacher_id: e.target.value ? Number(e.target.value) : null }))}
+                                            className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm transition-all appearance-none cursor-pointer"
+                                            dir="rtl"
+                                            disabled={submitting}
+                                        >
+                                            <option value="">— اختر المدرس —</option>
+                                            {teachers.map(teacher => (
+                                                <option key={teacher.id} value={teacher.id}>{teacher.name}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                    </div>
                                 </div>
 
                                 <div className="pt-2 border-t border-slate-100">
@@ -684,7 +721,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                                     <select
                                                         value={formData.grade_id || ''}
                                                         onChange={(e) => handleGradeChange(e.target.value ? parseInt(e.target.value) : null)}
-                                                        className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-orange-400 focus:ring-4 focus:ring-orange-500/10 outline-none text-sm transition-all appearance-none cursor-pointer"
+                                                        className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm transition-all appearance-none cursor-pointer"
                                                         dir="rtl"
                                                         disabled={submitting}
                                                     >
@@ -724,8 +761,8 @@ export function AdminSubjectsPage(): React.ReactElement {
                                                                     className={`
                                                                         flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 border
                                                                         ${isSelected
-                                                                            ? 'bg-orange-600 text-white border-orange-600 shadow-lg shadow-orange-500/30'
-                                                                            : 'bg-white text-slate-600 border-slate-200 hover:border-orange-200 hover:bg-orange-50'
+                                                                            ? 'bg-shibl-crimson text-white border-shibl-crimson shadow-md shadow-crimson/30'
+                                                                            : 'bg-white text-slate-600 border-slate-200 hover:border-red-200 hover:bg-red-50'
                                                                         }
                                                                         disabled:opacity-50
                                                                     `}
@@ -734,7 +771,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                                                         w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0
                                                                         ${isSelected ? 'bg-white border-white' : 'border-slate-300'}
                                                                     `}>
-                                                                        {isSelected && <div className="w-2 h-2 rounded-full bg-orange-600" />}
+                                                                        {isSelected && <div className="w-2 h-2 rounded-full bg-shibl-crimson" />}
                                                                     </div>
                                                                     <span className="truncate">{semester.name}</span>
                                                                 </button>
@@ -743,7 +780,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                                     </div>
                                                 )}
                                                 {formData.study_term_id && (
-                                                    <p className="mt-3 text-xs text-orange-500 font-medium">
+                                                    <p className="mt-3 text-xs text-shibl-crimson font-medium">
                                                         ✓ تم اختيار الفصل الدراسي
                                                     </p>
                                                 )}
@@ -765,8 +802,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="flex-1 h-12 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center gap-2"
-                                    style={{ boxShadow: '0 4px 14px 0 rgba(234, 88, 12, 0.4)' }}
+                                    className="flex-1 h-12 rounded-xl bg-shibl-crimson hover:bg-shibl-crimson-dark text-white font-bold text-sm transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center gap-2 shadow-lg shadow-crimson/30"
                                 >
                                     {submitting ? (
                                         <>

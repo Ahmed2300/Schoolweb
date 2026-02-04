@@ -239,6 +239,7 @@ export interface UpdateTeacherRequest {
     specialization?: string;
     qualification?: string;
     status?: 'active' | 'inactive' | 'on-leave';
+    grade_ids?: number[];
 }
 
 // Create teacher request based on backend StoreTeacherRequest
@@ -579,6 +580,8 @@ export interface SubjectData {
     study_term_id?: number;
     grade_id?: number;
     semester_ids?: number[];
+    teacher_id?: number | null;
+    teacher?: { id: number; name: string };
     created_at: string;
     updated_at?: string;
     studyTerm?: { id: number; name: string };
@@ -593,6 +596,7 @@ export interface CreateSubjectRequest {
     study_term_id?: number;
     grade_id?: number;
     semester_ids?: number[];
+    teacher_id?: number | null;
 }
 
 export interface UpdateSubjectRequest {
@@ -602,6 +606,7 @@ export interface UpdateSubjectRequest {
     study_term_id?: number;
     grade_id?: number;
     semester_ids?: number[];
+    teacher_id?: number | null;
 }
 
 // Payment types

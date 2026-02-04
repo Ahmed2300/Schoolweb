@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Save, Loader2, User, Mail, Phone, BookOpen, Briefcase, Camera, AlertCircle } from 'lucide-react';
+import { X, Save, Loader2, User, Mail, Phone, BookOpen, Briefcase, Camera, AlertCircle, Check } from 'lucide-react';
 import { adminService, UserData, UpdateTeacherRequest } from '../../../data/api/adminService';
 import teacherPlaceholder from '../../../assets/images/teacher-placeholder.png';
 
@@ -18,6 +18,7 @@ interface FormData {
     qualification: string;
     status: 'active' | 'inactive' | 'on-leave';
     is_academic: boolean;
+    grades: number[];
 }
 
 export function EditTeacherModal({ isOpen, teacher, onClose, onSuccess }: EditTeacherModalProps) {
@@ -29,6 +30,7 @@ export function EditTeacherModal({ isOpen, teacher, onClose, onSuccess }: EditTe
         qualification: '',
         status: 'active',
         is_academic: true,
+        grades: [],
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -39,6 +41,26 @@ export function EditTeacherModal({ isOpen, teacher, onClose, onSuccess }: EditTe
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [currentImagePath, setCurrentImagePath] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const [availableGrades, setAvailableGrades] = useState<{ id: number, name: string }[]>([]);
+    const [loadingGrades, setLoadingGrades] = useState(false);
+
+    // Fetch grades on mount
+    useEffect(() => {
+        const fetchGrades = async () => {
+            setLoadingGrades(true);
+            try {
+                const response = await adminService.getGrades({ per_page: 50 });
+                const gradesData = Array.isArray(response.data) ? response.data : [];
+                setAvailableGrades(gradesData.map((g: any) => ({ id: g.id, name: g.name?.ar || g.name })));
+            } catch (err) {
+                console.error('Failed to fetch grades', err);
+            } finally {
+                setLoadingGrades(false);
+            }
+        };
+        fetchGrades();
+    }, []);
 
     // Fetch detailed teacher data when modal opens
     useEffect(() => {
@@ -56,7 +78,22 @@ export function EditTeacherModal({ isOpen, teacher, onClose, onSuccess }: EditTe
                         qualification: fullTeacherData.qualification || '',
                         status: (fullTeacherData.status as FormData['status']) || 'active',
                         is_academic: fullTeacherData.is_academic !== false,
+                        grades: [],
                     });
+
+                    // Map enrolled grades to IDs
+                    if (fullTeacherData.grades && fullTeacherData.grades.length > 0 && availableGrades.length > 0) {
+                        try {
+                            const teacherGradeIds = availableGrades
+                                .filter(g => fullTeacherData.grades?.includes(g.name))
+                                .map(g => g.id);
+
+                            setFormData(prev => ({ ...prev, grades: teacherGradeIds }));
+                        } catch (e) {
+                            console.error("Error mapping grades", e);
+                        }
+                    }
+
                     setCurrentImagePath(fullTeacherData.image_path || null);
                     setImageFile(null);
                     setImagePreview(null);
@@ -72,7 +109,7 @@ export function EditTeacherModal({ isOpen, teacher, onClose, onSuccess }: EditTe
         };
 
         fetchTeacherDetails();
-    }, [isOpen, teacher]);
+    }, [isOpen, teacher, availableGrades]);
 
     // Handle escape key
     useEffect(() => {
@@ -99,7 +136,7 @@ export function EditTeacherModal({ isOpen, teacher, onClose, onSuccess }: EditTe
 
     if (!isOpen || !teacher) return null;
 
-    const handleChange = (name: keyof FormData, value: string | boolean) => {
+    const handleChange = (name: keyof FormData, value: string | boolean | number[]) => {
         setFormData(prev => ({ ...prev, [name]: value }));
         if (fieldErrors[name]) {
             setFieldErrors(prev => {
@@ -140,6 +177,9 @@ export function EditTeacherModal({ isOpen, teacher, onClose, onSuccess }: EditTe
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             errors.email = 'صيغة البريد الإلكتروني غير صالحة';
         }
+        if (formData.is_academic && formData.grades.length === 0) {
+            errors.grades = 'يجب اختيار صف واحد على الأقل للمدرس الأكاديمي';
+        }
 
         setFieldErrors(errors);
         return Object.keys(errors).length === 0;
@@ -163,6 +203,9 @@ export function EditTeacherModal({ isOpen, teacher, onClose, onSuccess }: EditTe
                 if (formData.qualification) submitData.append('qualification', formData.qualification);
                 submitData.append('status', formData.status);
                 submitData.append('is_academic', formData.is_academic ? '1' : '0');
+                formData.grades.forEach(gradeId => {
+                    submitData.append('grade_ids[]', String(gradeId));
+                });
                 submitData.append('image_path', imageFile);
 
                 await adminService.updateTeacherWithImage(teacher.id, submitData);
@@ -175,6 +218,7 @@ export function EditTeacherModal({ isOpen, teacher, onClose, onSuccess }: EditTe
                     qualification: formData.qualification || undefined,
                     status: formData.status,
                     is_academic: formData.is_academic,
+                    grade_ids: formData.grades,
                 };
 
                 await adminService.updateTeacher(teacher.id, updateData);
@@ -437,6 +481,49 @@ export function EditTeacherModal({ isOpen, teacher, onClose, onSuccess }: EditTe
                         <p className="text-xs text-slate-500 -mt-2 px-1">
                             المدرس: يدرّس المواد الأكاديمية | المدرب: يقدم دورات المهارات
                         </p>
+
+                        {/* Grade Selection (Only for Academic Teachers) */}
+                        {formData.is_academic && (
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                <label className="block text-sm font-medium text-slate-700 mb-3">
+                                    الصفوف الدراسية <span className="text-red-500">*</span>
+                                </label>
+                                {loadingGrades ? (
+                                    <div className="flex items-center gap-2 text-slate-400 text-sm">
+                                        <Loader2 size={16} className="animate-spin" /> جاري تحميل الصفوف...
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        {availableGrades.map(grade => {
+                                            const isSelected = formData.grades.includes(grade.id);
+                                            return (
+                                                <button
+                                                    key={grade.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newGrades = isSelected
+                                                            ? formData.grades.filter(id => id !== grade.id)
+                                                            : [...formData.grades, grade.id];
+                                                        handleChange('grades', newGrades);
+                                                    }}
+                                                    className={`px-3 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-between group ${isSelected
+                                                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20 ring-2 ring-blue-600 ring-offset-1'
+                                                        : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:text-blue-600'
+                                                        }`}
+                                                >
+                                                    <span>{grade.name}</span>
+                                                    {isSelected && <Check size={14} className="ml-1" />}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                                {fieldErrors.grades && <p className="mt-2 text-xs text-red-500">{fieldErrors.grades}</p>}
+                                <p className="mt-2 text-[10px] text-slate-400">
+                                    يمكنك اختيار أكثر من صف دراسي واحد
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </form>
 
