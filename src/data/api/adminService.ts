@@ -160,6 +160,49 @@ export interface UpsertSettingRequest {
     description?: string;
 }
 
+// Schedule Settings Types
+export type BookingMode = 'individual' | 'multiple';
+
+export interface BreakInterval {
+    id?: string;
+    start: string; // HH:mm
+    end: string;   // HH:mm
+}
+
+export interface DayScheduleSettingData {
+    id?: number;
+    grade_id: number;
+    day_of_week: number;
+    is_active: boolean;
+    start_time: string;
+    end_time: string;
+    slot_duration_minutes: number;
+    gap_minutes: number;
+    booking_mode: BookingMode;
+    breaks: BreakInterval[];
+}
+
+export interface ScheduleSettingsResponse {
+    success: boolean;
+    data: {
+        grade: GradeData;
+        days: Record<number, DayScheduleSettingData>;
+    };
+}
+
+export interface SaveScheduleSettingsRequest {
+    days: Array<{
+        day_of_week: number;
+        is_active?: boolean;
+        start_time?: string;
+        end_time?: string;
+        slot_duration_minutes?: number;
+        gap_minutes?: number;
+        booking_mode?: BookingMode;
+        breaks?: BreakInterval[];
+    }>;
+}
+
 // Create student request based on backend StoreStudentRequest
 export interface CreateStudentRequest {
     name: string;
@@ -2126,6 +2169,32 @@ export const adminService = {
      */
     rejectQuiz: async (id: number, feedback: string) => {
         const response = await apiClient.patch(endpoints.admin.quizzes.reject(id), { admin_feedback: feedback });
+        return response.data;
+    },
+
+    // ==================== SCHEDULE SETTINGS ====================
+
+    /**
+     * Get schedule settings for a grade
+     */
+    getScheduleSettings: async (gradeId: number): Promise<ScheduleSettingsResponse> => {
+        const response = await apiClient.get(endpoints.admin.schedule.getSettings(gradeId));
+        return response.data;
+    },
+
+    /**
+     * Save schedule settings for a grade
+     */
+    saveScheduleSettings: async (gradeId: number, data: SaveScheduleSettingsRequest): Promise<{ success: boolean; message: string }> => {
+        const response = await apiClient.post(endpoints.admin.schedule.saveSettings(gradeId), data);
+        return response.data;
+    },
+
+    /**
+     * Generate slots for a semester
+     */
+    generateSlots: async (semesterId: number) => {
+        const response = await apiClient.post(endpoints.admin.schedule.generateSlots(semesterId));
         return response.data;
     },
 };
