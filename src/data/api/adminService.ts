@@ -1471,6 +1471,11 @@ export const adminService = {
         return response.data.data;
     },
 
+    upsertSetting: async (data: UpsertSettingRequest): Promise<SettingData> => {
+        const response = await apiClient.post(endpoints.admin.settings.upsert, data);
+        return response.data.data;
+    },
+
     deleteSetting: async (id: number): Promise<void> => {
         await apiClient.delete(endpoints.admin.settings.delete(id));
     },
@@ -1675,14 +1680,6 @@ export const adminService = {
     },
 
     // ==================== SEMESTERS ====================
-
-    /**
-     * Get paginated list of semesters.
-     */
-    getSemesters: async (params: { page?: number; per_page?: number; search?: string; grade_id?: number } = {}): Promise<PaginatedResponse<SemesterData>> => {
-        const response = await apiClient.get(endpoints.admin.semesters.list, { params });
-        return response.data;
-    },
 
     /**
      * Get semesters for a specific grade.
