@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Save, Loader2, User, Mail, Phone, Lock, BookOpen, GraduationCap, Eye, EyeOff, ImagePlus, Trash2, Briefcase } from 'lucide-react';
+import { X, Save, Loader2, User, Mail, Phone, Lock, BookOpen, GraduationCap, Eye, EyeOff, ImagePlus, Trash2, Briefcase, Check } from 'lucide-react';
 import { adminService } from '../../../data/api/adminService';
 
 interface AddTeacherModalProps {
@@ -18,6 +18,7 @@ interface FormData {
     qualification: string;
     status: 'active' | 'inactive' | 'on-leave';
     is_academic: boolean; // true = مدرس (teacher), false = مدرب (instructor)
+    grades: number[];
 }
 
 const initialFormData: FormData = {
@@ -30,6 +31,7 @@ const initialFormData: FormData = {
     qualification: '',
     status: 'active',
     is_academic: true, // Default to academic teacher
+    grades: [],
 };
 
 export function AddTeacherModal({ isOpen, onClose, onSuccess }: AddTeacherModalProps) {
@@ -44,6 +46,30 @@ export function AddTeacherModal({ isOpen, onClose, onSuccess }: AddTeacherModalP
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Grades State
+    const [availableGrades, setAvailableGrades] = useState<{ id: number, name: string }[]>([]);
+    const [loadingGrades, setLoadingGrades] = useState(false);
+
+    // Fetch grades on mount
+    useEffect(() => {
+        const fetchGrades = async () => {
+            setLoadingGrades(true);
+            try {
+                const response = await adminService.getGrades({ per_page: 50 });
+                // Handle different response structures if needed, assuming data is array
+                const gradesData = Array.isArray(response.data) ? response.data : [];
+                setAvailableGrades(gradesData.map((g: any) => ({ id: g.id, name: g.name?.ar || g.name })));
+            } catch (err) {
+                console.error('Failed to fetch grades', err);
+            } finally {
+                setLoadingGrades(false);
+            }
+        };
+        if (isOpen) {
+            fetchGrades();
+        }
+    }, [isOpen]);
 
     // Reset form when modal opens
     useEffect(() => {
@@ -81,7 +107,7 @@ export function AddTeacherModal({ isOpen, onClose, onSuccess }: AddTeacherModalP
 
     if (!isOpen) return null;
 
-    const handleChange = (name: keyof FormData, value: string) => {
+    const handleChange = (name: keyof FormData, value: string | number[]) => {
         setFormData(prev => ({ ...prev, [name]: value }));
         if (fieldErrors[name]) {
             setFieldErrors(prev => {
@@ -143,6 +169,9 @@ export function AddTeacherModal({ isOpen, onClose, onSuccess }: AddTeacherModalP
         if (!formData.specialization.trim()) {
             errors.specialization = 'التخصص مطلوب';
         }
+        if (formData.is_academic && formData.grades.length === 0) {
+            errors.grades = 'يجب اختيار صف واحد على الأقل للمدرس الأكاديمي';
+        }
 
         setFieldErrors(errors);
         return Object.keys(errors).length === 0;
@@ -168,6 +197,12 @@ export function AddTeacherModal({ isOpen, onClose, onSuccess }: AddTeacherModalP
             if (formData.qualification) submitData.append('qualification', formData.qualification);
             submitData.append('status', formData.status);
             submitData.append('is_academic', formData.is_academic ? '1' : '0');
+
+            // Append Grades
+            formData.grades.forEach(gradeId => {
+                submitData.append('grade_ids[]', String(gradeId));
+            });
+
             if (imageFile) submitData.append('image_path', imageFile);
 
             await adminService.createTeacherWithImage(submitData);
@@ -432,6 +467,49 @@ export function AddTeacherModal({ isOpen, onClose, onSuccess }: AddTeacherModalP
                                 المدرس: يدرّس المواد الأكاديمية | المدرب: يقدم دورات المهارات
                             </p>
                         </div>
+
+                        {/* Grade Selection (Only for Academic Teachers) */}
+                        {formData.is_academic && (
+                            <div className="bg-slate-50 p-4 rounded-[12px] border border-slate-100">
+                                <label className="block text-sm font-semibold text-charcoal mb-3">
+                                    الصفوف الدراسية <span className="text-shibl-crimson">*</span>
+                                </label>
+                                {loadingGrades ? (
+                                    <div className="flex items-center gap-2 text-slate-400 text-sm">
+                                        <Loader2 size={16} className="animate-spin" /> جاري تحميل الصفوف...
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        {availableGrades.map(grade => {
+                                            const isSelected = formData.grades.includes(grade.id);
+                                            return (
+                                                <button
+                                                    key={grade.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newGrades = isSelected
+                                                            ? formData.grades.filter(id => id !== grade.id)
+                                                            : [...formData.grades, grade.id];
+                                                        handleChange('grades', newGrades as any); // Type assertion for array
+                                                    }}
+                                                    className={`px-3 py-2.5 rounded-[10px] text-xs font-bold transition-all flex items-center justify-between group ${isSelected
+                                                            ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20 ring-2 ring-indigo-600 ring-offset-1'
+                                                            : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                                                        }`}
+                                                >
+                                                    <span>{grade.name}</span>
+                                                    {isSelected && <Check size={14} className="ml-1" />}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                                {fieldErrors.grades && <p className="mt-2 text-xs text-red-500">{fieldErrors.grades}</p>}
+                                <p className="mt-2 text-[10px] text-slate-400">
+                                    يمكنك اختيار أكثر من صف دراسي واحد
+                                </p>
+                            </div>
+                        )}
 
                         {/* Profile Image */}
                         <div>

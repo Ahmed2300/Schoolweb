@@ -270,6 +270,7 @@ export const endpoints = {
         settings: {
             list: '/api/v1/admin/settings',
             create: '/api/v1/admin/settings',
+            upsert: '/api/v1/admin/settings/upsert',
             show: (id: number) => `/api/v1/admin/settings/${id}`,
             update: (id: number) => `/api/v1/admin/settings/${id}`,
             delete: (id: number) => `/api/v1/admin/settings/${id}`,

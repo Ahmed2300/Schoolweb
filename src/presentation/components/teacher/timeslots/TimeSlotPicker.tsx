@@ -1,282 +1,252 @@
-/**
- * TimeSlotPicker Component
- * 
- * A visual slot picker for teachers to select available time slots
- * when creating an online lecture. Shows slots grouped by date with
- * time ranges and availability status.
- * 
- * Uses React Query for cache management - automatically invalidates
- * when teacher books a slot.
- */
-
 import { useState, useMemo, useEffect } from 'react';
-import { Calendar, Clock, CheckCircle2, Loader2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, Loader2, AlertCircle, ChevronLeft, ChevronRight, Lock } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import teacherService from '../../../../data/api/teacherService';
 import { teacherTimeSlotKeys } from '../../../hooks/useTeacherTimeSlots';
 import type { TimeSlot } from '../../../../types/timeSlot';
 import { formatDate as formatDateArabic, formatTime } from '../../../../utils/timeUtils';
+import { frontendSettings } from '../../../../services/FrontendSettingsService';
 
 interface TimeSlotPickerProps {
     onSelect: (slot: TimeSlot | null) => void;
     selectedSlotId?: number | null;
+    bookedSlots?: TimeSlot[]; // For conflict checking
+    currentData?: any; // To check grade against booked slots
+    bypassLocks?: boolean; // New prop for Extra Class
 }
 
-
-// Group slots by date
-const groupSlotsByDate = (slots: TimeSlot[]): Map<string, TimeSlot[]> => {
-    const grouped = new Map<string, TimeSlot[]>();
-
-    slots.forEach(slot => {
-        const dateKey = new Date(slot.start_time).toISOString().split('T')[0];
-        if (!grouped.has(dateKey)) {
-            grouped.set(dateKey, []);
-        }
-        grouped.get(dateKey)!.push(slot);
-    });
-
-    // Sort slots within each date by start time
-    grouped.forEach((dateSlots, key) => {
-        grouped.set(key, dateSlots.sort((a, b) =>
-            new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-        ));
-    });
-
-    return grouped;
-};
-
-export function TimeSlotPicker({ onSelect, selectedSlotId }: TimeSlotPickerProps) {
-    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+export function TimeSlotPicker({ onSelect, selectedSlotId, bookedSlots = [], currentData, bypassLocks = false }: TimeSlotPickerProps) {
+    const [selectedDate, setSelectedDate] = useState<string>('');
     const queryClient = useQueryClient();
 
-    // Use React Query for data fetching with cache management
-    const {
-        data: slots = [],
-        isLoading: loading,
-        error,
-        refetch
-    } = useQuery({
-        queryKey: teacherTimeSlotKeys.available(),
-        queryFn: () => teacherService.getAvailableSlots(),
-        // Always refetch when component mounts to ensure fresh data
-        refetchOnMount: 'always',
-        // Data is considered stale immediately
-        staleTime: 0,
-        // Refetch when window gains focus
-        refetchOnWindowFocus: true,
+    // 1. Fetch available slots
+    const { data: slots = [], isLoading, error } = useQuery({
+        queryKey: teacherTimeSlotKeys.available(selectedDate),
+        queryFn: () => teacherService.getAvailableSlots(selectedDate),
+        staleTime: 1000 * 60 * 5, // 5 minutes
     });
 
-    // Force refetch on mount to ensure we have fresh data
+    // 2. Real-time updates via Echo
     useEffect(() => {
-        // Invalidate and refetch to get the latest available slots
-        queryClient.invalidateQueries({ queryKey: teacherTimeSlotKeys.available() });
+        if (!selectedDate) return;
 
-        // Setup Real-time listener
-        const channel = (window as any).Echo?.channel('time-slots');
-        if (channel) {
-            channel.listen('.TimeSlotUpdated', () => {
-                // When any slot is updated (booked or released), refresh the list
-                queryClient.invalidateQueries({ queryKey: teacherTimeSlotKeys.available() });
-            });
-        }
+        const channel = window.Echo?.channel('time-slots');
+        if (!channel) return;
+
+        console.log(`Listening for time-slots on date: ${selectedDate}`);
+
+        const handleUpdate = (e: any) => {
+            console.log('Real-time slot update:', e);
+            queryClient.invalidateQueries({ queryKey: teacherTimeSlotKeys.available(selectedDate) });
+        };
+
+        channel.listen('.TimeSlotUpdated', handleUpdate);
 
         return () => {
-            if (channel) {
-                channel.stopListening('.TimeSlotUpdated');
-            }
+            channel.stopListening('.TimeSlotUpdated', handleUpdate);
         };
-    }, [queryClient]);
+    }, [selectedDate, queryClient]);
 
-    // Auto-select first available date when slots load
+    // 3. Group slots by date
+    const slotsByDate = useMemo(() => {
+        const grouped: Record<string, TimeSlot[]> = {};
+        const currentGradeId = currentData?.course?.grade?.id || currentData?.course?.grade_id;
+
+        slots.forEach(slot => {
+            // Apply TERM filter locally checks specific grade config if provided
+            if (!frontendSettings.isDateInTerm(slot.start_time, currentGradeId ? Number(currentGradeId) : undefined)) return;
+
+            const date = slot.start_time.split('T')[0];
+            if (!grouped[date]) grouped[date] = [];
+            grouped[date].push(slot);
+        });
+        return grouped;
+    }, [slots, currentData]);
+
+    // 4. Get sorted dates
+    const dates = useMemo(() => Object.keys(slotsByDate).sort(), [slotsByDate]);
+
+    // 5. Auto-select first date if available and not selected
     useEffect(() => {
-        if (slots.length > 0 && !selectedDate) {
-            const firstDate = new Date(slots[0].start_time).toISOString().split('T')[0];
-            setSelectedDate(firstDate);
+        if (dates.length > 0 && !selectedDate) {
+            setSelectedDate(dates[0]);
         }
-    }, [slots, selectedDate]);
+    }, [dates, selectedDate]);
 
-    // Group slots by date
-    const groupedSlots = useMemo(() => groupSlotsByDate(slots), [slots]);
-    const availableDates = useMemo(() => Array.from(groupedSlots.keys()).sort(), [groupedSlots]);
+    // 6. Logic to check conflicts based on Booking Mode
+    const isDayLocked = (dateStr: string) => {
+        if (bypassLocks) return false; // Bypass all locks if Extra Class mode is on
 
-    // Navigate dates
-    const currentDateIndex = selectedDate ? availableDates.indexOf(selectedDate) : 0;
-    const canGoPrev = currentDateIndex > 0;
-    const canGoNext = currentDateIndex < availableDates.length - 1;
+        // Ensure we have current course data to check against
+        const currentGradeId = currentData?.course?.grade?.id || currentData?.course?.grade_id;
+        if (!currentGradeId) return false;
 
-    const goToPrevDate = () => {
-        if (canGoPrev) {
-            setSelectedDate(availableDates[currentDateIndex - 1]);
-        }
+        // Determine Booking Mode for THIS SPECIFIC DAY
+        const dateObj = new Date(dateStr);
+        const dayIndex = dateObj.getDay();
+        const dayConfig = frontendSettings.getDayConfig(Number(currentGradeId), dayIndex);
+
+        // If booking mode is 'multiple', NO locking needed for the day
+        if (dayConfig.bookingMode === 'multiple') return false;
+
+        // Otherwise (Individual), check if ANY booked slot matches this Date + Grade
+        return bookedSlots.some(booked => {
+            if (booked.status === 'rejected' || booked.status === 'available') return false;
+
+            const bookedDate = booked.date || (booked.start_time ? booked.start_time.split('T')[0] : '');
+            if (!bookedDate) return false;
+
+            const lecture = booked.lecture as any;
+            const bookedGradeId = lecture?.course?.grade?.id || lecture?.course?.grade_id;
+
+            return bookedDate === dateStr && Number(bookedGradeId) === Number(currentGradeId);
+        });
     };
 
-    const goToNextDate = () => {
-        if (canGoNext) {
-            setSelectedDate(availableDates[currentDateIndex + 1]);
-        }
-    };
-
-    // Handle slot selection
-    const handleSlotClick = (slot: TimeSlot) => {
-        if (selectedSlotId === slot.id) {
-            onSelect(null); // Deselect
-        } else {
-            onSelect(slot);
-        }
-    };
-
-    // Loading state
-    if (loading) {
+    if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-                <Loader2 size={32} className="animate-spin mb-3" />
-                <p className="text-sm">جاري تحميل الفترات المتاحة...</p>
+            <div className="flex items-center justify-center py-12">
+                <Loader2 className="animate-spin text-purple-600" size={32} />
             </div>
         );
     }
 
-    // Error state
     if (error) {
         return (
-            <div className="flex flex-col items-center justify-center py-12 text-red-500">
-                <AlertCircle size={32} className="mb-3" />
-                <p className="text-sm">فشل تحميل الفترات الزمنية المتاحة</p>
-                <button
-                    onClick={() => refetch()}
-                    className="mt-3 text-xs text-blue-600 hover:underline"
-                >
-                    إعادة المحاولة
-                </button>
+            <div className="flex items-center justify-center py-12 text-red-500 gap-2">
+                <AlertCircle size={24} />
+                <p>فشل تحميل المواعيد المتاحة</p>
             </div>
         );
     }
 
-    // No slots available
-    if (slots.length === 0) {
+    if (dates.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-12 text-slate-500 bg-slate-50 rounded-xl">
-                <Calendar size={32} className="mb-3 opacity-50" />
-                <p className="text-sm font-medium">لا توجد فترات زمنية متاحة حالياً</p>
-                <p className="text-xs mt-1">يرجى التواصل مع الإدارة لإضافة فترات جديدة</p>
-                <button
-                    onClick={() => refetch()}
-                    className="mt-3 text-xs text-blue-600 hover:underline flex items-center gap-1"
-                >
-                    <Loader2 size={12} className="inline" />
-                    تحديث القائمة
-                </button>
+            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                <Calendar size={48} className="mb-4 opacity-50" />
+                <p>لا توجد مواعيد متاحة حالياً</p>
             </div>
         );
     }
 
-    const currentDateSlots = selectedDate ? groupedSlots.get(selectedDate) || [] : [];
+    const currentSlots = slotsByDate[selectedDate] || [];
+    const isCurrentDayLocked = isDayLocked(selectedDate);
 
     return (
-        <div className="space-y-4">
-            {/* Date Navigator */}
-            <div className="flex items-center justify-between bg-slate-50 rounded-xl p-3">
+        <div className="space-y-6">
+            {/* Date Navigation */}
+            <div className="flex items-center justify-between bg-slate-50 p-2 rounded-xl">
                 <button
-                    type="button"
-                    onClick={goToPrevDate}
-                    disabled={!canGoPrev}
-                    className="p-2 rounded-lg hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition"
+                    onClick={() => {
+                        const idx = dates.indexOf(selectedDate);
+                        if (idx > 0) setSelectedDate(dates[idx - 1]);
+                    }}
+                    disabled={dates.indexOf(selectedDate) === 0}
+                    className="p-2 hover:bg-white rounded-lg disabled:opacity-30 transition-all shadow-sm disabled:shadow-none"
                 >
                     <ChevronRight size={20} />
                 </button>
 
-                <div className="text-center">
-                    <div className="flex items-center justify-center gap-2 text-charcoal font-bold">
-                        <Calendar size={18} className="text-blue-600" />
-                        <span>{selectedDate ? formatDateArabic(selectedDate) : 'اختر تاريخ'}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">
-                        {currentDateSlots.length} فترة متاحة
-                    </p>
+                <div className="flex items-center gap-2">
+                    <Calendar size={18} className="text-purple-600" />
+                    <span className="font-bold text-charcoal">
+                        {selectedDate ? formatDateArabic(selectedDate) : 'حدد يوماً'}
+                    </span>
+                    {isCurrentDayLocked && (
+                        <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-medium flex items-center gap-1">
+                            <Lock size={10} />
+                            محجوز مسبقاً
+                        </span>
+                    )}
                 </div>
 
                 <button
-                    type="button"
-                    onClick={goToNextDate}
-                    disabled={!canGoNext}
-                    className="p-2 rounded-lg hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition"
+                    onClick={() => {
+                        const idx = dates.indexOf(selectedDate);
+                        if (idx < dates.length - 1) setSelectedDate(dates[idx + 1]);
+                    }}
+                    disabled={dates.indexOf(selectedDate) === dates.length - 1}
+                    className="p-2 hover:bg-white rounded-lg disabled:opacity-30 transition-all shadow-sm disabled:shadow-none"
                 >
                     <ChevronLeft size={20} />
                 </button>
             </div>
 
-            {/* Date Pills */}
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {availableDates.slice(0, 7).map(dateKey => {
-                    const isSelected = dateKey === selectedDate;
-                    const dateObj = new Date(dateKey);
-                    const dayName = dateObj.toLocaleDateString('ar-EG', { weekday: 'short' });
-                    const dayNum = dateObj.getDate();
+            {/* Warning for Locked Day */}
+            {isCurrentDayLocked && (
+                <div className="bg-purple-50 border border-purple-200 p-3 rounded-xl flex items-center gap-3 text-purple-800 text-sm animate-in slide-in-from-top-2">
+                    <Lock size={18} className="shrink-0" />
+                    <p>
+                        لقد قمت بحجز موعد لهذا الصف في هذا اليوم بالفعل.
+                        سياسة المدرسة تسمح بموعد واحد فقط يومياً لكل صف.
+                    </p>
+                </div>
+            )}
 
-                    return (
-                        <button
-                            key={dateKey}
-                            type="button"
-                            onClick={() => setSelectedDate(dateKey)}
-                            className={`flex flex-col items-center min-w-[60px] px-3 py-2 rounded-xl transition-all ${isSelected
-                                ? 'bg-blue-600 text-white shadow-lg'
-                                : 'bg-white border border-slate-200 hover:border-blue-300 text-slate-600'
-                                }`}
-                        >
-                            <span className="text-[10px] uppercase">{dayName}</span>
-                            <span className="text-lg font-bold">{dayNum}</span>
-                        </button>
-                    );
-                })}
-            </div>
-
-            {/* Time Slots Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {currentDateSlots.map(slot => {
+            {/* Slots Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                {currentSlots.map(slot => {
                     const isSelected = selectedSlotId === slot.id;
-                    const startTime = formatTime(slot.start_time);
-                    const endTime = formatTime(slot.end_time);
+                    const isDayLockedForGrade = isCurrentDayLocked;
+
+                    // Check if THIS specific slot is already booked/requested by me (and not rejected)
+                    const isSlotBookedByMe = bookedSlots.some(booked => booked.id === slot.id && booked.status !== 'rejected');
+
+                    // Locked if day is locked OR slot is booked by me
+                    const locked = isDayLockedForGrade || isSlotBookedByMe;
 
                     return (
                         <button
                             key={slot.id}
-                            type="button"
-                            onClick={() => handleSlotClick(slot)}
-                            className={`relative p-4 rounded-xl border-2 transition-all text-center ${isSelected
-                                ? 'border-blue-600 bg-blue-50 shadow-md'
-                                : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/30'
-                                }`}
+                            onClick={() => !locked && onSelect(slot)}
+                            disabled={locked}
+                            className={`
+                                relative p-3 rounded-xl border text-center transition-all group
+                                flex flex-col items-center justify-center gap-2
+                                ${isSelected
+                                    ? 'bg-purple-600 border-purple-600 text-white shadow-lg scale-105 z-10'
+                                    : locked
+                                        ? 'bg-slate-50 border-slate-100 text-slate-400 cursor-not-allowed opacity-75'
+                                        : 'bg-white border-slate-200 hover:border-purple-300 hover:shadow-md text-charcoal'
+                                }
+                            `}
                         >
+                            <div className="flex items-center gap-1.5 font-bold text-lg dir-ltr">
+                                <Clock size={16} className={isSelected ? 'text-purple-200' : 'text-slate-400'} />
+                                {formatTime(slot.start_time)}
+                            </div>
+
+                            {/* Duration or End Time could go here if needed */}
+
                             {isSelected && (
-                                <div className="absolute top-2 left-2">
-                                    <CheckCircle2 size={18} className="text-blue-600" />
+                                <div className="absolute -top-2 -right-2 bg-white text-purple-600 rounded-full p-0.5 shadow-sm">
+                                    <CheckCircle2 size={16} />
                                 </div>
                             )}
-                            <div className="flex items-center justify-center gap-1.5 text-slate-600 mb-1">
-                                <Clock size={14} />
-                            </div>
-                            <p className={`font-bold ${isSelected ? 'text-blue-700' : 'text-charcoal'}`}>
-                                {startTime}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                                إلى {endTime}
-                            </p>
+
+                            {locked && (
+                                <div className="absolute top-2 right-2 text-slate-400">
+                                    {isSlotBookedByMe ? (
+                                        <CheckCircle2 size={14} className="text-emerald-500" />
+                                    ) : (
+                                        <Lock size={14} />
+                                    )}
+                                </div>
+                            )}
+
+                            {isSlotBookedByMe && (
+                                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full absolute -bottom-2 whitespace-nowrap z-20">
+                                    طلبي
+                                </span>
+                            )}
                         </button>
                     );
                 })}
             </div>
 
-            {/* Selected Slot Summary */}
-            {selectedSlotId && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
-                    <CheckCircle2 size={24} className="text-green-600 shrink-0" />
-                    <div>
-                        <p className="font-bold text-green-800">تم اختيار الفترة</p>
-                        <p className="text-sm text-green-700">
-                            سيتم إرسال طلبك للموافقة بعد الحفظ
-                        </p>
-                    </div>
-                </div>
-            )}
+            <div className="text-center text-xs text-slate-400 mt-4 border-t border-slate-100 pt-3">
+                يتم تحديث المواعيد تلقائياً عند حجزها من قبل مدرسين آخرين
+            </div>
         </div>
     );
 }

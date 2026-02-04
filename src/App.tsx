@@ -33,6 +33,7 @@ import {
   AdminContentApprovalsPage,
   AdminQuizzesPage,
   AdminRecordingsPage,
+  AdminScheduleConfigPage,
   StudentLayout,
   StudentHomePage,
   StudentCoursesPage,
@@ -208,6 +209,7 @@ function App() {
               <Route path="recordings" element={<AdminRecordingsPage />} />
               <Route path="quizzes" element={<AdminQuizzesPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
+              <Route path="schedule-config" element={<AdminScheduleConfigPage />} />
             </Route>
 
             {/* 404 Catch-all Route */}

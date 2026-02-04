@@ -153,6 +153,13 @@ export interface UpdateParentRequest {
     status?: 'active' | 'inactive';
 }
 
+export interface UpsertSettingRequest {
+    key: string;
+    value: string;
+    type?: 'text' | 'boolean' | 'json' | 'number' | 'date';
+    description?: string;
+}
+
 // Create student request based on backend StoreStudentRequest
 export interface CreateStudentRequest {
     name: string;
@@ -203,6 +210,7 @@ export interface CreateTeacherRequest {
     balance?: number;
     status?: 'active' | 'inactive' | 'on-leave';
     is_academic?: boolean; // true = teacher (academic), false = instructor (skills)
+    grade_ids?: number[];
 }
 
 // Create admin request based on backend StoreAdminRequest
@@ -1664,6 +1672,24 @@ export const adminService = {
             payments: payments.data as PaymentStatistics,
             subscriptions: subscriptions.data as SubscriptionStatistics,
         };
+    },
+
+    // ==================== SEMESTERS ====================
+
+    /**
+     * Get paginated list of semesters.
+     */
+    getSemesters: async (params: { page?: number; per_page?: number; search?: string; grade_id?: number } = {}): Promise<PaginatedResponse<SemesterData>> => {
+        const response = await apiClient.get(endpoints.admin.semesters.list, { params });
+        return response.data;
+    },
+
+    /**
+     * Get semesters for a specific grade.
+     */
+    getSemestersByGrade: async (gradeId: number): Promise<SemesterData[]> => {
+        const response = await apiClient.get(endpoints.grades.semestersByGrade(gradeId));
+        return response.data.data || response.data;
     },
 
     // ==================== PACKAGES ====================

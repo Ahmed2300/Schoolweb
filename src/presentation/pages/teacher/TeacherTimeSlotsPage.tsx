@@ -11,8 +11,12 @@ import {
     XCircle,
     HourglassIcon,
     BookOpen,
-    AlertCircle
+    AlertCircle,
+    ChevronLeft,
+    ChevronRight,
+    Printer
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import {
     useAvailableSlots,
     useMyRequests,
@@ -25,6 +29,8 @@ import type { TimeSlot } from '../../../types/timeSlot';
 import { useAuth } from '../../hooks/useAuth';
 import { getCourseName } from '../../../data/api/teacherService';
 import { formatTime, formatDate } from '../../../utils/timeUtils';
+import { frontendSettings } from '../../../services/FrontendSettingsService';
+import { TimeSlotPicker } from '../../components/teacher/timeslots/TimeSlotPicker';
 
 // Helper function to extract localized text from translatable fields
 const getLocalizedText = (
@@ -69,7 +75,7 @@ const STATUS_CONFIG: Record<string, {
 
 export function TeacherTimeSlotsPage() {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState<'available' | 'requests'>('available');
+    const [activeTab, setActiveTab] = useState<'available' | 'requests' | 'summary'>('available');
     const [dateFilter, setDateFilter] = useState('');
 
     // Request Modal State
@@ -78,13 +84,20 @@ export function TeacherTimeSlotsPage() {
     const [selectedCourse, setSelectedCourse] = useState<string>('');
     const [selectedLecture, setSelectedLecture] = useState<string>('');
     const [requestNotes, setRequestNotes] = useState('');
+    const [isExtraClass, setIsExtraClass] = useState(false);
 
     // Cancel Modal State
     const [cancelModalOpen, setCancelModalOpen] = useState(false);
     const [slotToCancel, setSlotToCancel] = useState<TimeSlot | null>(null);
 
     // Queries
-    const { data: availableSlots = [], isLoading: loadingAvailable } = useAvailableSlots(dateFilter || undefined);
+    const { data: rawAvailableSlots = [], isLoading: loadingAvailable } = useAvailableSlots(dateFilter || undefined);
+
+    // Filter slots based on Academic Term (Frontend Settings)
+    const availableSlots = useMemo(() => {
+        return rawAvailableSlots.filter(slot => frontendSettings.isDateInTerm(slot.start_time));
+    }, [rawAvailableSlots]);
+
     const { data: myRequests = [], isLoading: loadingRequests } = useMyRequests();
     const { data: myCourses = [] } = useTeacherCourses();
     const { data: lectures = [], isLoading: loadingLectures } = useCourseLectures(selectedCourse ? Number(selectedCourse) : null);
@@ -107,14 +120,24 @@ export function TeacherTimeSlotsPage() {
         if (!selectedSlot || !selectedLecture) return;
 
         try {
+            const notes = isExtraClass
+                ? `[حصة إضافية] ${requestNotes}`.trim()
+                : requestNotes;
+
             await requestMutation.mutateAsync({
                 id: selectedSlot.id,
                 lectureId: Number(selectedLecture),
-                notes: requestNotes
+                notes: notes
             });
             closeRequestModal();
+            if (isExtraClass) {
+                toast.success('تم رفع طلب الحصة الإضافية بنجاح');
+            } else {
+                toast.success('تم رفع طلب الحجز بنجاح');
+            }
         } catch (error) {
             console.error('Failed to request slot:', error);
+            toast.error('فشل في رفع الطلب');
         }
     };
 
@@ -134,10 +157,62 @@ export function TeacherTimeSlotsPage() {
     // formatTime and formatDate imported from ../../../utils/timeUtils
 
 
+    // Summary Tab State
+    const [summaryWeekStart, setSummaryWeekStart] = useState(() => {
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        const day = d.getDay(); // 0 is Sunday
+        d.setDate(d.getDate() - day); // Go back to Sunday
+        return d;
+    });
+
+    const handleNextWeek = () => {
+        const next = new Date(summaryWeekStart);
+        next.setDate(next.getDate() + 7);
+        setSummaryWeekStart(next);
+    };
+
+    const handlePrevWeek = () => {
+        const prev = new Date(summaryWeekStart);
+        prev.setDate(prev.getDate() - 7);
+        setSummaryWeekStart(prev);
+    };
+
+    const printSchedule = () => {
+        window.print();
+    };
+
+    // Filter requests for the summary view
+    const summarySlots = useMemo(() => {
+        const start = summaryWeekStart.getTime();
+        const end = start + (7 * 24 * 60 * 60 * 1000); // 7 days later
+
+        return myRequests.filter(slot => {
+            const slotTime = new Date(slot.start_time).getTime();
+            return slotTime >= start && slotTime < end;
+        });
+    }, [myRequests, summaryWeekStart]);
+
+    // Group summary slots by Day Index (0-6)
+    const slotsByDay = useMemo(() => {
+        const days: Record<number, TimeSlot[]> = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+        summarySlots.forEach(slot => {
+            const d = new Date(slot.start_time);
+            days[d.getDay()].push(slot);
+        });
+        // Sort slots by time within each day
+        Object.values(days).forEach(daySlots => {
+            daySlots.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+        });
+        return days;
+    }, [summarySlots]);
+
+    const weekDays = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+
     return (
-        <div className="space-y-6 pb-8 p-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-6 pb-8 p-6 print:p-0">
+            {/* Header - Hidden in Print */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
                 <div>
                     <h1 className="text-2xl font-bold text-charcoal flex items-center gap-3">
                         <div className="p-2 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl text-white shadow-lg shadow-violet-500/25">
@@ -149,8 +224,8 @@ export function TeacherTimeSlotsPage() {
                 </div>
             </div>
 
-            {/* Tabs */}
-            <div className="flex items-center gap-2 bg-white rounded-2xl p-1.5 shadow-sm border border-slate-100 w-fit">
+            {/* Tabs - Hidden in Print */}
+            <div className="flex items-center gap-2 bg-white rounded-2xl p-1.5 shadow-sm border border-slate-100 w-fit print:hidden">
                 <button
                     onClick={() => setActiveTab('available')}
                     className={`px-5 py-2.5 rounded-xl font-medium transition-all ${activeTab === 'available'
@@ -174,11 +249,20 @@ export function TeacherTimeSlotsPage() {
                         </span>
                     )}
                 </button>
+                <button
+                    onClick={() => setActiveTab('summary')}
+                    className={`px-5 py-2.5 rounded-xl font-medium transition-all ${activeTab === 'summary'
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md'
+                        : 'text-slate-600 hover:bg-slate-50'
+                        }`}
+                >
+                    جدولي الأسبوعي
+                </button>
             </div>
 
             {/* Available Slots Tab */}
             {activeTab === 'available' && (
-                <div className="space-y-4">
+                <div className="space-y-4 print:hidden">
                     {/* Filters */}
                     <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
                         <div className="flex items-center gap-2 flex-1 max-w-xs">
@@ -200,6 +284,19 @@ export function TeacherTimeSlotsPage() {
                             </button>
                         )}
                     </div>
+
+                    {/* Term Warning if no slots due to term */}
+                    {!loadingAvailable && rawAvailableSlots.length > 0 && availableSlots.length === 0 && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+                            <AlertCircle size={20} className="text-amber-600 mt-1 shrink-0" />
+                            <div>
+                                <h4 className="font-bold text-amber-800">تنبيه الفصل الدراسي</h4>
+                                <p className="text-sm text-amber-700">
+                                    توجد فترات زمنية ولكنها تقع خارج نطاق الفصل الدراسي الحالي المحدد من قبل الإدارة.
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Table */}
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -250,7 +347,7 @@ export function TeacherTimeSlotsPage() {
 
             {/* My Requests Tab */}
             {activeTab === 'requests' && (
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden print:hidden">
                     {loadingRequests ? (
                         <div className="p-12 flex justify-center">
                             <Loader2 size={32} className="animate-spin text-blue-600" />
@@ -330,9 +427,90 @@ export function TeacherTimeSlotsPage() {
                 </div>
             )}
 
+            {/* Weekly Summary Tab */}
+            {activeTab === 'summary' && (
+                <div className="space-y-4">
+                    {/* Summary Controls */}
+                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between print:hidden">
+                        <div className="flex items-center gap-4">
+                            <button onClick={handlePrevWeek} className="p-2 hover:bg-slate-100 rounded-lg transition">
+                                <ChevronRight size={20} className="text-slate-600" />
+                            </button>
+                            <span className="font-bold text-lg dir-ltr">
+                                {formatDate(summaryWeekStart.toISOString())} - {formatDate(new Date(summaryWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString())}
+                            </span>
+                            <button onClick={handleNextWeek} className="p-2 hover:bg-slate-100 rounded-lg transition">
+                                <ChevronLeft size={20} className="text-slate-600" />
+                            </button>
+                        </div>
+                        <button
+                            onClick={printSchedule}
+                            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition font-medium"
+                        >
+                            <span className="hidden sm:inline">طباعة الجدول</span>
+                            <CalendarIcon size={18} />
+                        </button>
+                    </div>
+
+                    {/* Printable Weekly Grid */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden print:shadow-none print:border-none">
+                        {/* Print Header */}
+                        <div className="hidden print:block p-8 text-center border-b border-slate-200">
+                            <h2 className="text-3xl font-bold mb-2">جدولي الأسبوعي</h2>
+                            <p className="text-slate-600">
+                                {formatDate(summaryWeekStart.toISOString())} - {formatDate(new Date(summaryWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString())}
+                            </p>
+                            <p className="mt-4 font-bold text-xl">{user?.name}</p>
+                        </div>
+
+                        <div className="grid grid-cols-7 divide-x divide-x-reverse divide-slate-100 min-w-[800px]">
+                            {weekDays.map((day, index) => (
+                                <div key={index} className="flex flex-col">
+                                    <div className="bg-slate-50/80 p-3 text-center border-b border-slate-100 font-bold text-slate-700">
+                                        {day}
+                                        <div className="text-xs text-slate-400 font-normal mt-1">
+                                            {formatDate(new Date(summaryWeekStart.getTime() + index * 24 * 60 * 60 * 1000).toISOString()).split(' ')[0]}
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 p-2 space-y-2 min-h-[200px]">
+                                        {slotsByDay[index].map(slot => {
+                                            const status = STATUS_CONFIG[slot.status] || STATUS_CONFIG.pending;
+                                            return (
+                                                <div key={slot.id} className={`p-2 rounded-lg border text-sm ${status.bgColor} ${status.borderColor} ${status.color}`}>
+                                                    <div className="font-bold flex items-center gap-1">
+                                                        <Clock size={12} />
+                                                        {formatTime(slot.start_time)}
+                                                    </div>
+                                                    <div className="mt-1 truncate font-medium">
+                                                        {getLocalizedText(slot.lecture?.title)}
+                                                    </div>
+                                                    <div className="text-[10px] opacity-75 mt-0.5 truncate">
+                                                        {slot.lecture?.course ? getCourseName(slot.lecture.course.name) : '-'}
+                                                    </div>
+                                                    <div className="mt-1.5 flex items-center justify-between">
+                                                        <span className="text-[10px] px-1.5 py-0.5 bg-white/50 rounded-full border border-current opacity-75 inline-block">
+                                                            {status.label}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                        {slotsByDay[index].length === 0 && (
+                                            <div className="h-full flex items-center justify-center text-slate-300">
+                                                <span className="text-xl opacity-20">-</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Request Modal */}
             {requestModalOpen && selectedSlot && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 print:hidden">
                     <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                         <div className="p-6 border-b border-slate-100 flex justify-between items-center">
                             <h3 className="text-lg font-bold text-charcoal">طلب حجز موعد</h3>
@@ -345,6 +523,11 @@ export function TeacherTimeSlotsPage() {
                                     <p className="font-bold">{formatDate(selectedSlot.start_time)}</p>
                                     <p className="text-sm">{formatTime(selectedSlot.start_time)} - {formatTime(selectedSlot.end_time)}</p>
                                 </div>
+                                {isExtraClass && (
+                                    <div className="mr-auto bg-violet-600 text-white text-xs px-2 py-1 rounded-full font-bold">
+                                        حصة إضافية
+                                    </div>
+                                )}
                             </div>
 
                             <div>
@@ -408,7 +591,7 @@ export function TeacherTimeSlotsPage() {
 
             {/* Cancel Modal */}
             {cancelModalOpen && slotToCancel && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 print:hidden">
                     <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                         <div className="p-6 text-center">
                             <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
