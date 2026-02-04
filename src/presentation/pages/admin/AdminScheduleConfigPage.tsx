@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     Calendar,
     Settings,
@@ -19,10 +19,28 @@ import {
     ChevronUp
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { frontendSettings } from '../../../services/FrontendSettingsService';
-import type { ScheduleConfig, GradeSlotConfig, DayScheduleConfig, BreakInterval } from '../../../services/FrontendSettingsService';
-import { adminService, SemesterData } from '../../../data/api/adminService';
+import { adminService, SemesterData, DayScheduleSettingData, BreakInterval as BackendBreakInterval } from '../../../data/api/adminService';
 import { useBulkCreateTimeSlots } from '../../hooks/useTimeSlots';
+
+// Local types (aligned with backend)
+type BookingMode = 'individual' | 'multiple';
+
+interface BreakInterval {
+    id: string;
+    start: string;
+    end: string;
+}
+
+interface DayScheduleConfig {
+    isActive: boolean;
+    startTime: string;
+    endTime: string;
+    slotDurationMinutes: number;
+    gapMinutes: number;
+    bookingMode: BookingMode;
+    breaks: BreakInterval[];
+}
+
 
 // Arabic day names
 const WEEKDAYS = [
@@ -36,25 +54,57 @@ const WEEKDAYS = [
 ];
 
 export function AdminScheduleConfigPage() {
-    const [config, setConfig] = useState<ScheduleConfig>(frontendSettings.getConfig());
+    // Day configurations state - keyed by day_of_week (0-6)
+    const [dayConfigs, setDayConfigs] = useState<Record<number, DayScheduleConfig>>({});
     const [hasChanges, setHasChanges] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [loadingSettings, setLoadingSettings] = useState(false);
 
     // Grade State
     const [grades, setGrades] = useState<any[]>([]);
     const [semesters, setSemesters] = useState<SemesterData[]>([]);
     const [loadingGrades, setLoadingGrades] = useState(true);
     const [selectedGradeId, setSelectedGradeId] = useState<number | null>(null);
+    const [selectedSemesterId, setSelectedSemesterId] = useState<number | null>(null);
     const [selectedDay, setSelectedDay] = useState<number>(0); // Default Sunday
 
     // Generation State
     const [isGenerating, setIsGenerating] = useState(false);
     const bulkCreateMutation = useBulkCreateTimeSlots();
 
-    // Reload config on mount and listen for updates
-    useEffect(() => {
-        const loadConfig = () => setConfig(frontendSettings.getConfig());
-        window.addEventListener('schedule-config-updated', loadConfig);
-        return () => window.removeEventListener('schedule-config-updated', loadConfig);
+    // Helper to convert backend data to local state
+    const convertFromBackend = useCallback((backendDays: Record<number, DayScheduleSettingData>): Record<number, DayScheduleConfig> => {
+        const result: Record<number, DayScheduleConfig> = {};
+        for (let day = 0; day <= 6; day++) {
+            const backendDay = backendDays[day];
+            if (backendDay) {
+                result[day] = {
+                    isActive: backendDay.is_active,
+                    startTime: backendDay.start_time?.substring(0, 5) || '08:00',
+                    endTime: backendDay.end_time?.substring(0, 5) || '14:00',
+                    slotDurationMinutes: backendDay.slot_duration_minutes,
+                    gapMinutes: backendDay.gap_minutes,
+                    bookingMode: backendDay.booking_mode,
+                    breaks: (backendDay.breaks || []).map((b: BackendBreakInterval) => ({
+                        id: b.id || crypto.randomUUID(),
+                        start: b.start,
+                        end: b.end
+                    }))
+                };
+            } else {
+                // Default for missing days
+                result[day] = {
+                    isActive: day <= 4,
+                    startTime: '08:00',
+                    endTime: '14:00',
+                    slotDurationMinutes: 60,
+                    gapMinutes: 0,
+                    bookingMode: 'individual',
+                    breaks: []
+                };
+            }
+        }
+        return result;
     }, []);
 
     // Fetch Grades on Mount
@@ -76,271 +126,155 @@ export function AdminScheduleConfigPage() {
         fetchGrades();
     }, []);
 
+    // Fetch Schedule Settings when Grade Changes
+    useEffect(() => {
+        const fetchSettings = async () => {
+            if (!selectedGradeId) return;
+            setLoadingSettings(true);
+            try {
+                const response = await adminService.getScheduleSettings(selectedGradeId);
+                if (response.success && response.data?.days) {
+                    setDayConfigs(convertFromBackend(response.data.days));
+                }
+            } catch (error) {
+                console.error('Failed to fetch schedule settings:', error);
+                // Initialize with defaults if API fails
+                setDayConfigs(convertFromBackend({}));
+            } finally {
+                setLoadingSettings(false);
+                setHasChanges(false);
+            }
+        };
+        fetchSettings();
+    }, [selectedGradeId, convertFromBackend]);
+
     // Fetch Semesters when Selected Grade Changes
     useEffect(() => {
         const fetchSemestersForGrade = async () => {
             if (!selectedGradeId) return;
             try {
-                // Fetch semesters linked to this grade
                 const data = await adminService.getSemestersByGrade(selectedGradeId);
-                console.log('AdminScheduleConfig: Fetched semesters for grade', selectedGradeId, data);
                 setSemesters(data || []);
             } catch (error) {
                 console.error('Failed to fetch semesters:', error);
-                // Don't show toast error here to avoid spamming if endpoint 404s for grades with no semesters
             }
         };
         fetchSemestersForGrade();
     }, [selectedGradeId]);
 
+    // Reset semester when grade changes
+    useEffect(() => {
+        setSelectedSemesterId(null);
+    }, [selectedGradeId]);
+    // Save Schedule Settings to Backend
     const handleSave = async () => {
-        if (config.term.startDate && config.term.endDate) {
-            if (new Date(config.term.startDate) > new Date(config.term.endDate)) {
-                toast.error('تاريخ البداية يجب أن يكون قبل تاريخ النهاية');
-                return;
-            }
+        if (!selectedGradeId) {
+            toast.error('الرجاء اختيار صف دراسي');
+            return;
         }
 
-        // Save backend settings for Exam Schedules (semesterId === -1)
-        const examConfigs = config.gradeConfigs
-            .filter(g => g.term?.semesterId === -1 && g.term?.isActive && g.term?.startDate && g.term?.endDate);
+        setIsSaving(true);
+        try {
+            // Convert local state to backend format
+            const daysPayload = Object.entries(dayConfigs).map(([dayKey, config]) => ({
+                day_of_week: Number(dayKey),
+                is_active: config.isActive,
+                start_time: config.startTime,
+                end_time: config.endTime,
+                slot_duration_minutes: config.slotDurationMinutes,
+                gap_minutes: config.gapMinutes,
+                booking_mode: config.bookingMode,
+                breaks: config.breaks.map(b => ({ start: b.start, end: b.end }))
+            }));
 
-        if (examConfigs.length > 0) {
-            const promises = [];
-            for (const gradeConfig of examConfigs) {
-                // Save Start Date
-                promises.push(adminService.upsertSetting({
-                    key: `grade_${gradeConfig.gradeId}_exam_start_date`,
-                    value: gradeConfig.term!.startDate!,
-                    type: 'date',
-                    description: `Start date for Grade ${gradeConfig.gradeId} Exam Review Period`
-                }));
-                // Save End Date
-                promises.push(adminService.upsertSetting({
-                    key: `grade_${gradeConfig.gradeId}_exam_end_date`,
-                    value: gradeConfig.term!.endDate!,
-                    type: 'date',
-                    description: `End date for Grade ${gradeConfig.gradeId} Exam Review Period`
-                }));
-            }
-
-            try {
-                await Promise.all(promises);
-                console.log('Backend exam settings saved successfully');
-            } catch (error) {
-                console.error('Failed to save backend exam settings', error);
-                toast.error('فشل حفظ تواريخ الامتحانات في النظام');
-                // We typically continue to save local config anyway, or return?
-                // Let's continue but warn.
-            }
+            await adminService.saveScheduleSettings(selectedGradeId, { days: daysPayload });
+            setHasChanges(false);
+            toast.success('تم حفظ الإعدادات بنجاح');
+        } catch (error) {
+            console.error('Failed to save schedule settings:', error);
+            toast.error('فشل حفظ الإعدادات');
+        } finally {
+            setIsSaving(false);
         }
-
-        frontendSettings.saveConfig(config);
-        setHasChanges(false);
-        toast.success('تم حفظ الإعدادات بنجاح');
     };
 
-    const updateTerm = (key: keyof typeof config.term, value: string | boolean) => {
-        setConfig(prev => ({
+    // Get current day configuration
+    const currentDayConfig = useMemo(() => {
+        return dayConfigs[selectedDay] || {
+            isActive: false,
+            startTime: '08:00',
+            endTime: '14:00',
+            slotDurationMinutes: 60,
+            gapMinutes: 0,
+            bookingMode: 'individual' as BookingMode,
+            breaks: []
+        };
+    }, [dayConfigs, selectedDay]);
+
+    // Update specific day config
+    const updateDayConfig = (updates: Partial<DayScheduleConfig>) => {
+        setDayConfigs(prev => ({
             ...prev,
-            term: { ...prev.term, [key]: value }
+            [selectedDay]: { ...prev[selectedDay], ...updates }
         }));
         setHasChanges(true);
     };
 
-    // Helper to get or initialize Grade Config
-    const getGradeConfig = (gradeId: number): GradeSlotConfig => {
-        return config.gradeConfigs.find(c => c.gradeId === gradeId) || {
-            gradeId,
-            days: {
-                0: { isActive: true, startTime: '08:00', endTime: '14:00', slotDurationMinutes: 60, gapMinutes: 0, bookingMode: 'individual', breaks: [] },
-                1: { isActive: true, startTime: '08:00', endTime: '14:00', slotDurationMinutes: 60, gapMinutes: 0, bookingMode: 'individual', breaks: [] },
-                2: { isActive: true, startTime: '08:00', endTime: '14:00', slotDurationMinutes: 60, gapMinutes: 0, bookingMode: 'individual', breaks: [] },
-                3: { isActive: true, startTime: '08:00', endTime: '14:00', slotDurationMinutes: 60, gapMinutes: 0, bookingMode: 'individual', breaks: [] },
-                4: { isActive: true, startTime: '08:00', endTime: '14:00', slotDurationMinutes: 60, gapMinutes: 0, bookingMode: 'individual', breaks: [] },
-                5: { isActive: false, startTime: '08:00', endTime: '14:00', slotDurationMinutes: 60, gapMinutes: 0, bookingMode: 'individual', breaks: [] },
-                6: { isActive: false, startTime: '08:00', endTime: '14:00', slotDurationMinutes: 60, gapMinutes: 0, bookingMode: 'individual', breaks: [] }
-            }
-        };
-    };
-
-    // Update specific day config
-    const updateDayConfig = (gradeId: number, dayKey: number, updates: Partial<DayScheduleConfig>) => {
-        const gradeConfig = getGradeConfig(gradeId);
-        const dayConfig = gradeConfig.days[dayKey] || { isActive: false, startTime: '08:00', endTime: '14:00', slotDurationMinutes: 60, gapMinutes: 0, bookingMode: 'individual', breaks: [] };
-
-        const newDayConfig = { ...dayConfig, ...updates };
-        const newDays = { ...gradeConfig.days, [dayKey]: newDayConfig };
-
-        frontendSettings.updateGradeConfig(gradeId, { days: newDays });
-        setHasChanges(false); // Saved via service
-        setConfig(frontendSettings.getConfig()); // Refresh
-    };
-
     // Break Management
-    const addBreak = (gradeId: number, dayKey: number) => {
-        const gradeConfig = getGradeConfig(gradeId);
-        const dayConfig = gradeConfig.days[dayKey];
-        const newBreak: BreakInterval = { id: Math.random().toString(36).substr(2, 9), start: '10:00', end: '10:30' };
-        updateDayConfig(gradeId, dayKey, { breaks: [...(dayConfig.breaks || []), newBreak] });
+    const addBreak = () => {
+        const newBreak: BreakInterval = {
+            id: crypto.randomUUID(),
+            start: '10:00',
+            end: '10:30'
+        };
+        updateDayConfig({ breaks: [...currentDayConfig.breaks, newBreak] });
     };
 
-    const removeBreak = (gradeId: number, dayKey: number, breakId: string) => {
-        const gradeConfig = getGradeConfig(gradeId);
-        const dayConfig = gradeConfig.days[dayKey];
-        updateDayConfig(gradeId, dayKey, { breaks: dayConfig.breaks.filter(b => b.id !== breakId) });
+    const updateBreak = (id: string, field: 'start' | 'end', value: string) => {
+        const updatedBreaks = currentDayConfig.breaks.map((b: BreakInterval) =>
+            b.id === id ? { ...b, [field]: value } : b
+        );
+        updateDayConfig({ breaks: updatedBreaks });
     };
 
-    const updateBreak = (gradeId: number, dayKey: number, breakId: string, field: 'start' | 'end', value: string) => {
-        const gradeConfig = getGradeConfig(gradeId);
-        const dayConfig = gradeConfig.days[dayKey];
-        const newBreaks = dayConfig.breaks.map(b => b.id === breakId ? { ...b, [field]: value } : b);
-        updateDayConfig(gradeId, dayKey, { breaks: newBreaks });
+    const removeBreak = (id: string) => {
+        const updatedBreaks = currentDayConfig.breaks.filter((b: BreakInterval) => b.id !== id);
+        updateDayConfig({ breaks: updatedBreaks });
     };
 
-    // Update grade-specific term
-    const updateGradeTerm = (gradeId: number, termUpdates: any) => {
-        console.log('AdminScheduleConfig: Updating grade term', gradeId, termUpdates);
-        frontendSettings.updateGradeConfig(gradeId, { term: termUpdates });
-        setHasChanges(false);
-        setConfig(frontendSettings.getConfig());
-    };
-
-    // Slot Generation Logic
-    const generatedPreview = useMemo(() => {
-        // 1. Determine Global Range (Min Start -> Max End)
-        let minStart: Date | null = null;
-        let maxEnd: Date | null = null;
-
-        // Check Global Term
-        if (config.term.startDate && config.term.endDate) {
-            minStart = new Date(config.term.startDate);
-            maxEnd = new Date(config.term.endDate);
-        }
-
-        // Check Grade Overrides
-        config.gradeConfigs.forEach(g => {
-            if (g.term?.startDate && g.term?.endDate && g.term?.isActive) {
-                const s = new Date(g.term.startDate);
-                const e = new Date(g.term.endDate);
-                if (!minStart || s < minStart) minStart = s;
-                if (!maxEnd || e > maxEnd) maxEnd = e;
-            }
-        });
-
-        if (!minStart || !maxEnd) return { count: 0, distinctSlots: [] };
-
-        const distinctSlots = new Map<string, { start_time: string, end_time: string }>();
-        const loopDate = new Date(minStart);
-
-        while (loopDate <= maxEnd) {
-            const dayOfWeek = loopDate.getDay();
-            const dateStr = loopDate.toLocaleDateString('en-CA'); // YYYY-MM-DD
-
-            // Loop through all grades
-            config.gradeConfigs.forEach(gradeConfig => {
-                // Check if this date is valid for this specific grade
-                const termToUse = (gradeConfig.term && gradeConfig.term.isActive) ? gradeConfig.term : config.term;
-
-                // If term is invalid or inactive, skip
-                if (!termToUse.startDate || !termToUse.endDate || !termToUse.isActive) return;
-
-                const termStart = new Date(termToUse.startDate);
-                const termEnd = new Date(termToUse.endDate);
-                termStart.setHours(0, 0, 0, 0);
-                termEnd.setHours(23, 59, 59, 999);
-
-                // Skip if date is outside this grade's term
-                // Note: loopDate is already normalized by setHours logic usually, but let's be safe
-                const currentCheck = new Date(loopDate);
-                currentCheck.setHours(0, 0, 0, 0);
-                if (currentCheck < termStart || currentCheck > termEnd) return;
-
-
-                const dayConfig = gradeConfig.days[dayOfWeek];
-                if (dayConfig && dayConfig.isActive) {
-
-                    const [startH, startM] = dayConfig.startTime.split(':').map(Number);
-                    const [endH, endM] = dayConfig.endTime.split(':').map(Number);
-
-                    let currentMinutes = startH * 60 + startM;
-                    const endMinutes = endH * 60 + endM;
-
-                    // Parse Breaks into minutes ranges
-                    const breakRanges = (dayConfig.breaks || []).map(b => {
-                        const [bStartH, bStartM] = b.start.split(':').map(Number);
-                        const [bEndH, bEndM] = b.end.split(':').map(Number);
-                        return { start: bStartH * 60 + bStartM, end: bEndH * 60 + bEndM };
-                    });
-
-                    while (currentMinutes + dayConfig.slotDurationMinutes <= endMinutes) {
-                        const slotStartMins = currentMinutes;
-                        const slotEndMins = currentMinutes + dayConfig.slotDurationMinutes;
-
-                        // Check intersection with ANY break
-                        // Conflict if (SlotStart < BreakEnd) AND (SlotEnd > BreakStart)
-                        const hasConflict = breakRanges.some(br =>
-                            slotStartMins < br.end && slotEndMins > br.start
-                        );
-
-                        if (!hasConflict) {
-                            const slotStartH = Math.floor(slotStartMins / 60);
-                            const slotStartM = slotStartMins % 60;
-                            const slotEndH = Math.floor(slotEndMins / 60);
-                            const slotEndM = slotEndMins % 60;
-
-                            const timeKey = `${dateStr} ${slotStartH}:${slotStartM}-${slotEndH}:${slotEndM}`;
-                            const startTimeStr = `${dateStr} ${String(slotStartH).padStart(2, '0')}:${String(slotStartM).padStart(2, '0')}:00`;
-                            const endTimeStr = `${dateStr} ${String(slotEndH).padStart(2, '0')}:${String(slotEndM).padStart(2, '0')}:00`;
-
-                            distinctSlots.set(timeKey, {
-                                start_time: startTimeStr,
-                                end_time: endTimeStr
-                            });
-                        }
-
-                        currentMinutes += dayConfig.slotDurationMinutes + (dayConfig.gapMinutes || 0);
-                    }
-                }
-            });
-
-            loopDate.setDate(loopDate.getDate() + 1);
-        }
-
-        return { count: distinctSlots.size, distinctSlots: Array.from(distinctSlots.values()) };
-    }, [config]);
-
+    // Handle generating/publishing time slots
     const handlePublishSlots = async () => {
-        if (generatedPreview.count === 0) return;
-        if (!window.confirm(`سيتم إنشاء ${generatedPreview.count} فترة زمنية. هل أنت متأكد؟`)) return;
+        if (!selectedSemesterId) return;
 
         setIsGenerating(true);
         try {
-            const slots = generatedPreview.distinctSlots;
-            const chunkSize = 20;
-            let createdCount = 0;
-
-            for (let i = 0; i < slots.length; i += chunkSize) {
-                const chunk = slots.slice(i, i + chunkSize);
-                try {
-                    await bulkCreateMutation.mutateAsync(chunk);
-                    createdCount += chunk.length;
-                    await new Promise(r => setTimeout(r, 200));
-                } catch (e) {
-                    console.error('Chunk failed', e);
-                }
-            }
-
-            toast.success(`تم إنشاء ${createdCount} فترة بنجاح.`);
+            await adminService.generateSlots(selectedSemesterId);
+            toast.success('تم بدء عملية إنشاء الفترات الزمنية بنجاح');
         } catch (error) {
-            console.error('Generation failed:', error);
-            toast.error('حدث خطأ أثناء إنشاء الفترات');
+            console.error('Failed to generate slots:', error);
+            toast.error('حدث خطأ أثناء إنشاء الفترات الزمنية');
         } finally {
             setIsGenerating(false);
         }
     };
 
-    const currentDayConfig = selectedGradeId ? getGradeConfig(selectedGradeId).days[selectedDay] || { isActive: false, startTime: '08:00', endTime: '14:00', slotDurationMinutes: 60, gapMinutes: 0, bookingMode: 'individual', breaks: [] } : null;
+    // Reset to defaults
+    const resetToDefaults = () => {
+        const defaultConfig: Record<number, DayScheduleConfig> = {};
+        for (let day = 0; day <= 6; day++) {
+            defaultConfig[day] = {
+                isActive: day <= 4,
+                startTime: '08:00',
+                endTime: '14:00',
+                slotDurationMinutes: 60,
+                gapMinutes: 0,
+                bookingMode: 'individual',
+                breaks: []
+            };
+        }
+        setDayConfigs(defaultConfig);
+        setHasChanges(true);
+    };
 
     return (
         <div className="space-y-6 pb-20 max-w-6xl mx-auto p-6" dir="rtl">
@@ -403,125 +337,51 @@ export function AdminScheduleConfigPage() {
                     {selectedGradeId && currentDayConfig ? (
                         <div className="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden ring-1 ring-slate-900/5">
 
-                            {/* Per-Grade Settings Header (Term Dates) */}
-                            {/* Per-Grade Settings Header (Semester Allocation) */}
-                            <div className="p-6 border-b border-slate-100 bg-slate-50/30">
-                                <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                    <Calendar size={18} className="text-indigo-600" />
-                                    تخصيص الفصل الدراسي لهذا الصف
-                                </h3>
-
-                                <div className="flex flex-col gap-4">
-                                    {/* Semester Selection */}
-                                    <div className="flex items-center gap-4 flex-wrap">
-                                        <div className="flex-1 min-w-[200px]">
-                                            <label className="text-xs font-bold text-slate-500 mb-1 block">اختر الفصل الدراسي</label>
-                                            <div className="relative">
-                                                <select
-                                                    value={getGradeConfig(selectedGradeId).term?.semesterId || ''}
-                                                    onChange={(e) => {
-                                                        const val = e.target.value;
-                                                        const currentTerm = getGradeConfig(selectedGradeId).term || { ...config.term };
-
-                                                        if (!val) {
-                                                            updateGradeTerm(selectedGradeId, {
-                                                                ...currentTerm,
-                                                                semesterId: undefined,
-                                                                isActive: false // Deactivate if reset
-                                                            });
-                                                            return;
-                                                        }
-
-                                                        const semId = Number(val);
-
-                                                        // Case: Exam Schedule (Manual Dates)
-                                                        if (semId === -1) {
-                                                            updateGradeTerm(selectedGradeId, {
-                                                                ...currentTerm,
-                                                                semesterId: -1,
-                                                                isActive: true
-                                                            });
-                                                            return;
-                                                        }
-
-                                                        const semester = semesters.find(s => s.id === semId);
-                                                        console.log('AdminScheduleConfig: Selected semester', semId, semester);
-                                                        if (semester) {
-                                                            updateGradeTerm(selectedGradeId, {
-                                                                ...currentTerm,
-                                                                semesterId: semId,
-                                                                startDate: semester.start_date ? semester.start_date.substring(0, 10) : '',
-                                                                endDate: semester.end_date ? semester.end_date.substring(0, 10) : '',
-                                                                isActive: true // Auto-activate
-                                                            });
-                                                        }
-                                                    }}
-                                                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 appearance-none"
-                                                >
-                                                    <option value="">-- اختر الفصل (إلغاء التخصيص) --</option>
-                                                    <option value="-1" className="font-bold text-indigo-700 bg-indigo-50">📅 جدول الامتحانات (تحديد يدوي)</option>
-                                                    <hr />
-                                                    {semesters
-                                                        .map(sem => (
-                                                            <option key={sem.id} value={sem.id}>
-                                                                {typeof sem.name === 'string' ? sem.name : (sem.name.ar || sem.name.en)}
-                                                            </option>
-                                                        ))}
-                                                </select>
-                                                <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                                            </div>
-                                        </div>
+                            {/* Grade & Semester Header */}
+                            <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-slate-50">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div>
+                                        <h3 className="font-bold text-slate-800 flex items-center gap-3 text-lg">
+                                            <span className="p-2 bg-indigo-600 text-white rounded-lg">
+                                                <Calendar size={18} />
+                                            </span>
+                                            إعدادات الجدول - {grades.find(g => g.id === selectedGradeId)?.name?.ar || grades.find(g => g.id === selectedGradeId)?.name}
+                                        </h3>
+                                        <p className="text-slate-500 text-sm mt-2">حدد الفصل الدراسي وأوقات الدوام</p>
                                     </div>
 
-                                    {/* Date Display / Edit */}
-                                    <div className={`flex flex-wrap gap-4 items-end p-3 rounded-lg border transition-colors ${getGradeConfig(selectedGradeId).term?.semesterId === -1
-                                        ? 'bg-white border-indigo-200 shadow-sm'
-                                        : 'bg-slate-50 border-slate-100 opacity-70'
-                                        }`}>
-                                        <div>
-                                            <label className="text-xs font-bold text-slate-500 mb-1 block">تاريخ البدء</label>
-                                            <input
-                                                type="date"
-                                                value={getGradeConfig(selectedGradeId).term?.startDate?.substring(0, 10) || ''}
-                                                onChange={(e) => {
-                                                    // Only allow edit if Exam Schedule (-1)
-                                                    if (getGradeConfig(selectedGradeId).term?.semesterId === -1) {
-                                                        const currentTerm = getGradeConfig(selectedGradeId).term || { ...config.term };
-                                                        updateGradeTerm(selectedGradeId, { ...currentTerm, startDate: e.target.value });
-                                                    }
-                                                }}
-                                                readOnly={getGradeConfig(selectedGradeId).term?.semesterId !== -1}
-                                                disabled={getGradeConfig(selectedGradeId).term?.semesterId !== -1}
-                                                className={`px-3 py-2 border rounded-lg text-sm transition-all focus:ring-2 focus:ring-indigo-500/20 ${getGradeConfig(selectedGradeId).term?.semesterId === -1
-                                                    ? 'bg-white border-slate-300 cursor-text'
-                                                    : 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed'
-                                                    }`}
-                                            />
+                                    {/* Semester Selector */}
+                                    <div className="flex items-center gap-3 bg-white p-2 rounded-xl border border-indigo-100 shadow-sm">
+                                        <div className="relative">
+                                            <select
+                                                value={selectedSemesterId || ''}
+                                                onChange={(e) => setSelectedSemesterId(Number(e.target.value))}
+                                                className="appearance-none bg-indigo-50/50 border border-indigo-200 text-indigo-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 pr-8 font-bold"
+                                            >
+                                                <option value="">اختر الفصل الدراسي</option>
+                                                {semesters.map(term => (
+                                                    <option key={term.id} value={term.id}>
+                                                        {(term.name as any).ar || (term.name as any).en || term.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown className="absolute left-2 top-3 text-indigo-400 pointer-events-none" size={16} />
                                         </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-slate-500 mb-1 block">تاريخ الانتهاء</label>
-                                            <input
-                                                type="date"
-                                                value={getGradeConfig(selectedGradeId).term?.endDate?.substring(0, 10) || ''}
-                                                onChange={(e) => {
-                                                    if (getGradeConfig(selectedGradeId).term?.semesterId === -1) {
-                                                        const currentTerm = getGradeConfig(selectedGradeId).term || { ...config.term };
-                                                        updateGradeTerm(selectedGradeId, { ...currentTerm, endDate: e.target.value });
-                                                    }
-                                                }}
-                                                readOnly={getGradeConfig(selectedGradeId).term?.semesterId !== -1}
-                                                disabled={getGradeConfig(selectedGradeId).term?.semesterId !== -1}
-                                                className={`px-3 py-2 border rounded-lg text-sm transition-all focus:ring-2 focus:ring-indigo-500/20 ${getGradeConfig(selectedGradeId).term?.semesterId === -1
-                                                    ? 'bg-white border-slate-300 cursor-text'
-                                                    : 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed'
-                                                    }`}
-                                            />
-                                        </div>
-                                        <span className="text-xs text-slate-400 mr-auto self-end pb-2">
-                                            {getGradeConfig(selectedGradeId).term?.semesterId === -1
-                                                ? '* يمكنك تحديد فترة الامتحانات يدوياً'
-                                                : '* يتم تحديد التواريخ تلقائياً بناءً على الفصل المختار'}
-                                        </span>
+
+                                        {selectedSemesterId && (() => {
+                                            const term = semesters.find(s => s.id === selectedSemesterId);
+                                            if (term && term.start_date && term.end_date) {
+                                                return (
+                                                    <div className="flex flex-col text-xs px-3 border-r border-slate-100">
+                                                        <span className="text-slate-400">الفترة الزمنية</span>
+                                                        <span className="font-mono font-bold text-indigo-600" dir="ltr">
+                                                            {new Date(term.start_date).toLocaleDateString()} - {new Date(term.end_date).toLocaleDateString()}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
                                     </div>
                                 </div>
                             </div>
@@ -550,7 +410,7 @@ export function AdminScheduleConfigPage() {
                                             <input
                                                 type="checkbox"
                                                 checked={currentDayConfig.isActive}
-                                                onChange={(e) => updateDayConfig(selectedGradeId, selectedDay, { isActive: e.target.checked })}
+                                                onChange={(e) => updateDayConfig({ isActive: e.target.checked })}
                                                 className="sr-only peer"
                                             />
                                             <span className="ml-3 text-sm font-bold text-slate-700 whitespace-nowrap">تفعيل هذا اليوم</span>
@@ -560,13 +420,13 @@ export function AdminScheduleConfigPage() {
 
                                     <div className="flex bg-slate-100 p-1 rounded-lg">
                                         <button
-                                            onClick={() => updateDayConfig(selectedGradeId, selectedDay, { bookingMode: 'individual' })}
+                                            onClick={() => updateDayConfig({ bookingMode: 'individual' })}
                                             className={`px-4 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-all ${currentDayConfig.bookingMode === 'individual' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}
                                         >
                                             <Lock size={14} /> فردي (حصري)
                                         </button>
                                         <button
-                                            onClick={() => updateDayConfig(selectedGradeId, selectedDay, { bookingMode: 'multiple' })}
+                                            onClick={() => updateDayConfig({ bookingMode: 'multiple' })}
                                             className={`px-4 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-all ${currentDayConfig.bookingMode === 'multiple' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}
                                         >
                                             <Unlock size={14} /> متعدد (مفتوح)
@@ -584,7 +444,7 @@ export function AdminScheduleConfigPage() {
                                                     <input
                                                         type="time"
                                                         value={currentDayConfig.startTime}
-                                                        onChange={(e) => updateDayConfig(selectedGradeId, selectedDay, { startTime: e.target.value })}
+                                                        onChange={(e) => updateDayConfig({ startTime: e.target.value })}
                                                         className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-mono text-center font-bold text-slate-700"
                                                     />
                                                 </div>
@@ -595,7 +455,7 @@ export function AdminScheduleConfigPage() {
                                                     <input
                                                         type="time"
                                                         value={currentDayConfig.endTime}
-                                                        onChange={(e) => updateDayConfig(selectedGradeId, selectedDay, { endTime: e.target.value })}
+                                                        onChange={(e) => updateDayConfig({ endTime: e.target.value })}
                                                         className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-mono text-center font-bold text-slate-700"
                                                     />
                                                 </div>
@@ -605,7 +465,7 @@ export function AdminScheduleConfigPage() {
                                                 <div className="relative">
                                                     <select
                                                         value={currentDayConfig.slotDurationMinutes}
-                                                        onChange={(e) => updateDayConfig(selectedGradeId, selectedDay, { slotDurationMinutes: parseInt(e.target.value) })}
+                                                        onChange={(e) => updateDayConfig({ slotDurationMinutes: parseInt(e.target.value) })}
                                                         className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-center font-bold text-slate-700 appearance-none"
                                                     >
                                                         <option value={30}>30 دقيقة</option>
@@ -622,7 +482,7 @@ export function AdminScheduleConfigPage() {
                                                 <div className="relative">
                                                     <select
                                                         value={currentDayConfig.gapMinutes}
-                                                        onChange={(e) => updateDayConfig(selectedGradeId, selectedDay, { gapMinutes: parseInt(e.target.value) })}
+                                                        onChange={(e) => updateDayConfig({ gapMinutes: parseInt(e.target.value) })}
                                                         className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-center font-bold text-slate-700 appearance-none"
                                                     >
                                                         <option value={0}>لا يوجد</option>
@@ -646,7 +506,7 @@ export function AdminScheduleConfigPage() {
                                                     فترات الراحة (Breaks)
                                                 </h4>
                                                 <button
-                                                    onClick={() => addBreak(selectedGradeId, selectedDay)}
+                                                    onClick={() => addBreak()}
                                                     className="text-xs bg-white hover:bg-amber-50 text-amber-700 px-4 py-2 rounded-xl flex items-center gap-2 font-bold transition-all border border-amber-200 shadow-sm hover:shadow-md"
                                                 >
                                                     <Plus size={14} strokeWidth={3} /> إضافة فترة راحة
@@ -662,19 +522,19 @@ export function AdminScheduleConfigPage() {
                                                                 <input
                                                                     type="time"
                                                                     value={item.start}
-                                                                    onChange={(e) => updateBreak(selectedGradeId, selectedDay, item.id, 'start', e.target.value)}
+                                                                    onChange={(e) => updateBreak(item.id, 'start', e.target.value)}
                                                                     className="px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400 transition-all font-mono text-sm font-bold text-slate-700"
                                                                 />
                                                                 <span className="text-xs font-bold text-slate-400">إلى</span>
                                                                 <input
                                                                     type="time"
                                                                     value={item.end}
-                                                                    onChange={(e) => updateBreak(selectedGradeId, selectedDay, item.id, 'end', e.target.value)}
+                                                                    onChange={(e) => updateBreak(item.id, 'end', e.target.value)}
                                                                     className="px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400 transition-all font-mono text-sm font-bold text-slate-700"
                                                                 />
                                                             </div>
                                                             <button
-                                                                onClick={() => removeBreak(selectedGradeId, selectedDay, item.id)}
+                                                                onClick={() => removeBreak(item.id)}
                                                                 className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-100 lg:opacity-0 group-hover:opacity-100"
                                                                 title="حذف الفترة"
                                                             >
@@ -717,13 +577,17 @@ export function AdminScheduleConfigPage() {
                             نشر الجدول الدراسي
                         </h2>
                         <p className="text-slate-300 text-lg leading-relaxed opacity-90">
-                            سيتم تحليل القواعد وإنشاء <span className="text-white font-bold bg-white/10 px-2 py-0.5 rounded-md">{generatedPreview.count}</span> فترة زمنية جاهزة للحجز.
+                            {selectedSemesterId ?
+                                `سيتم إنشاء الجداول للفترة من ${new Date(semesters.find(s => s.id === selectedSemesterId)?.start_date!).toLocaleDateString()} إلى ${new Date(semesters.find(s => s.id === selectedSemesterId)?.end_date!).toLocaleDateString()}`
+                                : 'يرجى اختيار الفصل الدراسي أولاً لتحديد الفترة الزمنية للجدول.'}
+                            <br />
+                            احفظ الإعدادات أولاً ثم انقر للبدء في إنشاء الفترات الزمنية.
                         </p>
                     </div>
                     <button
                         onClick={handlePublishSlots}
-                        disabled={isGenerating || generatedPreview.count === 0}
-                        className={`px-10 py-5 rounded-2xl font-bold text-lg shadow-xl shadow-indigo-900/20 flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1 active:translate-y-0 ${isGenerating || generatedPreview.count === 0
+                        disabled={isGenerating || !selectedSemesterId}
+                        className={`px-10 py-5 rounded-2xl font-bold text-lg shadow-xl shadow-indigo-900/20 flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1 active:translate-y-0 ${isGenerating
                             ? 'bg-slate-800 text-slate-500 cursor-not-allowed ring-1 ring-slate-700'
                             : 'bg-indigo-600 hover:bg-indigo-500 text-white ring-4 ring-indigo-600/20'
                             }`}
