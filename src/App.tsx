@@ -56,7 +56,6 @@ import {
   TeacherQuizzesPage,
   TeacherSettingsPage,
   TeacherAnalyticsPage,
-  TeacherTimeSlotsPage,
   TeacherRecordingsPage,
   TeacherSlotRequestsPage,
   TeacherWeeklySchedulePage,
@@ -173,8 +172,6 @@ function App() {
               <Route index element={<TeacherDashboardPage />} />
               <Route path="courses" element={<TeacherCoursesPage />} />
               <Route path="courses/:id" element={<TeacherCourseDetailsPage />} />
-              <Route path="time-slots" element={<TeacherTimeSlotsPage />} />
-              <Route path="timeslots" element={<TeacherTimeSlotsPage />} /> {/* Alias without hyphen */}
               <Route path="quizzes" element={<TeacherQuizzesPage />} />
               <Route path="analytics" element={<TeacherAnalyticsPage />} />
               <Route path="settings" element={<TeacherSettingsPage />} />

@@ -1042,25 +1042,89 @@ export function TeacherCourseDetailsPage() {
     };
 
     const handleStartSession = async (lectureId: number) => {
-        try {
-            const loadingToast = toast.loading('جاري بدء الجلسة المباشرة...');
+        // Show initial loading with descriptive steps
+        const loadingToast = toast.loading(
+            <div className="flex flex-col gap-1">
+                <span className="font-semibold">جاري بدء الجلسة المباشرة...</span>
+                <span className="text-xs text-gray-400">الاتصال بخادم البث المباشر</span>
+            </div>,
+            { duration: Infinity }
+        );
 
+        // Update loading message after 3 seconds
+        const step1Timeout = setTimeout(() => {
+            toast.loading(
+                <div className="flex flex-col gap-1">
+                    <span className="font-semibold">جاري إنشاء غرفة البث...</span>
+                    <span className="text-xs text-gray-400">يرجى الانتظار، قد يستغرق هذا بضع ثوانٍ</span>
+                </div>,
+                { id: loadingToast }
+            );
+        }, 3000);
+
+        // Update loading message after 8 seconds
+        const step2Timeout = setTimeout(() => {
+            toast.loading(
+                <div className="flex flex-col gap-1">
+                    <span className="font-semibold">جاري تحضير الجلسة...</span>
+                    <span className="text-xs text-gray-400">جاري إعداد إعدادات التسجيل والبث</span>
+                </div>,
+                { id: loadingToast }
+            );
+        }, 8000);
+
+        // Update loading message after 15 seconds (for slow connections)
+        const step3Timeout = setTimeout(() => {
+            toast.loading(
+                <div className="flex flex-col gap-1">
+                    <span className="font-semibold">الاتصال يستغرق وقتاً أطول...</span>
+                    <span className="text-xs text-gray-400">يرجى عدم إغلاق الصفحة</span>
+                </div>,
+                { id: loadingToast }
+            );
+        }, 15000);
+
+        // Update loading message after 30 seconds (for very slow connections)
+        const step4Timeout = setTimeout(() => {
+            toast.loading(
+                <div className="flex flex-col gap-1">
+                    <span className="font-semibold">جاري الاتصال بخادم البث...</span>
+                    <span className="text-xs text-gray-400">الخادم بطيء الاستجابة، يرجى الانتظار قليلاً</span>
+                </div>,
+                { id: loadingToast }
+            );
+        }, 30000);
+
+        try {
             // Generate secure one-time-use embed token
             const response = await teacherLectureService.generateSecureEmbedToken(lectureId);
+
+            // Clear all timeouts
+            clearTimeout(step1Timeout);
+            clearTimeout(step2Timeout);
+            clearTimeout(step3Timeout);
+            clearTimeout(step4Timeout);
             toast.dismiss(loadingToast);
 
             if (response.success && response.data?.embed_url) {
                 // Open in secure embed modal
                 setLiveSessionEmbedUrl(response.data.embed_url);
                 setIsLiveSessionModalOpen(true);
-                toast.success('تم بدء الجلسة بنجاح');
+                toast.success('تم بدء الجلسة بنجاح! 🎉');
             } else {
                 toast.error(response.message || 'لم يتم استلام رابط الجلسة');
             }
         } catch (error: any) {
+            // Clear all timeouts
+            clearTimeout(step1Timeout);
+            clearTimeout(step2Timeout);
+            clearTimeout(step3Timeout);
+            clearTimeout(step4Timeout);
+            toast.dismiss(loadingToast);
+
             console.error('Start session error:', error);
-            const errorMessage = error.response?.data?.message || 'فشل بدء الجلسة';
-            toast.error(errorMessage);
+            const errorMessage = error.response?.data?.message || 'فشل بدء الجلسة - يرجى المحاولة مرة أخرى';
+            toast.error(errorMessage, { duration: 5000 });
         }
     };
 
@@ -1451,6 +1515,7 @@ export function TeacherCourseDetailsPage() {
                     units={units}
                     initialUnitId={selectedUnit.id}
                     gradeId={course?.grade_id || course?.grade?.id}
+                    semesterId={course?.semester_id || course?.semester?.id}
                 />
             )}
 

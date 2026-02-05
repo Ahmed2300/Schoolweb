@@ -198,6 +198,7 @@ export const teacherLectureService = {
     /**
      * Generate a secure, one-time-use embed token for live sessions.
      * This prevents URL sharing - the token expires in 30 seconds and is consumed on first use.
+     * Note: Extended timeout (45s) for BBB server which can be slow to create meetings.
      */
     generateSecureEmbedToken: async (lectureId: number): Promise<{
         success: boolean;
@@ -208,7 +209,11 @@ export const teacherLectureService = {
         };
         message?: string
     }> => {
-        const response = await apiClient.post(`/api/v1/lectures/${lectureId}/bbb/generate-secure-token`);
+        const response = await apiClient.post(
+            `/api/v1/lectures/${lectureId}/bbb/generate-secure-token`,
+            {},
+            { timeout: 75000 } // Extended timeout (60s backend + 15s buffer) for slow BBB server
+        );
         return response.data;
     },
 
