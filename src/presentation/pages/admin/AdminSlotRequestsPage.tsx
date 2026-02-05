@@ -43,7 +43,7 @@ import {
     useBulkApproveSlotRequests,
     useBulkRejectSlotRequests,
 } from '../../hooks/useSlotRequests';
-import type { SlotRequest, SlotRequestStatus } from '../../../types/slotRequest';
+import type { SlotRequest, SlotRequestStatus, Teacher, Grade } from '../../../types/slotRequest';
 
 // ============================================
 // Constants
@@ -128,44 +128,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = React.memo(({ status }) => {
 
 StatusBadge.displayName = 'StatusBadge';
 
-interface AdminUser {
-    id: number;
-    name: string;
-}
 
-export type SlotRequestStatus = 'pending' | 'approved' | 'rejected';
-
-export interface SlotRequest {
-    id: number;
-    teacher_id: number;
-    teacher?: Teacher; // Assuming Teacher interface is defined elsewhere or will be added
-    grade_id: number;
-    grade?: Grade;     // Assuming Grade interface is defined elsewhere or will be added
-    lecture_id?: number;
-    semester_id?: number;
-
-    // Time info
-    day_of_week: string; // 'sunday', etc.
-    start_time: string; // '14:00:00'
-    end_time: string;   // '15:00:00'
-
-    // Status info
-    status: SlotRequestStatus;
-    rejection_reason?: string;
-    request_notes?: string;
-    approved_by?: AdminUser;
-
-    // Computed/Formatted fields
-    day_name?: string;
-    arabic_day?: string;
-    time_range?: string;
-    type: 'weekly' | 'one_time';
-    type_label?: string;
-    specific_date?: string;
-    is_pending: boolean;
-
-    created_at: string;
-}
 
 interface RequestRowProps {
     request: SlotRequest;

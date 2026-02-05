@@ -51,7 +51,7 @@ export function TimeSlotCard({
             <div className="flex items-center gap-2 text-gray-600">
                 <Clock className="h-4 w-4" />
                 <span className="font-medium">
-                    {formatTimeAr(slot.start_time)} - {formatTimeAr(slot.end_time)}
+                    {formatTimeAr(slot.start)} - {formatTimeAr(slot.end)}
                 </span>
             </div>
 
