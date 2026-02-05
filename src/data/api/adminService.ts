@@ -57,6 +57,7 @@ export interface UserData {
     courses?: string[];
     subjects?: string[];
     grades?: string[];
+    grade_ids?: number[];
 }
 
 export interface PaginatedResponse<T> {

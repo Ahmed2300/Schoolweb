@@ -88,8 +88,20 @@ export interface SlotRequest {
     is_pending: boolean;
     is_approved: boolean;
     is_rejected: boolean;
+    today?: string;
+    description?: string;
+    request_notes?: string; // Client alias for notes
     can_cancel: boolean;
+
+    // Optional fields for UI compatibility
+    arabic_day?: string;
+    approved_by?: SlotRequestReviewer;
 }
+
+// Additional Interfaces for UI components
+export interface Teacher extends SlotRequestTeacher { }
+export interface Grade extends SlotRequestGrade { }
+
 
 /**
  * Request payload for creating a slot request
