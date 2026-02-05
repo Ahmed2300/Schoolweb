@@ -11,6 +11,7 @@ import type { TimeSlot } from '../../types/timeSlot';
 export const teacherTimeSlotKeys = {
     all: ['teacherTimeSlots'] as const,
     available: (date?: string) => [...teacherTimeSlotKeys.all, 'available', date] as const,
+    revision: () => [...teacherTimeSlotKeys.all, 'revision'] as const,
     myRequests: () => [...teacherTimeSlotKeys.all, 'myRequests'] as const,
     detail: (id: number) => [...teacherTimeSlotKeys.all, 'detail', id] as const,
 };
@@ -22,6 +23,17 @@ export function useAvailableSlots(date?: string) {
     return useQuery({
         queryKey: teacherTimeSlotKeys.available(date),
         queryFn: () => teacherService.getAvailableSlots(date),
+        select: (data) => data as TimeSlot[],
+    });
+}
+
+/**
+ * Hook to fetch revision schedule slots for teachers.
+ */
+export function useRevisionSlots() {
+    return useQuery({
+        queryKey: teacherTimeSlotKeys.revision(),
+        queryFn: () => teacherService.getRevisionSlots(),
         select: (data) => data as TimeSlot[],
     });
 }

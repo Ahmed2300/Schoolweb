@@ -72,6 +72,13 @@ export function AdminScheduleConfigPage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const bulkCreateMutation = useBulkCreateTimeSlots();
 
+    // Revision Schedule Modal State
+    const [showRevisionModal, setShowRevisionModal] = useState(false);
+    const [revisionName, setRevisionName] = useState('');
+    const [revisionStartDate, setRevisionStartDate] = useState('');
+    const [revisionEndDate, setRevisionEndDate] = useState('');
+    const [isCreatingRevision, setIsCreatingRevision] = useState(false);
+
     // Helper to convert backend data to local state
     const convertFromBackend = useCallback((backendDays: Record<number, DayScheduleSettingData>): Record<number, DayScheduleConfig> => {
         const result: Record<number, DayScheduleConfig> = {};
@@ -258,6 +265,70 @@ export function AdminScheduleConfigPage() {
         }
     };
 
+    // Create a new revision schedule
+    const handleCreateRevision = async () => {
+        if (!selectedGradeId || !revisionName || !revisionStartDate || !revisionEndDate) {
+            toast.error('الرجاء ملء جميع الحقول');
+            return;
+        }
+
+        if (new Date(revisionStartDate) >= new Date(revisionEndDate)) {
+            toast.error('تاريخ البدء يجب أن يكون قبل تاريخ الانتهاء');
+            return;
+        }
+
+        // Check that revision dates are after all semester end dates
+        const regularSemesters = semesters.filter(s => s.type !== 'revision' && s.end_date);
+        if (regularSemesters.length > 0) {
+            const latestSemesterEndDate = regularSemesters.reduce((latest, sem) => {
+                const endDate = new Date(sem.end_date!);
+                return endDate > latest ? endDate : latest;
+            }, new Date(0));
+
+            if (new Date(revisionStartDate) <= latestSemesterEndDate) {
+                const formattedDate = latestSemesterEndDate.toLocaleDateString('ar-EG', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                toast.error(`تاريخ بدء المراجعة يجب أن يكون بعد انتهاء الفصل الدراسي (${formattedDate})`);
+                return;
+            }
+        }
+
+        setIsCreatingRevision(true);
+        try {
+            const newSemester = await adminService.createSemester({
+                name: { ar: revisionName, en: revisionName },
+                type: 'revision',
+                grade_id: selectedGradeId,
+                country_id: 1, // Default country - you may want to make this configurable
+                start_date: revisionStartDate,
+                end_date: revisionEndDate
+            });
+
+            // Refresh semesters list
+            const data = await adminService.getSemestersByGrade(selectedGradeId);
+            setSemesters(data || []);
+
+            // Auto-select the new revision
+            setSelectedSemesterId(newSemester.id);
+
+            // Reset modal state
+            setShowRevisionModal(false);
+            setRevisionName('');
+            setRevisionStartDate('');
+            setRevisionEndDate('');
+
+            toast.success('تم إنشاء جدول المراجعة بنجاح');
+        } catch (error) {
+            console.error('Failed to create revision schedule:', error);
+            toast.error('فشل إنشاء جدول المراجعة');
+        } finally {
+            setIsCreatingRevision(false);
+        }
+    };
+
     // Reset to defaults
     const resetToDefaults = () => {
         const defaultConfig: Record<number, DayScheduleConfig> = {};
@@ -352,111 +423,84 @@ export function AdminScheduleConfigPage() {
                                             <label className="text-xs font-bold text-slate-500 mb-1 block">اختر الفصل الدراسي</label>
                                             <div className="relative">
                                                 <select
-                                                    value={getGradeConfig(selectedGradeId).term?.semesterId || ''}
+                                                    value={selectedSemesterId || ''}
                                                     onChange={(e) => {
                                                         const val = e.target.value;
-                                                        const currentTerm = getGradeConfig(selectedGradeId).term || { ...config.term };
-
                                                         if (!val) {
-                                                            updateGradeTerm(selectedGradeId, {
-                                                                ...currentTerm,
-                                                                semesterId: undefined,
-                                                                isActive: false // Deactivate if reset
-                                                            });
+                                                            setSelectedSemesterId(null);
                                                             return;
                                                         }
-
-                                                        const semId = Number(val);
-
-                                                        // Case: Exam Schedule (Manual Dates)
-                                                        if (semId === -1) {
-                                                            updateGradeTerm(selectedGradeId, {
-                                                                ...currentTerm,
-                                                                semesterId: -1,
-                                                                isActive: true
-                                                            });
-                                                            return;
-                                                        }
-
-                                                        const semester = semesters.find(s => s.id === semId);
-                                                        console.log('AdminScheduleConfig: Selected semester', semId, semester);
-                                                        if (semester) {
-                                                            updateGradeTerm(selectedGradeId, {
-                                                                ...currentTerm,
-                                                                semesterId: semId,
-                                                                startDate: semester.start_date ? semester.start_date.substring(0, 10) : '',
-                                                                endDate: semester.end_date ? semester.end_date.substring(0, 10) : '',
-                                                                isActive: true // Auto-activate
-                                                            });
-                                                        }
+                                                        setSelectedSemesterId(Number(val));
                                                     }}
                                                     className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[#AF0C15]/20 appearance-none"
                                                 >
-                                                    <option value="">-- اختر الفصل (إلغاء التخصيص) --</option>
-                                                    <option value="-1" className="font-bold text-[#AF0C15] bg-rose-50">📅 جدول الامتحانات (تحديد يدوي)</option>
-                                                    <hr />
-                                                    {semesters
-                                                        .map(sem => (
-                                                            <option key={sem.id} value={sem.id}>
-                                                                {typeof sem.name === 'string' ? sem.name : (sem.name.ar || sem.name.en)}
-                                                            </option>
-                                                        ))}
+                                                    <option value="">-- اختر الفصل --</option>
+                                                    {/* Group semesters by type */}
+                                                    {semesters.filter(s => s.type !== 'revision').length > 0 && (
+                                                        <optgroup label="📚 الفصول الدراسية">
+                                                            {semesters.filter(s => s.type !== 'revision').map(sem => (
+                                                                <option key={sem.id} value={sem.id}>
+                                                                    {typeof sem.name === 'string' ? sem.name : (sem.name.ar || sem.name.en)}
+                                                                    {sem.type === 'first_term' ? ' (الفصل الأول)' : sem.type === 'second_term' ? ' (الفصل الثاني)' : ''}
+                                                                </option>
+                                                            ))}
+                                                        </optgroup>
+                                                    )}
+                                                    {semesters.filter(s => s.type === 'revision').length > 0 && (
+                                                        <optgroup label="📝 مراجعة الامتحانات">
+                                                            {semesters.filter(s => s.type === 'revision').map(sem => (
+                                                                <option key={sem.id} value={sem.id}>
+                                                                    {typeof sem.name === 'string' ? sem.name : (sem.name.ar || sem.name.en)}
+                                                                    {' (مراجعة)'}
+                                                                </option>
+                                                            ))}
+                                                        </optgroup>
+                                                    )}
                                                 </select>
                                                 <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                                             </div>
                                         </div>
+                                        {/* Create Revision Schedule Button */}
+                                        <button
+                                            onClick={() => setShowRevisionModal(true)}
+                                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors border border-amber-200 mt-5"
+                                        >
+                                            <Plus size={16} />
+                                            إنشاء جدول مراجعة
+                                        </button>
                                     </div>
 
-                                    {/* Date Display / Edit */}
-                                    <div className={`flex flex-wrap gap-4 items-end p-3 rounded-lg border transition-colors ${getGradeConfig(selectedGradeId).term?.semesterId === -1
-                                        ? 'bg-white border-[#AF0C15]/30 shadow-sm'
-                                        : 'bg-slate-50 border-slate-100 opacity-70'
-                                        }`}>
-                                        <div>
-                                            <label className="text-xs font-bold text-slate-500 mb-1 block">تاريخ البدء</label>
-                                            <input
-                                                type="date"
-                                                value={getGradeConfig(selectedGradeId).term?.startDate?.substring(0, 10) || ''}
-                                                onChange={(e) => {
-                                                    // Only allow edit if Exam Schedule (-1)
-                                                    if (getGradeConfig(selectedGradeId).term?.semesterId === -1) {
-                                                        const currentTerm = getGradeConfig(selectedGradeId).term || { ...config.term };
-                                                        updateGradeTerm(selectedGradeId, { ...currentTerm, startDate: e.target.value });
-                                                    }
-                                                }}
-                                                readOnly={getGradeConfig(selectedGradeId).term?.semesterId !== -1}
-                                                disabled={getGradeConfig(selectedGradeId).term?.semesterId !== -1}
-                                                className={`px-3 py-2 border rounded-lg text-sm transition-all focus:ring-2 focus:ring-[#AF0C15]/20 ${getGradeConfig(selectedGradeId).term?.semesterId === -1
-                                                    ? 'bg-white border-slate-300 cursor-text'
-                                                    : 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed'
-                                                    }`}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-slate-500 mb-1 block">تاريخ الانتهاء</label>
-                                            <input
-                                                type="date"
-                                                value={getGradeConfig(selectedGradeId).term?.endDate?.substring(0, 10) || ''}
-                                                onChange={(e) => {
-                                                    if (getGradeConfig(selectedGradeId).term?.semesterId === -1) {
-                                                        const currentTerm = getGradeConfig(selectedGradeId).term || { ...config.term };
-                                                        updateGradeTerm(selectedGradeId, { ...currentTerm, endDate: e.target.value });
-                                                    }
-                                                }}
-                                                readOnly={getGradeConfig(selectedGradeId).term?.semesterId !== -1}
-                                                disabled={getGradeConfig(selectedGradeId).term?.semesterId !== -1}
-                                                className={`px-3 py-2 border rounded-lg text-sm transition-all focus:ring-2 focus:ring-[#AF0C15]/20 ${getGradeConfig(selectedGradeId).term?.semesterId === -1
-                                                    ? 'bg-white border-slate-300 cursor-text'
-                                                    : 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed'
-                                                    }`}
-                                            />
-                                        </div>
-                                        <span className="text-xs text-slate-400 mr-auto self-end pb-2">
-                                            {getGradeConfig(selectedGradeId).term?.semesterId === -1
-                                                ? '* يمكنك تحديد فترة الامتحانات يدوياً'
-                                                : '* يتم تحديد التواريخ تلقائياً بناءً على الفصل المختار'}
-                                        </span>
-                                    </div>
+                                    {/* Date Display */}
+                                    {selectedSemesterId && (() => {
+                                        const selectedSem = semesters.find(s => s.id === selectedSemesterId);
+                                        return selectedSem ? (
+                                            <div className="flex flex-wrap gap-4 items-end p-3 rounded-lg border bg-slate-50 border-slate-100">
+                                                <div>
+                                                    <label className="text-xs font-bold text-slate-500 mb-1 block">تاريخ البدء</label>
+                                                    <input
+                                                        type="date"
+                                                        value={selectedSem.start_date?.substring(0, 10) || ''}
+                                                        readOnly
+                                                        disabled
+                                                        className="px-3 py-2 border rounded-lg text-sm bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-bold text-slate-500 mb-1 block">تاريخ الانتهاء</label>
+                                                    <input
+                                                        type="date"
+                                                        value={selectedSem.end_date?.substring(0, 10) || ''}
+                                                        readOnly
+                                                        disabled
+                                                        className="px-3 py-2 border rounded-lg text-sm bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed"
+                                                    />
+                                                </div>
+                                                <span className="text-xs text-slate-400 mr-auto self-end pb-2">
+                                                    * يتم تحديد التواريخ تلقائياً بناءً على الفصل المختار
+                                                </span>
+                                            </div>
+                                        ) : null;
+                                    })()}
                                 </div>
                             </div>
 
@@ -494,13 +538,13 @@ export function AdminScheduleConfigPage() {
 
                                     <div className="flex bg-slate-100 p-1 rounded-lg">
                                         <button
-                                            onClick={() => updateDayConfig(selectedGradeId, selectedDay, { bookingMode: 'individual' })}
+                                            onClick={() => updateDayConfig({ bookingMode: 'individual' })}
                                             className={`px-4 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-all ${currentDayConfig.bookingMode === 'individual' ? 'bg-white text-[#AF0C15] shadow-sm' : 'text-slate-500'}`}
                                         >
                                             <Lock size={14} /> فردي (حصري)
                                         </button>
                                         <button
-                                            onClick={() => updateDayConfig(selectedGradeId, selectedDay, { bookingMode: 'multiple' })}
+                                            onClick={() => updateDayConfig({ bookingMode: 'multiple' })}
                                             className={`px-4 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-all ${currentDayConfig.bookingMode === 'multiple' ? 'bg-white text-[#AF0C15] shadow-sm' : 'text-slate-500'}`}
                                         >
                                             <Unlock size={14} /> متعدد (مفتوح)
@@ -518,7 +562,7 @@ export function AdminScheduleConfigPage() {
                                                     <input
                                                         type="time"
                                                         value={currentDayConfig.startTime}
-                                                        onChange={(e) => updateDayConfig(selectedGradeId, selectedDay, { startTime: e.target.value })}
+                                                        onChange={(e) => updateDayConfig({ startTime: e.target.value })}
                                                         className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all font-mono text-center font-bold text-slate-700"
                                                     />
                                                 </div>
@@ -529,7 +573,7 @@ export function AdminScheduleConfigPage() {
                                                     <input
                                                         type="time"
                                                         value={currentDayConfig.endTime}
-                                                        onChange={(e) => updateDayConfig(selectedGradeId, selectedDay, { endTime: e.target.value })}
+                                                        onChange={(e) => updateDayConfig({ endTime: e.target.value })}
                                                         className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all font-mono text-center font-bold text-slate-700"
                                                     />
                                                 </div>
@@ -539,7 +583,7 @@ export function AdminScheduleConfigPage() {
                                                 <div className="relative">
                                                     <select
                                                         value={currentDayConfig.slotDurationMinutes}
-                                                        onChange={(e) => updateDayConfig(selectedGradeId, selectedDay, { slotDurationMinutes: parseInt(e.target.value) })}
+                                                        onChange={(e) => updateDayConfig({ slotDurationMinutes: parseInt(e.target.value) })}
                                                         className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all text-center font-bold text-slate-700 appearance-none"
                                                     >
                                                         <option value={30}>30 دقيقة</option>
@@ -556,7 +600,7 @@ export function AdminScheduleConfigPage() {
                                                 <div className="relative">
                                                     <select
                                                         value={currentDayConfig.gapMinutes}
-                                                        onChange={(e) => updateDayConfig(selectedGradeId, selectedDay, { gapMinutes: parseInt(e.target.value) })}
+                                                        onChange={(e) => updateDayConfig({ gapMinutes: parseInt(e.target.value) })}
                                                         className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all text-center font-bold text-slate-700 appearance-none"
                                                     >
                                                         <option value={0}>لا يوجد</option>
@@ -660,8 +704,8 @@ export function AdminScheduleConfigPage() {
                     </div>
                     <button
                         onClick={handlePublishSlots}
-                        disabled={isGenerating || generatedPreview.count === 0}
-                        className={`px-10 py-5 rounded-2xl font-bold text-lg shadow-xl shadow-black/20 flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1 active:translate-y-0 ${isGenerating || generatedPreview.count === 0
+                        disabled={isGenerating || !selectedSemesterId}
+                        className={`px-10 py-5 rounded-2xl font-bold text-lg shadow-xl shadow-black/20 flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1 active:translate-y-0 ${isGenerating || !selectedSemesterId
                             ? 'bg-white/10 text-white/50 cursor-not-allowed ring-1 ring-white/5'
                             : 'bg-white text-[#AF0C15] hover:bg-rose-50 ring-4 ring-white/20'
                             }`}
@@ -670,6 +714,103 @@ export function AdminScheduleConfigPage() {
                     </button>
                 </div>
             </div>
+
+            {/* Revision Schedule Modal */}
+            {showRevisionModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 transform transition-all">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                <div className="p-2 bg-amber-100 rounded-lg">
+                                    <Calendar size={20} className="text-amber-600" />
+                                </div>
+                                إنشاء جدول مراجعة جديد
+                            </h3>
+                            <button
+                                onClick={() => setShowRevisionModal(false)}
+                                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                            >
+                                <X size={20} className="text-slate-400" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-sm font-bold text-slate-600 mb-2 block">
+                                    اسم جدول المراجعة
+                                </label>
+                                <input
+                                    type="text"
+                                    value={revisionName}
+                                    onChange={(e) => setRevisionName(e.target.value)}
+                                    placeholder="مثال: مراجعة الفصل الأول 2024"
+                                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-sm font-bold text-slate-600 mb-2 block">
+                                        تاريخ البدء
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={revisionStartDate}
+                                        onChange={(e) => setRevisionStartDate(e.target.value)}
+                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-bold text-slate-600 mb-2 block">
+                                        تاريخ الانتهاء
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={revisionEndDate}
+                                        onChange={(e) => setRevisionEndDate(e.target.value)}
+                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700">
+                                <div className="flex items-start gap-2">
+                                    <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
+                                    <span>
+                                        سيتم إنشاء جدول مراجعة للصف المحدد حالياً. يمكنك بعد ذلك إنشاء فترات زمنية للمعلمين لاختيارها.
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => setShowRevisionModal(false)}
+                                className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                            >
+                                إلغاء
+                            </button>
+                            <button
+                                onClick={handleCreateRevision}
+                                disabled={isCreatingRevision || !revisionName || !revisionStartDate || !revisionEndDate}
+                                className={`flex-1 px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${isCreatingRevision || !revisionName || !revisionStartDate || !revisionEndDate
+                                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                    : 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/20'
+                                    }`}
+                            >
+                                {isCreatingRevision ? (
+                                    <Loader2 className="animate-spin" size={18} />
+                                ) : (
+                                    <>
+                                        <Plus size={18} />
+                                        إنشاء
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

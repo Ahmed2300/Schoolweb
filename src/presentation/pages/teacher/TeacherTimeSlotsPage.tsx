@@ -20,6 +20,7 @@ import toast from 'react-hot-toast';
 import {
     useAvailableSlots,
     useMyRequests,
+    useRevisionSlots,
     useRequestSlot,
     useCancelSlotRequest,
     useTeacherCourses,
@@ -75,7 +76,7 @@ const STATUS_CONFIG: Record<string, {
 
 export function TeacherTimeSlotsPage() {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState<'available' | 'requests' | 'summary'>('available');
+    const [activeTab, setActiveTab] = useState<'available' | 'requests' | 'summary' | 'revision'>('available');
     const [dateFilter, setDateFilter] = useState('');
 
     // Request Modal State
@@ -99,6 +100,7 @@ export function TeacherTimeSlotsPage() {
     }, [rawAvailableSlots]);
 
     const { data: myRequests = [], isLoading: loadingRequests } = useMyRequests();
+    const { data: revisionSlots = [], isLoading: loadingRevision } = useRevisionSlots();
     const { data: myCourses = [] } = useTeacherCourses();
     const { data: lectures = [], isLoading: loadingLectures } = useCourseLectures(selectedCourse ? Number(selectedCourse) : null);
 
@@ -257,6 +259,15 @@ export function TeacherTimeSlotsPage() {
                         }`}
                 >
                     جدولي الأسبوعي
+                </button>
+                <button
+                    onClick={() => setActiveTab('revision')}
+                    className={`px-5 py-2.5 rounded-xl font-medium transition-all ${activeTab === 'revision'
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
+                        : 'text-slate-600 hover:bg-slate-50'
+                        }`}
+                >
+                    جدول المراجعة
                 </button>
             </div>
 
@@ -504,6 +515,66 @@ export function TeacherTimeSlotsPage() {
                                 </div>
                             ))}
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Revision Schedule Tab */}
+            {activeTab === 'revision' && (
+                <div className="space-y-4 print:hidden">
+                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+                        <AlertCircle size={20} className="text-amber-600 mt-1 shrink-0" />
+                        <div>
+                            <h4 className="font-bold text-amber-800">جدول مراجعة الامتحانات</h4>
+                            <p className="text-sm text-amber-700">
+                                عرض المواعيد المتاحة لفترة مراجعة الامتحانات. يمكنك حجز مواعيد لإعطاء حصص مراجعة للطلاب.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                        {loadingRevision ? (
+                            <div className="p-12 flex justify-center">
+                                <Loader2 size={32} className="animate-spin text-amber-600" />
+                            </div>
+                        ) : revisionSlots.length === 0 ? (
+                            <div className="p-12 text-center text-slate-500">
+                                <CalendarIcon size={48} className="mx-auto mb-4 text-slate-300" />
+                                <p className="font-medium">لا توجد مواعيد مراجعة متاحة حالياً</p>
+                                <p className="text-sm mt-2">سيتم عرض المواعيد عند نشرها من قبل الإدارة</p>
+                            </div>
+                        ) : (
+                            <table className="w-full">
+                                <thead className="bg-amber-50/50 border-b border-amber-100">
+                                    <tr>
+                                        <th className="text-right py-4 px-6 font-semibold text-amber-800 text-sm">التاريخ</th>
+                                        <th className="text-right py-4 px-6 font-semibold text-amber-800 text-sm">الوقت</th>
+                                        <th className="text-center py-4 px-6 font-semibold text-amber-800 text-sm">إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {revisionSlots.map((slot: TimeSlot) => (
+                                        <tr key={slot.id} className="border-b border-slate-100 last:border-0 hover:bg-amber-50/30 transition">
+                                            <td className="py-4 px-6 font-medium text-slate-700">{formatDate(slot.start_time)}</td>
+                                            <td className="py-4 px-6 font-medium text-amber-700">
+                                                {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                                            </td>
+                                            <td className="py-4 px-6 text-center">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedSlot(slot);
+                                                        setRequestModalOpen(true);
+                                                    }}
+                                                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition shadow-sm hover:shadow"
+                                                >
+                                                    حجز موعد المراجعة
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
                     </div>
                 </div>
             )}
