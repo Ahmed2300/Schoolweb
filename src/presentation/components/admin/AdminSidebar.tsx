@@ -74,7 +74,7 @@ const navGroups: NavGroup[] = [
             { icon: <BookOpen size={18} />, label: 'الكورسات', path: ROUTES.ADMIN_COURSES },
             { icon: <PlayCircle size={18} />, label: 'المحاضرات', path: ROUTES.ADMIN_LECTURES },
             { icon: <CircleHelp size={18} />, label: 'الاختبارات', path: '/admin/quizzes' },
-            { icon: <Clock size={18} />, label: 'المواعيد', path: '/admin/time-slots' },
+
             { icon: <CheckCircle size={18} />, label: 'طلبات التعديل', path: '/admin/content-approvals' },
             { icon: <Video size={18} />, label: 'التسجيلات', path: '/admin/recordings' },
             { icon: <Package size={18} />, label: 'الباقات', path: '/admin/packages' },
