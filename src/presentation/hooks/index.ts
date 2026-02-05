@@ -18,3 +18,4 @@ export {
 
 export * from './useTeacherTimeSlots';
 export * from './useTeacherContent';
+export * from './useSlotRequests';

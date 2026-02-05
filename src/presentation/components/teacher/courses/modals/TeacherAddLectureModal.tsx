@@ -1,10 +1,13 @@
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, ChevronLeft, ChevronRight, Check, Video, FileText, Calendar, Loader2, Radio } from 'lucide-react';
 import { teacherLectureService } from '../../../../../data/api/teacherLectureService';
 import { teacherContentApprovalService } from '../../../../../data/api/teacherContentApprovalService';
 import { TeacherVideoUploader } from './TeacherVideoUploader';
 import { TimeSlotPicker } from '../../timeslots/TimeSlotPicker';
+import { ApprovedSlotSelector } from '../../timeslots/ApprovedSlotSelector';
 import type { TimeSlot } from '../../../../../data/api/teacherTimeSlotService';
+import type { SlotRequest } from '../../../../../types/slotRequest';
 import type { Unit } from '../../../../../types/unit';
 import { useMyRequests } from '../../../../hooks/useTeacherTimeSlots';
 
@@ -39,6 +42,8 @@ interface TeacherAddLectureModalProps {
     gradeId?: number;
 }
 
+type SlotSourceType = 'available' | 'approved';
+
 interface FormData {
     titleAr: string;
     titleEn: string;
@@ -51,6 +56,7 @@ interface FormData {
     endTime: string;
     isOnline: boolean;
     selectedSlotId: number | null;
+    slotRequestId: number | null;
 }
 
 export function TeacherAddLectureModal({
@@ -66,6 +72,7 @@ export function TeacherAddLectureModal({
     defaultEndTime,
     gradeId
 }: TeacherAddLectureModalProps) {
+    const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const { data: bookedSlots = [] } = useMyRequests();
 
@@ -81,6 +88,7 @@ export function TeacherAddLectureModal({
         endTime: defaultEndTime || '',
         isOnline: false,
         selectedSlotId: null,
+        slotRequestId: null,
     };
 
     const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
@@ -311,14 +319,17 @@ export function TeacherAddLectureModal({
                                             <Calendar size={18} className="text-blue-600" />
                                             اختر فترة البث المباشر *
                                         </label>
-                                        <TimeSlotPicker
+                                        <ApprovedSlotSelector
                                             onSelect={(slot) => {
-                                                setSelectedSlot(slot);
+                                                // Cast to TimeSlot to satisfy state type (they share core fields)
+                                                setSelectedSlot(slot as unknown as TimeSlot);
                                                 setFormData(prev => ({ ...prev, selectedSlotId: slot?.id || null }));
                                             }}
-                                            selectedSlotId={selectedSlot?.id}
-                                            bookedSlots={bookedSlots}
-                                            currentData={{ course: { grade_id: gradeId } }}
+                                            selectedSlotId={selectedSlot?.id || null}
+                                            gradeId={gradeId}
+                                            onRequestNewSlot={() => {
+                                                navigate('/teacher/weekly-schedule');
+                                            }}
                                         />
                                     </div>
                                 )}

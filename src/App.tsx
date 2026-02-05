@@ -34,6 +34,7 @@ import {
   AdminQuizzesPage,
   AdminRecordingsPage,
   AdminScheduleConfigPage,
+  AdminSlotRequestsPage,
   StudentLayout,
   StudentHomePage,
   StudentCoursesPage,
@@ -57,6 +58,8 @@ import {
   TeacherAnalyticsPage,
   TeacherTimeSlotsPage,
   TeacherRecordingsPage,
+  TeacherSlotRequestsPage,
+  TeacherWeeklySchedulePage,
   NotFoundPage,
   LecturePlayerPage
 } from './presentation/pages';
@@ -171,12 +174,13 @@ function App() {
               <Route path="courses" element={<TeacherCoursesPage />} />
               <Route path="courses/:id" element={<TeacherCourseDetailsPage />} />
               <Route path="time-slots" element={<TeacherTimeSlotsPage />} />
-              <Route path="quizzes" element={<TeacherQuizzesPage />} />
-              <Route path="time-slots" element={<TeacherTimeSlotsPage />} />
+              <Route path="timeslots" element={<TeacherTimeSlotsPage />} /> {/* Alias without hyphen */}
               <Route path="quizzes" element={<TeacherQuizzesPage />} />
               <Route path="analytics" element={<TeacherAnalyticsPage />} />
               <Route path="settings" element={<TeacherSettingsPage />} />
               <Route path="recordings" element={<TeacherRecordingsPage />} />
+              <Route path="slot-requests" element={<TeacherSlotRequestsPage />} />
+              <Route path="weekly-schedule" element={<TeacherWeeklySchedulePage />} />
             </Route>
 
             {/* Admin Routes - Protected for admin role only */}
@@ -210,6 +214,7 @@ function App() {
               <Route path="quizzes" element={<AdminQuizzesPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
               <Route path="schedule-config" element={<AdminScheduleConfigPage />} />
+              <Route path="slot-requests" element={<AdminSlotRequestsPage />} />
             </Route>
 
             {/* 404 Catch-all Route */}

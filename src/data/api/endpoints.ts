@@ -118,8 +118,20 @@ export const endpoints = {
             available: '/api/v1/teacher/timeslots',
             request: (id: number) => `/api/v1/teacher/timeslots/${id}/request`,
             myRequests: '/api/v1/teacher/timeslots/my-requests',
+            cancelAll: '/api/v1/teacher/timeslots/cancel-all',
             cancel: (id: number) => `/api/v1/teacher/timeslots/${id}/cancel`,
             show: (id: number) => `/api/v1/teacher/timeslots/${id}`,
+        },
+        // Teacher Recurring Schedule (Slots 2.0)
+        recurringSchedule: {
+            assignedGrades: '/api/v1/teacher/recurring-schedule/assigned-grades',
+            weekConfig: '/api/v1/teacher/recurring-schedule/week-config',
+            availableSlots: '/api/v1/teacher/recurring-schedule/available-slots',
+            submitSlot: '/api/v1/teacher/recurring-schedule/submit-slot',
+            mySchedule: '/api/v1/teacher/recurring-schedule/my-schedule',
+            cancelSlot: '/api/v1/teacher/recurring-schedule/cancel-slot',
+            vacantSlots: '/api/v1/teacher/recurring-schedule/vacant-slots',
+            requestExtra: '/api/v1/teacher/recurring-schedule/request-extra-slot',
         },
         // Lectures
         lectures: {
@@ -146,6 +158,15 @@ export const endpoints = {
             show: (id: number) => `/api/v1/content-approvals/${id}`,
             delete: (id: number) => `/api/v1/content-approvals/${id}`,
             pendingCount: (courseId: number) => `/api/v1/content-approvals/pending-count/${courseId}`,
+        },
+
+        // Slot Requests (New System)
+        slotRequests: {
+            list: '/api/v1/schedule/requests',
+            create: '/api/v1/schedule/requests',
+            stats: '/api/v1/schedule/requests/stats',
+            show: (id: number) => `/api/v1/schedule/requests/${id}`,
+            cancel: (id: number) => `/api/v1/schedule/requests/${id}`,
         },
     },
 
@@ -223,6 +244,7 @@ export const endpoints = {
         schedule: {
             getSettings: (gradeId: number) => `/api/v1/admin/schedule/settings/${gradeId}`,
             saveSettings: (gradeId: number) => `/api/v1/admin/schedule/settings/${gradeId}`,
+            getSlots: (semesterId: number) => `/api/v1/admin/schedule/slots/${semesterId}`,
             generateSlots: (semesterId: number) => `/api/v1/admin/schedule/generate/${semesterId}`,
         },
         // Courses
@@ -345,6 +367,16 @@ export const endpoints = {
             show: (id: number) => `/api/v1/admin/quizzes/${id}`,
             approve: (id: number) => `/api/v1/admin/quizzes/${id}/approve`,
             reject: (id: number) => `/api/v1/admin/quizzes/${id}/reject`,
+        },
+        // Slot Requests (Teacher Schedule Requests) - NEW SYSTEM
+        slotRequests: {
+            list: '/api/v1/admin/schedule/requests',
+            show: (id: number) => `/api/v1/admin/schedule/requests/${id}`,
+            stats: '/api/v1/admin/schedule/requests/stats',
+            approve: (id: number) => `/api/v1/admin/schedule/requests/${id}/approve`,
+            reject: (id: number) => `/api/v1/admin/schedule/requests/${id}/reject`,
+            bulkApprove: '/api/v1/admin/schedule/requests/bulk-approve',
+            bulkReject: '/api/v1/admin/schedule/requests/bulk-reject',
         },
     },
 

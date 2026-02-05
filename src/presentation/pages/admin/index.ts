@@ -18,3 +18,4 @@ export { default as AdminAcademicGraphPage } from './AdminAcademicGraphPage';
 export { AdminTimeSlotsPage } from './AdminTimeSlotsPage';
 export { AdminRecordingsPage } from './AdminRecordingsPage';
 export { AdminScheduleConfigPage } from './AdminScheduleConfigPage';
+export { AdminSlotRequestsPage } from './AdminSlotRequestsPage';

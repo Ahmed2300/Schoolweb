@@ -17,7 +17,9 @@ import {
     GraduationCap,
     Users,
     Calendar,
-    Video
+    Video,
+    CalendarClock,
+    CalendarRange
 } from 'lucide-react';
 
 // Assets
@@ -42,6 +44,8 @@ const navItems: NavItem[] = [
     { id: 'courses', label: 'الدورات', icon: BookOpen, path: ROUTES.TEACHER_COURSES },
     { id: 'students', label: 'الطلاب', icon: Users, path: '/teacher/students' },
     { id: 'schedule', label: 'الجدول', icon: Calendar, path: '/teacher/time-slots' },
+    { id: 'slot-requests', label: 'طلبات المواعيد', icon: CalendarClock, path: '/teacher/slot-requests' },
+    { id: 'weekly-schedule', label: 'الجدول الأسبوعي', icon: CalendarRange, path: '/teacher/weekly-schedule' },
     { id: 'quizzes', label: 'الاختبارات', icon: ClipboardList, path: ROUTES.TEACHER_QUIZZES },
     { id: 'recordings', label: 'التسجيلات', icon: Video, path: '/teacher/recordings' },
     { id: 'analytics', label: 'الإحصائيات', icon: BarChart3, path: ROUTES.TEACHER_ANALYTICS },

@@ -72,7 +72,17 @@ const statusConfig: Record<string, { label: string; bgColor: string; textColor: 
 
 const extractName = (name: unknown): string => {
     if (!name) return '';
-    if (typeof name === 'string') return name;
+    if (typeof name === 'string') {
+        if (name.trim().startsWith('{')) {
+            try {
+                const parsed = JSON.parse(name);
+                return parsed.ar || parsed.en || name;
+            } catch {
+                return name;
+            }
+        }
+        return name;
+    }
     if (typeof name === 'object' && name !== null) {
         const obj = name as Record<string, string>;
         return obj.ar || obj.en || '';

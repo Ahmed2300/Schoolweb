@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminService, SemesterData, DayScheduleSettingData, BreakInterval as BackendBreakInterval } from '../../../data/api/adminService';
+import { getLocalizedName } from '../../../data/api/studentService';
 import { useBulkCreateTimeSlots } from '../../hooks/useTimeSlots';
 
 // Local types (aligned with backend)
@@ -60,16 +61,30 @@ export function AdminScheduleConfigPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [loadingSettings, setLoadingSettings] = useState(false);
 
-    // Grade State
+    // Grade State - Initialize from localStorage if available
     const [grades, setGrades] = useState<any[]>([]);
     const [semesters, setSemesters] = useState<SemesterData[]>([]);
     const [loadingGrades, setLoadingGrades] = useState(true);
-    const [selectedGradeId, setSelectedGradeId] = useState<number | null>(null);
-    const [selectedSemesterId, setSelectedSemesterId] = useState<number | null>(null);
+    const [selectedGradeId, setSelectedGradeId] = useState<number | null>(() => {
+        const saved = localStorage.getItem('schedule_selectedGradeId');
+        return saved ? parseInt(saved, 10) : null;
+    });
+    const [selectedSemesterId, setSelectedSemesterId] = useState<number | null>(() => {
+        const saved = localStorage.getItem('schedule_selectedSemesterId');
+        return saved ? parseInt(saved, 10) : null;
+    });
     const [selectedDay, setSelectedDay] = useState<number>(0); // Default Sunday
 
     // Generation State
     const [isGenerating, setIsGenerating] = useState(false);
+    const [loadingSlots, setLoadingSlots] = useState(false);
+    const [slotsStats, setSlotsStats] = useState<{
+        total_slots: number;
+        available: number;
+        booked: number;
+        pending: number;
+        has_slots: boolean;
+    } | null>(null);
     const bulkCreateMutation = useBulkCreateTimeSlots();
 
     // Helper to convert backend data to local state
@@ -113,8 +128,17 @@ export function AdminScheduleConfigPage() {
             try {
                 const response = await adminService.getGrades({ per_page: 100 });
                 setGrades(response.data || []);
+                // Only set default if no saved grade ID or saved grade is not in the fetched list
                 if (response.data.length > 0) {
-                    setSelectedGradeId(response.data[0].id);
+                    const savedGradeId = localStorage.getItem('schedule_selectedGradeId');
+                    if (savedGradeId) {
+                        const gradeExists = response.data.some((g: any) => g.id === parseInt(savedGradeId, 10));
+                        if (!gradeExists && response.data.length > 0) {
+                            setSelectedGradeId(response.data[0].id);
+                        }
+                    } else if (!selectedGradeId) {
+                        setSelectedGradeId(response.data[0].id);
+                    }
                 }
             } catch (error) {
                 console.error('Failed to fetch grades:', error);
@@ -152,9 +176,26 @@ export function AdminScheduleConfigPage() {
     useEffect(() => {
         const fetchSemestersForGrade = async () => {
             if (!selectedGradeId) return;
+            // Save selected grade to localStorage
+            localStorage.setItem('schedule_selectedGradeId', String(selectedGradeId));
+
             try {
                 const data = await adminService.getSemestersByGrade(selectedGradeId);
                 setSemesters(data || []);
+
+                // Restore saved semester if it belongs to this grade
+                const savedSemesterId = localStorage.getItem('schedule_selectedSemesterId');
+                if (savedSemesterId) {
+                    const semesterId = parseInt(savedSemesterId, 10);
+                    const semesterExists = (data || []).some((s: SemesterData) => s.id === semesterId);
+                    if (semesterExists) {
+                        setSelectedSemesterId(semesterId);
+                    } else {
+                        setSelectedSemesterId(null);
+                        setSlotsStats(null);
+                        localStorage.removeItem('schedule_selectedSemesterId');
+                    }
+                }
             } catch (error) {
                 console.error('Failed to fetch semesters:', error);
             }
@@ -162,10 +203,41 @@ export function AdminScheduleConfigPage() {
         fetchSemestersForGrade();
     }, [selectedGradeId]);
 
-    // Reset semester when grade changes
+    // Save semester to localStorage when it changes
     useEffect(() => {
-        setSelectedSemesterId(null);
-    }, [selectedGradeId]);
+        if (selectedSemesterId) {
+            localStorage.setItem('schedule_selectedSemesterId', String(selectedSemesterId));
+        } else {
+            localStorage.removeItem('schedule_selectedSemesterId');
+            setSlotsStats(null);
+        }
+    }, [selectedSemesterId]);
+
+    // Fetch existing slots when semester changes
+    useEffect(() => {
+        const fetchSlotsForSemester = async () => {
+            if (!selectedSemesterId) {
+                setSlotsStats(null);
+                return;
+            }
+            setLoadingSlots(true);
+            try {
+                const response = await adminService.getSlotsForSemester(selectedSemesterId);
+                if (response.success && response.data) {
+                    setSlotsStats({
+                        ...response.data.stats,
+                        has_slots: response.data.has_slots
+                    });
+                }
+            } catch {
+                setSlotsStats(null);
+            } finally {
+                setLoadingSlots(false);
+            }
+        };
+        fetchSlotsForSemester();
+    }, [selectedSemesterId]);
+
     // Save Schedule Settings to Backend
     const handleSave = async () => {
         if (!selectedGradeId) {
@@ -248,11 +320,26 @@ export function AdminScheduleConfigPage() {
 
         setIsGenerating(true);
         try {
-            await adminService.generateSlots(selectedSemesterId);
-            toast.success('تم بدء عملية إنشاء الفترات الزمنية بنجاح');
-        } catch (error) {
-            console.error('Failed to generate slots:', error);
-            toast.error('حدث خطأ أثناء إنشاء الفترات الزمنية');
+            const response = await adminService.generateSlots(selectedSemesterId);
+            toast.success(response.message || 'تم إنشاء الفترات الزمنية بنجاح');
+        } catch (error: unknown) {
+            // Extract error message from API response
+            let errorMessage = 'حدث خطأ أثناء إنشاء الفترات الزمنية';
+
+            if (error && typeof error === 'object' && 'response' in error) {
+                const axiosError = error as { response?: { data?: { message?: string } } };
+                if (axiosError.response?.data?.message) {
+                    // Show the specific backend error message
+                    errorMessage = axiosError.response.data.message;
+
+                    // Check if it's the "no settings" error and provide Arabic translation
+                    if (errorMessage.includes('No schedule settings found')) {
+                        errorMessage = 'لم يتم العثور على إعدادات الجدول لهذه المرحلة. يرجى حفظ الإعدادات أولاً ثم المحاولة مرة أخرى.';
+                    }
+                }
+            }
+
+            toast.error(errorMessage);
         } finally {
             setIsGenerating(false);
         }
@@ -337,8 +424,7 @@ export function AdminScheduleConfigPage() {
                     {selectedGradeId && currentDayConfig ? (
                         <div className="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden ring-1 ring-slate-900/5">
 
-                            {/* Per-Grade Settings Header (Term Dates) */}
-                            {/* Per-Grade Settings Header (Semester Allocation) */}
+                            {/* Per-Grade Settings Header (Semester Selection) */}
                             <div className="p-6 border-b border-slate-100 bg-slate-50/30">
                                 <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
                                     <Calendar size={18} className="text-[#AF0C15]" />
@@ -352,111 +438,53 @@ export function AdminScheduleConfigPage() {
                                             <label className="text-xs font-bold text-slate-500 mb-1 block">اختر الفصل الدراسي</label>
                                             <div className="relative">
                                                 <select
-                                                    value={getGradeConfig(selectedGradeId).term?.semesterId || ''}
+                                                    value={selectedSemesterId || ''}
                                                     onChange={(e) => {
                                                         const val = e.target.value;
-                                                        const currentTerm = getGradeConfig(selectedGradeId).term || { ...config.term };
-
                                                         if (!val) {
-                                                            updateGradeTerm(selectedGradeId, {
-                                                                ...currentTerm,
-                                                                semesterId: undefined,
-                                                                isActive: false // Deactivate if reset
-                                                            });
+                                                            setSelectedSemesterId(null);
                                                             return;
                                                         }
-
-                                                        const semId = Number(val);
-
-                                                        // Case: Exam Schedule (Manual Dates)
-                                                        if (semId === -1) {
-                                                            updateGradeTerm(selectedGradeId, {
-                                                                ...currentTerm,
-                                                                semesterId: -1,
-                                                                isActive: true
-                                                            });
-                                                            return;
-                                                        }
-
-                                                        const semester = semesters.find(s => s.id === semId);
-                                                        console.log('AdminScheduleConfig: Selected semester', semId, semester);
-                                                        if (semester) {
-                                                            updateGradeTerm(selectedGradeId, {
-                                                                ...currentTerm,
-                                                                semesterId: semId,
-                                                                startDate: semester.start_date ? semester.start_date.substring(0, 10) : '',
-                                                                endDate: semester.end_date ? semester.end_date.substring(0, 10) : '',
-                                                                isActive: true // Auto-activate
-                                                            });
-                                                        }
+                                                        setSelectedSemesterId(Number(val));
                                                     }}
                                                     className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[#AF0C15]/20 appearance-none"
                                                 >
-                                                    <option value="">-- اختر الفصل (إلغاء التخصيص) --</option>
-                                                    <option value="-1" className="font-bold text-[#AF0C15] bg-rose-50">📅 جدول الامتحانات (تحديد يدوي)</option>
-                                                    <hr />
-                                                    {semesters
-                                                        .map(sem => (
-                                                            <option key={sem.id} value={sem.id}>
-                                                                {typeof sem.name === 'string' ? sem.name : (sem.name.ar || sem.name.en)}
-                                                            </option>
-                                                        ))}
+                                                    <option value="">-- اختر الفصل الدراسي --</option>
+                                                    {semesters.map(sem => (
+                                                        <option key={sem.id} value={sem.id}>
+                                                            {getLocalizedName(sem.name)}
+                                                        </option>
+                                                    ))}
                                                 </select>
                                                 <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Date Display / Edit */}
-                                    <div className={`flex flex-wrap gap-4 items-end p-3 rounded-lg border transition-colors ${getGradeConfig(selectedGradeId).term?.semesterId === -1
-                                        ? 'bg-white border-[#AF0C15]/30 shadow-sm'
-                                        : 'bg-slate-50 border-slate-100 opacity-70'
-                                        }`}>
-                                        <div>
-                                            <label className="text-xs font-bold text-slate-500 mb-1 block">تاريخ البدء</label>
-                                            <input
-                                                type="date"
-                                                value={getGradeConfig(selectedGradeId).term?.startDate?.substring(0, 10) || ''}
-                                                onChange={(e) => {
-                                                    // Only allow edit if Exam Schedule (-1)
-                                                    if (getGradeConfig(selectedGradeId).term?.semesterId === -1) {
-                                                        const currentTerm = getGradeConfig(selectedGradeId).term || { ...config.term };
-                                                        updateGradeTerm(selectedGradeId, { ...currentTerm, startDate: e.target.value });
-                                                    }
-                                                }}
-                                                readOnly={getGradeConfig(selectedGradeId).term?.semesterId !== -1}
-                                                disabled={getGradeConfig(selectedGradeId).term?.semesterId !== -1}
-                                                className={`px-3 py-2 border rounded-lg text-sm transition-all focus:ring-2 focus:ring-[#AF0C15]/20 ${getGradeConfig(selectedGradeId).term?.semesterId === -1
-                                                    ? 'bg-white border-slate-300 cursor-text'
-                                                    : 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed'
-                                                    }`}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-slate-500 mb-1 block">تاريخ الانتهاء</label>
-                                            <input
-                                                type="date"
-                                                value={getGradeConfig(selectedGradeId).term?.endDate?.substring(0, 10) || ''}
-                                                onChange={(e) => {
-                                                    if (getGradeConfig(selectedGradeId).term?.semesterId === -1) {
-                                                        const currentTerm = getGradeConfig(selectedGradeId).term || { ...config.term };
-                                                        updateGradeTerm(selectedGradeId, { ...currentTerm, endDate: e.target.value });
-                                                    }
-                                                }}
-                                                readOnly={getGradeConfig(selectedGradeId).term?.semesterId !== -1}
-                                                disabled={getGradeConfig(selectedGradeId).term?.semesterId !== -1}
-                                                className={`px-3 py-2 border rounded-lg text-sm transition-all focus:ring-2 focus:ring-[#AF0C15]/20 ${getGradeConfig(selectedGradeId).term?.semesterId === -1
-                                                    ? 'bg-white border-slate-300 cursor-text'
-                                                    : 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed'
-                                                    }`}
-                                            />
-                                        </div>
-                                        <span className="text-xs text-slate-400 mr-auto self-end pb-2">
-                                            {getGradeConfig(selectedGradeId).term?.semesterId === -1
-                                                ? '* يمكنك تحديد فترة الامتحانات يدوياً'
-                                                : '* يتم تحديد التواريخ تلقائياً بناءً على الفصل المختار'}
-                                        </span>
-                                    </div>
+                                    {/* Date Display */}
+                                    {selectedSemesterId && (() => {
+                                        const semester = semesters.find(s => s.id === selectedSemesterId);
+                                        if (!semester) return null;
+                                        return (
+                                            <div className="flex flex-wrap gap-4 items-end p-3 rounded-lg border bg-slate-50 border-slate-100">
+                                                <div>
+                                                    <label className="text-xs font-bold text-slate-500 mb-1 block">تاريخ البدء</label>
+                                                    <div className="px-3 py-2 border rounded-lg text-sm bg-slate-100 border-slate-200 text-slate-600">
+                                                        {semester.start_date ? new Date(semester.start_date).toLocaleDateString('ar-SA') : '-'}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-bold text-slate-500 mb-1 block">تاريخ الانتهاء</label>
+                                                    <div className="px-3 py-2 border rounded-lg text-sm bg-slate-100 border-slate-200 text-slate-600">
+                                                        {semester.end_date ? new Date(semester.end_date).toLocaleDateString('ar-SA') : '-'}
+                                                    </div>
+                                                </div>
+                                                <span className="text-xs text-slate-400 mr-auto self-end pb-2">
+                                                    * يتم تحديد التواريخ تلقائياً بناءً على الفصل المختار
+                                                </span>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </div>
 
@@ -494,13 +522,13 @@ export function AdminScheduleConfigPage() {
 
                                     <div className="flex bg-slate-100 p-1 rounded-lg">
                                         <button
-                                            onClick={() => updateDayConfig(selectedGradeId, selectedDay, { bookingMode: 'individual' })}
+                                            onClick={() => updateDayConfig({ bookingMode: 'individual' })}
                                             className={`px-4 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-all ${currentDayConfig.bookingMode === 'individual' ? 'bg-white text-[#AF0C15] shadow-sm' : 'text-slate-500'}`}
                                         >
                                             <Lock size={14} /> فردي (حصري)
                                         </button>
                                         <button
-                                            onClick={() => updateDayConfig(selectedGradeId, selectedDay, { bookingMode: 'multiple' })}
+                                            onClick={() => updateDayConfig({ bookingMode: 'multiple' })}
                                             className={`px-4 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-all ${currentDayConfig.bookingMode === 'multiple' ? 'bg-white text-[#AF0C15] shadow-sm' : 'text-slate-500'}`}
                                         >
                                             <Unlock size={14} /> متعدد (مفتوح)
@@ -518,7 +546,7 @@ export function AdminScheduleConfigPage() {
                                                     <input
                                                         type="time"
                                                         value={currentDayConfig.startTime}
-                                                        onChange={(e) => updateDayConfig(selectedGradeId, selectedDay, { startTime: e.target.value })}
+                                                        onChange={(e) => updateDayConfig({ startTime: e.target.value })}
                                                         className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all font-mono text-center font-bold text-slate-700"
                                                     />
                                                 </div>
@@ -529,7 +557,7 @@ export function AdminScheduleConfigPage() {
                                                     <input
                                                         type="time"
                                                         value={currentDayConfig.endTime}
-                                                        onChange={(e) => updateDayConfig(selectedGradeId, selectedDay, { endTime: e.target.value })}
+                                                        onChange={(e) => updateDayConfig({ endTime: e.target.value })}
                                                         className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all font-mono text-center font-bold text-slate-700"
                                                     />
                                                 </div>
@@ -539,7 +567,7 @@ export function AdminScheduleConfigPage() {
                                                 <div className="relative">
                                                     <select
                                                         value={currentDayConfig.slotDurationMinutes}
-                                                        onChange={(e) => updateDayConfig(selectedGradeId, selectedDay, { slotDurationMinutes: parseInt(e.target.value) })}
+                                                        onChange={(e) => updateDayConfig({ slotDurationMinutes: parseInt(e.target.value) })}
                                                         className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all text-center font-bold text-slate-700 appearance-none"
                                                     >
                                                         <option value={30}>30 دقيقة</option>
@@ -556,7 +584,7 @@ export function AdminScheduleConfigPage() {
                                                 <div className="relative">
                                                     <select
                                                         value={currentDayConfig.gapMinutes}
-                                                        onChange={(e) => updateDayConfig(selectedGradeId, selectedDay, { gapMinutes: parseInt(e.target.value) })}
+                                                        onChange={(e) => updateDayConfig({ gapMinutes: parseInt(e.target.value) })}
                                                         className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all text-center font-bold text-slate-700 appearance-none"
                                                     >
                                                         <option value={0}>لا يوجد</option>
@@ -637,37 +665,166 @@ export function AdminScheduleConfigPage() {
                 </div>
             </div>
 
+            {/* Existing Slots Statistics Display */}
+            {selectedSemesterId && (
+                <div className="mt-8">
+                    {loadingSlots ? (
+                        <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-100 flex items-center justify-center gap-3">
+                            <Loader2 className="animate-spin text-[#AF0C15]" size={24} />
+                            <span className="text-slate-500 font-medium">جاري تحميل بيانات الفترات الزمنية...</span>
+                        </div>
+                    ) : slotsStats?.has_slots ? (
+                        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-2xl p-6 shadow-lg border border-emerald-200/50">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-2 bg-emerald-500 rounded-xl">
+                                    <CheckCircle2 size={24} className="text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-emerald-800">✅ يوجد جدول زمني لهذا الفصل</h3>
+                                    <p className="text-sm text-emerald-600">تم إنشاء الفترات الزمنية مسبقاً لهذا الفصل الدراسي</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
+                                    <p className="text-3xl font-bold text-slate-800">{slotsStats.total_slots}</p>
+                                    <p className="text-sm text-slate-500 mt-1">إجمالي الفترات</p>
+                                </div>
+                                <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
+                                    <p className="text-3xl font-bold text-emerald-600">{slotsStats.available}</p>
+                                    <p className="text-sm text-slate-500 mt-1">متاحة</p>
+                                </div>
+                                <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
+                                    <p className="text-3xl font-bold text-blue-600">{slotsStats.booked}</p>
+                                    <p className="text-sm text-slate-500 mt-1">محجوزة</p>
+                                </div>
+                                <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
+                                    <p className="text-3xl font-bold text-amber-600">{slotsStats.pending}</p>
+                                    <p className="text-sm text-slate-500 mt-1">قيد الانتظار</p>
+                                </div>
+                            </div>
+                        </div>
+                    ) : slotsStats !== null ? (
+                        <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-2xl p-6 shadow-lg border border-amber-200/50">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-amber-500 rounded-xl">
+                                    <AlertCircle size={24} className="text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-amber-800">⚠️ لا يوجد جدول زمني لهذا الفصل</h3>
+                                    <p className="text-sm text-amber-600">يرجى إنشاء الفترات الزمنية باستخدام الزر أدناه بعد حفظ الإعدادات</p>
+                                </div>
+                            </div>
+                        </div>
+                    ) : null}
+                </div>
+            )}
+
             {/* Generator Action */}
             <div className="bg-gradient-to-r from-[#AF0C15] to-rose-600 rounded-3xl p-8 text-white shadow-2xl shadow-[#AF0C15]/20 relative overflow-hidden mt-10 border border-white/10">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-rose-500/20 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2" />
 
-                <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
-                    <div className="max-w-xl">
-                        <h2 className="text-3xl font-bold mb-3 flex items-center gap-3">
-                            <span className="p-2 bg-white/20 rounded-lg text-white ring-1 ring-white/30">
-                                <Wand2 size={24} />
-                            </span>
-                            نشر الجدول الدراسي
-                        </h2>
-                        <p className="text-slate-300 text-lg leading-relaxed opacity-90">
-                            {selectedSemesterId ?
-                                `سيتم إنشاء الجداول للفترة من ${new Date(semesters.find(s => s.id === selectedSemesterId)?.start_date!).toLocaleDateString()} إلى ${new Date(semesters.find(s => s.id === selectedSemesterId)?.end_date!).toLocaleDateString()}`
-                                : 'يرجى اختيار الفصل الدراسي أولاً لتحديد الفترة الزمنية للجدول.'}
-                            <br />
-                            احفظ الإعدادات أولاً ثم انقر للبدء في إنشاء الفترات الزمنية.
-                        </p>
+                <div className="relative z-10">
+                    <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
+                        <span className="p-2 bg-white/20 rounded-lg text-white ring-1 ring-white/30">
+                            <Wand2 size={24} />
+                        </span>
+                        نشر الجدول الدراسي
+                    </h2>
+
+                    {/* Step-by-step Workflow Guide */}
+                    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-white/20">
+                        <h3 className="text-lg font-bold mb-4 text-white/90">📋 خطوات إنشاء الفترات الزمنية:</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Step 1 */}
+                            <div className={`flex items-start gap-3 p-4 rounded-xl transition-all ${selectedSemesterId
+                                ? 'bg-green-500/20 border border-green-400/30'
+                                : 'bg-white/5 border border-white/10'
+                                }`}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${selectedSemesterId ? 'bg-green-500 text-white' : 'bg-white/20 text-white/60'
+                                    }`}>
+                                    {selectedSemesterId ? <CheckCircle2 size={18} /> : '١'}
+                                </div>
+                                <div>
+                                    <p className={`font-bold ${selectedSemesterId ? 'text-green-300' : 'text-white/70'}`}>
+                                        اختر الفصل الدراسي
+                                    </p>
+                                    <p className="text-sm text-white/50 mt-1">
+                                        {selectedSemesterId
+                                            ? `✓ تم اختيار: ${getLocalizedName(semesters.find(s => s.id === selectedSemesterId)?.name)}`
+                                            : 'حدد الفصل من القائمة أعلاه'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Step 2 */}
+                            <div className={`flex items-start gap-3 p-4 rounded-xl transition-all ${!hasChanges && selectedGradeId
+                                ? 'bg-green-500/20 border border-green-400/30'
+                                : hasChanges
+                                    ? 'bg-amber-500/20 border border-amber-400/30'
+                                    : 'bg-white/5 border border-white/10'
+                                }`}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${!hasChanges && selectedGradeId ? 'bg-green-500 text-white' : hasChanges ? 'bg-amber-500 text-white' : 'bg-white/20 text-white/60'
+                                    }`}>
+                                    {!hasChanges && selectedGradeId ? <CheckCircle2 size={18} /> : '٢'}
+                                </div>
+                                <div>
+                                    <p className={`font-bold ${!hasChanges && selectedGradeId ? 'text-green-300' : hasChanges ? 'text-amber-300' : 'text-white/70'}`}>
+                                        احفظ الإعدادات
+                                    </p>
+                                    <p className="text-sm text-white/50 mt-1">
+                                        {hasChanges
+                                            ? '⚠️ لديك تغييرات غير محفوظة - اضغط "حفظ التغييرات"'
+                                            : selectedGradeId
+                                                ? '✓ الإعدادات محفوظة'
+                                                : 'اضبط أوقات الدوام واحفظها'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Step 3 */}
+                            <div className={`flex items-start gap-3 p-4 rounded-xl transition-all ${selectedSemesterId && !hasChanges && selectedGradeId
+                                ? 'bg-white/20 border border-white/30 ring-2 ring-white/40'
+                                : 'bg-white/5 border border-white/10'
+                                }`}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${selectedSemesterId && !hasChanges && selectedGradeId ? 'bg-white text-[#AF0C15]' : 'bg-white/20 text-white/60'
+                                    }`}>
+                                    ٣
+                                </div>
+                                <div>
+                                    <p className={`font-bold ${selectedSemesterId && !hasChanges && selectedGradeId ? 'text-white' : 'text-white/70'}`}>
+                                        أنشئ الفترات
+                                    </p>
+                                    <p className="text-sm text-white/50 mt-1">
+                                        {selectedSemesterId && !hasChanges && selectedGradeId
+                                            ? '🚀 جاهز للإنشاء - اضغط الزر أدناه'
+                                            : 'أكمل الخطوات السابقة أولاً'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <button
-                        onClick={handlePublishSlots}
-                        disabled={isGenerating || generatedPreview.count === 0}
-                        className={`px-10 py-5 rounded-2xl font-bold text-lg shadow-xl shadow-black/20 flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1 active:translate-y-0 ${isGenerating || generatedPreview.count === 0
-                            ? 'bg-white/10 text-white/50 cursor-not-allowed ring-1 ring-white/5'
-                            : 'bg-white text-[#AF0C15] hover:bg-rose-50 ring-4 ring-white/20'
-                            }`}
-                    >
-                        {isGenerating ? <Loader2 className="animate-spin" size={24} /> : 'تنفيذ الإنشاء الآن'}
-                    </button>
+
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div className="max-w-xl">
+                            <p className="text-slate-300 text-lg leading-relaxed opacity-90">
+                                {selectedSemesterId ?
+                                    `سيتم إنشاء الجداول للفترة من ${new Date(semesters.find(s => s.id === selectedSemesterId)?.start_date!).toLocaleDateString('ar-EG')} إلى ${new Date(semesters.find(s => s.id === selectedSemesterId)?.end_date!).toLocaleDateString('ar-EG')}`
+                                    : 'يرجى اختيار الفصل الدراسي أولاً لتحديد الفترة الزمنية للجدول.'}
+                            </p>
+                        </div>
+                        <button
+                            onClick={handlePublishSlots}
+                            disabled={isGenerating || !selectedSemesterId || hasChanges}
+                            className={`px-10 py-5 rounded-2xl font-bold text-lg shadow-xl shadow-black/20 flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1 active:translate-y-0 min-w-[200px] ${isGenerating || !selectedSemesterId || hasChanges
+                                ? 'bg-white/10 text-white/50 cursor-not-allowed ring-1 ring-white/5'
+                                : 'bg-white text-[#AF0C15] hover:bg-rose-50 ring-4 ring-white/20'
+                                }`}
+                            title={hasChanges ? 'احفظ الإعدادات أولاً' : !selectedSemesterId ? 'اختر الفصل الدراسي أولاً' : 'إنشاء الفترات الزمنية'}
+                        >
+                            {isGenerating ? <Loader2 className="animate-spin" size={24} /> : 'تنفيذ الإنشاء الآن'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

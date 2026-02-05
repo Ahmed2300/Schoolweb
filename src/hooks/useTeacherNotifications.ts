@@ -93,6 +93,42 @@ export function useTeacherNotifications() {
             return;
         }
 
+        // Handle slot decision events (approve/reject from admin)
+        if (event.status === 'approved' || event.status === 'rejected') {
+            console.log('Slot decision notification detected:', event);
+            const isSlotApproved = event.status === 'approved';
+
+            // Play notification sound
+            playNotificationSound();
+
+            // Show toast notification
+            if (isSlotApproved) {
+                toast.success('تمت الموافقة على موعدك من قبل الإدارة ✅', {
+                    duration: 5000,
+                    icon: '📅'
+                });
+            } else {
+                toast.error(`تم رفض موعدك: ${event.rejection_reason || 'بدون سبب محدد'}`, {
+                    duration: 7000,
+                    icon: '❌'
+                });
+            }
+
+            // Dispatch event for schedule page to refresh
+            console.log('Dispatching slot-decision-change event');
+            window.dispatchEvent(new CustomEvent('slot-decision-change', {
+                detail: {
+                    slotId: event.slot_id,
+                    status: event.status,
+                    rejectionReason: event.rejection_reason,
+                    dayOfWeek: event.day_of_week,
+                    startTime: event.start_time,
+                    endTime: event.end_time
+                }
+            }));
+            return;
+        }
+
         // Handle content approval notifications (existing flow)
         const approval = event.approval;
         if (approval) {

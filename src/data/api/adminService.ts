@@ -2191,10 +2191,91 @@ export const adminService = {
     },
 
     /**
+     * Get existing slots for a semester
+     */
+    getSlotsForSemester: async (semesterId: number): Promise<{
+        success: boolean;
+        data: {
+            semester: { id: number; name: string; grade: string; start_date: string; end_date: string };
+            stats: { total_slots: number; available: number; booked: number; pending: number };
+            has_slots: boolean;
+            slots_preview: Array<{ date: string; day_name: string; slots_count: number; available: number; booked: number }>;
+        };
+    }> => {
+        const response = await apiClient.get(endpoints.admin.schedule.getSlots(semesterId));
+        return response.data;
+    },
+
+    /**
      * Generate slots for a semester
      */
     generateSlots: async (semesterId: number) => {
         const response = await apiClient.post(endpoints.admin.schedule.generateSlots(semesterId));
+        return response.data;
+    },
+
+    // ==================== SLOT REQUESTS (NEW SYSTEM) ====================
+
+    /**
+     * Get all teacher slot requests with optional filters
+     */
+    getSlotRequests: async (params?: {
+        status?: 'pending' | 'approved' | 'rejected' | 'all';
+        grade_id?: number;
+        teacher_id?: number;
+        type?: 'weekly' | 'one-time';
+        page?: number;
+        per_page?: number;
+    }) => {
+        const response = await apiClient.get(endpoints.admin.slotRequests.list, { params });
+        return response.data;
+    },
+
+    /**
+     * Get single slot request details
+     */
+    getSlotRequest: async (id: number) => {
+        const response = await apiClient.get(endpoints.admin.slotRequests.show(id));
+        return response.data;
+    },
+
+    /**
+     * Get slot requests statistics
+     */
+    getSlotRequestStats: async () => {
+        const response = await apiClient.get(endpoints.admin.slotRequests.stats);
+        return response.data;
+    },
+
+    /**
+     * Approve a teacher's slot request (creates the actual slot)
+     */
+    approveTeacherSlotRequest: async (id: number) => {
+        const response = await apiClient.post(endpoints.admin.slotRequests.approve(id));
+        return response.data;
+    },
+
+    /**
+     * Reject a teacher's slot request with reason
+     */
+    rejectTeacherSlotRequest: async (id: number, reason: string) => {
+        const response = await apiClient.post(endpoints.admin.slotRequests.reject(id), { reason });
+        return response.data;
+    },
+
+    /**
+     * Bulk approve multiple slot requests
+     */
+    bulkApproveSlotRequests: async (ids: number[]) => {
+        const response = await apiClient.post(endpoints.admin.slotRequests.bulkApprove, { ids });
+        return response.data;
+    },
+
+    /**
+     * Bulk reject multiple slot requests
+     */
+    bulkRejectSlotRequests: async (ids: number[], reason: string) => {
+        const response = await apiClient.post(endpoints.admin.slotRequests.bulkReject, { ids, reason });
         return response.data;
     },
 };

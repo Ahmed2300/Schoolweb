@@ -70,6 +70,9 @@ export function EditTeacherModal({ isOpen, teacher, onClose, onSuccess }: EditTe
                     setLoading(true);
                     const fullTeacherData = await adminService.getTeacher(teacher.id);
 
+                    // Use grade_ids directly from API if available
+                    const teacherGradeIds = fullTeacherData.grade_ids || [];
+
                     setFormData({
                         name: fullTeacherData.name || '',
                         email: fullTeacherData.email || '',
@@ -78,21 +81,8 @@ export function EditTeacherModal({ isOpen, teacher, onClose, onSuccess }: EditTe
                         qualification: fullTeacherData.qualification || '',
                         status: (fullTeacherData.status as FormData['status']) || 'active',
                         is_academic: fullTeacherData.is_academic !== false,
-                        grades: [],
+                        grades: teacherGradeIds,
                     });
-
-                    // Map enrolled grades to IDs
-                    if (fullTeacherData.grades && fullTeacherData.grades.length > 0 && availableGrades.length > 0) {
-                        try {
-                            const teacherGradeIds = availableGrades
-                                .filter(g => fullTeacherData.grades?.includes(g.name))
-                                .map(g => g.id);
-
-                            setFormData(prev => ({ ...prev, grades: teacherGradeIds }));
-                        } catch (e) {
-                            console.error("Error mapping grades", e);
-                        }
-                    }
 
                     setCurrentImagePath(fullTeacherData.image_path || null);
                     setImageFile(null);
@@ -109,7 +99,7 @@ export function EditTeacherModal({ isOpen, teacher, onClose, onSuccess }: EditTe
         };
 
         fetchTeacherDetails();
-    }, [isOpen, teacher, availableGrades]);
+    }, [isOpen, teacher]);
 
     // Handle escape key
     useEffect(() => {
