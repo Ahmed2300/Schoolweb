@@ -29,7 +29,7 @@ import {
   AdminPackagesPage,
   AdminPackageSubscriptionsPage,
   AdminAcademicGraphPage,
-  AdminTimeSlotsPage,
+
   AdminContentApprovalsPage,
   AdminQuizzesPage,
   AdminRecordingsPage,
@@ -205,7 +205,7 @@ function App() {
               <Route path="packages" element={<AdminPackagesPage />} />
               <Route path="package-subscriptions" element={<AdminPackageSubscriptionsPage />} />
               <Route path="academic-structure" element={<AdminAcademicGraphPage />} />
-              <Route path="time-slots" element={<AdminTimeSlotsPage />} />
+
               <Route path="content-approvals" element={<AdminContentApprovalsPage />} />
               <Route path="recordings" element={<AdminRecordingsPage />} />
               <Route path="quizzes" element={<AdminQuizzesPage />} />

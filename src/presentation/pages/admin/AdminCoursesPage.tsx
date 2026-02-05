@@ -20,6 +20,7 @@ import { adminService, CourseData } from '../../../data/api/adminService';
 import { AddCourseModal } from '../../components/admin/AddCourseModal';
 import { EditCourseModal } from '../../components/admin/EditCourseModal';
 import { DeleteConfirmModal } from '../../components/admin/DeleteConfirmModal';
+import { Pagination } from '../../components/courses/Pagination';
 
 interface GradeOption {
     id: number;
@@ -110,6 +111,14 @@ export function AdminCoursesPage() {
     const [loadingDropdowns, setLoadingDropdowns] = useState(false);
 
     const [courses, setCourses] = useState<Course[]>([]);
+    const [page, setPage] = useState(1);
+    const [meta, setMeta] = useState<{
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    } | null>(null);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [stats, setStats] = useState<CourseStats>({
@@ -167,10 +176,12 @@ export function AdminCoursesPage() {
                 semester_id: selectedSemesterId || undefined,
                 is_academic: isAcademic,
                 per_page: 20,
+                page: page,
             });
 
             const coursesData = response.data || [];
             setCourses(coursesData);
+            setMeta(response.meta);
 
             // Calculate stats based on the current view
             // Note: For a real dashboard, you might want these stats to be global or strictly related to the tab
@@ -191,7 +202,7 @@ export function AdminCoursesPage() {
         } finally {
             setLoading(false);
         }
-    }, [searchQuery, selectedGradeId, selectedSemesterId, activeTab]);
+    }, [searchQuery, selectedGradeId, selectedSemesterId, activeTab, page]);
 
     useEffect(() => {
         fetchDropdownData();
@@ -202,6 +213,7 @@ export function AdminCoursesPage() {
     }, [fetchCourses]);
 
     const handleGradeChange = (gradeId: number | null) => {
+        setPage(1);
         setSelectedGradeId(gradeId);
         setSelectedSemesterId(null);
     };
@@ -228,7 +240,10 @@ export function AdminCoursesPage() {
                             placeholder="بحث في الكورسات..."
                             className="w-full h-11 pl-4 pr-11 rounded-[12px] bg-white border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm"
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e) => {
+                                setPage(1);
+                                setSearchQuery(e.target.value);
+                            }}
                         />
                         <Search size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                     </div>
@@ -248,7 +263,10 @@ export function AdminCoursesPage() {
             {/* TODO: Backend will add course_type field to distinguish academic vs non-academic */}
             <div className="flex gap-3 mb-6">
                 <button
-                    onClick={() => setActiveTab('academic')}
+                    onClick={() => {
+                        setPage(1);
+                        setActiveTab('academic');
+                    }}
                     className={`flex items-center gap-3 px-6 py-3.5 rounded-[16px] font-bold text-sm transition-all duration-300 ${activeTab === 'academic'
                         ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
                         : 'bg-white text-slate-600 hover:bg-blue-50 border border-slate-200'
@@ -258,7 +276,10 @@ export function AdminCoursesPage() {
                     <span>الشق الأكاديمي</span>
                 </button>
                 <button
-                    onClick={() => setActiveTab('skills')}
+                    onClick={() => {
+                        setPage(1);
+                        setActiveTab('skills');
+                    }}
                     className={`flex items-center gap-3 px-6 py-3.5 rounded-[16px] font-bold text-sm transition-all duration-300 ${activeTab === 'skills'
                         ? 'bg-green-600 text-white shadow-lg shadow-green-600/25'
                         : 'bg-white text-slate-600 hover:bg-green-50 border border-slate-200'
@@ -303,7 +324,10 @@ export function AdminCoursesPage() {
                 <div className="relative">
                     <select
                         value={selectedSemesterId ?? ''}
-                        onChange={(e) => setSelectedSemesterId(e.target.value ? parseInt(e.target.value) : null)}
+                        onChange={(e) => {
+                            setPage(1);
+                            setSelectedSemesterId(e.target.value ? parseInt(e.target.value) : null);
+                        }}
                         disabled={loadingDropdowns || !selectedGradeId}
                         className={`h-11 pl-10 pr-4 rounded-[12px] bg-white border border-slate-200 text-sm font-medium text-charcoal appearance-none cursor-pointer focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all ${!selectedGradeId ? 'opacity-50 cursor-not-allowed' : ''}`}
                         title={!selectedGradeId ? 'اختر الصف أولاً' : undefined}
@@ -317,7 +341,11 @@ export function AdminCoursesPage() {
                 </div>
                 {(selectedGradeId || selectedSemesterId) && (
                     <button
-                        onClick={() => { setSelectedGradeId(null); setSelectedSemesterId(null); }}
+                        onClick={() => {
+                            setPage(1);
+                            setSelectedGradeId(null);
+                            setSelectedSemesterId(null);
+                        }}
                         className="h-11 px-4 rounded-[12px] bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium transition-colors"
                     >
                         مسح الفلاتر
@@ -398,119 +426,126 @@ export function AdminCoursesPage() {
 
             {/* Courses Table */}
             {!loading && !error && (
-                <div className="bg-white rounded-[16px] shadow-card overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="bg-slate-50 border-b border-slate-100">
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase w-20">الصورة</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكورس</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكود</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الساعات</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">السعر</th>
-                                    {/* TODO: Add these columns when backend provides the data */}
-                                    {/* <th>الصف</th> */}
-                                    {/* <th>الترم</th> */}
-                                    {/* <th>المادة</th> */}
-                                    {/* <th>المدرس</th> */}
-                                    {/* <th>الطلاب</th> */}
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الحالة</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {courses.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={6} className="px-6 py-12 text-center">
-                                            <div className="flex flex-col items-center gap-3">
-                                                <BookOpen size={48} className="text-slate-300" />
-                                                <p className="text-slate-grey">لا توجد كورسات</p>
-                                            </div>
-                                        </td>
+                <>
+                    <div className="bg-white rounded-[16px] shadow-card overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="bg-slate-50 border-b border-slate-100">
+                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase w-20">الصورة</th>
+                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكورس</th>
+                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكود</th>
+                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الساعات</th>
+                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">السعر</th>
+                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الحالة</th>
+                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الإجراءات</th>
                                     </tr>
-                                ) : (
-                                    courses.map((course) => {
-                                        const status = getCourseStatus(course);
-                                        return (
-                                            <tr key={course.id} className="hover:bg-slate-50/50 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden border border-slate-200">
-                                                        {course.image ? (
-                                                            <img
-                                                                src={course.image}
-                                                                alt={getCourseName(course)}
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        ) : (
-                                                            <div className="w-full h-full flex items-center justify-center text-slate-400">
-                                                                <BookOpen size={20} className="opacity-50" />
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div>
-                                                            <span className="font-semibold text-charcoal block">{getCourseName(course)}</span>
-                                                            <span className="text-xs text-slate-400">{course.credits} ساعات معتمدة</span>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm text-slate-grey font-mono">{course.code}</td>
-                                                <td className="px-6 py-4 text-sm text-charcoal">{course.duration_hours || '-'}</td>
-                                                <td className="px-6 py-4">
-                                                    {course.price ? (
-                                                        <div>
-                                                            <span className="font-bold text-shibl-crimson">{course.price} ر.ع</span>
-                                                            {course.old_price && course.old_price > course.price && (
-                                                                <span className="text-xs text-slate-400 line-through mr-2">{course.old_price}</span>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {courses.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={7} className="px-6 py-12 text-center">
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <BookOpen size={48} className="text-slate-300" />
+                                                    <p className="text-slate-grey">لا توجد كورسات</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        courses.map((course) => {
+                                            const status = getCourseStatus(course);
+                                            return (
+                                                <tr key={course.id} className="hover:bg-slate-50/50 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden border border-slate-200">
+                                                            {course.image ? (
+                                                                <img
+                                                                    src={course.image}
+                                                                    alt={getCourseName(course)}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                                                    <BookOpen size={20} className="opacity-50" />
+                                                                </div>
                                                             )}
                                                         </div>
-                                                    ) : (
-                                                        <span className="text-slate-400">-</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${statusConfig[status]?.bgColor || 'bg-slate-100'} ${statusConfig[status]?.textColor || 'text-slate-600'}`}>
-                                                        {statusConfig[status]?.label || status}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <button className="w-8 h-8 rounded-[8px] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors" title="عرض">
-                                                            <Eye size={16} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => navigate(`/admin/courses/${course.id}/units`)}
-                                                            className="w-8 h-8 rounded-[8px] bg-purple-100 hover:bg-purple-200 flex items-center justify-center text-purple-600 transition-colors"
-                                                            title="إدارة الوحدات"
-                                                        >
-                                                            <Layers size={16} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setEditingCourse(course as unknown as CourseData)}
-                                                            className="w-8 h-8 rounded-[8px] bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 transition-colors"
-                                                            title="تعديل"
-                                                        >
-                                                            <Edit2 size={16} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setDeletingCourse(course)}
-                                                            className="w-8 h-8 rounded-[8px] bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 transition-colors"
-                                                            title="حذف"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })
-                                )}
-                            </tbody>
-                        </table>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div>
+                                                                <span className="font-semibold text-charcoal block">{getCourseName(course)}</span>
+                                                                <span className="text-xs text-slate-400">{course.credits} ساعات معتمدة</span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm text-slate-grey font-mono">{course.code}</td>
+                                                    <td className="px-6 py-4 text-sm text-charcoal">{course.duration_hours || '-'}</td>
+                                                    <td className="px-6 py-4">
+                                                        {course.price ? (
+                                                            <div>
+                                                                <span className="font-bold text-shibl-crimson">{course.price} ر.ع</span>
+                                                                {course.old_price && course.old_price > course.price && (
+                                                                    <span className="text-xs text-slate-400 line-through mr-2">{course.old_price}</span>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-slate-400">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${statusConfig[status]?.bgColor || 'bg-slate-100'} ${statusConfig[status]?.textColor || 'text-slate-600'}`}>
+                                                            {statusConfig[status]?.label || status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <button className="w-8 h-8 rounded-[8px] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors" title="عرض">
+                                                                <Eye size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => navigate(`/admin/courses/${course.id}/units`)}
+                                                                className="w-8 h-8 rounded-[8px] bg-purple-100 hover:bg-purple-200 flex items-center justify-center text-purple-600 transition-colors"
+                                                                title="إدارة الوحدات"
+                                                            >
+                                                                <Layers size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setEditingCourse(course as unknown as CourseData)}
+                                                                className="w-8 h-8 rounded-[8px] bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 transition-colors"
+                                                                title="تعديل"
+                                                            >
+                                                                <Edit2 size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setDeletingCourse(course)}
+                                                                className="w-8 h-8 rounded-[8px] bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 transition-colors"
+                                                                title="حذف"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+                    {/* Pagination */}
+                    <div className="mt-6 flex justify-center">
+                        <Pagination
+                            currentPage={page}
+                            totalPages={meta?.last_page || 1}
+                            onPageChange={setPage}
+                            onNext={() => setPage((p) => Math.min(p + 1, meta?.last_page || 1))}
+                            onPrev={() => setPage((p) => Math.max(p - 1, 1))}
+                            isLoading={loading}
+                        />
+                    </div>
+                </>
             )}
 
 
