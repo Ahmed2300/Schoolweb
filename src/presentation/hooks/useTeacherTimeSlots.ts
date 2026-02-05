@@ -27,12 +27,13 @@ export function useAvailableSlots(date?: string) {
 }
 
 /**
- * Hook to fetch teacher's slot requests history.
+ * Hook to fetch teacher's approved recurring slots for lecture creation.
+ * Uses the recurring schedule endpoint which contains the actual booked slots.
  */
 export function useMyRequests() {
     return useQuery({
         queryKey: teacherTimeSlotKeys.myRequests(),
-        queryFn: () => teacherService.getSlotRequests(),
+        queryFn: () => teacherService.getMyRecurringSchedule(),
         select: (response) => response.data,
     });
 }

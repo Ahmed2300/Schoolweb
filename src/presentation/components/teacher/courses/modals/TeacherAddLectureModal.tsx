@@ -5,8 +5,7 @@ import { teacherLectureService } from '../../../../../data/api/teacherLectureSer
 import { teacherContentApprovalService } from '../../../../../data/api/teacherContentApprovalService';
 import { TeacherVideoUploader } from './TeacherVideoUploader';
 import { TimeSlotPicker } from '../../timeslots/TimeSlotPicker';
-import { ApprovedSlotSelector } from '../../timeslots/ApprovedSlotSelector';
-import type { TimeSlot } from '../../../../../data/api/teacherTimeSlotService';
+import { ApprovedSlotSelector, type DatedSlot } from '../../timeslots/ApprovedSlotSelector';
 import type { SlotRequest } from '../../../../../types/slotRequest';
 import type { Unit } from '../../../../../types/unit';
 import { useMyRequests } from '../../../../hooks/useTeacherTimeSlots';
@@ -40,6 +39,7 @@ interface TeacherAddLectureModalProps {
     defaultStartTime?: string;
     defaultEndTime?: string;
     gradeId?: number;
+    semesterId?: number;
 }
 
 type SlotSourceType = 'available' | 'approved';
@@ -70,11 +70,11 @@ export function TeacherAddLectureModal({
     initialUnitId,
     defaultStartTime,
     defaultEndTime,
-    gradeId
+    gradeId,
+    semesterId
 }: TeacherAddLectureModalProps) {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
-    const { data: bookedSlots = [] } = useMyRequests();
 
     const initialFormData: FormData = {
         titleAr: '',
@@ -91,7 +91,8 @@ export function TeacherAddLectureModal({
         slotRequestId: null,
     };
 
-    const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+    const [selectedSlot, setSelectedSlot] = useState<DatedSlot | null>(null);
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
     const [formData, setFormData] = useState<FormData>(initialFormData);
     const [loading, setLoading] = useState(false);
@@ -302,6 +303,7 @@ export function TeacherAddLectureModal({
                                                 setFormData(prev => ({ ...prev, isOnline: e.target.checked }));
                                                 if (!e.target.checked) {
                                                     setSelectedSlot(null);
+                                                    setSelectedDate(null);
                                                 }
                                             }}
                                             className="w-5 h-5 rounded text-blue-600 focus:ring-offset-0 focus:ring-0 cursor-pointer"
@@ -321,12 +323,14 @@ export function TeacherAddLectureModal({
                                         </label>
                                         <ApprovedSlotSelector
                                             onSelect={(slot) => {
-                                                // Cast to TimeSlot to satisfy state type (they share core fields)
-                                                setSelectedSlot(slot as unknown as TimeSlot);
+                                                setSelectedSlot(slot);
+                                                setSelectedDate(slot?.dateString || null);
                                                 setFormData(prev => ({ ...prev, selectedSlotId: slot?.id || null }));
                                             }}
                                             selectedSlotId={selectedSlot?.id || null}
+                                            selectedDate={selectedDate}
                                             gradeId={gradeId}
+                                            semesterId={semesterId}
                                             onRequestNewSlot={() => {
                                                 navigate('/teacher/weekly-schedule');
                                             }}
