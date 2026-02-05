@@ -9,6 +9,7 @@ import {
     AlertCircle,
     CheckCircle2,
 } from 'lucide-react';
+import { localToUtcIso } from '../../../../utils/timeUtils';
 
 // Arabic day names (week starts on Sunday)
 const WEEKDAYS = [
@@ -128,9 +129,13 @@ export function BulkSlotGeneratorModal({
                     const endHourStr = String(slotEndHour).padStart(2, '0');
                     const endMinStr = String(slotEndMin).padStart(2, '0');
 
+                    // Convert local datetime to UTC ISO string for backend
+                    const localStartTime = `${dateStr}T${startHourStr}:${startMinStr}`;
+                    const localEndTime = `${dateStr}T${endHourStr}:${endMinStr}`;
+
                     slots.push({
-                        start_time: `${dateStr}T${startHourStr}:${startMinStr}:00`,
-                        end_time: `${dateStr}T${endHourStr}:${endMinStr}:00`,
+                        start_time: localToUtcIso(localStartTime) || localStartTime,
+                        end_time: localToUtcIso(localEndTime) || localEndTime,
                     });
 
                     currentMinutes += slotDuration;

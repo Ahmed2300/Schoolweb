@@ -37,7 +37,7 @@ import {
 } from '../../hooks/useTimeSlots';
 import type { TimeSlot, TimeSlotStatus } from '../../../types/timeSlot';
 import { BulkSlotGeneratorModal } from '../../components/admin/timeslots';
-import { formatTime, formatShortDate as formatDate, getDateForInput, getTimeForInput } from '../../../utils/timeUtils';
+import { formatTime, formatShortDate as formatDate, getDateForInput, getTimeForInput, localToUtcIso } from '../../../utils/timeUtils';
 
 // Helper function to extract localized text from translatable fields
 const getLocalizedText = (
@@ -180,7 +180,10 @@ export function AdminTimeSlotsPage() {
 
     // Filter slots based on search
     const filteredSlots = useMemo(() => {
-        const slots = activeTab === 'pending' ? (pendingData?.slots || []) : allSlots;
+        // Safely ensure we always work with arrays
+        const allSlotsArray = Array.isArray(allSlots) ? allSlots : [];
+        const pendingSlotsArray = Array.isArray(pendingData?.slots) ? pendingData.slots : [];
+        const slots = activeTab === 'pending' ? pendingSlotsArray : allSlotsArray;
 
         if (!searchQuery) return slots;
 
@@ -228,10 +231,9 @@ export function AdminTimeSlotsPage() {
 
         setCreateModalError(null); // Clear previous errors
         try {
-            // Send datetime WITHOUT timezone offset - Laravel APP_TIMEZONE=Cairo
-            // handles interpretation. Adding offset causes DOUBLE conversion.
-            const startTimeStr = `${newSlotDate}T${newSlotStartTime}:00`;
-            const endTimeStr = `${newSlotDate}T${newSlotEndTime}:00`;
+            // Convert local datetime to UTC ISO string for backend
+            const startTimeStr = localToUtcIso(`${newSlotDate}T${newSlotStartTime}`)!;
+            const endTimeStr = localToUtcIso(`${newSlotDate}T${newSlotEndTime}`)!;
 
             await createMutation.mutateAsync({
                 start_time: startTimeStr,
@@ -293,12 +295,12 @@ export function AdminTimeSlotsPage() {
         if (!selectedSlot || !editDate || !editStartTime || !editEndTime) return;
 
         try {
-            // Send datetime WITHOUT timezone offset to avoid double conversion
+            // Convert local datetime to UTC ISO string for backend
             await updateMutation.mutateAsync({
                 id: selectedSlot.id,
                 data: {
-                    start_time: `${editDate}T${editStartTime}:00`,
-                    end_time: `${editDate}T${editEndTime}:00`,
+                    start_time: localToUtcIso(`${editDate}T${editStartTime}`),
+                    end_time: localToUtcIso(`${editDate}T${editEndTime}`),
                 }
             });
             setEditModalOpen(false);
@@ -400,7 +402,7 @@ export function AdminTimeSlotsPage() {
                     <p className="text-[#636E72] mt-1">إنشاء وإدارة فترات الحصص المباشرة والموافقة على طلبات المدرسين</p>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-                    {allSlots.length > 0 && (
+                    {(Array.isArray(allSlots) ? allSlots : []).length > 0 && (
                         <button
                             onClick={() => setDeleteAllModalOpen(true)}
                             className="flex items-center justify-center gap-2 p-2 sm:px-4 sm:py-2.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-full font-medium transition-all hover:scale-105"
