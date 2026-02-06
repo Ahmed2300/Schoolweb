@@ -9,6 +9,7 @@ import {
     AlertCircle,
     CheckCircle2,
 } from 'lucide-react';
+import { localToUtcIso } from '../../../../utils/timeUtils';
 
 // Arabic day names (week starts on Sunday)
 const WEEKDAYS = [
@@ -114,9 +115,7 @@ export function BulkSlotGeneratorModal({
                     const slotEndHour = Math.floor(slotEndMinutes / 60);
                     const slotEndMin = slotEndMinutes % 60;
 
-                    // FIX: Send local datetime strings WITHOUT timezone info
-                    // Laravel APP_TIMEZONE=Africa/Cairo will interpret these as Cairo time
-                    // Using toISOString() would convert to UTC, causing double timezone conversion
+                    // Build date string for this day
                     const year = current.getFullYear();
                     const month = String(current.getMonth() + 1).padStart(2, '0');
                     const day = String(current.getDate()).padStart(2, '0');
@@ -128,9 +127,13 @@ export function BulkSlotGeneratorModal({
                     const endHourStr = String(slotEndHour).padStart(2, '0');
                     const endMinStr = String(slotEndMin).padStart(2, '0');
 
+                    // Convert local datetime to UTC ISO string for backend
+                    const localStartTime = `${dateStr}T${startHourStr}:${startMinStr}`;
+                    const localEndTime = `${dateStr}T${endHourStr}:${endMinStr}`;
+
                     slots.push({
-                        start_time: `${dateStr}T${startHourStr}:${startMinStr}:00`,
-                        end_time: `${dateStr}T${endHourStr}:${endMinStr}:00`,
+                        start_time: localToUtcIso(localStartTime) || localStartTime,
+                        end_time: localToUtcIso(localEndTime) || localEndTime,
                     });
 
                     currentMinutes += slotDuration;

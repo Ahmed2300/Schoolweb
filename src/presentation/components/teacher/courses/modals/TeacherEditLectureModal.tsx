@@ -3,6 +3,7 @@ import { X, ChevronLeft, ChevronRight, Check, Video, FileText, Calendar, Trash2 
 import { teacherLectureService } from '../../../../../data/api/teacherLectureService';
 import { TeacherVideoUploader } from './TeacherVideoUploader';
 import type { Unit } from '../../../../../types/unit';
+import { localToUtcIso } from '../../../../../utils/timeUtils';
 
 const extractName = (name: unknown): { ar: string, en: string } => {
     if (!name) return { ar: '', en: '' };
@@ -135,8 +136,9 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                 course_id: parseInt(formData.courseId),
                 unit_id: formData.unitId ? parseInt(formData.unitId) : undefined,
                 teacher_id: parseInt(formData.teacherId),
-                start_time: formData.startTime || undefined,
-                end_time: formData.endTime || undefined,
+                // Convert local datetime to UTC ISO string for backend
+                start_time: localToUtcIso(formData.startTime),
+                end_time: localToUtcIso(formData.endTime),
                 is_online: formData.isOnline,
             };
 
