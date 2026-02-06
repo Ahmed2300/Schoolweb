@@ -42,12 +42,12 @@ interface NavItem {
 const navItems: NavItem[] = [
     { id: 'dashboard', label: 'لوحة التحكم', icon: LayoutDashboard, path: ROUTES.TEACHER_DASHBOARD },
     { id: 'courses', label: 'الدورات', icon: BookOpen, path: ROUTES.TEACHER_COURSES },
-    { id: 'students', label: 'الطلاب', icon: Users, path: '/teacher/students' },
+
     { id: 'slot-requests', label: 'طلبات المواعيد', icon: CalendarClock, path: '/teacher/slot-requests' },
     { id: 'weekly-schedule', label: 'الجدول الأسبوعي', icon: CalendarRange, path: '/teacher/weekly-schedule' },
     { id: 'quizzes', label: 'الاختبارات', icon: ClipboardList, path: ROUTES.TEACHER_QUIZZES },
     { id: 'recordings', label: 'التسجيلات', icon: Video, path: '/teacher/recordings' },
-    { id: 'analytics', label: 'الإحصائيات', icon: BarChart3, path: ROUTES.TEACHER_ANALYTICS },
+
     { id: 'settings', label: 'الإعدادات', icon: Settings, path: '/teacher/settings' },
 ];
 

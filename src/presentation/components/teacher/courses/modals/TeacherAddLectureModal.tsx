@@ -145,18 +145,31 @@ export function TeacherAddLectureModal({
         setError(null);
 
         try {
+            // Format start/end times with date if selected
+            let formattedStartTime = formData.startTime;
+            let formattedEndTime = formData.endTime;
+
+            if (selectedSlot && selectedDate) {
+                // Combine date and time
+                formattedStartTime = `${selectedDate} ${selectedSlot.start_time}`;
+                formattedEndTime = `${selectedDate} ${selectedSlot.end_time}`;
+            }
+
             const lectureData = {
                 title: { ar: formData.titleAr, en: formData.titleEn },
                 description: { ar: formData.descriptionAr, en: formData.descriptionEn },
                 course_id: parseInt(formData.courseId),
                 unit_id: formData.unitId ? parseInt(formData.unitId) : undefined,
                 teacher_id: parseInt(formData.teacherId),
-                start_time: selectedSlot?.start_time || formData.startTime || undefined,
-                end_time: selectedSlot?.end_time || formData.endTime || undefined,
+                start_time: formattedStartTime,
+                end_time: formattedEndTime,
                 is_online: formData.isOnline,
                 video_path: uploadedVideoPath || undefined,
                 is_published: true,
-                time_slot_id: selectedSlot?.id || undefined,
+                // If it's a recurring slot (from ApprovedSlotSelector), send it as such
+                teacher_recurring_slot_id: selectedSlot?.id || undefined,
+                // Only send time_slot_id if it's a legacy one-off slot request (not used here currently)
+                time_slot_id: undefined,
             };
 
             // Switch to Approval Request Flow
