@@ -24,7 +24,7 @@ import {
     Radio,
     Ban
 } from 'lucide-react';
-import { useMyRequests } from '../../../hooks/useTeacherTimeSlots';
+import { useMyRecurringSchedule } from '../../../hooks/useTeacherTimeSlots';
 
 // ==================== Types ====================
 
@@ -214,7 +214,7 @@ export function ApprovedSlotSelector({
     onRequestNewSlot,
     bookedDates = [],
 }: ApprovedSlotSelectorProps) {
-    const { data: allSlots = [], isLoading, error } = useMyRequests();
+    const { data: allSlots = [], isLoading, error } = useMyRecurringSchedule();
 
     // Week navigation state
     const [weekOffset, setWeekOffset] = useState(0);

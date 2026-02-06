@@ -332,6 +332,17 @@ export const teacherService = {
     },
 
     /**
+     * Get available revision slots (from revision semesters)
+     */
+    getRevisionSlots: async (): Promise<TimeSlot[]> => {
+        const params = new URLSearchParams();
+        params.append('type', 'revision');
+
+        const response = await apiClient.get(`${endpoints.teacher.timeSlots.available}?${params.toString()}`);
+        return response.data.data;
+    },
+
+    /**
      * Get teacher's slot requests (history)
      */
     getMyRequests: async (): Promise<TimeSlot[]> => {

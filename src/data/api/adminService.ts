@@ -541,9 +541,12 @@ export interface ActivityLogData {
 }
 
 // Semester types
+export type SemesterType = 'first_term' | 'second_term' | 'revision';
+
 export interface SemesterData {
     id: number;
     name: string | { ar?: string; en?: string };
+    type?: SemesterType;
     grade_id?: number;
     grade_ids?: number[];
     country_id?: number;
@@ -558,6 +561,7 @@ export interface SemesterData {
 
 export interface CreateSemesterRequest {
     name: string | { ar?: string; en?: string };
+    type?: SemesterType;
     grade_id: number;  // Required by backend
     country_id: number;  // Required by backend
     start_date: string;  // Required by backend
@@ -566,6 +570,7 @@ export interface CreateSemesterRequest {
 
 export interface UpdateSemesterRequest {
     name?: string | { ar?: string; en?: string };
+    type?: SemesterType;
     grade_id?: number;
     country_id?: number;
     start_date?: string;

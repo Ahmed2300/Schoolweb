@@ -26,15 +26,15 @@ export function ParentHomePage() {
         const fetchChildren = async () => {
             try {
                 const students = await parentService.getLinkedStudents();
-                const mappedChildren = students.map((s: StudentProfile) => ({
+                const mappedChildren = students.map((s: any) => ({
                     id: s.id,
                     name: s.name,
                     grade: s.grade || 'غير محدد',
-                    avatar: s.image_path || null,
-                    overallProgress: 0, // Placeholder
-                    nextClass: 'لا توجد حصص قادمة', // Placeholder
+                    avatar: s.image_path || s.avatar || null,
+                    overallProgress: Math.round(s.overall_average_score || 0),
+                    nextClass: 'لا توجد حصص قادمة', // TODO: fetch from schedule API
                     alerts: 0,
-                    courses: 0 // Placeholder
+                    courses: s.active_subscriptions || s.total_subscriptions || (s.subjects?.length || 0)
                 }));
                 setChildren(mappedChildren);
             } catch (e) {
@@ -192,10 +192,10 @@ export function ParentHomePage() {
 
                             <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex items-center justify-between group-hover:bg-slate-100 transition-colors">
                                 <span className="text-xs font-bold text-slate-500">{child.courses} دورات مسجلة</span>
-                                <button className="text-sm font-bold text-shibl-crimson flex items-center gap-1">
+                                <Link to="/parent/children" className="text-sm font-bold text-shibl-crimson flex items-center gap-1 hover:underline">
                                     التفاصيل
                                     <ChevronLeft size={16} />
-                                </button>
+                                </Link>
                             </div>
                         </div>
                     ))

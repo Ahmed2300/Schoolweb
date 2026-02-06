@@ -87,6 +87,13 @@ export function AdminScheduleConfigPage() {
     } | null>(null);
     const bulkCreateMutation = useBulkCreateTimeSlots();
 
+    // Revision Schedule Modal State
+    const [showRevisionModal, setShowRevisionModal] = useState(false);
+    const [revisionName, setRevisionName] = useState('');
+    const [revisionStartDate, setRevisionStartDate] = useState('');
+    const [revisionEndDate, setRevisionEndDate] = useState('');
+    const [isCreatingRevision, setIsCreatingRevision] = useState(false);
+
     // Helper to convert backend data to local state
     const convertFromBackend = useCallback((backendDays: Record<number, DayScheduleSettingData>): Record<number, DayScheduleConfig> => {
         const result: Record<number, DayScheduleConfig> = {};
@@ -345,6 +352,70 @@ export function AdminScheduleConfigPage() {
         }
     };
 
+    // Create a new revision schedule
+    const handleCreateRevision = async () => {
+        if (!selectedGradeId || !revisionName || !revisionStartDate || !revisionEndDate) {
+            toast.error('الرجاء ملء جميع الحقول');
+            return;
+        }
+
+        if (new Date(revisionStartDate) >= new Date(revisionEndDate)) {
+            toast.error('تاريخ البدء يجب أن يكون قبل تاريخ الانتهاء');
+            return;
+        }
+
+        // Check that revision dates are after all semester end dates
+        const regularSemesters = semesters.filter(s => s.type !== 'revision' && s.end_date);
+        if (regularSemesters.length > 0) {
+            const latestSemesterEndDate = regularSemesters.reduce((latest, sem) => {
+                const endDate = new Date(sem.end_date!);
+                return endDate > latest ? endDate : latest;
+            }, new Date(0));
+
+            if (new Date(revisionStartDate) <= latestSemesterEndDate) {
+                const formattedDate = latestSemesterEndDate.toLocaleDateString('ar-EG', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                toast.error(`تاريخ بدء المراجعة يجب أن يكون بعد انتهاء الفصل الدراسي (${formattedDate})`);
+                return;
+            }
+        }
+
+        setIsCreatingRevision(true);
+        try {
+            const newSemester = await adminService.createSemester({
+                name: { ar: revisionName, en: revisionName },
+                type: 'revision',
+                grade_id: selectedGradeId,
+                country_id: 1, // Default country - you may want to make this configurable
+                start_date: revisionStartDate,
+                end_date: revisionEndDate
+            });
+
+            // Refresh semesters list
+            const data = await adminService.getSemestersByGrade(selectedGradeId);
+            setSemesters(data || []);
+
+            // Auto-select the new revision
+            setSelectedSemesterId(newSemester.id);
+
+            // Reset modal state
+            setShowRevisionModal(false);
+            setRevisionName('');
+            setRevisionStartDate('');
+            setRevisionEndDate('');
+
+            toast.success('تم إنشاء جدول المراجعة بنجاح');
+        } catch (error) {
+            console.error('Failed to create revision schedule:', error);
+            toast.error('فشل إنشاء جدول المراجعة');
+        } finally {
+            setIsCreatingRevision(false);
+        }
+    };
+
     // Reset to defaults
     const resetToDefaults = () => {
         const defaultConfig: Record<number, DayScheduleConfig> = {};
@@ -449,41 +520,72 @@ export function AdminScheduleConfigPage() {
                                                     }}
                                                     className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[#AF0C15]/20 appearance-none"
                                                 >
-                                                    <option value="">-- اختر الفصل الدراسي --</option>
-                                                    {semesters.map(sem => (
-                                                        <option key={sem.id} value={sem.id}>
-                                                            {getLocalizedName(sem.name)}
-                                                        </option>
-                                                    ))}
+                                                    <option value="">-- اختر الفصل --</option>
+                                                    {/* Group semesters by type */}
+                                                    {semesters.filter(s => s.type !== 'revision').length > 0 && (
+                                                        <optgroup label="📚 الفصول الدراسية">
+                                                            {semesters.filter(s => s.type !== 'revision').map(sem => (
+                                                                <option key={sem.id} value={sem.id}>
+                                                                    {typeof sem.name === 'string' ? sem.name : (sem.name.ar || sem.name.en)}
+                                                                    {sem.type === 'first_term' ? ' (الفصل الأول)' : sem.type === 'second_term' ? ' (الفصل الثاني)' : ''}
+                                                                </option>
+                                                            ))}
+                                                        </optgroup>
+                                                    )}
+                                                    {semesters.filter(s => s.type === 'revision').length > 0 && (
+                                                        <optgroup label="📝 مراجعة الامتحانات">
+                                                            {semesters.filter(s => s.type === 'revision').map(sem => (
+                                                                <option key={sem.id} value={sem.id}>
+                                                                    {typeof sem.name === 'string' ? sem.name : (sem.name.ar || sem.name.en)}
+                                                                    {' (مراجعة)'}
+                                                                </option>
+                                                            ))}
+                                                        </optgroup>
+                                                    )}
                                                 </select>
                                                 <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                                             </div>
                                         </div>
+                                        {/* Create Revision Schedule Button */}
+                                        <button
+                                            onClick={() => setShowRevisionModal(true)}
+                                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors border border-amber-200 mt-5"
+                                        >
+                                            <Plus size={16} />
+                                            إنشاء جدول مراجعة
+                                        </button>
                                     </div>
 
                                     {/* Date Display */}
                                     {selectedSemesterId && (() => {
-                                        const semester = semesters.find(s => s.id === selectedSemesterId);
-                                        if (!semester) return null;
-                                        return (
+                                        const selectedSem = semesters.find(s => s.id === selectedSemesterId);
+                                        return selectedSem ? (
                                             <div className="flex flex-wrap gap-4 items-end p-3 rounded-lg border bg-slate-50 border-slate-100">
                                                 <div>
                                                     <label className="text-xs font-bold text-slate-500 mb-1 block">تاريخ البدء</label>
-                                                    <div className="px-3 py-2 border rounded-lg text-sm bg-slate-100 border-slate-200 text-slate-600">
-                                                        {semester.start_date ? new Date(semester.start_date).toLocaleDateString('ar-SA') : '-'}
-                                                    </div>
+                                                    <input
+                                                        type="date"
+                                                        value={selectedSem.start_date?.substring(0, 10) || ''}
+                                                        readOnly
+                                                        disabled
+                                                        className="px-3 py-2 border rounded-lg text-sm bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed"
+                                                    />
                                                 </div>
                                                 <div>
                                                     <label className="text-xs font-bold text-slate-500 mb-1 block">تاريخ الانتهاء</label>
-                                                    <div className="px-3 py-2 border rounded-lg text-sm bg-slate-100 border-slate-200 text-slate-600">
-                                                        {semester.end_date ? new Date(semester.end_date).toLocaleDateString('ar-SA') : '-'}
-                                                    </div>
+                                                    <input
+                                                        type="date"
+                                                        value={selectedSem.end_date?.substring(0, 10) || ''}
+                                                        readOnly
+                                                        disabled
+                                                        className="px-3 py-2 border rounded-lg text-sm bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed"
+                                                    />
                                                 </div>
                                                 <span className="text-xs text-slate-400 mr-auto self-end pb-2">
                                                     * يتم تحديد التواريخ تلقائياً بناءً على الفصل المختار
                                                 </span>
                                             </div>
-                                        );
+                                        ) : null;
                                     })()}
                                 </div>
                             </div>
@@ -655,69 +757,71 @@ export function AdminScheduleConfigPage() {
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </div >
                     ) : (
                         <div className="bg-slate-50 rounded-2xl p-12 text-center border-2 border-dashed border-slate-200">
                             <Settings size={32} className="mx-auto text-slate-300 mb-3" />
                             <p className="text-slate-400 font-medium">الرجاء اختيار صف دراسي للبدء في الإعداد</p>
                         </div>
                     )}
-                </div>
-            </div>
+                </div >
+            </div >
 
             {/* Existing Slots Statistics Display */}
-            {selectedSemesterId && (
-                <div className="mt-8">
-                    {loadingSlots ? (
-                        <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-100 flex items-center justify-center gap-3">
-                            <Loader2 className="animate-spin text-[#AF0C15]" size={24} />
-                            <span className="text-slate-500 font-medium">جاري تحميل بيانات الفترات الزمنية...</span>
-                        </div>
-                    ) : slotsStats?.has_slots ? (
-                        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-2xl p-6 shadow-lg border border-emerald-200/50">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-2 bg-emerald-500 rounded-xl">
-                                    <CheckCircle2 size={24} className="text-white" />
+            {
+                selectedSemesterId && (
+                    <div className="mt-8">
+                        {loadingSlots ? (
+                            <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-100 flex items-center justify-center gap-3">
+                                <Loader2 className="animate-spin text-[#AF0C15]" size={24} />
+                                <span className="text-slate-500 font-medium">جاري تحميل بيانات الفترات الزمنية...</span>
+                            </div>
+                        ) : slotsStats?.has_slots ? (
+                            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-2xl p-6 shadow-lg border border-emerald-200/50">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="p-2 bg-emerald-500 rounded-xl">
+                                        <CheckCircle2 size={24} className="text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-emerald-800">✅ يوجد جدول زمني لهذا الفصل</h3>
+                                        <p className="text-sm text-emerald-600">تم إنشاء الفترات الزمنية مسبقاً لهذا الفصل الدراسي</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-emerald-800">✅ يوجد جدول زمني لهذا الفصل</h3>
-                                    <p className="text-sm text-emerald-600">تم إنشاء الفترات الزمنية مسبقاً لهذا الفصل الدراسي</p>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
+                                        <p className="text-3xl font-bold text-slate-800">{slotsStats.total_slots}</p>
+                                        <p className="text-sm text-slate-500 mt-1">إجمالي الفترات</p>
+                                    </div>
+                                    <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
+                                        <p className="text-3xl font-bold text-emerald-600">{slotsStats.available}</p>
+                                        <p className="text-sm text-slate-500 mt-1">متاحة</p>
+                                    </div>
+                                    <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
+                                        <p className="text-3xl font-bold text-blue-600">{slotsStats.booked}</p>
+                                        <p className="text-sm text-slate-500 mt-1">محجوزة</p>
+                                    </div>
+                                    <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
+                                        <p className="text-3xl font-bold text-amber-600">{slotsStats.pending}</p>
+                                        <p className="text-sm text-slate-500 mt-1">قيد الانتظار</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
-                                    <p className="text-3xl font-bold text-slate-800">{slotsStats.total_slots}</p>
-                                    <p className="text-sm text-slate-500 mt-1">إجمالي الفترات</p>
-                                </div>
-                                <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
-                                    <p className="text-3xl font-bold text-emerald-600">{slotsStats.available}</p>
-                                    <p className="text-sm text-slate-500 mt-1">متاحة</p>
-                                </div>
-                                <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
-                                    <p className="text-3xl font-bold text-blue-600">{slotsStats.booked}</p>
-                                    <p className="text-sm text-slate-500 mt-1">محجوزة</p>
-                                </div>
-                                <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
-                                    <p className="text-3xl font-bold text-amber-600">{slotsStats.pending}</p>
-                                    <p className="text-sm text-slate-500 mt-1">قيد الانتظار</p>
+                        ) : slotsStats !== null ? (
+                            <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-2xl p-6 shadow-lg border border-amber-200/50">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-amber-500 rounded-xl">
+                                        <AlertCircle size={24} className="text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-amber-800">⚠️ لا يوجد جدول زمني لهذا الفصل</h3>
+                                        <p className="text-sm text-amber-600">يرجى إنشاء الفترات الزمنية باستخدام الزر أدناه بعد حفظ الإعدادات</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ) : slotsStats !== null ? (
-                        <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-2xl p-6 shadow-lg border border-amber-200/50">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-amber-500 rounded-xl">
-                                    <AlertCircle size={24} className="text-white" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-amber-800">⚠️ لا يوجد جدول زمني لهذا الفصل</h3>
-                                    <p className="text-sm text-amber-600">يرجى إنشاء الفترات الزمنية باستخدام الزر أدناه بعد حفظ الإعدادات</p>
-                                </div>
-                            </div>
-                        </div>
-                    ) : null}
-                </div>
-            )}
+                        ) : null}
+                    </div>
+                )
+            }
 
             {/* Generator Action */}
             <div className="bg-gradient-to-r from-[#AF0C15] to-rose-600 rounded-3xl p-8 text-white shadow-2xl shadow-[#AF0C15]/20 relative overflow-hidden mt-10 border border-white/10">
@@ -827,6 +931,105 @@ export function AdminScheduleConfigPage() {
                     </div>
                 </div>
             </div>
-        </div>
+
+            {/* Revision Schedule Modal */}
+            {
+                showRevisionModal && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 transform transition-all">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                    <div className="p-2 bg-amber-100 rounded-lg">
+                                        <Calendar size={20} className="text-amber-600" />
+                                    </div>
+                                    إنشاء جدول مراجعة جديد
+                                </h3>
+                                <button
+                                    onClick={() => setShowRevisionModal(false)}
+                                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                                >
+                                    <X size={20} className="text-slate-400" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-sm font-bold text-slate-600 mb-2 block">
+                                        اسم جدول المراجعة
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={revisionName}
+                                        onChange={(e) => setRevisionName(e.target.value)}
+                                        placeholder="مثال: مراجعة الفصل الأول 2024"
+                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-sm font-bold text-slate-600 mb-2 block">
+                                            تاريخ البدء
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={revisionStartDate}
+                                            onChange={(e) => setRevisionStartDate(e.target.value)}
+                                            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-bold text-slate-600 mb-2 block">
+                                            تاريخ الانتهاء
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={revisionEndDate}
+                                            onChange={(e) => setRevisionEndDate(e.target.value)}
+                                            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700">
+                                    <div className="flex items-start gap-2">
+                                        <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
+                                        <span>
+                                            سيتم إنشاء جدول مراجعة للصف المحدد حالياً. يمكنك بعد ذلك إنشاء فترات زمنية للمعلمين لاختيارها.
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    onClick={() => setShowRevisionModal(false)}
+                                    className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                                >
+                                    إلغاء
+                                </button>
+                                <button
+                                    onClick={handleCreateRevision}
+                                    disabled={isCreatingRevision || !revisionName || !revisionStartDate || !revisionEndDate}
+                                    className={`flex-1 px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${isCreatingRevision || !revisionName || !revisionStartDate || !revisionEndDate
+                                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                        : 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/20'
+                                        }`}
+                                >
+                                    {isCreatingRevision ? (
+                                        <Loader2 className="animate-spin" size={18} />
+                                    ) : (
+                                        <>
+                                            <Plus size={18} />
+                                            إنشاء
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        </div >
     );
 }

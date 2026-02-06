@@ -59,7 +59,7 @@ export function TeacherSettingsPage() {
     const { user, setUser } = useAuthStore();
 
     // Avatar State
-    const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatar || null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.image_path || user?.avatar || null);
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -142,17 +142,27 @@ export function TeacherSettingsPage() {
             });
 
             if (response.success && response.data?.teacher) {
-                // Update local user store
-                setUser(response.data.teacher as any); // Type assertion if needed based on User type compat
+                // Merge new teacher data with existing user to preserve critical props like role
+                const updatedTeacher = response.data.teacher;
+                setUser({
+                    ...user, // Preserve existing user properties (role, etc.)
+                    ...updatedTeacher, // Override with new teacher data
+                    avatar: updatedTeacher.image_path || user?.avatar, // Map image_path to avatar
+                } as any);
                 toast.success('تم تحديث الملف الشخصي بنجاح');
+
+                // Update avatar preview with new image from server
+                if (updatedTeacher.image_path) {
+                    setAvatarPreview(updatedTeacher.image_path);
+                }
 
                 // Reset form with new values (optional, but good practice)
                 resetProfile({
-                    name: response.data.teacher.name,
-                    email: response.data.teacher.email,
-                    phone: response.data.teacher.phone || '',
-                    specialization: response.data.teacher.specialization || '',
-                    qualification: response.data.teacher.qualification || '',
+                    name: updatedTeacher.name,
+                    email: updatedTeacher.email,
+                    phone: updatedTeacher.phone || '',
+                    specialization: updatedTeacher.specialization || '',
+                    qualification: updatedTeacher.qualification || '',
                 });
                 setAvatarFile(null); // Clear selected file
             }

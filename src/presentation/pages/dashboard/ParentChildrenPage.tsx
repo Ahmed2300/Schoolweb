@@ -38,6 +38,15 @@ interface Subject {
     assignments: { total: number; completed: number };
 }
 
+interface QuizResult {
+    quiz_title: string;
+    score: number;
+    total_possible_score: number;
+    passing_percentage: number;
+    status: 'passed' | 'failed' | 'completed';
+    completed_at: string;
+}
+
 interface MonthlyStats {
     month: string;
     gpa: number;
@@ -50,16 +59,18 @@ interface Child {
     avatar: string;
     school: string;
     gpa: string;
-    attendance: number;
-    ranking: number;
-    alertCount: number;
-    gpaHistory: MonthlyStats[];
-    skills: {
+    attendance?: number;
+    ranking?: number;
+    alertCount?: number;
+    gpaHistory?: MonthlyStats[];
+    skills?: {
         logic: number;
         creativity: number;
         participation: number;
     };
+
     subjects: Subject[];
+    quizzes: QuizResult[];
 }
 
 // --- Custom Components (No external libs) ---
@@ -266,11 +277,9 @@ export function ParentChildrenPage() {
                 avatar: student.image_path || student.avatar || null,
                 uid: student.uid,
                 gpa: student.overall_average_score ? `${student.overall_average_score}%` : 'N/A',
-                attendance: 0,
-                ranking: 0,
-                alertCount: 0,
-                gpaHistory: [],
-                skills: { logic: 0, creativity: 0, participation: 0 },
+                attendance: student.attendance,
+                ranking: student.ranking,
+                // gpaHistory & skills removed (will be undefined)
                 // Use subjects from API if available
                 subjects: (student.subjects || []).map((s: any) => ({
                     id: s.id,
@@ -288,9 +297,18 @@ export function ParentChildrenPage() {
                 })),
                 totalSubscriptions: student.total_subscriptions || 0,
                 activeSubscriptions: student.active_subscriptions || 0,
-                // Mock performance/payment data for UI preview
-                nextPayment: { date: '2024-03-01', amount: 0, status: 'paid' },
-                performance: { attendance: 0, assignments: 0, quizzes: 0 }
+                // Map quizzes from API
+                quizzes: (student.quizzes || []).map((q: any) => ({
+                    quiz_title: q.quiz_title,
+                    score: Number(q.score),
+                    total_possible_score: Number(q.total_possible_score),
+                    passing_percentage: Number(q.passing_percentage),
+                    status: q.status,
+                    completed_at: q.completed_at
+                })),
+                // Mock performance/payment data removed
+                // nextPayment: { date: '2024-03-01', amount: 0, status: 'paid' },
+                // performance: { attendance: 0, assignments: 0, quizzes: 0 }
             }));
 
             setChildrenData(mappedChildren);
@@ -469,9 +487,8 @@ export function ParentChildrenPage() {
                                 {/* Circular Stats Row - Responsive */}
                                 <div className="flex items-center justify-center gap-4 md:gap-6 w-full pt-6 border-t border-slate-100 flex-wrap sm:flex-nowrap">
                                     <CircularProgress value={Number(selectedChild.gpa) || 0} color="#10B981" label="المعدل" size={50} />
-                                    <div className="h-8 w-[1px] bg-slate-200 hidden sm:block"></div>
-                                    <CircularProgress value={selectedChild.attendance || 0} color="#3B82F6" label="الحضور" size={50} />
                                 </div>
+
 
                                 {/* Unlink Section */}
                                 <div className="w-full pt-4 mt-4 border-t border-slate-100">
@@ -527,24 +544,26 @@ export function ParentChildrenPage() {
                             </div>
                         </div>
 
-                        {/* Skill Radar */}
-                        <div className="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm text-center">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-charcoal flex items-center gap-2">
-                                    <Brain size={18} className="text-shibl-crimson" />
-                                    الملف المهاري
-                                </h3>
-                                <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-full font-bold">رادار المهارات</span>
+                        {/* Skill Radar - Only show if skills data exists and has non-zero values */}
+                        {selectedChild.skills && (selectedChild.skills.logic > 0 || selectedChild.skills.creativity > 0 || selectedChild.skills.participation > 0) && (
+                            <div className="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm text-center">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="font-bold text-charcoal flex items-center gap-2">
+                                        <Brain size={18} className="text-shibl-crimson" />
+                                        الملف المهاري
+                                    </h3>
+                                    <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-full font-bold">رادار المهارات</span>
+                                </div>
+                                <div className="flex justify-center -my-2 transform scale-90 sm:scale-100">
+                                    <RadarChart
+                                        logic={selectedChild.skills.logic}
+                                        creativity={selectedChild.skills.creativity}
+                                        participation={selectedChild.skills.participation}
+                                    />
+                                </div>
+                                <p className="text-xs text-slate-400 mt-2">يظهر الرسم البياني مجالات تميز الطالب مقارنة بأقرانه</p>
                             </div>
-                            <div className="flex justify-center -my-2 transform scale-90 sm:scale-100">
-                                <RadarChart
-                                    logic={selectedChild.skills?.logic || 0}
-                                    creativity={selectedChild.skills?.creativity || 0}
-                                    participation={selectedChild.skills?.participation || 0}
-                                />
-                            </div>
-                            <p className="text-xs text-slate-400 mt-2">يظهر الرسم البياني مجالات تميز الطالب مقارنة بأقرانه</p>
-                        </div>
+                        )}
 
                         {/* Quick Actions (Keep existing) */}
                         {/* ... */}
@@ -561,46 +580,97 @@ export function ParentChildrenPage() {
                                 </span>
                                 <ArrowRight size={18} className="text-slate-300 group-hover:text-shibl-crimson transition-colors rtl:rotate-180" />
                             </button>
-                            <button className="w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-shibl-crimson/30 hover:shadow-sm transition-all group">
-                                <span className="flex items-center gap-3 font-bold text-charcoal text-sm md:text-base">
-                                    <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
-                                        <Calendar size={16} />
-                                    </div>
-                                    سجل الغياب
-                                </span>
-                                <ArrowRight size={18} className="text-slate-300 group-hover:text-shibl-crimson transition-colors rtl:rotate-180" />
-                            </button>
+
                         </div>
                     </div>
 
                     {/* Right Column (Detailed Analysis) - Span 8 */}
                     <div className="lg:col-span-8 space-y-6 md:space-y-8">
 
-                        {/* 1. Academic Trend Graph */}
-                        <div className="bg-white rounded-[24px] p-6 md:p-8 border border-slate-200 shadow-sm">
-                            <div className="flex items-center justify-between mb-6 md:mb-8">
-                                <div>
+                        {/* 1. Academic Trend Graph - Only show if history exists */}
+                        {selectedChild.gpaHistory && selectedChild.gpaHistory.length > 0 && (
+                            <div className="bg-white rounded-[24px] p-6 md:p-8 border border-slate-200 shadow-sm">
+                                <div className="flex items-center justify-between mb-6 md:mb-8">
+                                    <div>
+                                        <h3 className="text-lg md:text-xl font-extrabold text-charcoal flex items-center gap-2">
+                                            <TrendingUp className="text-shibl-crimson" />
+                                            تطور المستوى الأكاديمي
+                                        </h3>
+                                        <p className="text-slate-400 text-xs md:text-sm font-medium mt-1">مؤشر التقدم خلال الـ 6 أشهر الماضية</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <span className="px-2 py-1 md:px-3 md:py-1 bg-green-50 text-green-700 text-[10px] md:text-xs font-bold rounded-lg flex items-center gap-1 border border-green-100">
+                                            <ArrowUpRight size={14} />
+                                            <span className="hidden sm:inline">+0.4 تحسن ملحوظ</span>
+                                            <span className="sm:hidden">+0.4</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                {/* Custom Chart Component */}
+                                <div className="mt-4 px-2 overflow-x-auto pb-2 scrollbar-hide">
+                                    <div className="min-w-[300px]">
+                                        <TrendChart data={selectedChild.gpaHistory} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Recent Exams Section */}
+                        {selectedChild.quizzes && selectedChild.quizzes.length > 0 && (
+                            <div className="bg-white rounded-[24px] p-6 md:p-8 border border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100">
+                                <div className="flex items-center justify-between mb-6">
                                     <h3 className="text-lg md:text-xl font-extrabold text-charcoal flex items-center gap-2">
-                                        <TrendingUp className="text-shibl-crimson" />
-                                        تطور المستوى الأكاديمي
+                                        <Award className="text-amber-500" />
+                                        أحدث الاختبارات
+                                        <span className="text-sm font-bold text-slate-400">({selectedChild.quizzes.length})</span>
                                     </h3>
-                                    <p className="text-slate-400 text-xs md:text-sm font-medium mt-1">مؤشر التقدم خلال الـ 6 أشهر الماضية</p>
                                 </div>
-                                <div className="flex gap-2">
-                                    <span className="px-2 py-1 md:px-3 md:py-1 bg-green-50 text-green-700 text-[10px] md:text-xs font-bold rounded-lg flex items-center gap-1 border border-green-100">
-                                        <ArrowUpRight size={14} />
-                                        <span className="hidden sm:inline">+0.4 تحسن ملحوظ</span>
-                                        <span className="sm:hidden">+0.4</span>
-                                    </span>
+
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm text-right">
+                                        <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                                            <tr>
+                                                <th className="px-4 py-3 rounded-tr-xl">الاختبار</th>
+                                                <th className="px-4 py-3">التاريخ</th>
+                                                <th className="px-4 py-3">الحالة</th>
+                                                <th className="px-4 py-3 rounded-tl-xl text-left">الدرجة</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {selectedChild.quizzes.map((quiz: QuizResult, idx: number) => (
+                                                <tr key={idx} className="group hover:bg-slate-50 transition-colors">
+                                                    <td className="px-4 py-3 font-bold text-charcoal">{quiz.quiz_title}</td>
+                                                    <td className="px-4 py-3 text-slate-500 font-medium whitespace-nowrap" dir="ltr">
+                                                        {new Date(quiz.completed_at).toLocaleDateString('en-GB')}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${quiz.status === 'passed' || quiz.status === 'completed'
+                                                            ? 'bg-green-100 text-green-700'
+                                                            : 'bg-red-100 text-red-700'
+                                                            }`}>
+                                                            {quiz.status === 'passed' || quiz.status === 'completed' ? 'ناجح' : 'راسب'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-left">
+                                                        <div className="flex flex-col items-end">
+                                                            <span className={`font-black text-base ${(quiz.score / quiz.total_possible_score) * 100 >= 90 ? 'text-green-600' :
+                                                                (quiz.score / quiz.total_possible_score) * 100 >= 75 ? 'text-blue-600' :
+                                                                    (quiz.score / quiz.total_possible_score) * 100 >= 60 ? 'text-amber-600' : 'text-red-500'
+                                                                }`}>
+                                                                {quiz.score}/{quiz.total_possible_score}
+                                                            </span>
+                                                            <span className="text-[10px] text-slate-400 font-bold">
+                                                                {Math.round((quiz.score / quiz.total_possible_score) * 100)}%
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                            {/* Custom Chart Component */}
-                            <div className="mt-4 px-2 overflow-x-auto pb-2 scrollbar-hide">
-                                <div className="min-w-[300px]">
-                                    <TrendChart data={selectedChild.gpaHistory} />
-                                </div>
-                            </div>
-                        </div>
+                        )}
 
                         {/* 2. Subject Cards Grid - Split by Academic/Non-Academic */}
                         {(() => {

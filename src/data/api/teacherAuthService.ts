@@ -225,7 +225,10 @@ export const teacherAuthService = {
         if (data.qualification) formData.append('qualification', data.qualification);
         if (data.image) formData.append('image', data.image);
 
-        const response = await apiClient.put(endpoints.teacherAuth.updateProfile, formData, {
+        // Laravel requires _method for PUT/PATCH when using FormData with files
+        formData.append('_method', 'PUT');
+
+        const response = await apiClient.post(endpoints.teacherAuth.updateProfile, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
 
