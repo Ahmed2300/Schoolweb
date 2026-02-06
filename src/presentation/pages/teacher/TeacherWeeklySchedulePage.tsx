@@ -57,7 +57,16 @@ const dayNamesAr: Record<string, string> = {
 
 // ==================== HELPER FUNCTIONS ====================
 
-
+/**
+ * Formats a time string (HH:mm) to 12-hour format with Arabic AM/PM
+ */
+function formatTime(time: string): string {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':').map(Number);
+    const period = hours >= 12 ? 'م' : 'ص';
+    const hour12 = hours % 12 || 12;
+    return `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
+}
 
 // ==================== STAT CARD COMPONENT ====================
 
