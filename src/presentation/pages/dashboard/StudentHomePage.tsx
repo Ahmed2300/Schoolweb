@@ -66,12 +66,30 @@ export function StudentHomePage() {
         };
     }, [activeTab, fetchSkillsCourses]);
 
-    // Calculate stats from courses
+    const [dashboardStats, setDashboardStats] = useState({
+        activeCourses: 0,
+        overallProgress: 0,
+        upcomingSessions: 0
+    });
+
+    // Fetch dashboard stats
+    useEffect(() => {
+        const fetchStats = async () => {
+            const stats = await studentService.getDashboardStats();
+            setDashboardStats({
+                activeCourses: stats.inProgressCourses,
+                overallProgress: stats.averageProgress || 0,
+                upcomingSessions: stats.upcomingLiveSessions
+            });
+        };
+        fetchStats();
+    }, []);
+
+    // Use fetched stats
     const stats = {
-        activeCourses: courses.filter(c => c.is_active).length,
-        // TODO: Backend needs progress tracking for accurate percentage
-        overallProgress: 60, // Placeholder until backend adds progress
-        upcomingSessions: 2, // Placeholder until backend adds live sessions
+        activeCourses: dashboardStats.activeCourses,
+        overallProgress: dashboardStats.overallProgress,
+        upcomingSessions: dashboardStats.upcomingSessions,
     };
 
     // Filter courses by category

@@ -15,7 +15,7 @@ import {
     ArrowRight,
     BookOpen,
     Users,
-    Star,
+
     Clock,
     Settings,
     GraduationCap,
@@ -1369,10 +1369,7 @@ export function TeacherCourseDetailsPage() {
                                 <Users className="w-4 h-4" />
                                 {course.students_count || 0} طالب
                             </span>
-                            <span className="flex items-center gap-1">
-                                <Star className="w-4 h-4 text-amber-400" />
-                                {course.rating || 0}
-                            </span>
+
                         </div>
                     </div>
 
@@ -1441,15 +1438,7 @@ export function TeacherCourseDetailsPage() {
                     >
                         الاختبارات
                     </button>
-                    <button
-                        onClick={() => setActiveTab('settings')}
-                        className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeTab === 'settings'
-                            ? 'text-shibl-crimson border-b-2 border-shibl-crimson'
-                            : 'text-slate-500 hover:text-slate-700'
-                            }`}
-                    >
-                        الإعدادات
-                    </button>
+
                 </div>
             </div>
 
@@ -1566,6 +1555,19 @@ export function TeacherCourseDetailsPage() {
                         )}
                         <DragOverlay />
                     </DndContext>
+                </div>
+            )}
+
+            {/* Students Tab */}
+            {activeTab === 'students' && (
+                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-200">
+                    <div className="w-20 h-20 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mb-6">
+                        <Users size={40} />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-2">قائمة الطلاب المسجلين</h3>
+                    <p className="text-slate-500 max-w-sm mx-auto text-center">
+                        لا يوجد طلاب مسجلين في هذا الكورس حالياً. سيظهر جميع الطلاب المنضمين إلى الكورس في هذه القائمة.
+                    </p>
                 </div>
             )}
 

@@ -57,13 +57,7 @@ const dayNamesAr: Record<string, string> = {
 
 // ==================== HELPER FUNCTIONS ====================
 
-function formatTimeAr(time: string | undefined): string {
-    if (!time) return '--:--';
-    const [hours, minutes] = time.split(':').map(Number);
-    const period = hours >= 12 ? 'م' : 'ص';
-    const displayHours = hours % 12 || 12;
-    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
-}
+
 
 // ==================== STAT CARD COMPONENT ====================
 
@@ -229,10 +223,10 @@ function TimeSlotCard({
                     </div>
                     <div className="flex flex-col">
                         <span className={`text-sm font-bold font-cairo ${slot.is_mine ? 'text-emerald-900' : 'text-gray-900'}`}>
-                            {formatTimeAr(slot.start)}
+                            {formatTime(slot.start)}
                         </span>
                         <span className="text-xs text-gray-400 font-medium">
-                            إلى {formatTimeAr(slot.end)}
+                            إلى {formatTime(slot.end)}
                         </span>
                     </div>
                 </div>
@@ -413,7 +407,7 @@ function ScheduleSummary({ slots, isLoading, onCancel }: ScheduleSummaryProps) {
                         <div className="flex flex-col gap-1">
                             <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
                                 <Clock className="h-3.5 w-3.5 text-gray-400" />
-                                <span className="dir-ltr">{formatTimeAr(slot.start_time)} - {formatTimeAr(slot.end_time)}</span>
+                                <span className="dir-ltr">{formatTime(slot.start_time)} - {formatTime(slot.end_time)}</span>
                             </div>
                             {slot.grade && (
                                 <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">

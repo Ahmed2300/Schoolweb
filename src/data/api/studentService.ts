@@ -357,23 +357,58 @@ export const studentService = {
     },
 
     /**
+     * Get home dashboard data (aggregated)
+     */
+    getHomeDashboardData: async (): Promise<{
+        user: StudentProfile;
+        active_courses_count: number;
+        upcoming_sessions_count: number;
+        unread_notifications: number;
+        subscriptions: Subscription[];
+    }> => {
+        try {
+            const response = await apiClient.get(endpoints.studentAuth.homeDashboard);
+            const data = response.data;
+
+            // Map backend response to useful stats
+            const subscriptions = data.subscriptions || [];
+            const schedules = data.schedules || [];
+
+            return {
+                user: data.user,
+                active_courses_count: subscriptions.filter((s: any) => s.status === 1 || s.is_currently_active).length,
+                upcoming_sessions_count: schedules.length,
+                unread_notifications: data.unread_notifications || 0,
+                subscriptions: subscriptions
+            };
+        } catch (error) {
+            console.error('Error fetching home dashboard data:', error);
+            // Fallback to empty data to prevent crash
+            return {
+                user: {} as StudentProfile,
+                active_courses_count: 0,
+                upcoming_sessions_count: 0,
+                unread_notifications: 0,
+                subscriptions: []
+            };
+        }
+    },
+
+    /**
      * Get dashboard statistics
      * NOTE: This aggregates data from available endpoints since
      * there's no dedicated dashboard stats endpoint yet.
      */
     getDashboardStats: async (): Promise<DashboardStats> => {
         try {
-            // Fetch courses to calculate stats
-            const coursesResponse = await studentService.getCourses({ per_page: 100 });
-            const courses = coursesResponse.data;
-
-            const activeCourses = courses.filter(c => c.is_active);
+            // Use the new dedicated endpoint for performance and accuracy
+            const data = await studentService.getHomeDashboardData();
 
             return {
-                totalCourses: courses.length,
+                totalCourses: data.subscriptions.length,
                 completedCourses: 0, // TODO: Backend needs enrollment/progress tracking
-                inProgressCourses: activeCourses.length,
-                upcomingLiveSessions: 0, // TODO: Backend needs live sessions endpoint
+                inProgressCourses: data.active_courses_count,
+                upcomingLiveSessions: data.upcoming_sessions_count,
                 averageProgress: 0, // TODO: Backend needs progress tracking
             };
         } catch (error) {
@@ -513,6 +548,11 @@ export const studentService = {
             course?: {
                 id: number;
                 name: string | { ar?: string; en?: string };
+            };
+            teacher?: {
+                id: number;
+                name: string;
+                image_path?: string;
             };
         };
         created_at: string;

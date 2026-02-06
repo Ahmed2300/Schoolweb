@@ -17,7 +17,18 @@ export const formatTime = (dateString: string | null | undefined, use24Hour = fa
     if (!dateString) return '—';
 
     try {
-        const date = new Date(dateString);
+        let date = new Date(dateString);
+
+        // If parsing failed (Invalid Date), try appending dummy date for time-only strings
+        if (isNaN(date.getTime())) {
+            // Handle "18:30:00Z" or "20:30"
+            // If it already has T, it might be just invalid. If not, assume it's time.
+            if (!dateString.includes('T')) {
+                const dummyDate = `2000-01-01T${dateString}`;
+                date = new Date(dummyDate);
+            }
+        }
+
         if (isNaN(date.getTime())) return '—';
 
         // Use browser's local timezone (no timeZone param = local)

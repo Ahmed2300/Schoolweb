@@ -213,7 +213,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
                     <button
                         onClick={handleClose}
-                        className="absolute top-4 left-4 w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors backdrop-blur-sm"
+                        className="absolute top-4 left-4 w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors backdrop-blur-sm z-10"
                     >
                         <X size={18} className="text-white" />
                     </button>

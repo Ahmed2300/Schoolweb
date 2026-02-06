@@ -198,14 +198,7 @@ export function ParentLayout() {
             >
                 {/* Desktop Header */}
                 <header className="hidden md:flex h-16 bg-white/80 backdrop-blur-sm items-center justify-between px-6 sticky top-0 z-40 border-b border-slate-100">
-                    <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-4 py-2 w-full max-w-sm">
-                        <Search size={18} className="text-slate-400" />
-                        <input
-                            type="text"
-                            placeholder="بحث..."
-                            className="bg-transparent border-none outline-none flex-1 text-sm text-charcoal placeholder-slate-400"
-                        />
-                    </div>
+                    <div className="flex-1"></div>
 
                     <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-shibl-crimson ring-offset-2 flex items-center justify-center bg-gradient-to-br from-shibl-crimson to-shibl-crimson-dark text-white font-bold">
                         {user?.avatar ? (

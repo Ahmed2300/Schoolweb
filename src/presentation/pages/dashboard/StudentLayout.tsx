@@ -218,14 +218,8 @@ export function StudentLayout() {
                 {/* Header */}
                 <header className="h-16 bg-white/80 backdrop-blur-sm flex items-center justify-between px-6 sticky top-0 z-40">
                     {/* Search Left Aligned (or right depending on direction, but kept consistent) */}
-                    <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-4 py-2 w-full max-w-sm">
-                        <Search size={18} className="text-slate-400" />
-                        <input
-                            type="text"
-                            placeholder="بحث..."
-                            className="bg-transparent border-none outline-none flex-1 text-sm text-charcoal placeholder-slate-400"
-                        />
-                    </div>
+                    {/* Search - Removed as per requirements */}
+                    <div className="flex-1"></div>
 
                     {/* Notifications & User Profile */}
                     <div className="flex items-center gap-4">
