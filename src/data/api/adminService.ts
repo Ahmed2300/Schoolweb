@@ -2220,6 +2220,23 @@ export const adminService = {
         return response.data;
     },
 
+    /**
+     * Reset (delete) all time slots for a specific day of week in a grade/semester
+     * This is used when admin deactivates a day to clear all existing slots for that day
+     */
+    resetDaySlots: async (gradeId: number, semesterId: number, dayOfWeek: number): Promise<{
+        success: boolean;
+        message: string;
+        deleted_count: number;
+    }> => {
+        const response = await apiClient.post(endpoints.admin.schedule.resetDaySlots, {
+            grade_id: gradeId,
+            semester_id: semesterId,
+            day_of_week: dayOfWeek,
+        });
+        return response.data;
+    },
+
     // ==================== SLOT REQUESTS (NEW SYSTEM) ====================
 
     /**

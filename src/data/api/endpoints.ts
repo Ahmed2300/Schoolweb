@@ -247,6 +247,7 @@ export const endpoints = {
             saveSettings: (gradeId: number) => `/api/v1/admin/schedule/settings/${gradeId}`,
             getSlots: (semesterId: number) => `/api/v1/admin/schedule/slots/${semesterId}`,
             generateSlots: (semesterId: number) => `/api/v1/admin/schedule/generate/${semesterId}`,
+            resetDaySlots: '/api/v1/admin/schedule/reset-day-slots',
         },
         // Courses
         courses: {
