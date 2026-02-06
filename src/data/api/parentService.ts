@@ -93,6 +93,14 @@ export interface LinkedStudent {
     }>;
     total_subscriptions?: number;
     active_subscriptions?: number;
+    quizzes?: Array<{
+        quiz_title: string;
+        score: number;
+        total_possible_score: number;
+        passing_percentage: number;
+        status: 'passed' | 'failed' | 'completed';
+        completed_at: string;
+    }>;
 }
 
 // ============================================================

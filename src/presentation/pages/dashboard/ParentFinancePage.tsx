@@ -30,23 +30,15 @@ interface PaymentMethod {
 }
 
 export function ParentFinancePage() {
-    // Mock Data
-    const [transactions] = useState<Transaction[]>([
-        { id: 'INV-2024-001', description: 'اشتراك الفصل الدراسي الأول - رياضيات', studentName: 'أحمد', date: '2024-09-01', amount: 15.000, status: 'paid', invoiceUrl: '#' },
-        { id: 'INV-2024-002', description: 'اشتراك الفصل الدراسي الأول - علوم', studentName: 'أحمد', date: '2024-09-01', amount: 15.000, status: 'paid', invoiceUrl: '#' },
-        { id: 'INV-2024-003', description: 'اشتراك شهري - لغة إنجليزية', studentName: 'سارة', date: '2024-10-05', amount: 10.000, status: 'paid', invoiceUrl: '#' },
-        { id: 'INV-2024-004', description: 'رسوم التسجيل المتأخر', studentName: 'سارة', date: '2024-10-05', amount: 5.000, status: 'pending', invoiceUrl: '#' },
-        { id: 'INV-2024-005', description: 'كتاب الأنشطة التفاعلية', studentName: 'أحمد', date: '2024-11-20', amount: 8.500, status: 'failed', invoiceUrl: '#' },
-    ]);
-
-    const [paymentMethods] = useState<PaymentMethod[]>([
-        { id: 'pm_1', type: 'visa', last4: '4242', expiry: '12/25', isDefault: true },
-        { id: 'pm_2', type: 'mastercard', last4: '8899', expiry: '08/26', isDefault: false },
-    ]);
+    // TODO: Replace with real API calls when backend endpoints are ready
+    // Currently showing empty state - no mock data
+    const [transactions] = useState<Transaction[]>([]);
+    const [paymentMethods] = useState<PaymentMethod[]>([]);
 
     // Derived Stats
     const totalDue = transactions.filter(t => t.status === 'pending').reduce((acc, curr) => acc + curr.amount, 0);
     const totalPaid = transactions.filter(t => t.status === 'paid').reduce((acc, curr) => acc + curr.amount, 0);
+
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-8">
@@ -97,12 +89,18 @@ export function ParentFinancePage() {
                             <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
                                 <CreditCard size={24} />
                             </div>
-                            <span className="bg-white/10 px-2 py-1 rounded text-xs">الافتراضية</span>
+                            {paymentMethods.length > 0 && <span className="bg-white/10 px-2 py-1 rounded text-xs">الافتراضية</span>}
                         </div>
 
                         <div>
-                            <p className="text-white/60 text-sm font-bold mb-1">Visa تنتهي في {paymentMethods[0].expiry}</p>
-                            <p className="text-2xl font-mono tracking-wider">•••• {paymentMethods[0].last4}</p>
+                            {paymentMethods.length > 0 ? (
+                                <>
+                                    <p className="text-white/60 text-sm font-bold mb-1">Visa تنتهي في {paymentMethods[0].expiry}</p>
+                                    <p className="text-2xl font-mono tracking-wider">•••• {paymentMethods[0].last4}</p>
+                                </>
+                            ) : (
+                                <p className="text-white/60 text-sm font-bold">لا توجد بطاقات محفوظة</p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -196,8 +194,8 @@ export function ParentFinancePage() {
                     <div className="bg-gradient-to-br from-[#1E293B] to-[#0F172A] rounded-[24px] p-6 text-white shadow-lg">
                         <div className="flex items-start justify-between mb-6">
                             <div>
-                                <h3 className="font-bold text-lg">باقة العائلة</h3>
-                                <p className="text-slate-400 text-xs mt-1">تجدد في 1 يناير 2025</p>
+                                <h3 className="font-bold text-lg">ملخص الاشتراك</h3>
+                                <p className="text-slate-400 text-xs mt-1">لا توجد اشتراكات نشطة</p>
                             </div>
                             <div className="bg-white/10 p-2 rounded-lg">
                                 <DollarSign size={20} className="text-yellow-400" />
@@ -207,16 +205,16 @@ export function ParentFinancePage() {
                         <div className="space-y-3 mb-6">
                             <div className="flex justify-between text-sm">
                                 <span className="text-slate-400">إجمالي الأبناء</span>
-                                <span className="font-bold">2 طالب</span>
+                                <span className="font-bold">0 طالب</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-slate-400">إجمالي المواد</span>
-                                <span className="font-bold">10 مواد</span>
+                                <span className="font-bold">0 مواد</span>
                             </div>
                             <div className="h-px bg-white/10 my-2"></div>
                             <div className="flex justify-between text-lg">
                                 <span className="text-slate-200 font-bold">المجموع الشهري</span>
-                                <span className="font-bold text-yellow-400">30.000 ر.ع</span>
+                                <span className="font-bold text-yellow-400">0.000 ر.ع</span>
                             </div>
                         </div>
 
