@@ -95,7 +95,7 @@ export function TeacherFirstLoginPopup() {
     const handleGoToSchedule = () => {
         setOnboardingStatus('completed');
         setIsOpen(false);
-        navigate('/teacher/time-slots');
+        navigate('/teacher/weekly-schedule');
     };
 
     const handleRemindLater = () => {
@@ -231,10 +231,10 @@ export function TeacherFirstLoginPopup() {
                                     <div
                                         key={idx}
                                         className={`h-2 rounded-full transition-all ${idx === currentStep
-                                                ? 'w-8 bg-shibl-crimson'
-                                                : idx < currentStep
-                                                    ? 'w-2 bg-rose-300'
-                                                    : 'w-2 bg-slate-200'
+                                            ? 'w-8 bg-shibl-crimson'
+                                            : idx < currentStep
+                                                ? 'w-2 bg-rose-300'
+                                                : 'w-2 bg-slate-200'
                                             }`}
                                     />
                                 ))}

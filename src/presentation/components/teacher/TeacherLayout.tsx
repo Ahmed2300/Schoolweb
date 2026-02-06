@@ -135,20 +135,7 @@ export function TeacherLayout({
                         </div>
                     </div>
 
-                    {/* Center - Search */}
-                    <div className="flex-1 max-w-xl mx-8">
-                        <div className="relative">
-                            <input
-                                type="text"
-                                placeholder="ابحث عن الدورات، الطلاب..."
-                                className="w-full h-11 px-4 pr-12 rounded-xl bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm text-[#1F1F1F] placeholder:text-[#636E72]"
-                            />
-                            <Search
-                                size={18}
-                                className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-[#636E72]`}
-                            />
-                        </div>
-                    </div>
+
 
                     {/* Right side - Notifications */}
                     <div className="flex items-center gap-4">
