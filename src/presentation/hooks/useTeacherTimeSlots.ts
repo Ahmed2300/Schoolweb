@@ -13,6 +13,7 @@ export const teacherTimeSlotKeys = {
     available: (date?: string) => [...teacherTimeSlotKeys.all, 'available', date] as const,
     revision: () => [...teacherTimeSlotKeys.all, 'revision'] as const,
     myRequests: () => [...teacherTimeSlotKeys.all, 'myRequests'] as const,
+    myRecurringSchedule: () => [...teacherTimeSlotKeys.all, 'myRecurringSchedule'] as const,
     detail: (id: number) => [...teacherTimeSlotKeys.all, 'detail', id] as const,
 };
 
@@ -39,12 +40,23 @@ export function useRevisionSlots() {
 }
 
 /**
- * Hook to fetch teacher's approved recurring slots for lecture creation.
- * Uses the recurring schedule endpoint which contains the actual booked slots.
+ * Hook to fetch teacher's slot requests history.
  */
 export function useMyRequests() {
     return useQuery({
         queryKey: teacherTimeSlotKeys.myRequests(),
+        queryFn: () => teacherService.getMyRequests(),
+        select: (data) => data as TimeSlot[],
+    });
+}
+
+/**
+ * Hook to fetch teacher's recurring schedule (for ApprovedSlotSelector).
+ * Returns the recurring slots used for lecture scheduling.
+ */
+export function useMyRecurringSchedule() {
+    return useQuery({
+        queryKey: teacherTimeSlotKeys.myRecurringSchedule(),
         queryFn: () => teacherService.getMyRecurringSchedule(),
         select: (response) => response.data,
     });
