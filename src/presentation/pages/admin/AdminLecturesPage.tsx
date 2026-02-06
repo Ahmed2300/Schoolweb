@@ -33,6 +33,7 @@ interface Lecture {
     start_time?: string;
     end_time?: string;
     is_online: boolean;
+    is_published?: boolean;
     course?: { id: number; name: string | { ar?: string; en?: string } };
     teacher?: { id: number; name: string };
 }
@@ -324,6 +325,11 @@ export function AdminLecturesPage() {
                                                             <Clock size={10} />
                                                             {new Date(lecture.start_time).toLocaleDateString('ar-EG')}
                                                         </p>
+                                                    )}
+                                                    {lecture.is_published === false && (
+                                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700">
+                                                            جلسة تجريبية
+                                                        </span>
                                                     )}
                                                 </div>
                                             </div>

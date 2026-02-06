@@ -217,6 +217,22 @@ export const teacherLectureService = {
         return response.data;
     },
 
+    /**
+     * Start a 30-min test live session for a course.
+     */
+    startTestSession: async (courseId: number): Promise<{ success: boolean; join_url: string; lecture_id: number; message?: string }> => {
+        const response = await apiClient.post(`/api/v1/lectures/course/${courseId}/test-session`);
+        return response.data;
+    },
+
+    /**
+     * End a live session manually.
+     */
+    endSession: async (lectureId: number): Promise<{ success: boolean; message?: string }> => {
+        const response = await apiClient.post(`/api/v1/lectures/${lectureId}/end-session`);
+        return response.data;
+    },
+
     // Recording Management
     getRecordings: async (params?: {
         course_id?: number;

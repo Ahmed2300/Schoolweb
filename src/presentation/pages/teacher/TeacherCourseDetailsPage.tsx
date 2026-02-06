@@ -241,6 +241,7 @@ function UnitCard({
     onDeleteQuiz,
     onToggleQuizActive,
     onStartSession,
+    onEndSession,
     quizzes,
     dragHandleProps
 }: {
@@ -257,7 +258,9 @@ function UnitCard({
     onEditQuiz: (quiz: Quiz) => void;
     onDeleteQuiz: (quiz: Quiz) => void;
     onToggleQuizActive: (quiz: Quiz) => void;
+
     onStartSession?: (lectureId: number) => void;
+    onEndSession?: (lectureId: number) => void;
     quizzes?: Quiz[];
     dragHandleProps?: any;
 }) {
@@ -510,14 +513,24 @@ function UnitCard({
                                                                     }
 
                                                                     return (
-                                                                        <button
-                                                                            onClick={() => onStartSession && onStartSession(contentItem.id)}
-                                                                            className="px-2 py-1.5 text-xs font-medium text-white bg-shibl-crimson hover:bg-shibl-crimson/90 rounded-md transition-colors flex items-center gap-1 shadow-sm mr-1"
-                                                                            title="بدء البث المباشر"
-                                                                        >
-                                                                            <Video size={14} />
-                                                                            <span>بدء البث</span>
-                                                                        </button>
+                                                                        <div className="flex items-center gap-1">
+                                                                            <button
+                                                                                onClick={() => onStartSession && onStartSession(contentItem.id)}
+                                                                                className="px-2 py-1.5 text-xs font-medium text-white bg-shibl-crimson hover:bg-shibl-crimson/90 rounded-md transition-colors flex items-center gap-1 shadow-sm mr-1"
+                                                                                title="الانضمام للبث المباشر"
+                                                                            >
+                                                                                <Video size={14} />
+                                                                                <span>الانضمام</span>
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => onEndSession && onEndSession(contentItem.id)}
+                                                                                className="px-2 py-1.5 text-xs font-medium text-rose-700 bg-rose-100 hover:bg-rose-200 rounded-md transition-colors flex items-center gap-1 shadow-sm mr-1 border border-rose-200"
+                                                                                title="إنهاء البث"
+                                                                            >
+                                                                                <X size={14} />
+                                                                                <span>إنهاء</span>
+                                                                            </button>
+                                                                        </div>
                                                                     );
                                                                 })()
                                                             )}
@@ -679,6 +692,7 @@ export function TeacherCourseDetailsPage() {
     const [showQuizModal, setShowQuizModal] = useState(false);
     const [quizContextUnit, setQuizContextUnit] = useState<Unit | null>(null);
     const [quizContextLecture, setQuizContextLecture] = useState<any | null>(null);
+    const [startingTestSession, setStartingTestSession] = useState(false);
     const [selectedQuizForEdit, setSelectedQuizForEdit] = useState<Quiz | null>(null);
 
     // Live Session Modal States
@@ -1223,6 +1237,56 @@ export function TeacherCourseDetailsPage() {
         }
     };
 
+    const handleEndSession = async (lectureId: number) => {
+        const result = await Swal.fire({
+            title: 'هل أنت متأكد من إنهاء الجلسة؟',
+            text: "سيتم إيقاف البث وحفظ التسجيل تلقائياً.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم، إنهاء الجلسة',
+            cancelButtonText: 'إلغاء'
+        });
+
+        if (result.isConfirmed) {
+            const loadingToast = toast.loading('جاري إنهاء الجلسة...');
+            try {
+                await teacherLectureService.endSession(lectureId);
+                toast.dismiss(loadingToast);
+                toast.success('تم إنهاء الجلسة بنجاح، جاري معالجة التسجيل');
+                fetchCourseData(); // Refresh to update status
+            } catch (error) {
+                toast.dismiss(loadingToast);
+                console.error('End session failed:', error);
+                toast.error('فشل إنهاء الجلسة');
+            }
+        }
+    };
+
+    const handleStartTestSession = async () => {
+        if (startingTestSession) return;
+
+        try {
+            setStartingTestSession(true);
+            toast.loading('جاري بدء الجلسة التجريبية...', { id: 'test-session-toast' });
+
+            const response = await teacherLectureService.startTestSession(courseId);
+
+            if (response.success && response.join_url) {
+                toast.dismiss('test-session-toast');
+                toast.success('تم بدء الجلسة بنجاح');
+                window.open(response.join_url, '_blank');
+            }
+        } catch (error: any) {
+            toast.dismiss('test-session-toast');
+            console.error('Failed to start test session:', error);
+            toast.error(error.response?.data?.message || 'فشل بدء الجلسة التجريبية');
+        } finally {
+            setStartingTestSession(false);
+        }
+    };
+
     // Mutations
     const createUnit = useMutation({
         mutationFn: async (data: CreateUnitRequest) => {
@@ -1319,6 +1383,17 @@ export function TeacherCourseDetailsPage() {
                         >
                             <Settings className="w-5 h-5" />
                         </button>
+
+                        <button
+                            onClick={handleStartTestSession}
+                            disabled={startingTestSession}
+                            className={`px-4 py-2.5 bg-white border border-shibl-crimson text-shibl-crimson hover:bg-shibl-crimson hover:text-white rounded-xl transition-all flex items-center gap-2 font-medium shadow-sm ${startingTestSession ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            title="جلسة تجريبية (30 دقيقة - لا تظهر للطلاب)"
+                        >
+                            {startingTestSession ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
+                            <span className="hidden sm:inline">جلسة تجريبية</span>
+                        </button>
+
                         <button
                             className="px-4 py-2.5 bg-shibl-crimson hover:bg-shibl-red-600 text-white rounded-xl transition-colors flex items-center gap-2 font-medium shadow-lg shadow-shibl-crimson/20"
                             onClick={fetchCourseData}
@@ -1429,6 +1504,7 @@ export function TeacherCourseDetailsPage() {
                                         onDeleteQuiz={handleDeleteQuiz}
                                         onToggleQuizActive={handleToggleQuizActive}
                                         onStartSession={handleStartSession}
+                                        onEndSession={handleEndSession}
                                         quizzes={allQuizzes} // Pass all quizzes for filtering inside UnitCard
                                     />
                                 ))}
