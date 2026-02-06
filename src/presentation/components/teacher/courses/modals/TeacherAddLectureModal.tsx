@@ -9,6 +9,7 @@ import { ApprovedSlotSelector, type DatedSlot } from '../../timeslots/ApprovedSl
 import type { SlotRequest } from '../../../../../types/slotRequest';
 import type { Unit } from '../../../../../types/unit';
 import { useMyRequests } from '../../../../hooks/useTeacherTimeSlots';
+import { localToUtcIso } from '../../../../../utils/timeUtils';
 
 // Helper to get localized name
 const getLocalizedName = (name: { ar?: string; en?: string } | string | undefined): string => {
@@ -146,13 +147,13 @@ export function TeacherAddLectureModal({
 
         try {
             // Format start/end times with date if selected
-            let formattedStartTime = formData.startTime;
-            let formattedEndTime = formData.endTime;
+            let formattedStartTime: string | undefined = formData.startTime;
+            let formattedEndTime: string | undefined = formData.endTime;
 
             if (selectedSlot && selectedDate) {
-                // Combine date and time
-                formattedStartTime = `${selectedDate} ${selectedSlot.start_time}`;
-                formattedEndTime = `${selectedDate} ${selectedSlot.end_time}`;
+                // Combine date and time, then convert to UTC ISO string
+                formattedStartTime = localToUtcIso(`${selectedDate}T${selectedSlot.start_time}`) || formattedStartTime;
+                formattedEndTime = localToUtcIso(`${selectedDate}T${selectedSlot.end_time}`) || formattedEndTime;
             }
 
             const lectureData = {

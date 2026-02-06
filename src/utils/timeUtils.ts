@@ -258,3 +258,28 @@ export const formatRelativeTime = (dateString: string | null | undefined): strin
         return '—';
     }
 };
+
+/**
+ * Convert a local datetime-local input value to UTC ISO string for API submission.
+ * 
+ * IMPORTANT: datetime-local inputs return values like "2026-02-05T09:40" which are
+ * in the USER'S LOCAL TIMEZONE (browser timezone). This function converts that
+ * to a UTC ISO string (e.g., "2026-02-05T07:40:00.000Z") for the backend.
+ * 
+ * @param localDateTimeString - Value from datetime-local input (e.g., "2026-02-05T09:40")
+ * @returns UTC ISO string (e.g., "2026-02-05T07:40:00.000Z") or undefined if invalid
+ */
+export const localToUtcIso = (localDateTimeString: string | null | undefined): string | undefined => {
+    if (!localDateTimeString) return undefined;
+
+    try {
+        // datetime-local values are interpreted as local time by the Date constructor
+        const localDate = new Date(localDateTimeString);
+        if (isNaN(localDate.getTime())) return undefined;
+
+        // toISOString() always returns UTC (Z-suffix)
+        return localDate.toISOString();
+    } catch {
+        return undefined;
+    }
+};
