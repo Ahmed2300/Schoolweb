@@ -4,15 +4,20 @@
  * Modal dialog for teachers to request additional time slots.
  * Features:
  * - Request type toggle (Weekly / One-time)
+ * - Course selection for one-time exception requests (from teacher's subscribed courses)
+ * - Semester selection based on course
  * - Grade selection from assigned grades
  * - Day/Date picker based on type
  * - Time range selector
  * - Optional notes
  */
 
-import { useState, useEffect } from 'react';
-import { X, Calendar, Clock, Loader2, Plus, CalendarDays, Repeat } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { X, Calendar, Clock, Loader2, Plus, CalendarDays, Repeat, BookOpen, GraduationCap } from 'lucide-react';
 import { useSlotRequests } from '../../../hooks/useSlotRequests';
+import { useAssignedGrades } from '../../../hooks/useRecurringSchedule';
+import { useTeacherCourses } from '../../hooks/useTeacherContent';
+import { getCourseName } from '../../../data/api/teacherService';
 import type {
     SlotRequestFormState,
     DayOfWeek,
@@ -30,8 +35,6 @@ interface SlotRequestDialogProps {
     open: boolean;
     onClose: () => void;
     onSuccess?: () => void;
-    /** List of grades assigned to this teacher */
-    grades?: Grade[];
 }
 
 // ==================== TIME OPTIONS ====================
@@ -42,10 +45,19 @@ const TIME_OPTIONS = [
     '18:00', '19:00', '20:00', '21:00',
 ];
 
+// Helper to extract localized name (handles both string and {en, ar} formats)
+const getLocalizedName = (name: string | { ar?: string; en?: string } | undefined | null): string => {
+    if (!name) return '';
+    if (typeof name === 'string') return name;
+    return name.ar || name.en || '';
+};
+
 // ==================== COMPONENT ====================
 
-export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: SlotRequestDialogProps) {
+export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialogProps) {
     const { createRequest, isCreating } = useSlotRequests();
+    const { data: myCourses = [], isLoading: isLoadingCourses } = useTeacherCourses();
+    const { data: gradesData, isLoading: isLoadingGrades } = useAssignedGrades();
 
     // Form state
     const [formState, setFormState] = useState<SlotRequestFormState>({
@@ -56,6 +68,8 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
         start_time: '08:00',
         end_time: '10:00',
         notes: '',
+        course_id: null,
+        semester_id: null,
     });
 
     const [errors, setErrors] = useState<Partial<Record<keyof SlotRequestFormState, string>>>({});
@@ -71,6 +85,8 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
                 start_time: '08:00',
                 end_time: '10:00',
                 notes: '',
+                course_id: null,
+                semester_id: null,
             });
             setErrors({});
         }
@@ -99,8 +115,34 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
         };
     }, [open]);
 
-    // Use grades from props
-    const assignedGrades = grades;
+    // Use grades from API (teacher's assigned grades)
+    const assignedGrades = gradesData?.data ?? [];
+
+    // Selected course details
+    const selectedCourse = useMemo(() => {
+        if (!formState.course_id) return null;
+        return myCourses.find(c => c.id === formState.course_id);
+    }, [formState.course_id, myCourses]);
+
+    // Auto-set semester and grade when course is selected
+    useEffect(() => {
+        if (selectedCourse) {
+            // Auto-fill semester from course
+            if (selectedCourse.semester?.id) {
+                setFormState(prev => ({
+                    ...prev,
+                    semester_id: selectedCourse.semester?.id ?? null,
+                }));
+            }
+            // Auto-fill grade if course has one
+            if (selectedCourse.grade?.id) {
+                setFormState(prev => ({
+                    ...prev,
+                    grade_id: selectedCourse.grade?.id ?? null,
+                }));
+            }
+        }
+    }, [selectedCourse]);
 
     // Validate form
     const validateForm = (): boolean => {
@@ -114,8 +156,13 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
             newErrors.day_of_week = 'يرجى اختيار يوم الأسبوع';
         }
 
-        if (formState.type === SLOT_REQUEST_TYPES.ONE_TIME && !formState.specific_date) {
-            newErrors.specific_date = 'يرجى اختيار التاريخ';
+        if (formState.type === SLOT_REQUEST_TYPES.ONE_TIME) {
+            if (!formState.specific_date) {
+                newErrors.specific_date = 'يرجى اختيار التاريخ';
+            }
+            if (!formState.course_id) {
+                newErrors.course_id = 'يرجى اختيار المادة';
+            }
         }
 
         if (!formState.start_time) {
@@ -147,6 +194,9 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
                 start_time: formState.start_time,
                 end_time: formState.end_time,
                 notes: formState.notes || undefined,
+                // For one-time requests, include course and semester
+                course_id: formState.type === SLOT_REQUEST_TYPES.ONE_TIME ? formState.course_id ?? undefined : undefined,
+                semester_id: formState.type === SLOT_REQUEST_TYPES.ONE_TIME ? formState.semester_id ?? undefined : undefined,
             });
 
             onSuccess?.();
@@ -223,15 +273,58 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
                                 type="button"
                                 onClick={() => updateField('type', SLOT_REQUEST_TYPES.ONE_TIME)}
                                 className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 transition-all ${formState.type === SLOT_REQUEST_TYPES.ONE_TIME
-                                    ? 'border-shibl-crimson bg-shibl-crimson/5 text-shibl-crimson'
+                                    ? 'border-teal-500 bg-teal-50 text-teal-600'
                                     : 'border-slate-200 hover:border-slate-300 text-slate-grey'
                                     }`}
                             >
                                 <CalendarDays size={18} />
-                                <span className="font-semibold">مرة واحدة</span>
+                                <span className="font-semibold">استثنائي</span>
                             </button>
                         </div>
                     </div>
+
+                    {/* Course Selection (for One-time requests shown FIRST) */}
+                    {formState.type === SLOT_REQUEST_TYPES.ONE_TIME && (
+                        <div>
+                            <label className="block text-sm font-semibold text-charcoal mb-2">
+                                <BookOpen size={16} className="inline ml-1" />
+                                المادة الدراسية
+                            </label>
+                            <select
+                                value={formState.course_id ?? ''}
+                                onChange={e => updateField('course_id', e.target.value ? Number(e.target.value) : null)}
+                                disabled={isLoadingCourses}
+                                className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/20 ${errors.course_id ? 'border-red-400' : 'border-slate-200 focus:border-teal-500'
+                                    }`}
+                            >
+                                <option value="">
+                                    {isLoadingCourses ? 'جارٍ التحميل...' : 'اختر المادة...'}
+                                </option>
+                                {myCourses.map((course) => (
+                                    <option key={course.id} value={course.id}>
+                                        {getCourseName(course.name)}
+                                        {course.grade?.name && ` - ${course.grade.name}`}
+                                    </option>
+                                ))}
+                            </select>
+                            {errors.course_id && (
+                                <p className="text-red-500 text-xs mt-1">{errors.course_id}</p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Semester Display (for One-time - auto-filled from course) */}
+                    {formState.type === SLOT_REQUEST_TYPES.ONE_TIME && selectedCourse?.semester && (
+                        <div>
+                            <label className="block text-sm font-semibold text-charcoal mb-2">
+                                <GraduationCap size={16} className="inline ml-1" />
+                                الفصل الدراسي
+                            </label>
+                            <div className="px-4 py-3 rounded-xl border-2 border-slate-100 bg-slate-50 text-charcoal font-medium">
+                                {getLocalizedName(selectedCourse.semester.name)}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Grade Selection */}
                     <div>
@@ -241,13 +334,16 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
                         <select
                             value={formState.grade_id ?? ''}
                             onChange={e => updateField('grade_id', e.target.value ? Number(e.target.value) : null)}
+                            disabled={isLoadingGrades}
                             className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 ${errors.grade_id ? 'border-red-400' : 'border-slate-200 focus:border-shibl-crimson'
                                 }`}
                         >
-                            <option value="">اختر الصف...</option>
-                            {assignedGrades.map((grade: { id: number; name: string }) => (
+                            <option value="">
+                                {isLoadingGrades ? 'جارٍ التحميل...' : 'اختر الصف...'}
+                            </option>
+                            {assignedGrades.map((grade: { id: number; name: string | { ar?: string; en?: string } }) => (
                                 <option key={grade.id} value={grade.id}>
-                                    {grade.name}
+                                    {getLocalizedName(grade.name)}
                                 </option>
                             ))}
                         </select>
@@ -256,21 +352,21 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
                         )}
                     </div>
 
-                    {/* Day Selector (for Weekly) */}
-                    {formState.type === SLOT_REQUEST_TYPES.WEEKLY && (
+                    {/* Day Selector (for Weekly) - Only show when grade is selected */}
+                    {formState.type === SLOT_REQUEST_TYPES.WEEKLY && formState.grade_id && (
                         <div>
                             <label className="block text-sm font-semibold text-charcoal mb-2">
                                 <Calendar size={16} className="inline ml-1" />
                                 يوم الأسبوع
                             </label>
                             <div className="grid grid-cols-4 gap-2">
-                                {DAYS_OF_WEEK.filter(day => day.value !== 5).map(day => (
+                                {DAYS_OF_WEEK.map(day => (
                                     <button
                                         key={day.value}
                                         type="button"
                                         onClick={() => updateField('day_of_week', day.value as DayOfWeek)}
                                         className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${formState.day_of_week === day.value
-                                            ? 'bg-shibl-crimson text-white'
+                                            ? 'bg-shibl-crimson text-white shadow-md'
                                             : 'bg-slate-100 hover:bg-slate-200 text-slate-grey'
                                             }`}
                                     >
@@ -281,6 +377,14 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
                             {errors.day_of_week && (
                                 <p className="text-red-500 text-xs mt-1">{errors.day_of_week}</p>
                             )}
+                        </div>
+                    )}
+
+                    {/* Prompt to select grade first */}
+                    {formState.type === SLOT_REQUEST_TYPES.WEEKLY && !formState.grade_id && (
+                        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm">
+                            <Calendar size={16} className="inline ml-1" />
+                            يرجى اختيار الصف أولاً لعرض أيام الأسبوع المتاحة
                         </div>
                     )}
 
@@ -296,7 +400,7 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
                                 value={formState.specific_date}
                                 min={new Date().toISOString().split('T')[0]}
                                 onChange={e => updateField('specific_date', e.target.value)}
-                                className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 ${errors.specific_date ? 'border-red-400' : 'border-slate-200 focus:border-shibl-crimson'
+                                className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/20 ${errors.specific_date ? 'border-red-400' : 'border-slate-200 focus:border-teal-500'
                                     }`}
                             />
                             {errors.specific_date && (
@@ -374,7 +478,10 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
                     <button
                         onClick={handleSubmit}
                         disabled={isCreating}
-                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-shibl-crimson to-shibl-crimson-dark hover:from-shibl-crimson-dark hover:to-shibl-crimson text-white font-bold text-sm shadow-lg shadow-shibl-crimson/30 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center gap-2"
+                        className={`px-6 py-3 rounded-xl text-white font-bold text-sm shadow-lg transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center gap-2 ${formState.type === SLOT_REQUEST_TYPES.ONE_TIME
+                            ? 'bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-500 shadow-teal-500/30'
+                            : 'bg-gradient-to-r from-shibl-crimson to-shibl-crimson-dark hover:from-shibl-crimson-dark hover:to-shibl-crimson shadow-shibl-crimson/30'
+                            }`}
                     >
                         {isCreating ? (
                             <>

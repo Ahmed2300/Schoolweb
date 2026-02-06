@@ -52,6 +52,16 @@ export interface SlotRequestReviewer {
     name: string;
 }
 
+export interface SlotRequestCourse {
+    id: number;
+    title: string;
+}
+
+export interface SlotRequestSemester {
+    id: number;
+    name: string;
+}
+
 /**
  * Main SlotRequest interface matching API response
  */
@@ -77,6 +87,8 @@ export interface SlotRequest {
     // Relationships
     teacher?: SlotRequestTeacher;
     grade?: SlotRequestGrade;
+    course?: SlotRequestCourse;
+    semester?: SlotRequestSemester;
     reviewer?: SlotRequestReviewer | null;
 
     // Timestamps
@@ -114,6 +126,10 @@ export interface CreateSlotRequestPayload {
     start_time: string;
     end_time: string;
     notes?: string;
+    /** For one-time exception requests, which course this is for */
+    course_id?: number;
+    /** For one-time exception requests, which semester this is for */
+    semester_id?: number;
 }
 
 /**
@@ -161,4 +177,8 @@ export interface SlotRequestFormState {
     start_time: string;
     end_time: string;
     notes: string;
+    /** For one-time exception requests */
+    course_id: number | null;
+    /** For one-time exception requests */
+    semester_id: number | null;
 }
