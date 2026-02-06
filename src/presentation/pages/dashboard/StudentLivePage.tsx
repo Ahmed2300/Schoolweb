@@ -48,7 +48,7 @@ export function StudentLivePage() {
                         date: isSameDay(scheduledDate, now) ? 'اليوم' : format(scheduledDate, 'yyyy-MM-dd', { locale: ar }),
                         time: format(scheduledDate, 'hh:mm a', { locale: ar }),
                         status: isLive ? 'live' : 'upcoming',
-                        is_online: schedule.lecture?.is_online || false
+                        is_online: (schedule.lecture as Record<string, unknown>)?.is_online === true
                     };
                 });
 
