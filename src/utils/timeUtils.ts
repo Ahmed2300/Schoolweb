@@ -10,7 +10,7 @@
 const OMAN_TIMEZONE = 'Asia/Muscat';
 
 /**
- * Format a date string to time display in Cairo timezone
+ * Format a date string to time display in user's local timezone
  * Example: "٤:٠٠ م" or "16:00"
  */
 export const formatTime = (dateString: string | null | undefined, use24Hour = false): string => {
@@ -20,11 +20,11 @@ export const formatTime = (dateString: string | null | undefined, use24Hour = fa
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return '—';
 
+        // Use browser's local timezone (no timeZone param = local)
         return date.toLocaleTimeString('ar-EG', {
             hour: '2-digit',
             minute: '2-digit',
             hour12: !use24Hour,
-            timeZone: OMAN_TIMEZONE,
         });
     } catch {
         return '—';
@@ -32,7 +32,7 @@ export const formatTime = (dateString: string | null | undefined, use24Hour = fa
 };
 
 /**
- * Format a date string to full date display in Cairo timezone
+ * Format a date string to full date display in user's local timezone
  * Example: "الخميس، ٢٩ يناير ٢٠٢٦"
  */
 export const formatDate = (dateString: string | null | undefined): string => {
@@ -42,12 +42,12 @@ export const formatDate = (dateString: string | null | undefined): string => {
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return '—';
 
+        // Use browser's local timezone
         return date.toLocaleDateString('ar-EG', {
             weekday: 'long',
             year: 'numeric',
             month: 'short',
             day: 'numeric',
-            timeZone: OMAN_TIMEZONE,
         });
     } catch {
         return '—';
@@ -55,7 +55,7 @@ export const formatDate = (dateString: string | null | undefined): string => {
 };
 
 /**
- * Format a date string to short date display in Cairo timezone
+ * Format a date string to short date display in user's local timezone
  * Example: "الخميس، ٢٩ يناير ٢٦"
  */
 export const formatShortDate = (dateString: string | null | undefined): string => {
@@ -65,12 +65,12 @@ export const formatShortDate = (dateString: string | null | undefined): string =
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return '—';
 
+        // Use browser's local timezone
         return date.toLocaleDateString('ar-EG', {
             weekday: 'short',
             year: 'numeric',
             month: 'short',
             day: 'numeric',
-            timeZone: OMAN_TIMEZONE,
         });
     } catch {
         return '—';
@@ -93,7 +93,7 @@ export const formatTimeRange = (
 };
 
 /**
- * Get the date part of a datetime string in Cairo timezone
+ * Get the date part of a datetime string in user's local timezone
  * Returns YYYY-MM-DD format for date inputs
  */
 export const getDateForInput = (dateString: string | null | undefined): string => {
@@ -103,12 +103,11 @@ export const getDateForInput = (dateString: string | null | undefined): string =
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return '';
 
-        // Get date parts in Cairo timezone
+        // Use browser's local timezone
         const formatter = new Intl.DateTimeFormat('en-CA', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
-            timeZone: OMAN_TIMEZONE,
         });
 
         return formatter.format(date); // Returns YYYY-MM-DD
@@ -118,7 +117,7 @@ export const getDateForInput = (dateString: string | null | undefined): string =
 };
 
 /**
- * Get the time part of a datetime string in Cairo timezone
+ * Get the time part of a datetime string in user's local timezone
  * Returns HH:MM format for time inputs
  */
 export const getTimeForInput = (dateString: string | null | undefined): string => {
@@ -128,11 +127,11 @@ export const getTimeForInput = (dateString: string | null | undefined): string =
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return '';
 
+        // Use browser's local timezone
         const formatter = new Intl.DateTimeFormat('en-GB', {
             hour: '2-digit',
             minute: '2-digit',
             hour12: false,
-            timeZone: OMAN_TIMEZONE,
         });
 
         return formatter.format(date); // Returns HH:MM

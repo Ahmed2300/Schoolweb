@@ -369,12 +369,123 @@ export const teacherService = {
     },
 
     /**
+     * Cancel all pending slot requests
+     */
+    cancelAllRequests: async (): Promise<{ count: number }> => {
+        const response = await apiClient.post(endpoints.teacher.timeSlots.cancelAll);
+        return response.data;
+    },
+
+    /**
      * Get details of a specific slot request
      */
     getSlotRequest: async (id: number): Promise<TimeSlot> => {
         const response = await apiClient.get(endpoints.teacher.timeSlots.show(id));
         return response.data.data;
     },
+
+    // ==================== RECURRING SCHEDULE (Slots 2.0) ====================
+
+    /**
+     * Get grades assigned to the authenticated teacher
+     */
+    getAssignedGrades: async (): Promise<{ success: boolean; data: { id: number; name: string }[] }> => {
+        const response = await apiClient.get(endpoints.teacher.recurringSchedule.assignedGrades);
+        return response.data;
+    },
+
+    /**
+     * Get weekly configuration for a grade/semester (day tabs status)
+     */
+    getWeekConfig: async (gradeId: number, semesterId: number): Promise<{
+        success: boolean;
+        data: {
+            day: string;
+            is_active: boolean;
+            mode: 'individual' | 'multiple';
+            my_bookings_count: number;
+            is_locked: boolean;
+        }[];
+    }> => {
+        const response = await apiClient.get(endpoints.teacher.recurringSchedule.weekConfig, {
+            params: { grade_id: gradeId, semester_id: semesterId }
+        });
+        return response.data;
+    },
+
+    /**
+     * Get available recurring slots for a specific day
+     */
+    getAvailableRecurringSlots: async (gradeId: number, semesterId: number, day: string): Promise<{
+        success: boolean;
+        data: {
+            start: string;
+            end: string;
+            is_available: boolean;
+            is_mine: boolean;
+            slot_id?: number;
+        }[];
+    }> => {
+        const response = await apiClient.get(endpoints.teacher.recurringSchedule.availableSlots, {
+            params: { grade_id: gradeId, semester_id: semesterId, day }
+        });
+        return response.data;
+    },
+
+    /**
+     * Submit a recurring slot booking
+     */
+    submitRecurringSlot: async (data: {
+        grade_id: number;
+        semester_id: number;
+        day_of_week: string;
+        start_time: string;
+        end_time: string;
+        lecture_id?: number;
+    }): Promise<{ success: boolean; message: string; data: unknown }> => {
+        const response = await apiClient.post(endpoints.teacher.recurringSchedule.submitSlot, data);
+        return response.data;
+    },
+
+    /**
+     * Get Teacher Slots Requests (New System)
+     */
+    getSlotRequests: async (): Promise<import('../../types/slotRequest').SlotRequestsResponse> => {
+        const response = await apiClient.get(endpoints.teacher.slotRequests.list);
+        return response.data;
+    },
+
+    /**
+     * Get teacher's recurring schedule
+     */
+    getMyRecurringSchedule: async (semesterId?: number): Promise<{
+        success: boolean;
+        data: {
+            id: number;
+            grade_id: number;
+            semester_id: number;
+            day_of_week: string;
+            start_time: string;
+            end_time: string;
+            status: 'pending' | 'approved' | 'rejected';
+            grade?: { id: number; name: string };
+            semester?: { id: number; name: string };
+            lecture?: { id: number; title: string };
+        }[];
+    }> => {
+        const params = semesterId ? { semester_id: semesterId } : {};
+        const response = await apiClient.get(endpoints.teacher.recurringSchedule.mySchedule, { params });
+        return response.data;
+    },
+
+    /**
+     * Cancel a recurring slot
+     */
+    cancelRecurringSlot: async (slotId: number): Promise<{ success: boolean; message: string }> => {
+        const response = await apiClient.post(endpoints.teacher.recurringSchedule.cancelSlot, { slot_id: slotId });
+        return response.data;
+    },
+
     /**
      * Get upcoming schedule for dashboard
      */

@@ -1,17 +1,14 @@
 /**
  * React Query hooks for Time Slots management (Admin).
- * Provides data fetching, caching, and mutations for the slots approval workflow.
+ * Provides data fetching, caching, and mutations for time slot operations.
+ * 
+ * This connects to the OLD TimeSlot system (/admin/timeslots)
+ * For the NEW SlotRequest system, use useSlotRequests.ts instead.
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import adminService from '../../data/api/adminService';
-import type {
-    TimeSlot,
-    TimeSlotStats,
-    TimeSlotFilters,
-    CreateTimeSlotRequest,
-    UpdateTimeSlotRequest,
-} from '../../types/timeSlot';
+import type { TimeSlot, TimeSlotStats, TimeSlotStatus } from '../../types/timeSlot';
 
 // Query keys for cache management
 export const timeSlotKeys = {
@@ -23,6 +20,27 @@ export const timeSlotKeys = {
     detail: (id: number) => [...timeSlotKeys.all, 'detail', id] as const,
 };
 
+interface TimeSlotFilters {
+    status?: TimeSlotStatus;
+    date?: string;
+}
+
+interface TimeSlotListResponse {
+    success: boolean;
+    data: TimeSlot[];
+    meta?: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    };
+}
+
+interface TimeSlotStatsResponse {
+    success: boolean;
+    data: TimeSlotStats;
+}
+
 /**
  * Hook to fetch all time slots with optional filters.
  */
@@ -30,7 +48,24 @@ export function useTimeSlots(filters?: TimeSlotFilters) {
     return useQuery({
         queryKey: timeSlotKeys.list(filters),
         queryFn: () => adminService.getTimeSlots(filters),
-        select: (response) => response.data as TimeSlot[],
+        select: (response: TimeSlotListResponse) => ({
+            slots: response.data as TimeSlot[],
+            meta: response.meta,
+        }),
+    });
+}
+
+/**
+ * Hook to fetch pending slot requests only.
+ */
+export function usePendingSlots() {
+    return useQuery({
+        queryKey: timeSlotKeys.pending(),
+        queryFn: () => adminService.getPendingSlots(),
+        select: (response: TimeSlotListResponse) => ({
+            slots: response.data as TimeSlot[],
+            count: response.data.length,
+        }),
     });
 }
 
@@ -41,22 +76,8 @@ export function useTimeSlot(id: number) {
     return useQuery({
         queryKey: timeSlotKeys.detail(id),
         queryFn: () => adminService.getTimeSlot(id),
-        select: (response) => response.data as TimeSlot,
+        select: (response: { data: TimeSlot }) => response.data,
         enabled: !!id,
-    });
-}
-
-/**
- * Hook to fetch pending slot requests for approval.
- */
-export function usePendingSlots() {
-    return useQuery({
-        queryKey: timeSlotKeys.pending(),
-        queryFn: () => adminService.getPendingSlots(),
-        select: (response) => ({
-            slots: response.data as TimeSlot[],
-            count: response.count as number,
-        }),
     });
 }
 
@@ -67,7 +88,7 @@ export function useTimeSlotStats() {
     return useQuery({
         queryKey: timeSlotKeys.stats(),
         queryFn: () => adminService.getTimeSlotStats(),
-        select: (response) => response.data as TimeSlotStats,
+        select: (response: TimeSlotStatsResponse) => response.data as TimeSlotStats,
     });
 }
 
@@ -78,7 +99,8 @@ export function useCreateTimeSlot() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: CreateTimeSlotRequest) => adminService.createTimeSlot(data),
+        mutationFn: (data: { start_time: string; end_time: string; is_available?: boolean }) =>
+            adminService.createTimeSlot(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: timeSlotKeys.all });
         },
@@ -86,17 +108,16 @@ export function useCreateTimeSlot() {
 }
 
 /**
- * Hook to update an existing time slot.
+ * Hook to update a time slot.
  */
 export function useUpdateTimeSlot() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ id, data }: { id: number; data: UpdateTimeSlotRequest }) =>
+        mutationFn: ({ id, data }: { id: number; data: { start_time?: string; end_time?: string; is_available?: boolean } }) =>
             adminService.updateTimeSlot(id, data),
-        onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({ queryKey: timeSlotKeys.detail(variables.id) });
-            queryClient.invalidateQueries({ queryKey: timeSlotKeys.lists() });
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: timeSlotKeys.all });
         },
     });
 }
@@ -116,7 +137,7 @@ export function useDeleteTimeSlot() {
 }
 
 /**
- * Hook to approve a teacher's slot request.
+ * Hook to approve a slot request.
  */
 export function useApproveSlotRequest() {
     const queryClient = useQueryClient();
@@ -125,15 +146,12 @@ export function useApproveSlotRequest() {
         mutationFn: (id: number) => adminService.approveSlotRequest(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: timeSlotKeys.all });
-            // Also invalidate teacher's available slots cache
-            queryClient.invalidateQueries({ queryKey: ['teacherTimeSlots'] });
         },
     });
 }
 
 /**
- * Hook to reject a teacher's slot request.
- * When rejected, the slot becomes available again for other teachers.
+ * Hook to reject a slot request.
  */
 export function useRejectSlotRequest() {
     const queryClient = useQueryClient();
@@ -143,9 +161,6 @@ export function useRejectSlotRequest() {
             adminService.rejectSlotRequest(id, reason),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: timeSlotKeys.all });
-            // Also invalidate teacher's available slots cache
-            // Rejected slots become available again for booking
-            queryClient.invalidateQueries({ queryKey: ['teacherTimeSlots'] });
         },
     });
 }

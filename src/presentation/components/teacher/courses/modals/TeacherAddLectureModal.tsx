@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, ChevronLeft, ChevronRight, Check, Video, FileText, Calendar, Loader2, Radio } from 'lucide-react';
 import { teacherLectureService } from '../../../../../data/api/teacherLectureService';
 import { teacherContentApprovalService } from '../../../../../data/api/teacherContentApprovalService';
 import { TeacherVideoUploader } from './TeacherVideoUploader';
 import { TimeSlotPicker } from '../../timeslots/TimeSlotPicker';
-import type { TimeSlot } from '../../../../../data/api/teacherTimeSlotService';
+import { ApprovedSlotSelector, type DatedSlot } from '../../timeslots/ApprovedSlotSelector';
+import type { SlotRequest } from '../../../../../types/slotRequest';
 import type { Unit } from '../../../../../types/unit';
 import { useMyRequests } from '../../../../hooks/useTeacherTimeSlots';
 
@@ -37,7 +39,10 @@ interface TeacherAddLectureModalProps {
     defaultStartTime?: string;
     defaultEndTime?: string;
     gradeId?: number;
+    semesterId?: number;
 }
+
+type SlotSourceType = 'available' | 'approved';
 
 interface FormData {
     titleAr: string;
@@ -51,6 +56,7 @@ interface FormData {
     endTime: string;
     isOnline: boolean;
     selectedSlotId: number | null;
+    slotRequestId: number | null;
 }
 
 export function TeacherAddLectureModal({
@@ -64,10 +70,11 @@ export function TeacherAddLectureModal({
     initialUnitId,
     defaultStartTime,
     defaultEndTime,
-    gradeId
+    gradeId,
+    semesterId
 }: TeacherAddLectureModalProps) {
+    const navigate = useNavigate();
     const [step, setStep] = useState(1);
-    const { data: bookedSlots = [] } = useMyRequests();
 
     const initialFormData: FormData = {
         titleAr: '',
@@ -81,9 +88,11 @@ export function TeacherAddLectureModal({
         endTime: defaultEndTime || '',
         isOnline: false,
         selectedSlotId: null,
+        slotRequestId: null,
     };
 
-    const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+    const [selectedSlot, setSelectedSlot] = useState<DatedSlot | null>(null);
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
     const [formData, setFormData] = useState<FormData>(initialFormData);
     const [loading, setLoading] = useState(false);
@@ -294,6 +303,7 @@ export function TeacherAddLectureModal({
                                                 setFormData(prev => ({ ...prev, isOnline: e.target.checked }));
                                                 if (!e.target.checked) {
                                                     setSelectedSlot(null);
+                                                    setSelectedDate(null);
                                                 }
                                             }}
                                             className="w-5 h-5 rounded text-blue-600 focus:ring-offset-0 focus:ring-0 cursor-pointer"
@@ -311,14 +321,19 @@ export function TeacherAddLectureModal({
                                             <Calendar size={18} className="text-blue-600" />
                                             اختر فترة البث المباشر *
                                         </label>
-                                        <TimeSlotPicker
+                                        <ApprovedSlotSelector
                                             onSelect={(slot) => {
                                                 setSelectedSlot(slot);
+                                                setSelectedDate(slot?.dateString || null);
                                                 setFormData(prev => ({ ...prev, selectedSlotId: slot?.id || null }));
                                             }}
-                                            selectedSlotId={selectedSlot?.id}
-                                            bookedSlots={bookedSlots}
-                                            currentData={{ course: { grade_id: gradeId } }}
+                                            selectedSlotId={selectedSlot?.id || null}
+                                            selectedDate={selectedDate}
+                                            gradeId={gradeId}
+                                            semesterId={semesterId}
+                                            onRequestNewSlot={() => {
+                                                navigate('/teacher/weekly-schedule');
+                                            }}
                                         />
                                     </div>
                                 )}

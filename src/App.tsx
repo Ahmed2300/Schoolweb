@@ -29,11 +29,12 @@ import {
   AdminPackagesPage,
   AdminPackageSubscriptionsPage,
   AdminAcademicGraphPage,
-  AdminTimeSlotsPage,
+
   AdminContentApprovalsPage,
   AdminQuizzesPage,
   AdminRecordingsPage,
   AdminScheduleConfigPage,
+  AdminSlotRequestsPage,
   StudentLayout,
   StudentHomePage,
   StudentCoursesPage,
@@ -55,8 +56,9 @@ import {
   TeacherQuizzesPage,
   TeacherSettingsPage,
   TeacherAnalyticsPage,
-  TeacherTimeSlotsPage,
   TeacherRecordingsPage,
+  TeacherSlotRequestsPage,
+  TeacherWeeklySchedulePage,
   NotFoundPage,
   LecturePlayerPage
 } from './presentation/pages';
@@ -170,13 +172,12 @@ function App() {
               <Route index element={<TeacherDashboardPage />} />
               <Route path="courses" element={<TeacherCoursesPage />} />
               <Route path="courses/:id" element={<TeacherCourseDetailsPage />} />
-              <Route path="time-slots" element={<TeacherTimeSlotsPage />} />
-              <Route path="quizzes" element={<TeacherQuizzesPage />} />
-              <Route path="time-slots" element={<TeacherTimeSlotsPage />} />
               <Route path="quizzes" element={<TeacherQuizzesPage />} />
               <Route path="analytics" element={<TeacherAnalyticsPage />} />
               <Route path="settings" element={<TeacherSettingsPage />} />
               <Route path="recordings" element={<TeacherRecordingsPage />} />
+              <Route path="slot-requests" element={<TeacherSlotRequestsPage />} />
+              <Route path="weekly-schedule" element={<TeacherWeeklySchedulePage />} />
             </Route>
 
             {/* Admin Routes - Protected for admin role only */}
@@ -204,12 +205,13 @@ function App() {
               <Route path="packages" element={<AdminPackagesPage />} />
               <Route path="package-subscriptions" element={<AdminPackageSubscriptionsPage />} />
               <Route path="academic-structure" element={<AdminAcademicGraphPage />} />
-              <Route path="time-slots" element={<AdminTimeSlotsPage />} />
+
               <Route path="content-approvals" element={<AdminContentApprovalsPage />} />
               <Route path="recordings" element={<AdminRecordingsPage />} />
               <Route path="quizzes" element={<AdminQuizzesPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
               <Route path="schedule-config" element={<AdminScheduleConfigPage />} />
+              <Route path="slot-requests" element={<AdminSlotRequestsPage />} />
             </Route>
 
             {/* 404 Catch-all Route */}

@@ -24,7 +24,8 @@ const WEBSOCKET_ENABLED = import.meta.env.VITE_WEBSOCKET_ENABLED !== 'false';
 const REVERB_CONFIG = {
     key: import.meta.env.VITE_REVERB_APP_KEY || 'school-reverb-key',
     host: import.meta.env.VITE_REVERB_HOST || 'localhost',
-    port: parseInt(import.meta.env.VITE_REVERB_PORT || '8080'),
+    // Use env port or default to 8080
+    port: parseInt(import.meta.env.VITE_REVERB_PORT ?? '8080'),
     scheme: import.meta.env.VITE_REVERB_SCHEME || 'http',
 };
 
@@ -421,6 +422,10 @@ export function subscribeToTeacherChannel(
         })
         .listen('.content.decision', (event: unknown) => {
             console.log('Received content decision:', event);
+            onNotification(event);
+        })
+        .listen('.slot.decision', (event: unknown) => {
+            console.log('Received slot decision:', event);
             onNotification(event);
         });
 }

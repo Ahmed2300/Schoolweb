@@ -102,7 +102,17 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
     // Helper to extract name from translatable object
     const extractName = (name: any): string => {
         if (!name) return '';
-        if (typeof name === 'string') return name;
+        if (typeof name === 'string') {
+            if (name.trim().startsWith('{')) {
+                try {
+                    const parsed = JSON.parse(name);
+                    return parsed.ar || parsed.en || name;
+                } catch {
+                    return name;
+                }
+            }
+            return name;
+        }
         return name.ar || name.en || '';
     };
 
