@@ -48,7 +48,6 @@ import {
   ParentLayout,
   ParentHomePage,
   ParentChildrenPage,
-  ParentFinancePage,
   ParentSettingsPage,
   TeacherDashboardPage,
   TeacherCoursesPage,
@@ -156,7 +155,6 @@ function App() {
             >
               <Route index element={<ParentHomePage />} />
               <Route path="children" element={<ParentChildrenPage />} />
-              <Route path="finance" element={<ParentFinancePage />} />
               <Route path="settings" element={<ParentSettingsPage />} />
             </Route>
 

@@ -10,7 +10,6 @@ import { LogoutModal } from '../../components/ui';
 import {
     LayoutDashboard,
     Users,
-    CreditCard,
     Settings,
     LogOut,
     ChevronRight,
@@ -41,7 +40,6 @@ export function ParentLayout() {
     const navItems = [
         { id: 'home', icon: LayoutDashboard, label: 'نظرة عامة', path: '/parent' },
         { id: 'children', icon: Users, label: 'أبنائي', path: '/parent/children' },
-        { id: 'finance', icon: CreditCard, label: 'المالية', path: '/parent/finance' },
         { id: 'settings', icon: Settings, label: 'الإعدادات', path: '/parent/settings' },
     ];
 
