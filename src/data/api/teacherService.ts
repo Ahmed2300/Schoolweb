@@ -423,7 +423,12 @@ export const teacherService = {
             end: string;
             is_available: boolean;
             is_mine: boolean;
+            is_taken: boolean;
+            mode: 'individual' | 'multiple';
+            status?: 'pending' | 'approved' | 'rejected';
             slot_id?: number;
+            teacher_name?: string | null;
+            locked_reason?: string;
         }[];
     }> => {
         const response = await apiClient.get(endpoints.teacher.recurringSchedule.availableSlots, {

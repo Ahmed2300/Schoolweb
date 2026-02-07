@@ -211,14 +211,16 @@ function TimeSlotCard({
     // Base card styles with smooth transition and premium interactions
     const cardBaseStyles = "group relative flex flex-col justify-between rounded-2xl p-4 transition-all duration-300 border h-full";
 
-    // Dynamic styles based on state
+    // Dynamic styles based on state - REMOVED cursor-not-allowed from parent
+    // Cursor styling should be handled by individual action buttons/divs only
     const stateStyles = slot.is_mine
         ? slot.status === 'pending'
             ? "bg-amber-50/50 border-amber-200 hover:border-amber-300 hover:shadow-lg hover:shadow-amber-100/50"
             : "bg-emerald-50/50 border-emerald-200 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-100/50"
         : slot.is_available
             ? "bg-white border-gray-100 hover:border-shibl-crimson/30 hover:shadow-xl hover:shadow-shibl-crimson/5 hover:-translate-y-0.5"
-            : "bg-gray-50/80 border-gray-100 opacity-60 cursor-not-allowed";
+            // No cursor-not-allowed on card - the action div inside will handle it
+            : "bg-gray-50/80 border-gray-100 opacity-60";
 
     return (
         <div className={`${cardBaseStyles} ${stateStyles}`}>
@@ -293,6 +295,7 @@ function TimeSlotCard({
                             transition-all duration-200
                             hover:shadow-lg hover:shadow-shibl-crimson/30 hover:brightness-110 active:scale-[0.98]
                             disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none
+                            cursor-pointer pointer-events-auto relative z-10
                         "
                     >
                         {isBooking ? (
@@ -308,7 +311,7 @@ function TimeSlotCard({
                         )}
                     </button>
                 ) : (
-                    <div className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gray-100 text-gray-400 font-medium text-sm">
+                    <div className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gray-100 text-gray-400 font-medium text-sm cursor-not-allowed">
                         <User className="w-4 h-4" />
                         <span>غير متاح</span>
                     </div>
@@ -761,13 +764,12 @@ export function TeacherWeeklySchedulePage() {
                                         onBook={() => handleBookSlot(slot.start, slot.end)}
                                         onCancel={() => slot.slot_id && handleCancelSlot(slot.slot_id)}
                                         isBooking={processingSlotKey === `${slot.start}-${slot.end}`}
-                                        isCancelling={cancellingSlotId === slot.slot_id}
+                                        isCancelling={!!slot.slot_id && cancellingSlotId === slot.slot_id}
                                         isExtraBooking={false}
-                                        isBookingDisabled={mySchedule?.some(s =>
-                                            s.grade_id === selectedGradeId &&
-                                            s.semester_id === selectedSemesterId &&
-                                            s.status !== 'rejected'
-                                        )}
+                                        // REMOVED: isBookingDisabled was incorrectly blocking ALL slots
+                                        // when ANY booking existed. The backend's is_available flag
+                                        // already correctly determines slot availability.
+                                        isBookingDisabled={false}
                                     />
                                 ))}
                             </div>
