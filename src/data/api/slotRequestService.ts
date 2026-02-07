@@ -20,9 +20,20 @@ const SLOT_REQUEST_ENDPOINTS = {
     list: '/api/v1/schedule/requests',
     create: '/api/v1/schedule/requests',
     stats: '/api/v1/schedule/requests/stats',
+    availableSlots: '/api/v1/schedule/requests/available-slots',
     show: (id: number) => `/api/v1/schedule/requests/${id}`,
     cancel: (id: number) => `/api/v1/schedule/requests/${id}`,
 } as const;
+
+// ==================== TYPES ====================
+
+export type AvailableSlot = {
+    start: string;
+    end: string;
+    slot_time: string;
+    is_available: boolean;
+    reserved_by: string | null;
+};
 
 // ==================== SERVICE ====================
 
@@ -43,6 +54,21 @@ export const slotRequestService = {
         const response = await apiClient.get(url);
         const result = response.data as SlotRequestsResponse;
         return result.data;
+    },
+
+    /**
+     * Get available (unreserved) slots for a specific grade and date.
+     * @param gradeId - The grade ID
+     * @param date - The date in YYYY-MM-DD format
+     */
+    getAvailableSlots: async (gradeId: number, date: string): Promise<AvailableSlot[]> => {
+        const params = new URLSearchParams({
+            grade_id: gradeId.toString(),
+            date,
+        });
+        const url = `${SLOT_REQUEST_ENDPOINTS.availableSlots}?${params.toString()}`;
+        const response = await apiClient.get(url);
+        return response.data?.data?.slots ?? [];
     },
 
     /**
