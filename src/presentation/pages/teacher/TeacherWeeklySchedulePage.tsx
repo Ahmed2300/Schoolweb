@@ -346,9 +346,10 @@ interface ScheduleSummaryProps {
     slots: RecurringSlot[];
     isLoading: boolean;
     onCancel: (slotId: number) => void;
+    cancellingSlotId?: number | null;
 }
 
-function ScheduleSummary({ slots, isLoading, onCancel }: ScheduleSummaryProps) {
+function ScheduleSummary({ slots, isLoading, onCancel, cancellingSlotId }: ScheduleSummaryProps) {
     const statusBadge = (status: string) => {
         switch (status) {
             case 'approved':
@@ -432,16 +433,15 @@ function ScheduleSummary({ slots, isLoading, onCancel }: ScheduleSummaryProps) {
 
                     <button
                         onClick={() => onCancel(slot.id)}
-                        // Note: Global loading state not passed here individually, but usually fast. 
-                        // Could prevent double click by UI feedback or local state if needed.
-                        // For now relying on mutation pending state if passed, but it's not passed to ScheduleSummary (only `isLoading` for fetch).
-                        // Let's assume fast feedback or global disable.
-                        // Actually, I should probably pass `isCancelling` if I want strict disable.
-                        // But I'll stick to simple styling updates as requested.
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        disabled={cancellingSlotId === slot.id}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="إلغاء الحجز"
                     >
-                        <XCircle className="h-5 w-5" />
+                        {cancellingSlotId === slot.id ? (
+                            <Loader2 className="h-5 w-5 animate-spin text-red-500" />
+                        ) : (
+                            <XCircle className="h-5 w-5" />
+                        )}
                     </button>
                 </div>
             ))}
@@ -457,6 +457,7 @@ export function TeacherWeeklySchedulePage() {
     const [selectedSemesterId, setSelectedSemesterId] = useState<number | null>(null);
     const [selectedDay, setSelectedDay] = useState<string>('sunday');
     const [processingSlotKey, setProcessingSlotKey] = useState<string | null>(null);
+    const [cancellingSlotId, setCancellingSlotId] = useState<number | null>(null);
 
     // Semester state (fetched from API based on selected grade)
     const [semesters, setSemesters] = useState<Semester[]>([]);
@@ -594,15 +595,20 @@ export function TeacherWeeklySchedulePage() {
     };
 
     const handleCancelSlot = async (slotId: number) => {
+        setCancellingSlotId(slotId);
         try {
             await cancelSlotMutation.mutateAsync(slotId);
 
             // Refetch data
-            refetchSlots();
-            refetchWeekConfig();
-            refetchMySchedule();
+            await Promise.all([
+                refetchSlots(),
+                refetchWeekConfig(),
+                refetchMySchedule()
+            ]);
         } catch {
             // Error handled by mutation hook
+        } finally {
+            setCancellingSlotId(null);
         }
     };
 
@@ -755,7 +761,7 @@ export function TeacherWeeklySchedulePage() {
                                         onBook={() => handleBookSlot(slot.start, slot.end)}
                                         onCancel={() => slot.slot_id && handleCancelSlot(slot.slot_id)}
                                         isBooking={processingSlotKey === `${slot.start}-${slot.end}`}
-                                        isCancelling={cancelSlotMutation.isPending}
+                                        isCancelling={cancellingSlotId === slot.slot_id}
                                         isExtraBooking={false}
                                         isBookingDisabled={mySchedule?.some(s =>
                                             s.grade_id === selectedGradeId &&
@@ -777,6 +783,7 @@ export function TeacherWeeklySchedulePage() {
                             slots={mySchedule}
                             isLoading={isLoadingMySchedule}
                             onCancel={handleCancelSlot}
+                            cancellingSlotId={cancellingSlotId}
                         />
                     </div>
                 </div>

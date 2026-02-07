@@ -131,7 +131,8 @@ const getQuizStatusStyle = (status: string) => {
 const getLocalizedTitle = (title: string | { ar?: string; en?: string } | undefined): string => {
     if (!title) return 'بدون عنوان';
     if (typeof title === 'string') return title;
-    return title.ar || title.en || 'بدون عنوان';
+    const val = title.ar || title.en || 'بدون عنوان';
+    return (typeof val === 'string') ? val : String(val);
 };
 
 // Draggable Unassigned Quiz Wrapper
@@ -312,10 +313,13 @@ function UnitCard({
             setItems(newItems); // Optimistic update of local state
 
             // Prepare payload
-            const payload = newItems.map(item => ({
-                id: item.id,
-                type: item.sortType as 'lecture' | 'quiz'
-            }));
+            // Filter out pending items (string IDs) as they don't exist in backend yet
+            const payload = newItems
+                .filter(item => typeof item.id === 'number')
+                .map(item => ({
+                    id: item.id,
+                    type: item.sortType as 'lecture' | 'quiz'
+                }));
 
             try {
                 await teacherService.reorderContent(unit.course_id, unit.id, payload);
@@ -778,6 +782,7 @@ export function TeacherCourseDetailsPage() {
 
                 // Ensure units are sorted by order
                 const sortedUnits = unitsWithPending.sort((a: Unit, b: Unit) => (a.order || 0) - (b.order || 0));
+                console.log('DEBUG UNITS:', JSON.stringify(sortedUnits, null, 2));
                 setUnits(sortedUnits);
 
                 // Expand first unit by default if none expanded
@@ -958,7 +963,7 @@ export function TeacherCourseDetailsPage() {
 
                     await teacherService.reorderContent(courseId, targetUnit.id, unitItems);
 
-                    toast.success(`تم نقل الاختبار إلى وحدة ${getLocalizedTitle(targetUnit.name)}`);
+                    toast.success(`تم نقل الاختبار إلى وحدة ${getLocalizedTitle(targetUnit.title)}`);
                     fetchCourseData();
 
                 } catch (error) {

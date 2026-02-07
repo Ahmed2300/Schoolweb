@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage, useAuth } from '../../hooks';
-import { teacherService, TeacherCourse, getCourseName, getCourseDescription } from '../../../data/api';
+import { teacherService, TeacherCourse, getCourseName, getCourseDescription, getLocalizedName } from '../../../data/api';
 import { teacherContentApprovalService } from '../../../data/api/teacherContentApprovalService';
 
 // Icons
@@ -17,7 +17,9 @@ import {
     RefreshCw,
     Loader2,
     Trash2,
-    Clock
+    Clock,
+    GraduationCap,
+    Layers
 } from 'lucide-react';
 
 import TeacherCourseModal from '../../components/teacher/courses/TeacherCourseModal';
@@ -131,8 +133,26 @@ function CourseCard({ course, onView, onEdit, onDelete, hasPendingRequest }: Cou
                     {courseDescription || 'لا يوجد وصف'}
                 </p>
 
+                {/* Grade & Semester Info */}
+                {(course.grade || course.semester) && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                        {course.grade && (
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium border border-blue-100/50">
+                                <GraduationCap size={13} className="shrink-0" />
+                                <span className="truncate max-w-[120px]">{getLocalizedName(course.grade.name)}</span>
+                            </div>
+                        )}
+                        {course.semester && (
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-medium border border-indigo-100/50">
+                                <Layers size={13} className="shrink-0" />
+                                <span className="truncate max-w-[120px]">{getLocalizedName(course.semester.name)}</span>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Stats */}
-                <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-4 text-sm pt-2 border-t border-slate-50">
                     <div className="flex items-center gap-1.5 text-slate-500">
                         <Users size={14} />
                         <span>{course.students_count || 0} طالب</span>

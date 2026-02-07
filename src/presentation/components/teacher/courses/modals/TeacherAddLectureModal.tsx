@@ -173,7 +173,7 @@ export function TeacherAddLectureModal({
             };
 
             // Switch to Approval Request Flow
-            await teacherContentApprovalService.submitApprovalRequest({
+            const response = await teacherContentApprovalService.submitApprovalRequest({
                 approvable_type: 'course',
                 approvable_id: parseInt(formData.courseId),
                 action: 'create_lecture',
@@ -187,8 +187,10 @@ export function TeacherAddLectureModal({
             // }
 
             // Construct a "pending" lecture object for optimistic UI
+            // CRITICAL FIX: Use the ACTUAL ID from the response, not a timestamp
+            // The response.data is the ContentApprovalRequest, which has an 'id'
             const pendingLecture = {
-                id: `pending-${Date.now()}`, // Temporary ID
+                id: `pending-${response.data.id}`, // Use real DB ID from approval request
                 ...lectureData,
                 type: 'lecture',
                 sortType: 'lecture',
