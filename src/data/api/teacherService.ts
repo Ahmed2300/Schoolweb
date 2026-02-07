@@ -505,28 +505,11 @@ export const teacherService = {
     },
 
     /**
-     * Get upcoming schedule for dashboard
+     * Get upcoming schedule for dashboard (REAL DATA)
      */
-    getUpcomingSchedule: async (): Promise<any[]> => {
-        // Fetch approved time slots or lectures
-        // For now, we'll fetch confirmed time slots
-        const response = await apiClient.get(endpoints.teacher.timeSlots.myRequests);
-        const slots: TimeSlot[] = response.data.data || [];
-
-        // Filter for future slots and approved ones
-        const now = new Date();
-        const upcoming = slots.filter(slot => {
-            if (!slot.date || !slot.start_time) return false;
-            const slotDate = new Date(`${slot.date}T${slot.start_time}`);
-            return slotDate > now && slot.status === 'approved';
-        });
-
-        // Sort by date
-        return upcoming.sort((a, b) => {
-            const dateA = new Date(`${a.date}T${a.start_time}`).getTime();
-            const dateB = new Date(`${b.date}T${b.start_time}`).getTime();
-            return dateA - dateB;
-        }).slice(0, 5); // Return top 5
+    getDashboardSchedule: async (): Promise<any[]> => {
+        const response = await apiClient.get('/lectures/dashboard-schedule');
+        return response.data.data;
     },
 };
 
