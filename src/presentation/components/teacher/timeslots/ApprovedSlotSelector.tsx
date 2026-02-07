@@ -15,16 +15,17 @@ import {
     ChevronRight,
     Clock,
     Loader2,
-    AlertCircle,
     Plus,
     CheckCircle2,
     CalendarDays,
     GraduationCap,
     Calendar,
     Radio,
-    Ban
+    Ban,
+    AlertCircle
 } from 'lucide-react';
-import { useMyRecurringSchedule } from '../../../hooks/useTeacherTimeSlots';
+import { useMyRecurringSchedule, useApprovedOneTimeSlots } from '../../../hooks/useTeacherTimeSlots';
+import type { SlotRequest } from '../../../../types/slotRequest';
 
 // ==================== Types ====================
 
@@ -48,6 +49,7 @@ interface DatedSlot extends TeacherRecurringSlot {
     date: Date;
     dateString: string; // "YYYY-MM-DD"
     isBooked: boolean;
+    isException?: boolean;
 }
 
 // ==================== Constants ====================
@@ -214,7 +216,11 @@ export function ApprovedSlotSelector({
     onRequestNewSlot,
     bookedDates = [],
 }: ApprovedSlotSelectorProps) {
-    const { data: allSlots = [], isLoading, error } = useMyRecurringSchedule();
+    const { data: allSlots = [], isLoading: loadingRecurring, error: errorRecurring } = useMyRecurringSchedule();
+    const { data: oneTimeSlots = [], isLoading: loadingOneTime, error: errorOneTime } = useApprovedOneTimeSlots();
+
+    const isLoading = loadingRecurring || loadingOneTime;
+    const error = errorRecurring || errorOneTime;
 
     // Week navigation state
     const [weekOffset, setWeekOffset] = useState(0);
@@ -233,9 +239,7 @@ export function ApprovedSlotSelector({
 
     // Filter slots by grade, semester, and status
     const filteredSlots = useMemo(() => {
-        const slots = allSlots as TeacherRecurringSlot[];
-
-        return slots.filter(slot => {
+        const recurringSlots = (allSlots as TeacherRecurringSlot[]).filter(slot => {
             // Must be approved
             if (slot.status !== 'approved') return false;
             // Must not be linked to a lecture already (recurring slot level)
@@ -246,14 +250,34 @@ export function ApprovedSlotSelector({
             if (semesterId && slot.semester_id !== semesterId) return false;
             return true;
         });
-    }, [allSlots, gradeId, semesterId]);
+
+        // Add one-time slots that match criteria
+        const exceptionSlots = (oneTimeSlots as unknown as SlotRequest[]).filter(slot => {
+            // Must match grade if specified
+            if (gradeId && slot.grade?.id !== gradeId) return false;
+            // Must match semester if specified
+            if (semesterId && slot.semester?.id !== semesterId) return false;
+            return true;
+        });
+
+        return { recurringSlots, exceptionSlots };
+    }, [allSlots, oneTimeSlots, gradeId, semesterId]);
 
     // Get set of days that have available slots
     const availableDays = useMemo(() => {
         const days = new Set<string>();
-        filteredSlots.forEach(slot => {
+        filteredSlots.recurringSlots.forEach(slot => {
             days.add(slot.day_of_week.toLowerCase());
         });
+
+        // Also add days from exception slots if they fall in diverse days
+        // Note: For exception slots we should check dates, but for the day tabs
+        // we mainly care about recurring days. Exception slots will be forced 
+        // to show even if day tab is implemented differently, but here we can just add them.
+        filteredSlots.exceptionSlots.forEach(slot => {
+            if (slot.day_name) days.add(slot.day_name.toLowerCase());
+        });
+
         return days;
     }, [filteredSlots]);
 
@@ -263,14 +287,15 @@ export function ApprovedSlotSelector({
 
         weekDates.forEach((date, index) => {
             const dayName = DAY_ORDER[index];
-            const slotsForDay = filteredSlots.filter(
+            const dateString = toDateString(date);
+            const isBooked = bookedDates.includes(dateString);
+
+            // 1. Add matching recurring slots
+            const recurringForDay = filteredSlots.recurringSlots.filter(
                 s => s.day_of_week.toLowerCase() === dayName
             );
 
-            slotsForDay.forEach(slot => {
-                const dateString = toDateString(date);
-                const isBooked = bookedDates.includes(dateString);
-
+            recurringForDay.forEach(slot => {
                 result.push({
                     ...slot,
                     date,
@@ -278,7 +303,32 @@ export function ApprovedSlotSelector({
                     isBooked,
                 });
             });
+
+            // 2. Add matching one-time/exception slots (MUST match specific date)
+            const exceptionsForDate = filteredSlots.exceptionSlots.filter(
+                s => s.specific_date === dateString
+            );
+
+            exceptionsForDate.forEach(slot => {
+                result.push({
+                    id: slot.id, // Use request ID
+                    teacher_id: slot.teacher?.id || 0,
+                    grade_id: slot.grade?.id || 0,
+                    semester_id: slot.semester?.id || 0,
+                    day_of_week: dayName,
+                    start_time: slot.start_time,
+                    end_time: slot.end_time,
+                    status: 'approved',
+                    date,
+                    dateString,
+                    isBooked,
+                    isException: true,
+                    grade: slot.grade, // Pass grade info
+                    semester: slot.semester, // Pass semester info
+                } as any);
+            });
         });
+
 
         return result;
     }, [weekDates, filteredSlots, bookedDates]);
@@ -553,6 +603,14 @@ export function ApprovedSlotSelector({
                                         {slot.semester && (
                                             <div className="text-xs text-slate-500 mt-1 truncate">
                                                 {getLocalizedName(slot.semester.name)}
+                                            </div>
+                                        )}
+
+                                        {/* Exception Slot Indicator */}
+                                        {slot.isException && (
+                                            <div className="flex items-center gap-1 text-[10px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full w-fit mt-1 border border-amber-100">
+                                                <AlertCircle size={10} />
+                                                <span>موعد استثنائي</span>
                                             </div>
                                         )}
                                     </div>

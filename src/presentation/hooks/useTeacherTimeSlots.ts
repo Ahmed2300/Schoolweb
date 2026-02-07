@@ -14,6 +14,7 @@ export const teacherTimeSlotKeys = {
     revision: () => [...teacherTimeSlotKeys.all, 'revision'] as const,
     myRequests: () => [...teacherTimeSlotKeys.all, 'myRequests'] as const,
     myRecurringSchedule: () => [...teacherTimeSlotKeys.all, 'myRecurringSchedule'] as const,
+    approvedOneTime: () => [...teacherTimeSlotKeys.all, 'approvedOneTime'] as const,
     detail: (id: number) => [...teacherTimeSlotKeys.all, 'detail', id] as const,
 };
 
@@ -47,6 +48,17 @@ export function useMyRequests() {
         queryKey: teacherTimeSlotKeys.myRequests(),
         queryFn: () => teacherService.getMyRequests(),
         select: (data) => data as TimeSlot[],
+    });
+}
+
+/**
+ * Hook to fetch approved one-time slots (exception slots).
+ */
+export function useApprovedOneTimeSlots() {
+    return useQuery({
+        queryKey: teacherTimeSlotKeys.approvedOneTime(),
+        queryFn: () => teacherService.getApprovedOneTimeSlots(),
+        select: (response) => response.data,
     });
 }
 

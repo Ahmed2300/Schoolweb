@@ -456,6 +456,19 @@ export const teacherService = {
     },
 
     /**
+     * Get approved one-time slot requests
+     */
+    getApprovedOneTimeSlots: async (): Promise<import('../../types/slotRequest').SlotRequestsResponse> => {
+        const response = await apiClient.get(endpoints.teacher.slotRequests.list, {
+            params: {
+                type: 'one_time',
+                status: 'approved'
+            }
+        });
+        return response.data;
+    },
+
+    /**
      * Get teacher's recurring schedule
      */
     getMyRecurringSchedule: async (semesterId?: number): Promise<{

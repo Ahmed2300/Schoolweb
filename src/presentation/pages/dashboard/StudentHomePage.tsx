@@ -11,7 +11,8 @@ import {
     Loader2,
     AlertCircle,
     RefreshCw,
-    BookOpen
+    BookOpen,
+    Rocket
 } from 'lucide-react';
 
 export function StudentHomePage() {
@@ -207,93 +208,19 @@ export function StudentHomePage() {
                         />
                     )}
 
-                    {/* Skills Tab - Direct course listing */}
+                    {/* Skills Tab - Placeholder */}
                     {activeTab === 'skills' && (
-                        <>
-                            {/* Error State */}
-                            {error && (
-                                <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center mb-6">
-                                    <AlertCircle className="mx-auto mb-2 text-red-500" size={32} />
-                                    <p className="text-red-600 font-medium mb-3">{error}</p>
-                                    <button
-                                        onClick={fetchSkillsCourses}
-                                        className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
-                                    >
-                                        <RefreshCw size={16} />
-                                        إعادة المحاولة
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Loading State */}
-                            {loading && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {[1, 2, 3, 4].map(i => (
-                                        <CourseCardSkeleton key={i} />
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Empty State */}
-                            {!loading && !error && filteredCourses.length === 0 && (
-                                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-12 text-center">
-                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <BookOpen size={32} className="text-slate-400" />
-                                    </div>
-                                    <h3 className="text-lg font-bold text-charcoal mb-2">لا توجد دورات مهارات حالياً</h3>
-                                    <p className="text-slate-500 text-sm">سيتم عرض دورات المهارات مثل تحفيظ القرآن والفقه هنا.</p>
-                                </div>
-                            )}
-
-                            {/* Skills Courses Grid */}
-                            {!loading && !error && filteredCourses.length > 0 && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {filteredCourses.map(course => {
-                                        const courseName = getLocalizedName(course.name, 'دورة بدون اسم');
-                                        const teacherName = course.teacher?.name || 'مدرس غير محدد';
-                                        const progress = Math.floor(Math.random() * 60) + 20;
-
-                                        return (
-                                            <div
-                                                key={course.id}
-                                                className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex cursor-pointer group"
-                                            >
-                                                <div className="w-32 h-32 flex-shrink-0 overflow-hidden bg-gradient-to-br from-emerald-500/10 to-teal-500/5 flex items-center justify-center">
-                                                    <GraduationCap size={40} className="text-emerald-500/40" />
-                                                </div>
-
-                                                <div className="flex-1 p-4 flex flex-col justify-between">
-                                                    <div>
-                                                        <h3 className="font-bold text-charcoal mb-1 text-sm line-clamp-1">{courseName}</h3>
-                                                        <p className="text-slate-400 text-xs">{teacherName}</p>
-                                                        {course.code && (
-                                                            <span className="inline-block mt-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[10px] rounded font-mono">
-                                                                {course.code}
-                                                            </span>
-                                                        )}
-                                                    </div>
-
-                                                    <div className="flex items-center gap-2 mt-2">
-                                                        <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                            <div
-                                                                className="h-full bg-emerald-500 rounded-full transition-all"
-                                                                style={{ width: `${progress}%` }}
-                                                            ></div>
-                                                        </div>
-                                                        <div className="flex items-center gap-1 text-xs">
-                                                            {progress >= 50 && (
-                                                                <CheckCircle2 size={14} className="text-emerald-500" />
-                                                            )}
-                                                            <span className="text-slate-500 font-medium">{progress}% مكتمل</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </>
+                        <div className="flex flex-col items-center justify-center py-20 bg-slate-50 border border-dashed border-slate-200 rounded-3xl text-center">
+                            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm border border-slate-100">
+                                <Rocket size={40} className="text-shibl-crimson/50" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-slate-800 mb-2">قريباً</h3>
+                            <p className="text-slate-500 max-w-md mx-auto leading-relaxed">
+                                نحن نعمل على إعداد دورات المهارات لتكون متاحة لكم قريباً.
+                                <br />
+                                ترقبوا التحديثات الجديدة!
+                            </p>
+                        </div>
                     )}
                 </>
             )}
