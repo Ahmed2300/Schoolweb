@@ -142,6 +142,16 @@ interface RequestRowProps {
     isRejecting: boolean;
 }
 
+// Helper to get day name from date string
+const getDayName = (dateStr: string | null): string => {
+    if (!dateStr) return '';
+    try {
+        return new Date(dateStr).toLocaleDateString('ar-EG', { weekday: 'long' });
+    } catch (e) {
+        return '';
+    }
+};
+
 const RequestRow: React.FC<RequestRowProps> = React.memo(({
     request,
     isSelected,
@@ -204,16 +214,20 @@ const RequestRow: React.FC<RequestRowProps> = React.memo(({
         </td>
         <td className="px-6 py-4">
             <div className="flex flex-col">
-                <span className="font-semibold text-slate-800">{request.day_name || request.specific_date}</span>
-                <span className="text-xs text-slate-500 font-medium">{request.time_range}</span>
+                <span className="font-semibold text-slate-800">
+                    {request.day_name || request.arabic_day || getDayName(request.specific_date)}
+                </span>
+                <span className="text-xs text-slate-500 font-medium">
+                    {request.specific_date ? new Date(request.specific_date).toLocaleDateString('ar-EG') : ''}
+                </span>
             </div>
         </td>
         <td className="px-6 py-4">
             <StatusBadge status={request.status} />
         </td>
         <td className="px-6 py-4">
-            <span className="text-sm font-medium text-slate-500">
-                {new Date(request.created_at).toLocaleDateString('ar-EG')}
+            <span className="text-sm font-medium text-slate-500" dir="ltr">
+                {request.time_range}
             </span>
         </td>
         <td className="px-6 py-4">
@@ -251,6 +265,8 @@ const RequestRow: React.FC<RequestRowProps> = React.memo(({
 ));
 
 RequestRow.displayName = 'RequestRow';
+
+
 
 // ============================================
 // Main Component
@@ -732,9 +748,16 @@ export function AdminSlotRequestsPage(): React.ReactElement {
                                     <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-4 border border-amber-100">
                                         <div className="flex items-center gap-2 text-amber-600 mb-2">
                                             <Calendar size={16} />
-                                            <span className="text-xs font-semibold">اليوم</span>
+                                            <span className="text-xs font-semibold">اليوم والتاريخ</span>
                                         </div>
-                                        <p className="font-bold text-slate-800">{selectedRequest.arabic_day || selectedRequest.day_of_week}</p>
+                                        <p className="font-bold text-slate-800">
+                                            {selectedRequest.day_name || selectedRequest.arabic_day || getDayName(selectedRequest.specific_date)}
+                                        </p>
+                                        {selectedRequest.specific_date && (
+                                            <p className="text-xs text-slate-500 mt-1">
+                                                {new Date(selectedRequest.specific_date).toLocaleDateString('ar-EG')}
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-2xl p-4 border border-teal-100">
                                         <div className="flex items-center gap-2 text-teal-600 mb-2">
