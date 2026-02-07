@@ -508,8 +508,8 @@ export const teacherService = {
      * Get upcoming schedule for dashboard (REAL DATA)
      */
     getDashboardSchedule: async (): Promise<any[]> => {
-        const response = await apiClient.get('/lectures/dashboard-schedule');
-        return response.data.data;
+        const response = await apiClient.get(endpoints.teacher.lectures.dashboardSchedule);
+        return response.data.data || response.data;
     },
 };
 
