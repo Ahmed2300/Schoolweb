@@ -181,9 +181,12 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
         return Object.keys(newErrors).length === 0;
     };
 
+    const [apiError, setApiError] = useState<string | null>(null);
+
     // Handle form submission
     const handleSubmit = async () => {
         if (!validateForm()) return;
+        setApiError(null);
 
         try {
             await createRequest({
@@ -201,8 +204,15 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
 
             onSuccess?.();
             onClose();
-        } catch {
-            // Error handled by hook
+        } catch (err: any) {
+            // Check for specific conflict error structure
+            if (err?.response?.data?.errors?.conflict) {
+                setApiError(err.response.data.errors.conflict.message);
+            } else if (err?.response?.data?.message) {
+                setApiError(err.response.data.message);
+            } else {
+                setApiError('حدث خطأ أثناء إرسال الطلب');
+            }
         }
     };
 
@@ -252,6 +262,14 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
 
                 {/* Content */}
                 <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+                    {apiError && (
+                        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center gap-2 animate-in slide-in-from-top-2">
+                            <div className="shrink-0 p-1 bg-red-100 rounded-full">
+                                <X size={14} />
+                            </div>
+                            <p>{apiError}</p>
+                        </div>
+                    )}
                     {/* Request Type Toggle */}
                     <div>
                         <label className="block text-sm font-semibold text-charcoal mb-2">

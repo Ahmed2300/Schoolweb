@@ -216,11 +216,14 @@ export function ApprovedSlotSelector({
     onRequestNewSlot,
     bookedDates = [],
 }: ApprovedSlotSelectorProps) {
-    const { data: allSlots = [], isLoading: loadingRecurring, error: errorRecurring } = useMyRecurringSchedule();
-    const { data: oneTimeSlots = [], isLoading: loadingOneTime, error: errorOneTime } = useApprovedOneTimeSlots();
+    const recurringQuery = useMyRecurringSchedule();
+    const oneTimeQuery = useApprovedOneTimeSlots();
 
-    const isLoading = loadingRecurring || loadingOneTime;
-    const error = errorRecurring || errorOneTime;
+    const allSlots = recurringQuery.data || [];
+    const oneTimeSlots = oneTimeQuery.data || [];
+
+    const isLoading = recurringQuery.isLoading || oneTimeQuery.isLoading;
+    const error = recurringQuery.error || oneTimeQuery.error;
 
     // Week navigation state
     const [weekOffset, setWeekOffset] = useState(0);
@@ -270,16 +273,29 @@ export function ApprovedSlotSelector({
             days.add(slot.day_of_week.toLowerCase());
         });
 
-        // Also add days from exception slots if they fall in diverse days
-        // Note: For exception slots we should check dates, but for the day tabs
-        // we mainly care about recurring days. Exception slots will be forced 
-        // to show even if day tab is implemented differently, but here we can just add them.
+        // Also add days from exception slots if they match the current week
+        const weekDateStrings = weekDates.map(d => toDateString(d));
+
         filteredSlots.exceptionSlots.forEach(slot => {
-            if (slot.day_name) days.add(slot.day_name.toLowerCase());
+            // Check if this exception slot falls within the current week
+            if (slot.specific_date) {
+                const slotDate = slot.specific_date.split(' ')[0].split('T')[0];
+
+                if (weekDateStrings.includes(slotDate)) {
+                    // Find the index to correct map to a day name
+                    const dateIndex = weekDateStrings.indexOf(slotDate);
+                    if (dateIndex !== -1) {
+                        days.add(DAY_ORDER[dateIndex]);
+                    }
+                }
+            } else if (slot.day_name) {
+                // Fallback for logic consistency, though specific_date is preferred for exceptions
+                days.add(slot.day_name.toLowerCase());
+            }
         });
 
         return days;
-    }, [filteredSlots]);
+    }, [filteredSlots, weekDates]);
 
     // Map slots to specific dates for the current week
     const datedSlots = useMemo(() => {
@@ -306,7 +322,11 @@ export function ApprovedSlotSelector({
 
             // 2. Add matching one-time/exception slots (MUST match specific date)
             const exceptionsForDate = filteredSlots.exceptionSlots.filter(
-                s => s.specific_date === dateString
+                s => {
+                    if (!s.specific_date) return false;
+                    const slotDate = s.specific_date.split(' ')[0].split('T')[0];
+                    return slotDate === dateString;
+                }
             );
 
             exceptionsForDate.forEach(slot => {
@@ -396,7 +416,7 @@ export function ApprovedSlotSelector({
     }
 
     // No available slots
-    if (filteredSlots.length === 0) {
+    if (filteredSlots.recurringSlots.length === 0 && filteredSlots.exceptionSlots.length === 0) {
         if (hasPending) {
             return (
                 <div className="border-2 border-dashed border-amber-200 bg-amber-50/50 rounded-xl p-6 text-center">
