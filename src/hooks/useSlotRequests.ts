@@ -22,9 +22,26 @@ export const slotRequestKeys = {
     stats: () => [...slotRequestKeys.all, 'stats'] as const,
     detail: (id: number) => [...slotRequestKeys.all, 'detail', id] as const,
     approved: () => [...slotRequestKeys.all, 'approved'] as const,
+    availableSlots: (gradeId: number, date: string) => [...slotRequestKeys.all, 'availableSlots', gradeId, date] as const,
 };
 
+// ==================== TYPES ====================
+
+export type { AvailableSlot } from '../data/api/slotRequestService';
+
 // ==================== QUERIES ====================
+
+/**
+ * Query for fetching available (unreserved) slots for a specific grade and date.
+ */
+export function useAvailableSlotsQuery(gradeId: number | null, date: string | null) {
+    return useQuery({
+        queryKey: slotRequestKeys.availableSlots(gradeId ?? 0, date ?? ''),
+        queryFn: () => slotRequestService.getAvailableSlots(gradeId!, date!),
+        enabled: !!gradeId && !!date,
+        staleTime: 1000 * 30, // 30 seconds (refresh more often for availability)
+    });
+}
 
 /**
  * Query for fetching teacher's slot requests with optional status filter.
