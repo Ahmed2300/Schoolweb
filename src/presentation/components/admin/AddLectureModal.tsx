@@ -3,6 +3,7 @@ import { X, ChevronLeft, ChevronRight, Check, Video, FileText, Calendar, Loader2
 import { lectureService } from '../../../data/api/lectureService';
 import { adminService } from '../../../data/api/adminService';
 import { VideoUploader } from './VideoUploader';
+import { localToUtcIso } from '../../../utils/timeUtils';
 
 interface CourseOption {
     id: number;
@@ -161,8 +162,9 @@ export function AddLectureModal({
                 course_id: parseInt(formData.courseId),
                 unit_id: formData.unitId ? parseInt(formData.unitId) : undefined,
                 teacher_id: parseInt(formData.teacherId),
-                start_time: formData.startTime || undefined,
-                end_time: formData.endTime || undefined,
+                // Convert local datetime to UTC ISO string for backend
+                start_time: localToUtcIso(formData.startTime),
+                end_time: localToUtcIso(formData.endTime),
                 is_online: formData.isOnline,
             };
 

@@ -7,6 +7,9 @@ interface LiveSessionEmbedModalProps {
     onClose: () => void;
     embedUrl: string | null;
     title?: string;
+    lectureId?: number; // For calling end-session API
+    isTeacher?: boolean; // Show end session button for teachers
+    onEndSession?: () => Promise<void>; // Callback to end session properly
 }
 
 /**
@@ -22,7 +25,10 @@ export function LiveSessionEmbedModal({
     isOpen,
     onClose,
     embedUrl,
-    title = 'الجلسة المباشرة'
+    title = 'الجلسة المباشرة',
+    lectureId,
+    isTeacher = false,
+    onEndSession,
 }: LiveSessionEmbedModalProps) {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -137,15 +143,19 @@ export function LiveSessionEmbedModal({
                         {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
                     </button>
 
+
+
                     <button
                         onClick={onClose}
-                        className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold transition-colors"
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg text-sm font-bold transition-colors"
                     >
                         <X size={16} />
                         <span className="hidden sm:inline">خروج</span>
                     </button>
                 </div>
             </div>
+
+
 
             {/* Iframe Container */}
             <div className="flex-1 relative bg-black overflow-hidden">
