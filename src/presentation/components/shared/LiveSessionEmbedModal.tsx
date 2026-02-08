@@ -1,4 +1,4 @@
-import { X, Maximize2, Minimize2, Loader2, StopCircle } from 'lucide-react';
+import { X, Maximize2, Minimize2, Loader2 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -33,29 +33,7 @@ export function LiveSessionEmbedModal({
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState(false);
-    const [isEnding, setIsEnding] = useState(false);
-    const [showEndConfirm, setShowEndConfirm] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
-
-    // Handle ending session with confirmation
-    const handleEndSession = async () => {
-        if (!onEndSession) {
-            onClose();
-            return;
-        }
-        
-        setIsEnding(true);
-        try {
-            await onEndSession();
-            setShowEndConfirm(false);
-            onClose();
-        } catch (error) {
-            console.error('Failed to end session:', error);
-            alert('فشل إنهاء الجلسة. يرجى المحاولة مرة أخرى.');
-        } finally {
-            setIsEnding(false);
-        }
-    };
 
     // Toggle fullscreen
     const toggleFullscreen = async () => {
@@ -165,18 +143,7 @@ export function LiveSessionEmbedModal({
                         {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
                     </button>
 
-                    {/* End Session button - Teachers only */}
-                    {isTeacher && onEndSession && (
-                        <button
-                            onClick={() => setShowEndConfirm(true)}
-                            disabled={isEnding}
-                            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
-                            title="إنهاء الجلسة وحفظ التسجيل"
-                        >
-                            <StopCircle size={16} />
-                            <span className="hidden sm:inline">إنهاء الجلسة</span>
-                        </button>
-                    )}
+
 
                     <button
                         onClick={onClose}
@@ -188,43 +155,7 @@ export function LiveSessionEmbedModal({
                 </div>
             </div>
 
-            {/* End Session Confirmation Dialog */}
-            {showEndConfirm && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-50">
-                    <div className="bg-slate-800 rounded-2xl p-6 max-w-md mx-4 text-center border border-slate-700" dir="rtl">
-                        <StopCircle size={48} className="mx-auto text-orange-500 mb-4" />
-                        <h3 className="text-xl font-bold text-white mb-2">إنهاء الجلسة؟</h3>
-                        <p className="text-slate-400 mb-6">
-                            سيتم إنهاء الجلسة لجميع المشاركين وسيبدأ معالجة التسجيل تلقائياً.
-                            <br />
-                            <span className="text-orange-400 text-sm">التسجيل سيكون متاحاً خلال 15-30 دقيقة.</span>
-                        </p>
-                        <div className="flex gap-3 justify-center">
-                            <button
-                                onClick={() => setShowEndConfirm(false)}
-                                disabled={isEnding}
-                                className="px-6 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-                            >
-                                إلغاء
-                            </button>
-                            <button
-                                onClick={handleEndSession}
-                                disabled={isEnding}
-                                className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-bold transition-colors disabled:opacity-50 flex items-center gap-2"
-                            >
-                                {isEnding ? (
-                                    <>
-                                        <Loader2 size={16} className="animate-spin" />
-                                        جاري الإنهاء...
-                                    </>
-                                ) : (
-                                    'إنهاء الجلسة'
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+
 
             {/* Iframe Container */}
             <div className="flex-1 relative bg-black overflow-hidden">
