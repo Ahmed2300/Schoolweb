@@ -6,9 +6,10 @@ import { useNavigate } from 'react-router-dom';
 
 interface QuizItemProps {
     quiz: Quiz;
+    isSubscribed?: boolean;
 }
 
-export function QuizItem({ quiz }: QuizItemProps) {
+export function QuizItem({ quiz, isSubscribed = false }: QuizItemProps) {
     const { isRTL } = useLanguage();
     const navigate = useNavigate();
 
@@ -19,8 +20,10 @@ export function QuizItem({ quiz }: QuizItemProps) {
     const passingPercentage = quiz.passing_percentage ?? 60;
     const isPassed = isCompleted && score >= passingPercentage;
 
+    const isLocked = !isSubscribed || quiz.is_locked;
+
     const handleClick = () => {
-        if (quiz.is_locked) return;
+        if (isLocked) return;
         navigate(`/dashboard/quizzes/${quiz.id}`);
     };
 
@@ -56,13 +59,13 @@ export function QuizItem({ quiz }: QuizItemProps) {
                 relative group
                 flex items-center gap-4 p-4 lg:p-5
                 bg-white border ${statusStyle.borderColor} rounded-2xl
-                hover:shadow-md hover:-translate-y-0.5
+                hover:shadow-md ${!isLocked ? 'hover:-translate-y-0.5' : ''}
                 transition-all duration-300 cursor-pointer
-                ${quiz.is_locked ? 'opacity-60 pointer-events-none grayscale' : ''}
+                ${isLocked ? 'opacity-70 grayscale-[0.5]' : ''}
             `}
         >
             {/* Icon Container */}
-            <div className={`w-12 h-12 rounded-xl ${statusStyle.iconBg} ${statusStyle.iconColor} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-sm`}>
+            <div className={`w-12 h-12 rounded-xl ${statusStyle.iconBg} ${statusStyle.iconColor} flex items-center justify-center shrink-0 ${!isLocked ? 'group-hover:scale-110' : ''} transition-transform shadow-sm`}>
                 {isCompleted ? (
                     isPassed ? <CheckCircle2 size={22} className="stroke-[2.5]" /> : <XCircle size={22} className="stroke-[2.5]" />
                 ) : (
@@ -73,9 +76,9 @@ export function QuizItem({ quiz }: QuizItemProps) {
             {/* Content */}
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                    <h4 className={`text-base font-bold truncate transition-colors ${isCompleted
+                    <h4 className={`text-base font-bold truncate transition-colors ${!isLocked && isCompleted
                         ? (isPassed ? 'text-emerald-800 group-hover:text-emerald-600' : 'text-rose-800 group-hover:text-rose-600')
-                        : 'text-slate-800 group-hover:text-purple-700'
+                        : 'text-slate-800'
                         }`}>
                         {getLocalizedName(quiz.title, 'Quiz')}
                     </h4>
@@ -107,8 +110,11 @@ export function QuizItem({ quiz }: QuizItemProps) {
 
             {/* Action / State */}
             <div className="shrink-0 flex items-center gap-3">
-                {quiz.is_locked ? (
-                    <Lock size={18} className="text-slate-300" />
+                {isLocked ? (
+                    <div className="flex items-center gap-2 text-slate-400 bg-slate-50 px-3 py-2 rounded-xl">
+                        <Lock size={18} />
+                        {!isSubscribed && <span className="text-xs font-bold">للمشتركين</span>}
+                    </div>
                 ) : isCompleted ? (
                     <button className={`
                         px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2

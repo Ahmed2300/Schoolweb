@@ -47,6 +47,7 @@ export function TeacherLayout({
     const navigate = useNavigate();
     const { user, logout: storeLogout } = useAuthStore();
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
     // Session management - security feature
     const handleSessionExpired = () => {
@@ -102,6 +103,8 @@ export function TeacherLayout({
             <TeacherSidebar
                 isCollapsed={isSidebarCollapsed}
                 onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                isMobileOpen={isMobileSidebarOpen}
+                onMobileClose={() => setIsMobileSidebarOpen(false)}
             />
 
             {/* Main Content Area */}
@@ -109,15 +112,23 @@ export function TeacherLayout({
                 className={`
                     transition-all duration-300
                     ${isRTL
-                        ? isSidebarCollapsed ? 'mr-20' : 'mr-64'
-                        : isSidebarCollapsed ? 'ml-20' : 'ml-64'
+                        ? isSidebarCollapsed ? 'lg:mr-20' : 'lg:mr-64'
+                        : isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'
                     }
                 `}
             >
                 {/* Header - Fixed at top - Light theme */}
-                <header className="h-20 bg-white/90 backdrop-blur-xl border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-40 shadow-sm">
+                <header className="h-20 bg-white/90 backdrop-blur-xl border-b border-slate-200 px-4 md:px-8 flex items-center justify-between sticky top-0 z-40 shadow-sm">
                     {/* Left side - User profile */}
                     <div className="flex items-center gap-3">
+                        {/* Mobile Menu Toggle */}
+                        <button
+                            onClick={() => setIsMobileSidebarOpen(true)}
+                            className="lg:hidden p-2 -ms-2 text-slate-500 hover:bg-slate-100 rounded-lg"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" x2="21" y1="6" y2="6" /><line x1="3" x2="21" y1="12" y2="12" /><line x1="3" x2="21" y1="18" y2="18" /></svg>
+                        </button>
+
                         <img
                             src={user?.image_path || teacherPlaceholder}
                             alt={user?.name || 'Teacher'}

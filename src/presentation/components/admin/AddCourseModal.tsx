@@ -143,7 +143,8 @@ export function AddCourseModal({ isOpen, onClose, onSuccess }: AddCourseModalPro
 
     const filteredSubjects = useMemo(() => {
         if (!formData.semester_id) return [];
-        return subjects.filter(s => s.study_term_id === formData.semester_id);
+        // Use loose equality to handle potential string/number mismatches
+        return subjects.filter(s => s.study_term_id == formData.semester_id);
     }, [subjects, formData.semester_id]);
 
     const selectedGrade = useMemo(() => grades.find(g => g.id === formData.grade_id), [grades, formData.grade_id]);
@@ -166,7 +167,8 @@ export function AddCourseModal({ isOpen, onClose, onSuccess }: AddCourseModalPro
             const [gradesRes, semestersRes, subjectsRes, teachersRes] = await Promise.allSettled([
                 adminService.getGrades({ per_page: 100 }),
                 adminService.getSemesters({ per_page: 100 }),
-                adminService.getSubjects({ per_page: 100 }),
+                // Increase limit to ensure we get all subjects (temporary fix until server-side filtering)
+                adminService.getSubjects({ per_page: 500 }),
                 adminService.getTeachers({ per_page: 100 }),
             ]);
 

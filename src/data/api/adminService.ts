@@ -2220,6 +2220,23 @@ export const adminService = {
         return response.data;
     },
 
+    /**
+     * Reset (delete) all time slots for a specific day of week in a grade/semester
+     * This is used when admin deactivates a day to clear all existing slots for that day
+     */
+    resetDaySlots: async (gradeId: number, semesterId: number, dayOfWeek: number): Promise<{
+        success: boolean;
+        message: string;
+        deleted_count: number;
+    }> => {
+        const response = await apiClient.post(endpoints.admin.schedule.resetDaySlots, {
+            grade_id: gradeId,
+            semester_id: semesterId,
+            day_of_week: dayOfWeek,
+        });
+        return response.data;
+    },
+
     // ==================== SLOT REQUESTS (NEW SYSTEM) ====================
 
     /**
@@ -2229,7 +2246,7 @@ export const adminService = {
         status?: 'pending' | 'approved' | 'rejected' | 'all';
         grade_id?: number;
         teacher_id?: number;
-        type?: 'weekly' | 'one-time';
+        type?: 'weekly' | 'one_time';
         page?: number;
         per_page?: number;
     }) => {
@@ -2240,8 +2257,10 @@ export const adminService = {
     /**
      * Get single slot request details
      */
-    getSlotRequest: async (id: number) => {
-        const response = await apiClient.get(endpoints.admin.slotRequests.show(id));
+    getSlotRequest: async (id: number, type: 'weekly' | 'one_time' = 'weekly') => {
+        const response = await apiClient.get(endpoints.admin.slotRequests.show(id), {
+            params: { type }
+        });
         return response.data;
     },
 
@@ -2256,32 +2275,37 @@ export const adminService = {
     /**
      * Approve a teacher's slot request (creates the actual slot)
      */
-    approveTeacherSlotRequest: async (id: number) => {
-        const response = await apiClient.post(endpoints.admin.slotRequests.approve(id));
+    approveTeacherSlotRequest: async (id: number, type: 'weekly' | 'one_time' = 'weekly') => {
+        const response = await apiClient.post(
+            `${endpoints.admin.slotRequests.approve(id)}?type=${type}`
+        );
         return response.data;
     },
 
     /**
      * Reject a teacher's slot request with reason
      */
-    rejectTeacherSlotRequest: async (id: number, reason: string) => {
-        const response = await apiClient.post(endpoints.admin.slotRequests.reject(id), { reason });
+    rejectTeacherSlotRequest: async (id: number, reason: string, type: 'weekly' | 'one_time' = 'weekly') => {
+        const response = await apiClient.post(
+            `${endpoints.admin.slotRequests.reject(id)}?type=${type}`,
+            { reason }
+        );
         return response.data;
     },
 
     /**
      * Bulk approve multiple slot requests
      */
-    bulkApproveSlotRequests: async (ids: number[]) => {
-        const response = await apiClient.post(endpoints.admin.slotRequests.bulkApprove, { ids });
+    bulkApproveSlotRequests: async (ids: number[], type: 'weekly' | 'one_time' = 'weekly') => {
+        const response = await apiClient.post(endpoints.admin.slotRequests.bulkApprove, { ids, type });
         return response.data;
     },
 
     /**
      * Bulk reject multiple slot requests
      */
-    bulkRejectSlotRequests: async (ids: number[], reason: string) => {
-        const response = await apiClient.post(endpoints.admin.slotRequests.bulkReject, { ids, reason });
+    bulkRejectSlotRequests: async (ids: number[], reason: string, type: 'weekly' | 'one_time' = 'weekly') => {
+        const response = await apiClient.post(endpoints.admin.slotRequests.bulkReject, { ids, reason, type });
         return response.data;
     },
 };

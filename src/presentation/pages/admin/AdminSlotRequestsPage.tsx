@@ -42,6 +42,7 @@ import {
     useRejectTeacherSlotRequest,
     useBulkApproveSlotRequests,
     useBulkRejectSlotRequests,
+    SlotRequestType,
 } from '../../hooks/useSlotRequests';
 import type { SlotRequest, SlotRequestStatus, Teacher, Grade } from '../../../types/slotRequest';
 
@@ -133,13 +134,23 @@ StatusBadge.displayName = 'StatusBadge';
 interface RequestRowProps {
     request: SlotRequest;
     isSelected: boolean;
-    onSelect: (id: number) => void;
+    onSelect: (id: number, request: SlotRequest) => void;
     onView: (request: SlotRequest) => void;
-    onApprove: (id: number) => void;
-    onReject: (id: number) => void;
+    onApprove: (id: number, request: SlotRequest) => void;
+    onReject: (id: number, request: SlotRequest) => void;
     isApproving: boolean;
     isRejecting: boolean;
 }
+
+// Helper to get day name from date string
+const getDayName = (dateStr: string | null): string => {
+    if (!dateStr) return '';
+    try {
+        return new Date(dateStr).toLocaleDateString('ar-EG', { weekday: 'long' });
+    } catch (e) {
+        return '';
+    }
+};
 
 const RequestRow: React.FC<RequestRowProps> = React.memo(({
     request,
@@ -162,7 +173,7 @@ const RequestRow: React.FC<RequestRowProps> = React.memo(({
                 <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => onSelect(request.id)}
+                    onChange={() => onSelect(request.id, request)}
                     className="w-4 h-4 text-shibl-crimson rounded border-slate-300 focus:ring-shibl-crimson/30 cursor-pointer"
                     disabled={!request.is_pending}
                 />
@@ -203,16 +214,20 @@ const RequestRow: React.FC<RequestRowProps> = React.memo(({
         </td>
         <td className="px-6 py-4">
             <div className="flex flex-col">
-                <span className="font-semibold text-slate-800">{request.day_name || request.specific_date}</span>
-                <span className="text-xs text-slate-500 font-medium">{request.time_range}</span>
+                <span className="font-semibold text-slate-800">
+                    {request.day_name || request.arabic_day || getDayName(request.specific_date)}
+                </span>
+                <span className="text-xs text-slate-500 font-medium">
+                    {request.specific_date ? new Date(request.specific_date).toLocaleDateString('ar-EG') : ''}
+                </span>
             </div>
         </td>
         <td className="px-6 py-4">
             <StatusBadge status={request.status} />
         </td>
         <td className="px-6 py-4">
-            <span className="text-sm font-medium text-slate-500">
-                {new Date(request.created_at).toLocaleDateString('ar-EG')}
+            <span className="text-sm font-medium text-slate-500" dir="ltr">
+                {request.time_range}
             </span>
         </td>
         <td className="px-6 py-4">
@@ -227,7 +242,7 @@ const RequestRow: React.FC<RequestRowProps> = React.memo(({
                 {request.is_pending && (
                     <>
                         <button
-                            onClick={() => onApprove(request.id)}
+                            onClick={() => onApprove(request.id, request)}
                             disabled={isApproving}
                             className="p-2 text-emerald-500 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition-all disabled:opacity-50"
                             title="موافقة"
@@ -235,7 +250,7 @@ const RequestRow: React.FC<RequestRowProps> = React.memo(({
                             {isApproving ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
                         </button>
                         <button
-                            onClick={() => onReject(request.id)}
+                            onClick={() => onReject(request.id, request)}
                             disabled={isRejecting}
                             className="p-2 text-red-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all disabled:opacity-50"
                             title="رفض"
@@ -251,6 +266,8 @@ const RequestRow: React.FC<RequestRowProps> = React.memo(({
 
 RequestRow.displayName = 'RequestRow';
 
+
+
 // ============================================
 // Main Component
 // ============================================
@@ -260,22 +277,27 @@ export function AdminSlotRequestsPage(): React.ReactElement {
 
     // State
     const [statusFilter, setStatusFilter] = useState<SlotRequestStatus | 'all'>('all');
+    const [typeFilter, setTypeFilter] = useState<SlotRequestType | undefined>(undefined);
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
 
     // Bulk Selection State
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+    // Track selected request types for bulk operations
+    const [selectedTypes, setSelectedTypes] = useState<Map<number, SlotRequestType>>(new Map());
 
     // Modal State
     const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [rejectModalOpen, setRejectModalOpen] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState<SlotRequest | null>(null);
     const [pendingRejectId, setPendingRejectId] = useState<number | null>(null);
+    const [pendingRejectType, setPendingRejectType] = useState<SlotRequestType>('weekly');
     const [rejectionReason, setRejectionReason] = useState('');
 
     // Queries
     const { data, isLoading, refetch, isRefetching } = useSlotRequests({
         status: statusFilter,
+        type: typeFilter,
         page: currentPage,
         per_page: ITEMS_PER_PAGE,
     });
@@ -316,12 +338,18 @@ export function AdminSlotRequestsPage(): React.ReactElement {
     const totalPages = meta?.last_page || 1;
 
     // Handlers
-    const handleApprove = useCallback(async (id: number) => {
+    const handleApprove = useCallback(async (id: number, request?: SlotRequest) => {
+        const type: SlotRequestType = (request?.type === 'one_time' ? 'one_time' : 'weekly');
         try {
-            await approveMutation.mutateAsync(id);
+            await approveMutation.mutateAsync({ id, type });
             toast.success('تمت الموافقة على الطلب بنجاح');
             setSelectedIds(prev => {
                 const next = new Set(prev);
+                next.delete(id);
+                return next;
+            });
+            setSelectedTypes(prev => {
+                const next = new Map(prev);
                 next.delete(id);
                 return next;
             });
@@ -330,8 +358,10 @@ export function AdminSlotRequestsPage(): React.ReactElement {
         }
     }, [approveMutation]);
 
-    const handleRejectClick = useCallback((id: number) => {
+    const handleRejectClick = useCallback((id: number, request?: SlotRequest) => {
+        const type: SlotRequestType = (request?.type === 'one_time' ? 'one_time' : 'weekly');
         setPendingRejectId(id);
+        setPendingRejectType(type);
         setRejectionReason('');
         setRejectModalOpen(true);
     }, []);
@@ -345,7 +375,7 @@ export function AdminSlotRequestsPage(): React.ReactElement {
         }
 
         try {
-            await rejectMutation.mutateAsync({ id: pendingRejectId, reason: rejectionReason });
+            await rejectMutation.mutateAsync({ id: pendingRejectId, reason: rejectionReason, type: pendingRejectType });
             toast.success('تم رفض الطلب بنجاح');
             setRejectModalOpen(false);
             setPendingRejectId(null);
@@ -355,25 +385,41 @@ export function AdminSlotRequestsPage(): React.ReactElement {
                 next.delete(pendingRejectId);
                 return next;
             });
+            setSelectedTypes(prev => {
+                const next = new Map(prev);
+                next.delete(pendingRejectId);
+                return next;
+            });
         } catch (error: any) {
             const message = error?.response?.data?.message || 'حدث خطأ أثناء رفض الطلب';
             toast.error(message);
         }
-    }, [pendingRejectId, rejectionReason, rejectMutation]);
+    }, [pendingRejectId, rejectionReason, pendingRejectType, rejectMutation]);
 
     const handleBulkApprove = useCallback(async () => {
         if (selectedIds.size === 0) return;
 
+        // Group by type for bulk operations
+        const weeklyIds = Array.from(selectedIds).filter(id => selectedTypes.get(id) !== 'one_time');
+        const oneTimeIds = Array.from(selectedIds).filter(id => selectedTypes.get(id) === 'one_time');
+
         try {
-            await bulkApproveMutation.mutateAsync(Array.from(selectedIds));
+            if (weeklyIds.length > 0) {
+                await bulkApproveMutation.mutateAsync({ ids: weeklyIds, type: 'weekly' });
+            }
+            if (oneTimeIds.length > 0) {
+                await bulkApproveMutation.mutateAsync({ ids: oneTimeIds, type: 'one_time' });
+            }
             toast.success(`تمت الموافقة على ${selectedIds.size} طلب بنجاح`);
             setSelectedIds(new Set());
+            setSelectedTypes(new Map());
         } catch (error) {
             toast.error('حدث خطأ أثناء الموافقة الجماعية');
         }
-    }, [selectedIds, bulkApproveMutation]);
+    }, [selectedIds, selectedTypes, bulkApproveMutation]);
 
-    const handleSelectToggle = useCallback((id: number) => {
+    const handleSelectToggle = useCallback((id: number, request?: SlotRequest) => {
+        const type: SlotRequestType = (request?.type === 'one_time' ? 'one_time' : 'weekly');
         setSelectedIds(prev => {
             const next = new Set(prev);
             if (next.has(id)) {
@@ -383,14 +429,29 @@ export function AdminSlotRequestsPage(): React.ReactElement {
             }
             return next;
         });
+        setSelectedTypes(prev => {
+            const next = new Map(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.set(id, type);
+            }
+            return next;
+        });
     }, []);
 
     const handleSelectAll = useCallback(() => {
         const pendingRequests = requests.filter(r => r.is_pending);
         if (selectedIds.size === pendingRequests.length) {
             setSelectedIds(new Set());
+            setSelectedTypes(new Map());
         } else {
             setSelectedIds(new Set(pendingRequests.map(r => r.id)));
+            const typesMap = new Map<number, SlotRequestType>();
+            pendingRequests.forEach(r => {
+                typesMap.set(r.id, r.type === 'one_time' ? 'one_time' : 'weekly');
+            });
+            setSelectedTypes(typesMap);
         }
     }, [requests, selectedIds.size]);
 
@@ -436,6 +497,7 @@ export function AdminSlotRequestsPage(): React.ReactElement {
 
             {/* Filters & Actions */}
             <div className="flex items-center justify-between flex-wrap gap-4 mt-8">
+                {/* Status Filter */}
                 <div className="flex items-center gap-3 bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
                     {['all', 'pending', 'approved', 'rejected'].map(status => (
                         <button
@@ -455,6 +517,48 @@ export function AdminSlotRequestsPage(): React.ReactElement {
                             {status === 'rejected' && 'مرفوض'}
                         </button>
                     ))}
+                </div>
+
+                {/* Type Filter */}
+                <div className="flex items-center gap-3 bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
+                    <button
+                        onClick={() => {
+                            setTypeFilter(undefined);
+                            setCurrentPage(1);
+                        }}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${typeFilter === undefined
+                            ? 'bg-shibl-crimson text-white shadow-md'
+                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                            }`}
+                    >
+                        كل الأنواع
+                    </button>
+                    <button
+                        onClick={() => {
+                            setTypeFilter('weekly');
+                            setCurrentPage(1);
+                        }}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${typeFilter === 'weekly'
+                            ? 'bg-indigo-600 text-white shadow-md'
+                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                            }`}
+                    >
+                        <Repeat size={14} />
+                        أسبوعي
+                    </button>
+                    <button
+                        onClick={() => {
+                            setTypeFilter('one_time');
+                            setCurrentPage(1);
+                        }}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${typeFilter === 'one_time'
+                            ? 'bg-teal-600 text-white shadow-md'
+                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                            }`}
+                    >
+                        <CalendarDays size={14} />
+                        استثنائي
+                    </button>
                 </div>
 
                 {selectedIds.size > 0 && (
@@ -530,7 +634,7 @@ export function AdminSlotRequestsPage(): React.ReactElement {
                                             onView={handleViewDetails}
                                             onApprove={handleApprove}
                                             onReject={handleRejectClick}
-                                            isApproving={approveMutation.isPending && approveMutation.variables === request.id}
+                                            isApproving={approveMutation.isPending && approveMutation.variables?.id === request.id}
                                             isRejecting={rejectMutation.isPending && rejectMutation.variables?.id === request.id}
                                         />
                                     ))
@@ -644,9 +748,16 @@ export function AdminSlotRequestsPage(): React.ReactElement {
                                     <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-4 border border-amber-100">
                                         <div className="flex items-center gap-2 text-amber-600 mb-2">
                                             <Calendar size={16} />
-                                            <span className="text-xs font-semibold">اليوم</span>
+                                            <span className="text-xs font-semibold">اليوم والتاريخ</span>
                                         </div>
-                                        <p className="font-bold text-slate-800">{selectedRequest.arabic_day || selectedRequest.day_of_week}</p>
+                                        <p className="font-bold text-slate-800">
+                                            {selectedRequest.day_name || selectedRequest.arabic_day || getDayName(selectedRequest.specific_date)}
+                                        </p>
+                                        {selectedRequest.specific_date && (
+                                            <p className="text-xs text-slate-500 mt-1">
+                                                {new Date(selectedRequest.specific_date).toLocaleDateString('ar-EG')}
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-2xl p-4 border border-teal-100">
                                         <div className="flex items-center gap-2 text-teal-600 mb-2">
@@ -704,7 +815,7 @@ export function AdminSlotRequestsPage(): React.ReactElement {
                                     <div className="flex items-center gap-3">
                                         <button
                                             onClick={() => {
-                                                handleRejectClick(selectedRequest.id);
+                                                handleRejectClick(selectedRequest.id, selectedRequest);
                                                 setDetailModalOpen(false);
                                             }}
                                             disabled={rejectMutation.isPending}
@@ -715,7 +826,7 @@ export function AdminSlotRequestsPage(): React.ReactElement {
                                         </button>
                                         <button
                                             onClick={() => {
-                                                handleApprove(selectedRequest.id);
+                                                handleApprove(selectedRequest.id, selectedRequest);
                                                 setDetailModalOpen(false);
                                             }}
                                             disabled={approveMutation.isPending}

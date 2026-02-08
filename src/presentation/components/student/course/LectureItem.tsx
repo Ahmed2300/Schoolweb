@@ -10,11 +10,12 @@ import { useNavigate } from 'react-router-dom';
 interface LectureItemProps {
     lecture: Lecture;
     courseId: string;
+    isSubscribed?: boolean;
 }
 
 type LiveState = 'not_scheduled' | 'pending' | 'upcoming' | 'live' | 'ended';
 
-export function LectureItem({ lecture, courseId }: LectureItemProps) {
+export function LectureItem({ lecture, courseId, isSubscribed = false }: LectureItemProps) {
     const { isRTL } = useLanguage();
     const navigate = useNavigate();
     const hasQuizzes = lecture.quizzes && lecture.quizzes.length > 0;
@@ -82,7 +83,7 @@ export function LectureItem({ lecture, courseId }: LectureItemProps) {
             hoverBorder = 'hover:border-slate-200';
             hoverText = 'group-hover:text-slate-600';
             btnBg = 'bg-slate-100 text-slate-500 group-hover:bg-slate-500 group-hover:text-white';
-            actionText = lecture.recording_url ? 'شاهد التسجيل' : 'انتهت';
+            actionText = lecture.recording_url && isSubscribed ? 'شاهد التسجيل' : 'انتهت';
         } else {
             // Not scheduled or pending
             iconColor = 'text-amber-500';
@@ -102,10 +103,22 @@ export function LectureItem({ lecture, courseId }: LectureItemProps) {
         actionText = 'شاهد';
     }
 
-    // A completed item should always be accessible, even if "locked" in progression
-    const isAccessible = lecture.is_completed || !lecture.is_locked;
+    // Access Logic:
+    // 1. Must be subscribed (or admin/etc, but here we assume student context)
+    // 2. Progression lock (lecture.is_locked, but completed items are always accessible)
+    // For non-subscribed, we can see it exist, but it's "Locked".
+
+    // Original logic: const isAccessible = lecture.is_completed || !lecture.is_locked;
+    // New logic: 
+    const isProgressionAccessible = lecture.is_completed || !lecture.is_locked;
+    const isAccessible = isSubscribed && isProgressionAccessible;
+
+    // Visual state for non-subscribed:
+    // If !isSubscribed, it should probably look 'locked' but maybe distinctive from 'progression locked'?
+    // For now, standard lock is fine.
 
     const handleClick = () => {
+        if (!isSubscribed) return; // Prevent navigation if not subscribed
         if (isAccessible) {
             navigate(`/dashboard/courses/${courseId}/lecture/${lecture.id}`);
         }
@@ -133,20 +146,20 @@ export function LectureItem({ lecture, courseId }: LectureItemProps) {
         relative group
         flex items-center gap-4 p-4 lg:p-5
         bg-white border border-slate-100 rounded-2xl
-        hover:shadow-md ${hoverBorder} hover:-translate-y-0.5
+        hover:shadow-md ${isSubscribed ? hoverBorder : ''} ${isSubscribed ? 'hover:-translate-y-0.5' : ''}
         transition-all duration-300 cursor-pointer
-        ${!isAccessible ? 'opacity-60 pointer-events-none grayscale' : ''}
-        ${liveState === 'live' ? 'ring-2 ring-red-200 border-red-100' : ''}
+        ${!isAccessible ? 'opacity-70 grayscale-[0.5]' : ''}
+        ${liveState === 'live' && isSubscribed ? 'ring-2 ring-red-200 border-red-100' : ''}
       `}>
                 {/* Icon Container */}
-                <div className={`w-12 h-12 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-sm ${liveState === 'live' ? 'animate-pulse' : ''}`}>
+                <div className={`w-12 h-12 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center shrink-0 ${isSubscribed ? 'group-hover:scale-110' : ''} transition-transform shadow-sm ${liveState === 'live' && isSubscribed ? 'animate-pulse' : ''}`}>
                     <Icon size={22} className="stroke-[2.5]" fill={hasVideo ? "currentColor" : "none"} />
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                        <h4 className={`text-lg font-bold text-slate-800 truncate ${hoverText} transition-colors`}>
+                        <h4 className={`text-lg font-bold text-slate-800 truncate ${isSubscribed ? hoverText : ''} transition-colors`}>
                             {getLocalizedName(lecture.title, 'Lecture')}
                         </h4>
                         {lecture.is_completed && (
@@ -175,7 +188,10 @@ export function LectureItem({ lecture, courseId }: LectureItemProps) {
                 {/* Action / State */}
                 <div className="shrink-0 flex items-center gap-3">
                     {!isAccessible ? (
-                        <Lock size={20} className="text-slate-300" />
+                        <div className="flex items-center gap-2 text-slate-400 bg-slate-50 px-3 py-2 rounded-xl">
+                            <Lock size={18} />
+                            {!isSubscribed && <span className="text-xs font-bold">للمشتركين</span>}
+                        </div>
                     ) : (
                         <button className={`
               px-5 py-2.5 rounded-xl text-sm font-bold
@@ -192,7 +208,7 @@ export function LectureItem({ lecture, courseId }: LectureItemProps) {
             {hasQuizzes && (
                 <div className={`flex flex-col gap-3 pr-8 lg:pr-10 ${isRTL ? 'border-r-2 border-slate-100 pr-8 mr-6' : 'border-l-2 border-slate-100 pl-8 ml-6'}`}>
                     {lecture.quizzes!.map(quiz => (
-                        <QuizItem key={quiz.id} quiz={quiz} />
+                        <QuizItem key={quiz.id} quiz={quiz} isSubscribed={isSubscribed} />
                     ))}
                 </div>
             )}

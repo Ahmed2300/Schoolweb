@@ -47,21 +47,12 @@ export function TeacherStatsOverview({ stats, isLoading }: TeacherStatsOverviewP
             color: 'amber',
             delay: 0.3
         },
-        {
-            title: 'التقييم العام',
-            value: '4.8', // Mock for now
-            change: '12+ تقييم جديد',
-            changeType: 'positive' as const,
-            icon: Star,
-            color: 'purple',
-            delay: 0.4
-        },
     ], [stats]);
 
     if (isLoading) {
         return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                {[1, 2, 3, 4].map((i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                {[1, 2, 3].map((i) => (
                     <div key={i} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm h-32 animate-pulse">
                         <div className="flex justify-between items-start">
                             <div className="h-4 w-20 bg-slate-100 rounded mb-3"></div>
@@ -75,7 +66,7 @@ export function TeacherStatsOverview({ stats, isLoading }: TeacherStatsOverviewP
     }
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {statsCards.map((stat, index) => (
                 <motion.div
                     key={index}

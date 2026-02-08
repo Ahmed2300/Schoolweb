@@ -57,12 +57,18 @@ const dayNamesAr: Record<string, string> = {
 
 // ==================== HELPER FUNCTIONS ====================
 
-function formatTimeAr(time: string | undefined): string {
-    if (!time) return '--:--';
+/**
+ * Format time string (HH:MM:SS or HH:MM) to Arabic-friendly 12-hour format.
+ * Example: "14:30:00" → "02:30 م"
+ */
+function formatTime(time: string): string {
+    if (!time) return '';
+
     const [hours, minutes] = time.split(':').map(Number);
     const period = hours >= 12 ? 'م' : 'ص';
     const displayHours = hours % 12 || 12;
-    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+
+    return `${displayHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
 }
 
 // ==================== STAT CARD COMPONENT ====================
@@ -205,14 +211,16 @@ function TimeSlotCard({
     // Base card styles with smooth transition and premium interactions
     const cardBaseStyles = "group relative flex flex-col justify-between rounded-2xl p-4 transition-all duration-300 border h-full";
 
-    // Dynamic styles based on state
+    // Dynamic styles based on state - REMOVED cursor-not-allowed from parent
+    // Cursor styling should be handled by individual action buttons/divs only
     const stateStyles = slot.is_mine
         ? slot.status === 'pending'
             ? "bg-amber-50/50 border-amber-200 hover:border-amber-300 hover:shadow-lg hover:shadow-amber-100/50"
             : "bg-emerald-50/50 border-emerald-200 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-100/50"
         : slot.is_available
             ? "bg-white border-gray-100 hover:border-shibl-crimson/30 hover:shadow-xl hover:shadow-shibl-crimson/5 hover:-translate-y-0.5"
-            : "bg-gray-50/80 border-gray-100 opacity-60 cursor-not-allowed";
+            // No cursor-not-allowed on card - the action div inside will handle it
+            : "bg-gray-50/80 border-gray-100 opacity-60";
 
     return (
         <div className={`${cardBaseStyles} ${stateStyles}`}>
@@ -229,10 +237,10 @@ function TimeSlotCard({
                     </div>
                     <div className="flex flex-col">
                         <span className={`text-sm font-bold font-cairo ${slot.is_mine ? 'text-emerald-900' : 'text-gray-900'}`}>
-                            {formatTimeAr(slot.start)}
+                            {formatTime(slot.start)}
                         </span>
                         <span className="text-xs text-gray-400 font-medium">
-                            إلى {formatTimeAr(slot.end)}
+                            إلى {formatTime(slot.end)}
                         </span>
                     </div>
                 </div>
@@ -287,6 +295,7 @@ function TimeSlotCard({
                             transition-all duration-200
                             hover:shadow-lg hover:shadow-shibl-crimson/30 hover:brightness-110 active:scale-[0.98]
                             disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none
+                            cursor-pointer pointer-events-auto relative z-10
                         "
                     >
                         {isBooking ? (
@@ -302,7 +311,7 @@ function TimeSlotCard({
                         )}
                     </button>
                 ) : (
-                    <div className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gray-100 text-gray-400 font-medium text-sm">
+                    <div className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gray-100 text-gray-400 font-medium text-sm cursor-not-allowed">
                         <User className="w-4 h-4" />
                         <span>غير متاح</span>
                     </div>
@@ -340,9 +349,10 @@ interface ScheduleSummaryProps {
     slots: RecurringSlot[];
     isLoading: boolean;
     onCancel: (slotId: number) => void;
+    cancellingSlotId?: number | null;
 }
 
-function ScheduleSummary({ slots, isLoading, onCancel }: ScheduleSummaryProps) {
+function ScheduleSummary({ slots, isLoading, onCancel, cancellingSlotId }: ScheduleSummaryProps) {
     const statusBadge = (status: string) => {
         switch (status) {
             case 'approved':
@@ -413,7 +423,7 @@ function ScheduleSummary({ slots, isLoading, onCancel }: ScheduleSummaryProps) {
                         <div className="flex flex-col gap-1">
                             <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
                                 <Clock className="h-3.5 w-3.5 text-gray-400" />
-                                <span className="dir-ltr">{formatTimeAr(slot.start_time)} - {formatTimeAr(slot.end_time)}</span>
+                                <span className="dir-ltr">{formatTime(slot.start_time)} - {formatTime(slot.end_time)}</span>
                             </div>
                             {slot.grade && (
                                 <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
@@ -426,16 +436,15 @@ function ScheduleSummary({ slots, isLoading, onCancel }: ScheduleSummaryProps) {
 
                     <button
                         onClick={() => onCancel(slot.id)}
-                        // Note: Global loading state not passed here individually, but usually fast. 
-                        // Could prevent double click by UI feedback or local state if needed.
-                        // For now relying on mutation pending state if passed, but it's not passed to ScheduleSummary (only `isLoading` for fetch).
-                        // Let's assume fast feedback or global disable.
-                        // Actually, I should probably pass `isCancelling` if I want strict disable.
-                        // But I'll stick to simple styling updates as requested.
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        disabled={cancellingSlotId === slot.id}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="إلغاء الحجز"
                     >
-                        <XCircle className="h-5 w-5" />
+                        {cancellingSlotId === slot.id ? (
+                            <Loader2 className="h-5 w-5 animate-spin text-red-500" />
+                        ) : (
+                            <XCircle className="h-5 w-5" />
+                        )}
                     </button>
                 </div>
             ))}
@@ -451,6 +460,7 @@ export function TeacherWeeklySchedulePage() {
     const [selectedSemesterId, setSelectedSemesterId] = useState<number | null>(null);
     const [selectedDay, setSelectedDay] = useState<string>('sunday');
     const [processingSlotKey, setProcessingSlotKey] = useState<string | null>(null);
+    const [cancellingSlotId, setCancellingSlotId] = useState<number | null>(null);
 
     // Semester state (fetched from API based on selected grade)
     const [semesters, setSemesters] = useState<Semester[]>([]);
@@ -588,15 +598,20 @@ export function TeacherWeeklySchedulePage() {
     };
 
     const handleCancelSlot = async (slotId: number) => {
+        setCancellingSlotId(slotId);
         try {
             await cancelSlotMutation.mutateAsync(slotId);
 
             // Refetch data
-            refetchSlots();
-            refetchWeekConfig();
-            refetchMySchedule();
+            await Promise.all([
+                refetchSlots(),
+                refetchWeekConfig(),
+                refetchMySchedule()
+            ]);
         } catch {
             // Error handled by mutation hook
+        } finally {
+            setCancellingSlotId(null);
         }
     };
 
@@ -749,13 +764,12 @@ export function TeacherWeeklySchedulePage() {
                                         onBook={() => handleBookSlot(slot.start, slot.end)}
                                         onCancel={() => slot.slot_id && handleCancelSlot(slot.slot_id)}
                                         isBooking={processingSlotKey === `${slot.start}-${slot.end}`}
-                                        isCancelling={cancelSlotMutation.isPending}
+                                        isCancelling={!!slot.slot_id && cancellingSlotId === slot.slot_id}
                                         isExtraBooking={false}
-                                        isBookingDisabled={mySchedule?.some(s =>
-                                            s.grade_id === selectedGradeId &&
-                                            s.semester_id === selectedSemesterId &&
-                                            s.status !== 'rejected'
-                                        )}
+                                        // REMOVED: isBookingDisabled was incorrectly blocking ALL slots
+                                        // when ANY booking existed. The backend's is_available flag
+                                        // already correctly determines slot availability.
+                                        isBookingDisabled={false}
                                     />
                                 ))}
                             </div>
@@ -771,6 +785,7 @@ export function TeacherWeeklySchedulePage() {
                             slots={mySchedule}
                             isLoading={isLoadingMySchedule}
                             onCancel={handleCancelSlot}
+                            cancellingSlotId={cancellingSlotId}
                         />
                     </div>
                 </div>

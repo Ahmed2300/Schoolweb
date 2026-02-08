@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Clock, User, X, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { AvailableSlot } from '@/hooks/useRecurringSchedule';
+import { formatTime } from '@/utils/timeUtils';
 
 interface TimeSlotCardProps {
     slot: AvailableSlot;
@@ -17,15 +18,7 @@ interface TimeSlotCardProps {
     isCancelling?: boolean;
 }
 
-/**
- * Format time from 24h to 12h with Arabic AM/PM
- */
-function formatTimeAr(time: string): string {
-    const [hours, minutes] = time.split(':').map(Number);
-    const period = hours >= 12 ? 'م' : 'ص';
-    const displayHours = hours % 12 || 12;
-    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
-}
+
 
 export function TimeSlotCard({
     slot,
@@ -51,7 +44,7 @@ export function TimeSlotCard({
             <div className="flex items-center gap-2 text-gray-600">
                 <Clock className="h-4 w-4" />
                 <span className="font-medium">
-                    {formatTimeAr(slot.start)} - {formatTimeAr(slot.end)}
+                    {formatTime(slot.start)} - {formatTime(slot.end)}
                 </span>
             </div>
 

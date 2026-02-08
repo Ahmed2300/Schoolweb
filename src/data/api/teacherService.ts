@@ -260,21 +260,8 @@ export const teacherService = {
         totalStudents: number;
         totalLectures: number;
     }> => {
-        // Fetch all courses to calculate stats
-        const response = await teacherService.getMyCourses({ per_page: 100 });
-        const courses = response.data || [];
-
-        const totalCourses = courses.length;
-        const activeCourses = courses.filter(c => c.is_active).length;
-        const totalStudents = courses.reduce((sum, c) => sum + (c.students_count || 0), 0);
-        const totalLectures = courses.reduce((sum, c) => sum + (c.lectures_count || 0), 0);
-
-        return {
-            totalCourses,
-            activeCourses,
-            totalStudents,
-            totalLectures,
-        };
+        const response = await apiClient.get(endpoints.teacher.lectures.stats);
+        return response.data.data;
     },
 
     /**
@@ -423,7 +410,12 @@ export const teacherService = {
             end: string;
             is_available: boolean;
             is_mine: boolean;
+            is_taken: boolean;
+            mode: 'individual' | 'multiple';
+            status?: 'pending' | 'approved' | 'rejected';
             slot_id?: number;
+            teacher_name?: string | null;
+            locked_reason?: string;
         }[];
     }> => {
         const response = await apiClient.get(endpoints.teacher.recurringSchedule.availableSlots, {
@@ -452,6 +444,19 @@ export const teacherService = {
      */
     getSlotRequests: async (): Promise<import('../../types/slotRequest').SlotRequestsResponse> => {
         const response = await apiClient.get(endpoints.teacher.slotRequests.list);
+        return response.data;
+    },
+
+    /**
+     * Get approved one-time slot requests
+     */
+    getApprovedOneTimeSlots: async (): Promise<import('../../types/slotRequest').SlotRequestsResponse> => {
+        const response = await apiClient.get(endpoints.teacher.slotRequests.list, {
+            params: {
+                type: 'one_time',
+                status: 'approved'
+            }
+        });
         return response.data;
     },
 
@@ -487,28 +492,15 @@ export const teacherService = {
     },
 
     /**
-     * Get upcoming schedule for dashboard
+     * Get upcoming schedule for dashboard (REAL DATA)
+     * Sends client timezone for accurate date calculations
      */
-    getUpcomingSchedule: async (): Promise<any[]> => {
-        // Fetch approved time slots or lectures
-        // For now, we'll fetch confirmed time slots
-        const response = await apiClient.get(endpoints.teacher.timeSlots.myRequests);
-        const slots: TimeSlot[] = response.data.data || [];
-
-        // Filter for future slots and approved ones
-        const now = new Date();
-        const upcoming = slots.filter(slot => {
-            if (!slot.date || !slot.start_time) return false;
-            const slotDate = new Date(`${slot.date}T${slot.start_time}`);
-            return slotDate > now && slot.status === 'approved';
+    getDashboardSchedule: async (): Promise<any[]> => {
+        const clientTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const response = await apiClient.get(endpoints.teacher.lectures.dashboardSchedule, {
+            params: { timezone: clientTimezone }
         });
-
-        // Sort by date
-        return upcoming.sort((a, b) => {
-            const dateA = new Date(`${a.date}T${a.start_time}`).getTime();
-            const dateB = new Date(`${b.date}T${b.start_time}`).getTime();
-            return dateA - dateB;
-        }).slice(0, 5); // Return top 5
+        return response.data.data || response.data;
     },
 };
 

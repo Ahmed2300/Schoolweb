@@ -9,9 +9,10 @@ import { useLanguage } from '../../../hooks';
 interface CourseContentListProps {
     units: Unit[];
     courseId: string;
+    isSubscribed?: boolean;
 }
 
-export function CourseContentList({ units, courseId }: CourseContentListProps) {
+export function CourseContentList({ units, courseId, isSubscribed = false }: CourseContentListProps) {
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4 mb-8">
@@ -26,7 +27,13 @@ export function CourseContentList({ units, courseId }: CourseContentListProps) {
 
             <div className="space-y-4">
                 {units.map((unit, index) => (
-                    <UnitAccordion key={unit.id} unit={unit} index={index} courseId={courseId} />
+                    <UnitAccordion
+                        key={unit.id}
+                        unit={unit}
+                        index={index}
+                        courseId={courseId}
+                        isSubscribed={isSubscribed}
+                    />
                 ))}
 
                 {units.length === 0 && (
@@ -42,7 +49,7 @@ export function CourseContentList({ units, courseId }: CourseContentListProps) {
     );
 }
 
-function UnitAccordion({ unit, index, courseId }: { unit: Unit; index: number; courseId: string }) {
+function UnitAccordion({ unit, index, courseId, isSubscribed }: { unit: Unit; index: number; courseId: string; isSubscribed: boolean }) {
     const [isOpen, setIsOpen] = useState(index === 0);
     const { isRTL } = useLanguage();
 
@@ -86,9 +93,18 @@ function UnitAccordion({ unit, index, courseId }: { unit: Unit; index: number; c
                         {unit.items.length > 0 ? (
                             unit.items.map(item => (
                                 item.item_type === 'lecture' ? (
-                                    <LectureItem key={`lec-${item.id}`} lecture={item} courseId={courseId} />
+                                    <LectureItem
+                                        key={`lec-${item.id}`}
+                                        lecture={item}
+                                        courseId={courseId}
+                                        isSubscribed={isSubscribed}
+                                    />
                                 ) : (
-                                    <QuizItem key={`quiz-${item.id}`} quiz={item} />
+                                    <QuizItem
+                                        key={`quiz-${item.id}`}
+                                        quiz={item}
+                                        isSubscribed={isSubscribed}
+                                    />
                                 )
                             ))
                         ) : (

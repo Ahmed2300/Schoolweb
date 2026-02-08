@@ -1,80 +1,181 @@
 /**
- * SlotRequestDialog Component
+ * SlotRequestDialog Component - Redesigned
  * 
- * Modal dialog for teachers to request additional time slots.
- * Features:
- * - Request type toggle (Weekly / One-time)
- * - Grade selection from assigned grades
- * - Day/Date picker based on type
- * - Time range selector
- * - Optional notes
+ * Modal dialog for teachers to request exceptional lesson slots.
+ * New Flow: Grade → Date → Available Slots (clickable cards)
+ * 
+ * Changes from previous version:
+ * - Removed weekly/one-time toggle (only one-time now)
+ * - Removed start/end time dropdowns
+ * - Added slot card selector (fetched from backend)
+ * - Added clearer status indicators
  */
 
-import { useState, useEffect } from 'react';
-import { X, Calendar, Clock, Loader2, Plus, CalendarDays, Repeat } from 'lucide-react';
-import { useSlotRequests } from '../../../hooks/useSlotRequests';
-import type {
-    SlotRequestFormState,
-    DayOfWeek,
-} from '../../../types/slotRequest';
-import { DAYS_OF_WEEK, SLOT_REQUEST_TYPES } from '../../../types/slotRequest';
+import { useState, useEffect, useMemo } from 'react';
+import { X, Calendar, Clock, Loader2, Plus, CalendarDays, BookOpen, GraduationCap, Check, AlertCircle, User } from 'lucide-react';
+import { useSlotRequests, useAvailableSlotsQuery } from '../../../hooks/useSlotRequests';
+import { useAssignedGrades } from '../../../hooks/useRecurringSchedule';
+import { useTeacherCourses } from '../../hooks/useTeacherContent';
+import { getCourseName } from '../../../data/api/teacherService';
+import type { AvailableSlot } from '../../../data/api/slotRequestService';
 
 // ==================== TYPES ====================
 
 interface Grade {
     id: number;
-    name: string;
+    name: string | { ar?: string; en?: string };
 }
 
 interface SlotRequestDialogProps {
     open: boolean;
     onClose: () => void;
     onSuccess?: () => void;
-    /** List of grades assigned to this teacher */
-    grades?: Grade[];
 }
 
-// ==================== TIME OPTIONS ====================
+// Helper to extract localized name
+const getLocalizedName = (name: string | { ar?: string; en?: string } | undefined | null): string => {
+    if (!name) return '';
+    if (typeof name === 'string') return name;
+    return name.ar || name.en || '';
+};
 
-const TIME_OPTIONS = [
-    '08:00', '09:00', '10:00', '11:00', '12:00',
-    '13:00', '14:00', '15:00', '16:00', '17:00',
-    '18:00', '19:00', '20:00', '21:00',
-];
+// Format time for display
+const formatTime = (time: string): string => {
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours, 10);
+    const period = hour >= 12 ? 'م' : 'ص';
+    const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+    return `${displayHour}:${minutes} ${period}`;
+};
 
-// ==================== COMPONENT ====================
+// ==================== SLOT CARD COMPONENT ====================
 
-export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: SlotRequestDialogProps) {
+interface SlotCardProps {
+    slot: AvailableSlot;
+    isSelected: boolean;
+    onSelect: () => void;
+    disabled?: boolean;
+}
+
+function SlotCard({ slot, isSelected, onSelect, disabled }: SlotCardProps) {
+    const isAvailable = slot.is_available;
+
+    return (
+        <button
+            type="button"
+            onClick={onSelect}
+            disabled={disabled || !isAvailable}
+            className={`
+                relative p-4 rounded-2xl border-2 transition-all duration-200 text-center
+                ${isSelected
+                    ? 'border-teal-500 bg-teal-50 ring-2 ring-teal-500/20'
+                    : isAvailable
+                        ? 'border-slate-200 bg-white hover:border-teal-300 hover:bg-teal-50/50'
+                        : 'border-slate-100 bg-slate-50 opacity-60 cursor-not-allowed'
+                }
+                ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+            `}
+        >
+            {/* Selected Checkmark */}
+            {isSelected && (
+                <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center">
+                    <Check className="w-4 h-4 text-white" />
+                </div>
+            )}
+
+            {/* Time Display */}
+            <div className="flex items-center justify-center gap-2 mb-2">
+                <Clock className={`w-4 h-4 ${isAvailable ? 'text-teal-500' : 'text-slate-400'}`} />
+                <span className={`text-lg font-bold ${isAvailable ? 'text-charcoal' : 'text-slate-400'}`}>
+                    {formatTime(slot.start)}
+                </span>
+            </div>
+            <div className="text-sm text-slate-500">
+                إلى {formatTime(slot.end)}
+            </div>
+
+            {/* Reserved By Badge */}
+            {!isAvailable && slot.reserved_by && (
+                <div className="mt-2 flex items-center justify-center gap-1 text-xs text-slate-400">
+                    <User className="w-3 h-3" />
+                    <span>{slot.reserved_by}</span>
+                </div>
+            )}
+
+            {/* Available Badge */}
+            {isAvailable && !isSelected && (
+                <div className="mt-2 text-xs text-teal-600 font-medium">
+                    متاح للحجز
+                </div>
+            )}
+        </button>
+    );
+}
+
+// ==================== MAIN COMPONENT ====================
+
+export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialogProps) {
     const { createRequest, isCreating } = useSlotRequests();
+    const { data: myCourses = [], isLoading: isLoadingCourses } = useTeacherCourses();
+    const { data: gradesData, isLoading: isLoadingGrades } = useAssignedGrades();
 
-    // Form state
-    const [formState, setFormState] = useState<SlotRequestFormState>({
-        grade_id: null,
-        type: SLOT_REQUEST_TYPES.WEEKLY,
-        day_of_week: null,
-        specific_date: '',
-        start_time: '08:00',
-        end_time: '10:00',
-        notes: '',
-    });
+    // Form state - simplified
+    const [gradeId, setGradeId] = useState<number | null>(null);
+    const [courseId, setCourseId] = useState<number | null>(null);
+    const [semesterId, setSemesterId] = useState<number | null>(null);
+    const [selectedDate, setSelectedDate] = useState<string>('');
+    const [selectedSlot, setSelectedSlot] = useState<AvailableSlot | null>(null);
+    const [notes, setNotes] = useState<string>('');
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [apiError, setApiError] = useState<string | null>(null);
 
-    const [errors, setErrors] = useState<Partial<Record<keyof SlotRequestFormState, string>>>({});
+    // Fetch available slots when grade and date are selected
+    const {
+        data: availableSlots = [],
+        isLoading: isLoadingSlots,
+        error: slotsError,
+        refetch: refetchSlots,
+    } = useAvailableSlotsQuery(gradeId, selectedDate);
+
+    // Use grades from API (teacher's assigned grades)
+    const assignedGrades = gradesData?.data ?? [];
+
+    // Selected course details
+    const selectedCourse = useMemo(() => {
+        if (!courseId) return null;
+        return myCourses.find(c => c.id === courseId);
+    }, [courseId, myCourses]);
+
+    // Auto-set semester and grade when course is selected
+    useEffect(() => {
+        if (selectedCourse) {
+            if (selectedCourse.semester?.id) {
+                setSemesterId(selectedCourse.semester.id);
+            }
+            if (selectedCourse.grade?.id) {
+                setGradeId(selectedCourse.grade.id);
+            }
+        }
+    }, [selectedCourse]);
 
     // Reset form when dialog opens/closes
     useEffect(() => {
         if (open) {
-            setFormState({
-                grade_id: null,
-                type: SLOT_REQUEST_TYPES.WEEKLY,
-                day_of_week: null,
-                specific_date: '',
-                start_time: '08:00',
-                end_time: '10:00',
-                notes: '',
-            });
+            setGradeId(null);
+            setCourseId(null);
+            setSemesterId(null);
+            setSelectedDate('');
+            setSelectedSlot(null);
+            setNotes('');
             setErrors({});
+            setApiError(null);
         }
     }, [open]);
+
+    // Clear slot selection when date changes
+    useEffect(() => {
+        setSelectedSlot(null);
+    }, [selectedDate, gradeId]);
 
     // Close on escape key
     useEffect(() => {
@@ -99,35 +200,21 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
         };
     }, [open]);
 
-    // Use grades from props
-    const assignedGrades = grades;
-
     // Validate form
     const validateForm = (): boolean => {
-        const newErrors: Partial<Record<keyof SlotRequestFormState, string>> = {};
+        const newErrors: Record<string, string> = {};
 
-        if (!formState.grade_id) {
+        if (!gradeId) {
             newErrors.grade_id = 'يرجى اختيار الصف';
         }
-
-        if (formState.type === SLOT_REQUEST_TYPES.WEEKLY && formState.day_of_week === null) {
-            newErrors.day_of_week = 'يرجى اختيار يوم الأسبوع';
+        if (!courseId) {
+            newErrors.course_id = 'يرجى اختيار المادة';
         }
-
-        if (formState.type === SLOT_REQUEST_TYPES.ONE_TIME && !formState.specific_date) {
-            newErrors.specific_date = 'يرجى اختيار التاريخ';
+        if (!selectedDate) {
+            newErrors.date = 'يرجى اختيار التاريخ';
         }
-
-        if (!formState.start_time) {
-            newErrors.start_time = 'يرجى اختيار وقت البدء';
-        }
-
-        if (!formState.end_time) {
-            newErrors.end_time = 'يرجى اختيار وقت الانتهاء';
-        }
-
-        if (formState.start_time && formState.end_time && formState.start_time >= formState.end_time) {
-            newErrors.end_time = 'وقت الانتهاء يجب أن يكون بعد وقت البدء';
+        if (!selectedSlot) {
+            newErrors.slot = 'يرجى اختيار موعد متاح';
         }
 
         setErrors(newErrors);
@@ -137,35 +224,34 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
     // Handle form submission
     const handleSubmit = async () => {
         if (!validateForm()) return;
+        setApiError(null);
 
         try {
             await createRequest({
-                grade_id: formState.grade_id!,
-                type: formState.type,
-                day_of_week: formState.type === SLOT_REQUEST_TYPES.WEEKLY ? formState.day_of_week ?? undefined : undefined,
-                specific_date: formState.type === SLOT_REQUEST_TYPES.ONE_TIME ? formState.specific_date : undefined,
-                start_time: formState.start_time,
-                end_time: formState.end_time,
-                notes: formState.notes || undefined,
+                grade_id: gradeId!,
+                course_id: courseId ?? undefined,
+                semester_id: semesterId ?? undefined,
+                specific_date: selectedDate,
+                slot_time: selectedSlot!.slot_time,
+                notes: notes || undefined,
             });
 
             onSuccess?.();
             onClose();
-        } catch {
-            // Error handled by hook
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { errors?: { conflict?: { message?: string } }; message?: string } } };
+            if (error?.response?.data?.errors?.conflict) {
+                setApiError(error.response.data.errors.conflict.message ?? 'تعارض في الموعد');
+            } else if (error?.response?.data?.message) {
+                setApiError(error.response.data.message);
+            } else {
+                setApiError('حدث خطأ أثناء إرسال الطلب');
+            }
         }
     };
 
-    // Update form field
-    const updateField = <K extends keyof SlotRequestFormState>(
-        field: K,
-        value: SlotRequestFormState[K]
-    ) => {
-        setFormState(prev => ({ ...prev, [field]: value }));
-        if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: undefined }));
-        }
-    };
+    // Get min date (today)
+    const minDate = new Date().toISOString().split('T')[0];
 
     if (!open) return null;
 
@@ -180,15 +266,15 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
             {/* Dialog */}
             <div className="relative bg-white rounded-[24px] shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-in zoom-in-95 fade-in duration-200">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-shibl-crimson to-shibl-crimson-dark px-6 py-5 text-white">
+                <div className="bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-5 text-white">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                                 <Plus size={22} />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold">طلب موعد جديد</h2>
-                                <p className="text-sm text-white/80">إضافة موعد إلى جدولك</p>
+                                <h2 className="text-lg font-bold">طلب موعد استثنائي</h2>
+                                <p className="text-sm text-white/80">حجز موعد لحصة استثنائية</p>
                             </div>
                         </div>
                         <button
@@ -202,52 +288,81 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
 
                 {/* Content */}
                 <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
-                    {/* Request Type Toggle */}
+                    {/* API Error */}
+                    {apiError && (
+                        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center gap-2 animate-in slide-in-from-top-2">
+                            <div className="shrink-0 p-1 bg-red-100 rounded-full">
+                                <AlertCircle size={14} />
+                            </div>
+                            <p>{apiError}</p>
+                        </div>
+                    )}
+
+                    {/* Step 1: Course Selection */}
                     <div>
                         <label className="block text-sm font-semibold text-charcoal mb-2">
-                            نوع الطلب
+                            <BookOpen size={16} className="inline ml-1" />
+                            المادة الدراسية
                         </label>
-                        <div className="grid grid-cols-2 gap-3">
-                            <button
-                                type="button"
-                                onClick={() => updateField('type', SLOT_REQUEST_TYPES.WEEKLY)}
-                                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 transition-all ${formState.type === SLOT_REQUEST_TYPES.WEEKLY
-                                    ? 'border-shibl-crimson bg-shibl-crimson/5 text-shibl-crimson'
-                                    : 'border-slate-200 hover:border-slate-300 text-slate-grey'
-                                    }`}
-                            >
-                                <Repeat size={18} />
-                                <span className="font-semibold">أسبوعي</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => updateField('type', SLOT_REQUEST_TYPES.ONE_TIME)}
-                                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 transition-all ${formState.type === SLOT_REQUEST_TYPES.ONE_TIME
-                                    ? 'border-shibl-crimson bg-shibl-crimson/5 text-shibl-crimson'
-                                    : 'border-slate-200 hover:border-slate-300 text-slate-grey'
-                                    }`}
-                            >
-                                <CalendarDays size={18} />
-                                <span className="font-semibold">مرة واحدة</span>
-                            </button>
-                        </div>
+                        <select
+                            value={courseId ?? ''}
+                            onChange={e => {
+                                setCourseId(e.target.value ? Number(e.target.value) : null);
+                                setErrors(prev => ({ ...prev, course_id: '' }));
+                            }}
+                            disabled={isLoadingCourses}
+                            className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/20 ${errors.course_id ? 'border-red-400' : 'border-slate-200 focus:border-teal-500'
+                                }`}
+                        >
+                            <option value="">
+                                {isLoadingCourses ? 'جارٍ التحميل...' : 'اختر المادة...'}
+                            </option>
+                            {myCourses.map((course) => (
+                                <option key={course.id} value={course.id}>
+                                    {getCourseName(course.name)}
+                                    {course.grade?.name && ` - ${course.grade.name}`}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.course_id && (
+                            <p className="text-red-500 text-xs mt-1">{errors.course_id}</p>
+                        )}
                     </div>
 
-                    {/* Grade Selection */}
+                    {/* Semester Display (auto-filled from course) */}
+                    {selectedCourse?.semester && (
+                        <div>
+                            <label className="block text-sm font-semibold text-charcoal mb-2">
+                                <GraduationCap size={16} className="inline ml-1" />
+                                الفصل الدراسي
+                            </label>
+                            <div className="px-4 py-3 rounded-xl border-2 border-slate-100 bg-slate-50 text-charcoal font-medium">
+                                {getLocalizedName(selectedCourse.semester.name)}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Grade Selection (auto-filled but can be changed) */}
                     <div>
                         <label className="block text-sm font-semibold text-charcoal mb-2">
                             الصف
                         </label>
                         <select
-                            value={formState.grade_id ?? ''}
-                            onChange={e => updateField('grade_id', e.target.value ? Number(e.target.value) : null)}
-                            className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 ${errors.grade_id ? 'border-red-400' : 'border-slate-200 focus:border-shibl-crimson'
+                            value={gradeId ?? ''}
+                            onChange={e => {
+                                setGradeId(e.target.value ? Number(e.target.value) : null);
+                                setErrors(prev => ({ ...prev, grade_id: '' }));
+                            }}
+                            disabled={isLoadingGrades}
+                            className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/20 ${errors.grade_id ? 'border-red-400' : 'border-slate-200 focus:border-teal-500'
                                 }`}
                         >
-                            <option value="">اختر الصف...</option>
-                            {assignedGrades.map((grade: { id: number; name: string }) => (
+                            <option value="">
+                                {isLoadingGrades ? 'جارٍ التحميل...' : 'اختر الصف...'}
+                            </option>
+                            {assignedGrades.map((grade: Grade) => (
                                 <option key={grade.id} value={grade.id}>
-                                    {grade.name}
+                                    {getLocalizedName(grade.name)}
                                 </option>
                             ))}
                         </select>
@@ -256,96 +371,91 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
                         )}
                     </div>
 
-                    {/* Day Selector (for Weekly) */}
-                    {formState.type === SLOT_REQUEST_TYPES.WEEKLY && (
-                        <div>
-                            <label className="block text-sm font-semibold text-charcoal mb-2">
-                                <Calendar size={16} className="inline ml-1" />
-                                يوم الأسبوع
-                            </label>
-                            <div className="grid grid-cols-4 gap-2">
-                                {DAYS_OF_WEEK.filter(day => day.value !== 5).map(day => (
-                                    <button
-                                        key={day.value}
-                                        type="button"
-                                        onClick={() => updateField('day_of_week', day.value as DayOfWeek)}
-                                        className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${formState.day_of_week === day.value
-                                            ? 'bg-shibl-crimson text-white'
-                                            : 'bg-slate-100 hover:bg-slate-200 text-slate-grey'
-                                            }`}
-                                    >
-                                        {day.labelAr}
-                                    </button>
-                                ))}
-                            </div>
-                            {errors.day_of_week && (
-                                <p className="text-red-500 text-xs mt-1">{errors.day_of_week}</p>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Date Picker (for One-time) */}
-                    {formState.type === SLOT_REQUEST_TYPES.ONE_TIME && (
-                        <div>
-                            <label className="block text-sm font-semibold text-charcoal mb-2">
-                                <Calendar size={16} className="inline ml-1" />
-                                التاريخ
-                            </label>
-                            <input
-                                type="date"
-                                value={formState.specific_date}
-                                min={new Date().toISOString().split('T')[0]}
-                                onChange={e => updateField('specific_date', e.target.value)}
-                                className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 ${errors.specific_date ? 'border-red-400' : 'border-slate-200 focus:border-shibl-crimson'
-                                    }`}
-                            />
-                            {errors.specific_date && (
-                                <p className="text-red-500 text-xs mt-1">{errors.specific_date}</p>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Time Range */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-charcoal mb-2">
-                                <Clock size={16} className="inline ml-1" />
-                                من
-                            </label>
-                            <select
-                                value={formState.start_time}
-                                onChange={e => updateField('start_time', e.target.value)}
-                                className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 ${errors.start_time ? 'border-red-400' : 'border-slate-200 focus:border-shibl-crimson'
-                                    }`}
-                            >
-                                {TIME_OPTIONS.map(time => (
-                                    <option key={time} value={time}>{time}</option>
-                                ))}
-                            </select>
-                            {errors.start_time && (
-                                <p className="text-red-500 text-xs mt-1">{errors.start_time}</p>
-                            )}
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-charcoal mb-2">
-                                <Clock size={16} className="inline ml-1" />
-                                إلى
-                            </label>
-                            <select
-                                value={formState.end_time}
-                                onChange={e => updateField('end_time', e.target.value)}
-                                className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 ${errors.end_time ? 'border-red-400' : 'border-slate-200 focus:border-shibl-crimson'
-                                    }`}
-                            >
-                                {TIME_OPTIONS.map(time => (
-                                    <option key={time} value={time}>{time}</option>
-                                ))}
-                            </select>
-                            {errors.end_time && (
-                                <p className="text-red-500 text-xs mt-1">{errors.end_time}</p>
-                            )}
-                        </div>
+                    {/* Step 2: Date Picker */}
+                    <div>
+                        <label className="block text-sm font-semibold text-charcoal mb-2">
+                            <Calendar size={16} className="inline ml-1" />
+                            التاريخ
+                        </label>
+                        <input
+                            type="date"
+                            value={selectedDate}
+                            min={minDate}
+                            onChange={e => {
+                                setSelectedDate(e.target.value);
+                                setErrors(prev => ({ ...prev, date: '' }));
+                            }}
+                            className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/20 ${errors.date ? 'border-red-400' : 'border-slate-200 focus:border-teal-500'
+                                }`}
+                        />
+                        {errors.date && (
+                            <p className="text-red-500 text-xs mt-1">{errors.date}</p>
+                        )}
                     </div>
+
+                    {/* Step 3: Available Slots */}
+                    {gradeId && selectedDate && (
+                        <div>
+                            <label className="block text-sm font-semibold text-charcoal mb-3">
+                                <CalendarDays size={16} className="inline ml-1" />
+                                اختر الموعد المتاح
+                            </label>
+
+                            {isLoadingSlots ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="w-6 h-6 animate-spin text-teal-500" />
+                                    <span className="mr-2 text-slate-500">جارٍ تحميل المواعيد...</span>
+                                </div>
+                            ) : slotsError ? (
+                                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+                                    <AlertCircle className="inline w-4 h-4 ml-1" />
+                                    حدث خطأ أثناء تحميل المواعيد
+                                    <button
+                                        onClick={() => refetchSlots()}
+                                        className="mr-2 underline"
+                                    >
+                                        إعادة المحاولة
+                                    </button>
+                                </div>
+                            ) : availableSlots.length === 0 ? (
+                                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm">
+                                    <AlertCircle className="inline w-4 h-4 ml-1" />
+                                    لا توجد مواعيد متاحة لهذا اليوم. يرجى اختيار تاريخ آخر.
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {availableSlots.map((slot) => (
+                                            <SlotCard
+                                                key={slot.slot_time}
+                                                slot={slot}
+                                                isSelected={selectedSlot?.slot_time === slot.slot_time}
+                                                onSelect={() => {
+                                                    setSelectedSlot(slot);
+                                                    setErrors(prev => ({ ...prev, slot: '' }));
+                                                }}
+                                                disabled={isCreating}
+                                            />
+                                        ))}
+                                    </div>
+                                    {errors.slot && (
+                                        <p className="text-red-500 text-xs mt-2">{errors.slot}</p>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Prompt to complete steps */}
+                    {(!gradeId || !selectedDate) && (
+                        <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 text-sm">
+                            <CalendarDays size={16} className="inline ml-1" />
+                            {!gradeId
+                                ? 'اختر المادة والصف أولاً لعرض المواعيد المتاحة'
+                                : 'اختر التاريخ لعرض المواعيد المتاحة'
+                            }
+                        </div>
+                    )}
 
                     {/* Notes */}
                     <div>
@@ -353,11 +463,11 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
                             ملاحظات (اختياري)
                         </label>
                         <textarea
-                            value={formState.notes}
-                            onChange={e => updateField('notes', e.target.value)}
+                            value={notes}
+                            onChange={e => setNotes(e.target.value)}
                             placeholder="أضف ملاحظات إضافية للإدارة..."
                             rows={3}
-                            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-charcoal placeholder-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson resize-none"
+                            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-charcoal placeholder-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
                         />
                     </div>
                 </div>
@@ -373,8 +483,8 @@ export function SlotRequestDialog({ open, onClose, onSuccess, grades = [] }: Slo
                     </button>
                     <button
                         onClick={handleSubmit}
-                        disabled={isCreating}
-                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-shibl-crimson to-shibl-crimson-dark hover:from-shibl-crimson-dark hover:to-shibl-crimson text-white font-bold text-sm shadow-lg shadow-shibl-crimson/30 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center gap-2"
+                        disabled={isCreating || !selectedSlot}
+                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-500 text-white font-bold text-sm shadow-lg shadow-teal-500/30 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center gap-2"
                     >
                         {isCreating ? (
                             <>

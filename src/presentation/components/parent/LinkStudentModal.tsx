@@ -106,7 +106,7 @@ export function LinkStudentModal({ isOpen, onClose, onSuccess }: LinkStudentModa
                 {/* Close Button */}
                 <button
                     onClick={handleClose}
-                    className="absolute top-4 left-4 p-2 rounded-full hover:bg-slate-100 transition-colors"
+                    className="absolute top-4 left-4 p-2 rounded-full hover:bg-slate-100 transition-colors z-10"
                 >
                     <X size={20} className="text-slate-400" />
                 </button>

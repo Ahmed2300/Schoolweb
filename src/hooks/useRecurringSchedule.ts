@@ -94,12 +94,44 @@ export function useCancelRecurringSlot() {
 
     return useMutation({
         mutationFn: teacherService.cancelRecurringSlot,
+        // Optimistic update: immediately remove from cache to prevent flash on refresh
+        onMutate: async (slotId: number) => {
+            // Cancel any outgoing refetches
+            await queryClient.cancelQueries({ queryKey: recurringScheduleKeys.all });
+
+            // Snapshot the previous value for rollback
+            const previousSchedule = queryClient.getQueriesData({ queryKey: recurringScheduleKeys.all });
+
+            // Optimistically remove the slot from all mySchedule caches
+            queryClient.setQueriesData(
+                { queryKey: recurringScheduleKeys.all },
+                (old: unknown) => {
+                    if (!old || typeof old !== 'object') return old;
+                    const data = old as { data?: RecurringSlot[] };
+                    if (Array.isArray(data?.data)) {
+                        return {
+                            ...data,
+                            data: data.data.filter((s: RecurringSlot) => s.id !== slotId)
+                        };
+                    }
+                    return old;
+                }
+            );
+
+            return { previousSchedule };
+        },
         onSuccess: (data) => {
             toast.success(data.message || 'تم إلغاء الموعد بنجاح');
-            // Invalidate related queries
+            // Invalidate to sync with server
             queryClient.invalidateQueries({ queryKey: recurringScheduleKeys.all });
         },
-        onError: (error: Error & { response?: { data?: { message?: string } } }) => {
+        onError: (error: Error & { response?: { data?: { message?: string } } }, _slotId, context) => {
+            // Rollback on error
+            if (context?.previousSchedule) {
+                context.previousSchedule.forEach(([queryKey, data]) => {
+                    queryClient.setQueryData(queryKey, data);
+                });
+            }
             const message = error.response?.data?.message || 'حدث خطأ أثناء إلغاء الموعد';
             toast.error(message);
         },
@@ -120,8 +152,13 @@ export type AvailableSlot = {
     end: string;
     is_available: boolean;
     is_mine: boolean;
+    is_taken?: boolean;
+    booking_disabled?: boolean;
     slot_id?: number;
     status?: 'pending' | 'approved' | 'rejected';
+    locked_reason?: string;
+    mode?: 'individual' | 'multiple';
+    teacher_name?: string | null;
 };
 
 export type RecurringSlot = {

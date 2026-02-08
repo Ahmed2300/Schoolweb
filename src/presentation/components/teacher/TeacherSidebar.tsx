@@ -19,7 +19,8 @@ import {
     Calendar,
     Video,
     CalendarClock,
-    CalendarRange
+    CalendarRange,
+    FileText
 } from 'lucide-react';
 
 // Assets
@@ -28,6 +29,8 @@ import teacherPlaceholder from '../../../assets/images/teacher-placeholder.png';
 interface TeacherSidebarProps {
     isCollapsed: boolean;
     onToggle: () => void;
+    isMobileOpen: boolean;
+    onMobileClose: () => void;
 }
 
 // Navigation item type for type safety
@@ -42,12 +45,10 @@ interface NavItem {
 const navItems: NavItem[] = [
     { id: 'dashboard', label: 'لوحة التحكم', icon: LayoutDashboard, path: ROUTES.TEACHER_DASHBOARD },
     { id: 'courses', label: 'الدورات', icon: BookOpen, path: ROUTES.TEACHER_COURSES },
-
-    { id: 'slot-requests', label: 'طلبات المواعيد', icon: CalendarClock, path: '/teacher/slot-requests' },
-    { id: 'weekly-schedule', label: 'الجدول الأسبوعي', icon: CalendarRange, path: '/teacher/weekly-schedule' },
-    { id: 'quizzes', label: 'الاختبارات', icon: ClipboardList, path: ROUTES.TEACHER_QUIZZES },
+    { id: 'requests', label: 'طلبات المواعيد', icon: CalendarClock, path: '/teacher/slot-requests' },
+    { id: 'schedule', label: 'الجدول الأسبوعي', icon: CalendarRange, path: '/teacher/weekly-schedule' },
+    { id: 'quizzes', label: 'الاختبارات', icon: FileText, path: ROUTES.TEACHER_QUIZZES },
     { id: 'recordings', label: 'التسجيلات', icon: Video, path: '/teacher/recordings' },
-
     { id: 'settings', label: 'الإعدادات', icon: Settings, path: '/teacher/settings' },
 ];
 
@@ -55,11 +56,13 @@ const navItems: NavItem[] = [
 const NavItem = memo(function NavItem({
     item,
     isCollapsed,
-    isRTL
+    isRTL,
+    onClick
 }: {
     item: NavItem;
     isCollapsed: boolean;
     isRTL: boolean;
+    onClick?: () => void;
 }) {
     // Use 'end' prop for dashboard to prevent matching all child routes
     const isDashboard = item.id === 'dashboard';
@@ -68,31 +71,26 @@ const NavItem = memo(function NavItem({
         <NavLink
             to={item.path}
             end={isDashboard}
+            onClick={onClick}
             className={({ isActive }) => `
                 relative flex items-center gap-3 px-4 py-3 mx-2 rounded-xl
                 transition-all duration-200 group
                 ${isActive
-                    ? `bg-red-50 text-shibl-crimson font-semibold ${isRTL ? 'border-r-4' : 'border-l-4'} border-shibl-crimson`
-                    : 'text-[#636E72] hover:bg-slate-100 hover:text-[#1F1F1F]'
+                    ? 'bg-shibl-crimson text-white shadow-md shadow-shibl-crimson/20'
+                    : 'text-[#636E72] hover:bg-slate-100 hover:text-[#2D3436]'
                 }
-                ${isCollapsed ? 'justify-center' : ''}
             `}
         >
-            <item.icon size={20} className="flex-shrink-0" />
-            {!isCollapsed && (
-                <span className="font-medium text-sm whitespace-nowrap">
-                    {item.label}
-                </span>
-            )}
+            <item.icon
+                size={22}
+                strokeWidth={1.5}
+                className={`shrink-0 transition-colors duration-200`}
+            />
 
-            {/* Tooltip for collapsed state */}
-            {isCollapsed && (
+            {!isCollapsed && (
                 <div className={`
-                    absolute ${isRTL ? 'right-full mr-2' : 'left-full ml-2'} 
-                    px-3 py-2 bg-[#1F1F1F] text-white text-sm rounded-lg
-                    opacity-0 invisible group-hover:opacity-100 group-hover:visible
+                    font-medium text-sm
                     transition-all duration-200 whitespace-nowrap z-50
-                    shadow-lg
                 `}>
                     {item.label}
                 </div>
@@ -101,7 +99,7 @@ const NavItem = memo(function NavItem({
     );
 });
 
-export function TeacherSidebar({ isCollapsed, onToggle }: TeacherSidebarProps) {
+export function TeacherSidebar({ isCollapsed, onToggle, isMobileOpen, onMobileClose }: TeacherSidebarProps) {
     const { isRTL } = useLanguage();
     const navigate = useNavigate();
     const { user, logout: storeLogout } = useAuthStore();
@@ -117,56 +115,46 @@ export function TeacherSidebar({ isCollapsed, onToggle }: TeacherSidebarProps) {
         }
     };
 
-    const CollapseIcon = isRTL
-        ? (isCollapsed ? ChevronLeft : ChevronRight)
-        : (isCollapsed ? ChevronRight : ChevronLeft);
-
-    return (
-        <aside
-            className={`
-                fixed top-0 ${isRTL ? 'right-0' : 'left-0'} h-screen
-                bg-white border-${isRTL ? 'l' : 'r'} border-slate-200
-                transition-all duration-300 z-50
-                flex flex-col shadow-sm
-                ${isCollapsed ? 'w-20' : 'w-64'}
-            `}
-        >
-            {/* Logo Section */}
-            <div className="h-20 flex items-center justify-between px-4 border-b border-slate-200">
+    const sidebarContent = (
+        <div className="flex flex-col h-full bg-white border-r border-l border-slate-200">
+            {/* Header / Logo Area */}
+            <div className={`
+                h-20 flex items-center px-6 border-b border-slate-100
+                ${isCollapsed ? 'justify-center' : 'justify-between'}
+            `}>
                 {!isCollapsed && (
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-shibl-crimson to-red-600 flex items-center justify-center">
-                            <GraduationCap size={22} className="text-white" />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-[#1F1F1F] font-bold text-lg">سُبُل</span>
-                            <span className="text-[#636E72] text-xs">بوابة المعلم</span>
-                        </div>
+                    <div className="flex flex-col">
+                        <span className="text-xl font-bold text-[#2D3436]">شِبْل</span>
+                        <span className="text-xs text-[#636E72]">بوابة المعلم</span>
                     </div>
                 )}
 
-                {isCollapsed && (
-                    <div className="w-10 h-10 mx-auto rounded-xl bg-gradient-to-br from-shibl-crimson to-red-600 flex items-center justify-center">
-                        <GraduationCap size={22} className="text-white" />
-                    </div>
-                )}
+                {/* Desktop Toggle */}
+                <button
+                    onClick={onToggle}
+                    className="hidden lg:flex p-1.5 rounded-full hover:bg-slate-100 text-slate-400 transition-colors"
+                >
+                    {isRTL
+                        ? (isCollapsed ? <ChevronLeft size={20} /> : <ChevronRight size={20} />)
+                        : (isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />)
+                    }
+                </button>
+
+                {/* Mobile Close Button */}
+                <button
+                    onClick={onMobileClose}
+                    className="lg:hidden p-1.5 rounded-full hover:bg-slate-100 text-slate-600"
+                >
+                    <ChevronRight size={20} className={isRTL ? 'rotate-180' : ''} />
+                </button>
+
+                <div className={`
+                    w-10 h-10 bg-shibl-crimson rounded-xl flex items-center justify-center shadow-lg shadow-shibl-crimson/20
+                    ${isCollapsed ? 'block' : 'hidden'}
+                `}>
+                    <GraduationCap className="text-white" size={24} />
+                </div>
             </div>
-
-            {/* Collapse Toggle - Positioned on sidebar edge */}
-            <button
-                onClick={onToggle}
-                className={`
-                    absolute top-24 z-50
-                    ${isRTL ? '-left-3' : '-right-3'}
-                    w-6 h-6 rounded-full bg-shibl-crimson text-white
-                    flex items-center justify-center
-                    hover:bg-red-600 transition-colors
-                    shadow-lg border-2 border-white
-                `}
-                aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-                <CollapseIcon size={14} />
-            </button>
 
             {/* Teacher Profile - Compact */}
             {!isCollapsed && (
@@ -208,23 +196,52 @@ export function TeacherSidebar({ isCollapsed, onToggle }: TeacherSidebarProps) {
             </nav>
 
             {/* Logout Button */}
-            <div className="p-4 border-t border-slate-200 bg-white">
+            <div className="p-4 border-t border-slate-100">
                 <button
                     onClick={handleLogout}
                     className={`
-                        w-full flex items-center gap-3 px-4 py-3 rounded-xl
-                        text-red-600 hover:bg-red-50 hover:text-red-700
-                        transition-all duration-200 border border-transparent hover:border-red-200
-                        ${isCollapsed ? 'justify-center' : ''}
-                    `}
+                            w-full flex items-center gap-3 px-4 py-3 rounded-xl
+                            text-red-500 hover:bg-red-50 transition-all duration-200 group
+                            ${isCollapsed ? 'justify-center' : ''}
+                        `}
                 >
-                    <LogOut size={20} />
+                    <LogOut
+                        size={22}
+                        strokeWidth={1.5}
+                        className="shrink-0 transition-transform group-hover:-translate-x-1"
+                    />
                     {!isCollapsed && (
                         <span className="font-medium text-sm">تسجيل الخروج</span>
                     )}
                 </button>
             </div>
-        </aside>
+        </div>
+    );
+
+    return (
+        <>
+            {/* Mobile Overlay Backdrop */}
+            {isMobileOpen && (
+                <div
+                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[99] lg:hidden"
+                    onClick={onMobileClose}
+                />
+            )}
+
+            {/* Sidebar Container */}
+            <aside
+                className={`
+                    fixed inset-y-0 z-[100] bg-white shadow-xl lg:shadow-none transition-all duration-300 ease-in-out
+                    ${isRTL ? 'right-0 border-l' : 'left-0 border-r'}
+                    ${isMobileOpen ? 'translate-x-0' : (isRTL ? 'translate-x-full' : '-translate-x-full')}
+                    lg:translate-x-0 lg:fixed lg:h-screen lg:shrink-0
+                    ${isCollapsed ? 'lg:w-20' : 'lg:w-64'}
+                    w-64
+                `}
+            >
+                {sidebarContent}
+            </aside>
+        </>
     );
 }
 

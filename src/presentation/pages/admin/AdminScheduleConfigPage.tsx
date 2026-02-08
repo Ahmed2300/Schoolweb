@@ -94,6 +94,11 @@ export function AdminScheduleConfigPage() {
     const [revisionEndDate, setRevisionEndDate] = useState('');
     const [isCreatingRevision, setIsCreatingRevision] = useState(false);
 
+    // Day Reset Confirmation Modal State
+    const [showResetConfirmation, setShowResetConfirmation] = useState(false);
+    const [pendingDayReset, setPendingDayReset] = useState<number | null>(null);
+    const [isResettingDay, setIsResettingDay] = useState(false);
+
     // Helper to convert backend data to local state
     const convertFromBackend = useCallback((backendDays: Record<number, DayScheduleSettingData>): Record<number, DayScheduleConfig> => {
         const result: Record<number, DayScheduleConfig> = {};
@@ -297,6 +302,61 @@ export function AdminScheduleConfigPage() {
             [selectedDay]: { ...prev[selectedDay], ...updates }
         }));
         setHasChanges(true);
+    };
+
+    // Handle day toggle - show confirmation if deactivating an active day with a semester selected
+    const handleDayToggle = (isActive: boolean) => {
+        if (!isActive && currentDayConfig.isActive && selectedSemesterId) {
+            // Show confirmation dialog when deactivating
+            setPendingDayReset(selectedDay);
+            setShowResetConfirmation(true);
+        } else {
+            // Just toggle without confirmation (activating or no semester selected)
+            updateDayConfig({ isActive });
+        }
+    };
+
+    // Confirm day reset - deletes slots and deactivates the day
+    const handleConfirmDayReset = async () => {
+        if (pendingDayReset === null || !selectedGradeId || !selectedSemesterId) return;
+
+        setIsResettingDay(true);
+        try {
+            const response = await adminService.resetDaySlots(selectedGradeId, selectedSemesterId, pendingDayReset);
+
+            if (response.success) {
+                toast.success(response.message || `تم حذف ${response.deleted_count} فترة زمنية`);
+
+                // Update the day config to deactivate
+                setDayConfigs(prev => ({
+                    ...prev,
+                    [pendingDayReset]: { ...prev[pendingDayReset], isActive: false }
+                }));
+                setHasChanges(true);
+
+                // Refresh slot stats
+                const slotsResponse = await adminService.getSlotsForSemester(selectedSemesterId);
+                if (slotsResponse.success && slotsResponse.data) {
+                    setSlotsStats({
+                        ...slotsResponse.data.stats,
+                        has_slots: slotsResponse.data.has_slots
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Failed to reset day slots:', error);
+            toast.error('فشل حذف الفترات الزمنية');
+        } finally {
+            setIsResettingDay(false);
+            setShowResetConfirmation(false);
+            setPendingDayReset(null);
+        }
+    };
+
+    // Cancel day reset
+    const handleCancelDayReset = () => {
+        setShowResetConfirmation(false);
+        setPendingDayReset(null);
     };
 
     // Break Management
@@ -614,7 +674,7 @@ export function AdminScheduleConfigPage() {
                                             <input
                                                 type="checkbox"
                                                 checked={currentDayConfig.isActive}
-                                                onChange={(e) => updateDayConfig({ isActive: e.target.checked })}
+                                                onChange={(e) => handleDayToggle(e.target.checked)}
                                                 className="sr-only peer"
                                             />
                                             <span className="ml-3 text-sm font-bold text-slate-700 whitespace-nowrap">تفعيل هذا اليوم</span>
@@ -1030,6 +1090,61 @@ export function AdminScheduleConfigPage() {
                     </div>
                 )
             }
+
+            {/* Day Reset Confirmation Modal */}
+            {showResetConfirmation && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                                <Trash2 className="text-red-600" size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-800">تأكيد إلغاء تفعيل اليوم</h3>
+                                <p className="text-sm text-slate-500">
+                                    {pendingDayReset !== null ? WEEKDAYS[pendingDayReset]?.name : ''}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                            <div className="flex items-start gap-2">
+                                <AlertCircle size={18} className="text-red-600 mt-0.5 flex-shrink-0" />
+                                <div className="text-sm text-red-700">
+                                    <p className="font-bold mb-1">تحذير: سيتم حذف جميع الفترات الزمنية!</p>
+                                    <p>
+                                        إلغاء تفعيل هذا اليوم سيؤدي إلى <strong>حذف جميع الحجوزات والفترات الزمنية</strong> المرتبطة بهذا اليوم للفصل الدراسي المحدد. هذا الإجراء لا يمكن التراجع عنه.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleCancelDayReset}
+                                disabled={isResettingDay}
+                                className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
+                            >
+                                إلغاء
+                            </button>
+                            <button
+                                onClick={handleConfirmDayReset}
+                                disabled={isResettingDay}
+                                className="flex-1 px-4 py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {isResettingDay ? (
+                                    <Loader2 className="animate-spin" size={18} />
+                                ) : (
+                                    <>
+                                        <Trash2 size={18} />
+                                        حذف وإلغاء التفعيل
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 }

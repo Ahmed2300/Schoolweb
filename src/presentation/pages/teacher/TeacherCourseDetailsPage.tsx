@@ -15,7 +15,7 @@ import {
     ArrowRight,
     BookOpen,
     Users,
-    Star,
+
     Clock,
     Settings,
     GraduationCap,
@@ -131,7 +131,8 @@ const getQuizStatusStyle = (status: string) => {
 const getLocalizedTitle = (title: string | { ar?: string; en?: string } | undefined): string => {
     if (!title) return 'بدون عنوان';
     if (typeof title === 'string') return title;
-    return title.ar || title.en || 'بدون عنوان';
+    const val = title.ar || title.en || 'بدون عنوان';
+    return (typeof val === 'string') ? val : String(val);
 };
 
 // Draggable Unassigned Quiz Wrapper
@@ -241,6 +242,7 @@ function UnitCard({
     onDeleteQuiz,
     onToggleQuizActive,
     onStartSession,
+    onEndSession,
     quizzes,
     dragHandleProps
 }: {
@@ -257,7 +259,9 @@ function UnitCard({
     onEditQuiz: (quiz: Quiz) => void;
     onDeleteQuiz: (quiz: Quiz) => void;
     onToggleQuizActive: (quiz: Quiz) => void;
+
     onStartSession?: (lectureId: number) => void;
+    onEndSession?: (lectureId: number) => void;
     quizzes?: Quiz[];
     dragHandleProps?: any;
 }) {
@@ -309,10 +313,13 @@ function UnitCard({
             setItems(newItems); // Optimistic update of local state
 
             // Prepare payload
-            const payload = newItems.map(item => ({
-                id: item.id,
-                type: item.sortType as 'lecture' | 'quiz'
-            }));
+            // Filter out pending items (string IDs) as they don't exist in backend yet
+            const payload = newItems
+                .filter(item => typeof item.id === 'number')
+                .map(item => ({
+                    id: item.id,
+                    type: item.sortType as 'lecture' | 'quiz'
+                }));
 
             try {
                 await teacherService.reorderContent(unit.course_id, unit.id, payload);
@@ -511,14 +518,24 @@ function UnitCard({
                                                                     }
 
                                                                     return (
-                                                                        <button
-                                                                            onClick={() => onStartSession && onStartSession(contentItem.id)}
-                                                                            className="px-2 py-1.5 text-xs font-medium text-white bg-shibl-crimson hover:bg-shibl-crimson/90 rounded-md transition-colors flex items-center gap-1 shadow-sm mr-1"
-                                                                            title="بدء البث المباشر"
-                                                                        >
-                                                                            <Video size={14} />
-                                                                            <span>بدء البث</span>
-                                                                        </button>
+                                                                        <div className="flex items-center gap-1">
+                                                                            <button
+                                                                                onClick={() => onStartSession && onStartSession(contentItem.id)}
+                                                                                className="px-2 py-1.5 text-xs font-medium text-white bg-shibl-crimson hover:bg-shibl-crimson/90 rounded-md transition-colors flex items-center gap-1 shadow-sm mr-1"
+                                                                                title="الانضمام للبث المباشر"
+                                                                            >
+                                                                                <Video size={14} />
+                                                                                <span>الانضمام</span>
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => onEndSession && onEndSession(contentItem.id)}
+                                                                                className="px-2 py-1.5 text-xs font-medium text-rose-700 bg-rose-100 hover:bg-rose-200 rounded-md transition-colors flex items-center gap-1 shadow-sm mr-1 border border-rose-200"
+                                                                                title="إنهاء البث"
+                                                                            >
+                                                                                <X size={14} />
+                                                                                <span>إنهاء</span>
+                                                                            </button>
+                                                                        </div>
                                                                     );
                                                                 })()
                                                             )}
@@ -680,6 +697,7 @@ export function TeacherCourseDetailsPage() {
     const [showQuizModal, setShowQuizModal] = useState(false);
     const [quizContextUnit, setQuizContextUnit] = useState<Unit | null>(null);
     const [quizContextLecture, setQuizContextLecture] = useState<any | null>(null);
+    const [startingTestSession, setStartingTestSession] = useState(false);
     const [selectedQuizForEdit, setSelectedQuizForEdit] = useState<Quiz | null>(null);
 
     // Live Session Modal States
@@ -766,6 +784,7 @@ export function TeacherCourseDetailsPage() {
 
                 // Ensure units are sorted by order
                 const sortedUnits = unitsWithPending.sort((a: Unit, b: Unit) => (a.order || 0) - (b.order || 0));
+                console.log('DEBUG UNITS:', JSON.stringify(sortedUnits, null, 2));
                 setUnits(sortedUnits);
 
                 // Expand first unit by default if none expanded
@@ -946,7 +965,7 @@ export function TeacherCourseDetailsPage() {
 
                     await teacherService.reorderContent(courseId, targetUnit.id, unitItems);
 
-                    toast.success(`تم نقل الاختبار إلى وحدة ${getLocalizedTitle(targetUnit.name)}`);
+                    toast.success(`تم نقل الاختبار إلى وحدة ${getLocalizedTitle(targetUnit.title)}`);
                     fetchCourseData();
 
                 } catch (error) {
@@ -1245,6 +1264,56 @@ export function TeacherCourseDetailsPage() {
         }
     };
 
+    const handleEndSession = async (lectureId: number) => {
+        const result = await Swal.fire({
+            title: 'هل أنت متأكد من إنهاء الجلسة؟',
+            text: "سيتم إيقاف البث وحفظ التسجيل تلقائياً.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم، إنهاء الجلسة',
+            cancelButtonText: 'إلغاء'
+        });
+
+        if (result.isConfirmed) {
+            const loadingToast = toast.loading('جاري إنهاء الجلسة...');
+            try {
+                await teacherLectureService.endSession(lectureId);
+                toast.dismiss(loadingToast);
+                toast.success('تم إنهاء الجلسة بنجاح، جاري معالجة التسجيل');
+                fetchCourseData(); // Refresh to update status
+            } catch (error) {
+                toast.dismiss(loadingToast);
+                console.error('End session failed:', error);
+                toast.error('فشل إنهاء الجلسة');
+            }
+        }
+    };
+
+    const handleStartTestSession = async () => {
+        if (startingTestSession) return;
+
+        try {
+            setStartingTestSession(true);
+            toast.loading('جاري بدء الجلسة التجريبية...', { id: 'test-session-toast' });
+
+            const response = await teacherLectureService.startTestSession(courseId);
+
+            if (response.success && response.join_url) {
+                toast.dismiss('test-session-toast');
+                toast.success('تم بدء الجلسة بنجاح');
+                window.open(response.join_url, '_blank');
+            }
+        } catch (error: any) {
+            toast.dismiss('test-session-toast');
+            console.error('Failed to start test session:', error);
+            toast.error(error.response?.data?.message || 'فشل بدء الجلسة التجريبية');
+        } finally {
+            setStartingTestSession(false);
+        }
+    };
+
     // Mutations
     const createUnit = useMutation({
         mutationFn: async (data: CreateUnitRequest) => {
@@ -1327,20 +1396,23 @@ export function TeacherCourseDetailsPage() {
                                 <Users className="w-4 h-4" />
                                 {course.students_count || 0} طالب
                             </span>
-                            <span className="flex items-center gap-1">
-                                <Star className="w-4 h-4 text-amber-400" />
-                                {course.rating || 0}
-                            </span>
+
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3">
+
+
                         <button
-                            onClick={() => setActiveTab('settings')}
-                            className="p-2.5 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-xl transition-colors border border-slate-200"
+                            onClick={handleStartTestSession}
+                            disabled={startingTestSession}
+                            className={`px-4 py-2.5 bg-white border border-shibl-crimson text-shibl-crimson hover:bg-shibl-crimson hover:text-white rounded-xl transition-all flex items-center gap-2 font-medium shadow-sm ${startingTestSession ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            title="جلسة تجريبية (30 دقيقة - لا تظهر للطلاب)"
                         >
-                            <Settings className="w-5 h-5" />
+                            {startingTestSession ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
+                            <span className="hidden sm:inline">جلسة تجريبية</span>
                         </button>
+
                         <button
                             className="px-4 py-2.5 bg-shibl-crimson hover:bg-shibl-red-600 text-white rounded-xl transition-colors flex items-center gap-2 font-medium shadow-lg shadow-shibl-crimson/20"
                             onClick={fetchCourseData}
@@ -1388,15 +1460,7 @@ export function TeacherCourseDetailsPage() {
                     >
                         الاختبارات
                     </button>
-                    <button
-                        onClick={() => setActiveTab('settings')}
-                        className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeTab === 'settings'
-                            ? 'text-shibl-crimson border-b-2 border-shibl-crimson'
-                            : 'text-slate-500 hover:text-slate-700'
-                            }`}
-                    >
-                        الإعدادات
-                    </button>
+
                 </div>
             </div>
 
@@ -1451,6 +1515,7 @@ export function TeacherCourseDetailsPage() {
                                         onDeleteQuiz={handleDeleteQuiz}
                                         onToggleQuizActive={handleToggleQuizActive}
                                         onStartSession={handleStartSession}
+                                        onEndSession={handleEndSession}
                                         quizzes={allQuizzes} // Pass all quizzes for filtering inside UnitCard
                                     />
                                 ))}
@@ -1512,6 +1577,19 @@ export function TeacherCourseDetailsPage() {
                         )}
                         <DragOverlay />
                     </DndContext>
+                </div>
+            )}
+
+            {/* Students Tab */}
+            {activeTab === 'students' && (
+                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-200">
+                    <div className="w-20 h-20 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mb-6">
+                        <Users size={40} />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-2">قائمة الطلاب المسجلين</h3>
+                    <p className="text-slate-500 max-w-sm mx-auto text-center">
+                        لا يوجد طلاب مسجلين في هذا الكورس حالياً. سيظهر جميع الطلاب المنضمين إلى الكورس في هذه القائمة.
+                    </p>
                 </div>
             )}
 

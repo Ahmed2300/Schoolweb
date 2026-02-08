@@ -11,6 +11,7 @@ export const endpoints = {
         resetPassword: '/api/v1/auth/students/reset-password',
         // Protected routes
         me: '/api/v1/students/auth/me',
+        homeDashboard: '/api/v1/students/home-dashboard',
         updateProfile: '/api/v1/students/auth/me',
         refresh: '/api/v1/students/auth/refresh',
         changePassword: '/api/v1/students/auth/change-password',
@@ -142,6 +143,8 @@ export const endpoints = {
             delete: (id: number) => `/api/v1/lectures/${id}`,
             chunkedCreate: '/api/v1/lectures/chunked-create',
             chunkedUpdate: (id: number) => `/api/v1/lectures/${id}/chunked-update`,
+            dashboardSchedule: '/api/v1/teacher/dashboard-schedule',
+            stats: '/api/v1/teacher/stats',
         },
         // Video Upload
         videos: {
@@ -246,6 +249,7 @@ export const endpoints = {
             saveSettings: (gradeId: number) => `/api/v1/admin/schedule/settings/${gradeId}`,
             getSlots: (semesterId: number) => `/api/v1/admin/schedule/slots/${semesterId}`,
             generateSlots: (semesterId: number) => `/api/v1/admin/schedule/generate/${semesterId}`,
+            resetDaySlots: '/api/v1/admin/schedule/reset-day-slots',
         },
         // Courses
         courses: {
