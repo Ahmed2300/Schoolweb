@@ -73,6 +73,9 @@ export function LiveSessionContent({ lecture, onJoin }: LiveSessionContentProps)
 
         // Check meeting_status for 'ready' state (meeting prepared but teacher not joined)
         if (lecture.meeting_status === 'ready') return 'starting_soon'; // Show "starting soon" UI
+        
+        // Check if session was ended early by teacher (meeting_status = completed)
+        if (lecture.meeting_status === 'completed') return 'ended';
 
         if (!startTime) return 'not_scheduled';
 

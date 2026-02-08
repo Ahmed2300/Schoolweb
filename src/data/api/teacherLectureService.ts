@@ -217,6 +217,19 @@ export const teacherLectureService = {
         return response.data;
     },
 
+    /**
+     * End a live session properly.
+     * This calls the backend to: 1) End meeting on BBB, 2) Mark status as completed, 3) Queue recording fetch job.
+     * IMPORTANT: Teachers should use this instead of just closing the modal to ensure recordings are processed.
+     */
+    endSession: async (lectureId: number): Promise<{
+        success: boolean;
+        message?: string;
+    }> => {
+        const response = await apiClient.post(`/api/v1/lectures/${lectureId}/end-session`);
+        return response.data;
+    },
+
     // Recording Management
     getRecordings: async (params?: {
         course_id?: number;

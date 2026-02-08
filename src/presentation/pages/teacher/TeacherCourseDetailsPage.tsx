@@ -470,7 +470,8 @@ function UnitCard({
 
                                                                     // Allow starting 15 mins before
                                                                     const canStart = startTime ? new Date(startTime.getTime() - 15 * 60000) <= now : true;
-                                                                    const isEnded = endTime ? now > endTime : false;
+                                                                    // Check if session ended: by time OR by meeting_status (for early ended sessions)
+                                                                    const isEnded = (endTime ? now > endTime : false) || contentItem.meeting_status === 'completed';
 
                                                                     if (isEnded) {
                                                                         // Check if recording is available
@@ -684,6 +685,7 @@ export function TeacherCourseDetailsPage() {
     // Live Session Modal States
     const [liveSessionEmbedUrl, setLiveSessionEmbedUrl] = useState<string | null>(null);
     const [isLiveSessionModalOpen, setIsLiveSessionModalOpen] = useState(false);
+    const [currentLectureIdForSession, setCurrentLectureIdForSession] = useState<number | null>(null);
 
     // Fetch Course Data
     const fetchCourseData = useCallback(async () => {
@@ -1107,8 +1109,9 @@ export function TeacherCourseDetailsPage() {
             toast.dismiss(loadingToast);
 
             if (response.success && response.data?.embed_url) {
-                // Open in secure embed modal
+                // Open in secure embed modal and save lecture ID for end session
                 setLiveSessionEmbedUrl(response.data.embed_url);
+                setCurrentLectureIdForSession(lectureId);
                 setIsLiveSessionModalOpen(true);
                 toast.success('تم بدء الجلسة بنجاح! 🎉');
             } else {
@@ -1128,10 +1131,29 @@ export function TeacherCourseDetailsPage() {
         }
     };
 
-    // Close live session modal
+    // Close live session modal (just close, don't end meeting)
     const handleCloseLiveSession = () => {
         setIsLiveSessionModalOpen(false);
         setLiveSessionEmbedUrl(null);
+        // Don't clear currentLectureIdForSession here, in case we need it for other actions
+    };
+
+    // End live session properly and trigger recording sync
+    const handleEndSession = async () => {
+        if (!currentLectureIdForSession) return;
+        
+        try {
+            await teacherLectureService.endSession(currentLectureIdForSession);
+            toast.success('تم إنهاء الجلسة! سيتم معالجة التسجيل تلقائياً 📹');
+            setCurrentLectureIdForSession(null);
+            // Refresh course data to update UI with new session status
+            await fetchCourseData();
+        } catch (error: any) {
+            console.error('End session error:', error);
+            const errorMessage = error.response?.data?.message || 'فشل إنهاء الجلسة';
+            toast.error(errorMessage);
+            throw error; // Re-throw to let the modal handle it
+        }
     };
 
     // Quiz Handlers
@@ -1607,6 +1629,9 @@ export function TeacherCourseDetailsPage() {
                 onClose={handleCloseLiveSession}
                 embedUrl={liveSessionEmbedUrl}
                 title="جلستك المباشرة"
+                isTeacher={true}
+                lectureId={currentLectureIdForSession ?? undefined}
+                onEndSession={handleEndSession}
             />
         </div>
     );
