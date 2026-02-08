@@ -143,7 +143,8 @@ export const endpoints = {
             delete: (id: number) => `/api/v1/lectures/${id}`,
             chunkedCreate: '/api/v1/lectures/chunked-create',
             chunkedUpdate: (id: number) => `/api/v1/lectures/${id}/chunked-update`,
-            dashboardSchedule: '/api/v1/lectures/dashboard-schedule',
+            dashboardSchedule: '/api/v1/teacher/dashboard-schedule',
+            stats: '/api/v1/teacher/stats',
         },
         // Video Upload
         videos: {

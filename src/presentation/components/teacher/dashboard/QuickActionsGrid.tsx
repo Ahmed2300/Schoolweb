@@ -20,20 +20,6 @@ export function QuickActionsGrid() {
             color: "purple",
             path: ROUTES.TEACHER_QUIZZES,
             desc: "قيم طلابك"
-        },
-        {
-            title: "إضافة طالب",
-            icon: Users,
-            color: "emerald",
-            path: ROUTES.TEACHER_COURSES, // Fallback until student management is implemented
-            desc: "دعوة للمنصة"
-        },
-        {
-            title: "التقارير",
-            icon: TrendingUp,
-            color: "amber",
-            path: ROUTES.TEACHER_ANALYTICS,
-            desc: "أداء الطلاب"
         }
     ];
 

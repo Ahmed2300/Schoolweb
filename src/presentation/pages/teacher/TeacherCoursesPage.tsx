@@ -6,20 +6,12 @@ import { teacherContentApprovalService } from '../../../data/api/teacherContentA
 
 // Icons
 import {
-    BookOpen,
-    Users,
     Plus,
     Search,
-    Play,
-    Edit,
-    Eye,
+    BookOpen,
     AlertCircle,
     RefreshCw,
-    Loader2,
-    Trash2,
-    Clock,
-    GraduationCap,
-    Layers
+    Loader2
 } from 'lucide-react';
 
 import TeacherCourseModal from '../../components/teacher/courses/TeacherCourseModal';
@@ -32,140 +24,7 @@ type CourseStatus = 'all' | 'active' | 'draft' | 'archived';
 
 // ==================== COMPONENTS ====================
 
-// Course card skeleton
-function CourseCardSkeleton() {
-    return (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden animate-pulse">
-            <div className="h-40 bg-slate-200" />
-            <div className="p-5 space-y-3">
-                <div className="h-5 w-3/4 bg-slate-200 rounded" />
-                <div className="h-4 w-full bg-slate-100 rounded" />
-                <div className="h-4 w-2/3 bg-slate-100 rounded" />
-                <div className="flex gap-4 mt-4">
-                    <div className="h-4 w-16 bg-slate-100 rounded" />
-                    <div className="h-4 w-16 bg-slate-100 rounded" />
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// Course card component
-interface CourseCardProps {
-    course: TeacherCourse;
-    onView?: (id: number) => void;
-    onEdit?: (id: number) => void;
-    onDelete?: (id: number) => void;
-    hasPendingRequest?: boolean;
-}
-
-function CourseCard({ course, onView, onEdit, onDelete, hasPendingRequest }: CourseCardProps) {
-    // Determine status based on is_active
-    const status: 'active' | 'draft' | 'archived' = course.is_active ? 'active' : 'draft';
-
-    const statusStyles = {
-        active: { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'نشط' },
-        draft: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'مسودة' },
-        archived: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'مؤرشف' },
-    };
-
-    const { bg, text, label } = statusStyles[status];
-    const courseName = getCourseName(course.name);
-    const courseDescription = getCourseDescription(course.description);
-    const imageUrl = course.image_path ? course.image_path : null;
-
-    return (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all group overflow-hidden">
-            {/* Thumbnail */}
-            <div className="h-40 bg-gradient-to-br from-shibl-crimson/10 to-purple-500/10 relative">
-                {imageUrl ? (
-                    <img
-                        src={imageUrl}
-                        alt={courseName}
-                        className="w-full h-full object-cover"
-                    />
-                ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <BookOpen size={48} className="text-slate-300" />
-                    </div>
-                )}
-                {/* Status Badge */}
-                <span className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-medium ${bg} ${text}`}>
-                    {label}
-                </span>
-                {/* Pending Request Badge */}
-                {hasPendingRequest && (
-                    <span className="absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium bg-amber-500 text-white flex items-center gap-1 shadow-sm">
-                        <Clock size={12} />
-                        طلب معلق
-                    </span>
-                )}
-                {/* Actions Overlay */}
-                <div className="absolute inset-0 bg-charcoal/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-3">
-                    <button
-                        onClick={() => onView?.(course.id)}
-                        className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all"
-                    >
-                        <Eye size={18} />
-                    </button>
-                    <button className="w-10 h-10 rounded-full bg-shibl-crimson hover:bg-red-600 flex items-center justify-center text-white transition-all">
-                        <Play size={18} />
-                    </button>
-                    <button
-                        onClick={() => onEdit?.(course.id)}
-                        className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all"
-                    >
-                        <Edit size={18} />
-                    </button>
-                    <button
-                        onClick={() => onDelete?.(course.id)}
-                        className="w-10 h-10 rounded-full bg-red-500/80 hover:bg-red-600 flex items-center justify-center text-white transition-all"
-                    >
-                        <Trash2 size={18} />
-                    </button>
-                </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-5">
-                <h3 className="text-charcoal font-bold text-lg mb-2 line-clamp-1">{courseName}</h3>
-                <p className="text-slate-500 text-sm line-clamp-2 mb-4">
-                    {courseDescription || 'لا يوجد وصف'}
-                </p>
-
-                {/* Grade & Semester Info */}
-                {(course.grade || course.semester) && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                        {course.grade && (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium border border-blue-100/50">
-                                <GraduationCap size={13} className="shrink-0" />
-                                <span className="truncate max-w-[120px]">{getLocalizedName(course.grade.name)}</span>
-                            </div>
-                        )}
-                        {course.semester && (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-medium border border-indigo-100/50">
-                                <Layers size={13} className="shrink-0" />
-                                <span className="truncate max-w-[120px]">{getLocalizedName(course.semester.name)}</span>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Stats */}
-                <div className="flex items-center gap-4 text-sm pt-2 border-t border-slate-50">
-                    <div className="flex items-center gap-1.5 text-slate-500">
-                        <Users size={14} />
-                        <span>{course.students_count || 0} طالب</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-slate-500">
-                        <BookOpen size={14} />
-                        <span>{course.lectures_count || 0} محاضرة</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
+import TeacherCourseCard, { CourseCardSkeleton } from '../../components/teacher/courses/TeacherCourseCard';
 
 // Filter tabs
 interface FilterTabsProps {
@@ -473,7 +332,7 @@ export function TeacherCoursesPage() {
             {!loading && filteredCourses.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {filteredCourses.map((course) => (
-                        <CourseCard
+                        <TeacherCourseCard
                             key={course.id}
                             course={course}
                             onView={handleViewCourse}

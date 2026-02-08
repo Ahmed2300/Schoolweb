@@ -260,21 +260,8 @@ export const teacherService = {
         totalStudents: number;
         totalLectures: number;
     }> => {
-        // Fetch all courses to calculate stats
-        const response = await teacherService.getMyCourses({ per_page: 100 });
-        const courses = response.data || [];
-
-        const totalCourses = courses.length;
-        const activeCourses = courses.filter(c => c.is_active).length;
-        const totalStudents = courses.reduce((sum, c) => sum + (c.students_count || 0), 0);
-        const totalLectures = courses.reduce((sum, c) => sum + (c.lectures_count || 0), 0);
-
-        return {
-            totalCourses,
-            activeCourses,
-            totalStudents,
-            totalLectures,
-        };
+        const response = await apiClient.get(endpoints.teacher.lectures.stats);
+        return response.data.data;
     },
 
     /**
@@ -506,9 +493,13 @@ export const teacherService = {
 
     /**
      * Get upcoming schedule for dashboard (REAL DATA)
+     * Sends client timezone for accurate date calculations
      */
     getDashboardSchedule: async (): Promise<any[]> => {
-        const response = await apiClient.get(endpoints.teacher.lectures.dashboardSchedule);
+        const clientTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const response = await apiClient.get(endpoints.teacher.lectures.dashboardSchedule, {
+            params: { timezone: clientTimezone }
+        });
         return response.data.data || response.data;
     },
 };
