@@ -1,9 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Clock, Users, Video, Play, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { Calendar, Clock, Users, Video, Play, ChevronLeft, ChevronRight, Sparkles, Loader2, Eye, XCircle } from 'lucide-react';
 import { teacherService } from '../../../../data/api';
+import { teacherLectureService } from '../../../../data/api/teacherLectureService';
 import { format, addDays, isSameDay, isToday, isTomorrow, startOfDay, differenceInMinutes } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import toast from 'react-hot-toast';
+import { LiveSessionEmbedModal } from '../../shared/LiveSessionEmbedModal';
+
 
 interface ScheduleItem {
     id: number;
@@ -15,7 +19,10 @@ interface ScheduleItem {
     course_name: string;
     is_online: boolean;
     status: 'live_now' | 'upcoming' | 'completed' | 'scheduled';
+    meeting_status?: 'scheduled' | 'preparing' | 'ready' | 'ongoing' | 'completed' | null;
     bbb_meeting_id?: string | null;
+    recording_url?: string | null;
+    has_recording?: boolean;
 }
 
 interface DayGroup {
@@ -28,6 +35,9 @@ export function WeeklySchedule() {
     const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [joiningLectureId, setJoiningLectureId] = useState<number | null>(null);
+    const [liveSessionEmbedUrl, setLiveSessionEmbedUrl] = useState<string | null>(null);
+    const [isLiveSessionModalOpen, setIsLiveSessionModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchSchedule = async () => {
@@ -43,7 +53,10 @@ export function WeeklySchedule() {
                     course_name: lecture.course?.name?.ar || lecture.course?.name?.en || 'دورة',
                     is_online: lecture.is_online,
                     status: lecture.calculated_status,
+                    meeting_status: lecture.meeting_status,
                     bbb_meeting_id: lecture.bbb_meeting_id,
+                    recording_url: lecture.recording_url,
+                    has_recording: lecture.has_recording || !!lecture.recording_url,
                 }));
                 setSchedule(mapped);
             } catch (err) {
@@ -79,12 +92,35 @@ export function WeeklySchedule() {
     const liveLectures = schedule.filter(s => s.status === 'live_now').length;
     const upcomingToday = schedule.filter(s => isToday(s.start_time) && s.status === 'upcoming').length;
 
-    const handleJoin = (meetingId?: string | null) => {
-        if (!meetingId) {
-            alert('رابط الاجتماع غير متوفر بعد');
-            return;
+    const handleJoin = async (lectureId: number) => {
+        if (joiningLectureId) return; // Prevent double-click
+
+        setJoiningLectureId(lectureId);
+        const loadingToast = toast.loading('جاري بدء الجلسة...');
+
+        try {
+            const response = await teacherLectureService.generateSecureEmbedToken(lectureId);
+            toast.dismiss(loadingToast);
+
+            if (response.success && response.data?.embed_url) {
+                setLiveSessionEmbedUrl(response.data.embed_url);
+                setIsLiveSessionModalOpen(true);
+                toast.success('تم بدء الجلسة بنجاح!');
+            } else {
+                toast.error(response.message || 'لم يتم استلام رابط الجلسة');
+            }
+        } catch (error: any) {
+            toast.dismiss(loadingToast);
+            console.error('Join session error:', error);
+            toast.error(error.response?.data?.message || 'فشل الانضمام للجلسة');
+        } finally {
+            setJoiningLectureId(null);
         }
-        window.open(`/api/v1/meetings/join/${meetingId}`, '_blank');
+    };
+
+    const handleCloseLiveSession = () => {
+        setIsLiveSessionModalOpen(false);
+        setLiveSessionEmbedUrl(null);
     };
 
     const getLocalizedText = (obj: any, fallback: string): string => {
@@ -174,10 +210,10 @@ export function WeeklySchedule() {
                                 {/* Day Header */}
                                 <div className={`flex items-center gap-3 mb-3 ${isCurrentDay ? 'text-shibl-crimson' : 'text-slate-500'}`}>
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${isCurrentDay
-                                            ? 'bg-shibl-crimson text-white shadow-md shadow-red-200'
-                                            : hasLectures
-                                                ? 'bg-slate-100 text-slate-600'
-                                                : 'bg-slate-50 text-slate-400'
+                                        ? 'bg-shibl-crimson text-white shadow-md shadow-red-200'
+                                        : hasLectures
+                                            ? 'bg-slate-100 text-slate-600'
+                                            : 'bg-slate-50 text-slate-400'
                                         }`}>
                                         {format(group.date, 'd')}
                                     </div>
@@ -204,8 +240,8 @@ export function WeeklySchedule() {
                                                     animate={{ opacity: 1, x: 0 }}
                                                     transition={{ delay: groupIdx * 0.05 + itemIdx * 0.03 }}
                                                     className={`relative rounded-2xl border p-4 transition-all duration-300 ${isLive
-                                                            ? 'bg-gradient-to-l from-red-50 to-white border-red-200 shadow-lg shadow-red-100/50'
-                                                            : 'bg-white border-slate-100 hover:border-slate-200 hover:shadow-md'
+                                                        ? 'bg-gradient-to-l from-red-50 to-white border-red-200 shadow-lg shadow-red-100/50'
+                                                        : 'bg-white border-slate-100 hover:border-slate-200 hover:shadow-md'
                                                         }`}
                                                 >
                                                     {/* Live Indicator */}
@@ -232,8 +268,8 @@ export function WeeklySchedule() {
                                                                     {item.students_count} طالب
                                                                 </span>
                                                                 <span className={`px-2 py-0.5 rounded-full font-medium ${item.is_online
-                                                                        ? 'bg-blue-50 text-blue-600'
-                                                                        : 'bg-slate-100 text-slate-500'
+                                                                    ? 'bg-blue-50 text-blue-600'
+                                                                    : 'bg-slate-100 text-slate-500'
                                                                     }`}>
                                                                     {item.is_online ? 'بث مباشر' : 'مسجلة'}
                                                                 </span>
@@ -242,23 +278,47 @@ export function WeeklySchedule() {
 
                                                         {/* Action */}
                                                         <div className="flex-shrink-0">
-                                                            {isLive && (
+                                                            {/* Preparing state - system auto-starting */}
+                                                            {item.meeting_status === 'preparing' && (
+                                                                <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-600 text-sm font-medium rounded-xl border border-amber-200">
+                                                                    <Loader2 size={16} className="animate-spin" />
+                                                                    جاري التحضير...
+                                                                </div>
+                                                            )}
+                                                            {/* Live/Ready - show join button */}
+                                                            {item.meeting_status !== 'preparing' && isLive && (
                                                                 <button
-                                                                    onClick={() => handleJoin(item.bbb_meeting_id)}
-                                                                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-l from-shibl-crimson to-red-600 text-white text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-red-200/50 transition-all duration-300"
+                                                                    onClick={() => handleJoin(item.id)}
+                                                                    disabled={joiningLectureId === item.id}
+                                                                    className={`flex items-center gap-2 px-4 py-2 bg-gradient-to-l from-shibl-crimson to-red-600 text-white text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-red-200/50 transition-all duration-300 ${joiningLectureId === item.id ? 'opacity-70 cursor-not-allowed' : ''}`}
                                                                 >
-                                                                    <Video size={16} />
-                                                                    انضم
+                                                                    {joiningLectureId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Video size={16} />}
+                                                                    {joiningLectureId === item.id ? 'جاري...' : 'انضم'}
                                                                 </button>
                                                             )}
-                                                            {isUpcoming && minutesUntil <= 60 && minutesUntil > 0 && (
+                                                            {item.meeting_status !== 'preparing' && isUpcoming && minutesUntil <= 60 && minutesUntil > 0 && (
                                                                 <div className="text-center">
                                                                     <div className="text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg font-medium">
                                                                         تبدأ بعد {minutesUntil} دقيقة
                                                                     </div>
                                                                 </div>
                                                             )}
-                                                            {!isLive && !isUpcoming && (
+                                                            {item.status === 'completed' && item.has_recording && (
+                                                                <button
+                                                                    onClick={() => item.recording_url && window.open(item.recording_url, '_blank')}
+                                                                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-l from-emerald-500 to-green-600 text-white text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-green-200/50 transition-all duration-300"
+                                                                >
+                                                                    <Eye size={16} />
+                                                                    شاهد الآن
+                                                                </button>
+                                                            )}
+                                                            {item.status === 'completed' && !item.has_recording && (
+                                                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-500 text-xs font-medium rounded-lg">
+                                                                    <XCircle size={14} />
+                                                                    انتهت
+                                                                </div>
+                                                            )}
+                                                            {item.meeting_status !== 'preparing' && !isLive && isUpcoming && minutesUntil > 60 && (
                                                                 <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300">
                                                                     <Play size={16} />
                                                                 </div>
@@ -279,6 +339,14 @@ export function WeeklySchedule() {
                     })}
                 </div>
             </div>
+
+            {/* Live Session Modal */}
+            <LiveSessionEmbedModal
+                isOpen={isLiveSessionModalOpen}
+                onClose={handleCloseLiveSession}
+                embedUrl={liveSessionEmbedUrl}
+                title="جلستك المباشرة"
+            />
         </div>
     );
 }

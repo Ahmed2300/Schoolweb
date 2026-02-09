@@ -517,24 +517,14 @@ function UnitCard({
                                                                     }
 
                                                                     return (
-                                                                        <div className="flex items-center gap-1">
-                                                                            <button
-                                                                                onClick={() => onStartSession && onStartSession(contentItem.id)}
-                                                                                className="px-2 py-1.5 text-xs font-medium text-white bg-shibl-crimson hover:bg-shibl-crimson/90 rounded-md transition-colors flex items-center gap-1 shadow-sm mr-1"
-                                                                                title="الانضمام للبث المباشر"
-                                                                            >
-                                                                                <Video size={14} />
-                                                                                <span>الانضمام</span>
-                                                                            </button>
-                                                                            <button
-                                                                                onClick={() => onEndSession && onEndSession(contentItem.id)}
-                                                                                className="px-2 py-1.5 text-xs font-medium text-rose-700 bg-rose-100 hover:bg-rose-200 rounded-md transition-colors flex items-center gap-1 shadow-sm mr-1 border border-rose-200"
-                                                                                title="إنهاء البث"
-                                                                            >
-                                                                                <X size={14} />
-                                                                                <span>إنهاء</span>
-                                                                            </button>
-                                                                        </div>
+                                                                        <button
+                                                                            onClick={() => onStartSession && onStartSession(contentItem.id)}
+                                                                            className="px-2 py-1.5 text-xs font-medium text-white bg-shibl-crimson hover:bg-shibl-crimson/90 rounded-md transition-colors flex items-center gap-1 shadow-sm mr-1"
+                                                                            title="الانضمام للبث المباشر"
+                                                                        >
+                                                                            <Video size={14} />
+                                                                            <span>الانضمام</span>
+                                                                        </button>
                                                                     );
                                                                 })()
                                                             )}
