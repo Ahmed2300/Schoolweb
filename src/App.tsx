@@ -56,7 +56,6 @@ import {
   TeacherQuizzesPage,
   TeacherSettingsPage,
   TeacherAnalyticsPage,
-  TeacherRecordingsPage,
   TeacherSlotRequestsPage,
   TeacherWeeklySchedulePage,
   NotFoundPage,
@@ -174,7 +173,7 @@ function App() {
               <Route path="quizzes" element={<TeacherQuizzesPage />} />
               <Route path="analytics" element={<TeacherAnalyticsPage />} />
               <Route path="settings" element={<TeacherSettingsPage />} />
-              <Route path="recordings" element={<TeacherRecordingsPage />} />
+
               <Route path="slot-requests" element={<TeacherSlotRequestsPage />} />
               <Route path="weekly-schedule" element={<TeacherWeeklySchedulePage />} />
             </Route>

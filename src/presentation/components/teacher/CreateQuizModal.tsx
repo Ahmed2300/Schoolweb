@@ -55,6 +55,9 @@ interface QuestionData {
     points: number;
     model_answer_ar?: string;
     model_answer_en?: string;
+    model_answer_image?: File | null;
+    model_answer_image_preview?: string | null;
+    model_answer_image_url?: string | null;
     question_image?: File | null;
     question_image_preview?: string | null;
     question_image_url?: string | null;
@@ -291,10 +294,11 @@ interface Step2Props {
     onUpdateOption: (questionId: string, optionId: string, data: { option_text_ar?: string; option_text_en?: string; is_correct?: boolean }) => void;
     onDeleteOption: (questionId: string, optionId: string) => void;
     onQuestionImage: (questionId: string, file: File | null) => void;
+    onModelAnswerImage: (questionId: string, file: File | null) => void;
     onOptionImage: (questionId: string, optionId: string, file: File | null) => void;
 }
 
-function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, onDeleteQuestion, onAddOption, onUpdateOption, onDeleteOption, onQuestionImage, onOptionImage }: Step2Props) {
+function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, onDeleteQuestion, onAddOption, onUpdateOption, onDeleteOption, onQuestionImage, onModelAnswerImage, onOptionImage }: Step2Props) {
     // Compute validation errors for helpful messages
     const validationErrors: string[] = [];
 
@@ -512,7 +516,7 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
 
                             {/* Essay Model Answer */}
                             {quizType === 'essay' && (
-                                <div className="mt-4">
+                                <div className="mt-4 space-y-3">
                                     <label className="text-xs text-[#636E72] mb-2 block">الإجابة النموذجية:</label>
                                     <textarea
                                         placeholder="الإجابة النموذجية بالعربية (تظهر للطالب بعد التسليم)"
@@ -521,6 +525,41 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
                                         rows={3}
                                         className="w-full px-3 py-2 rounded-lg bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson outline-none transition-all text-sm resize-none"
                                     />
+
+                                    {/* Model Answer Image Upload */}
+                                    <div>
+                                        <label className="text-xs text-[#636E72] mb-2 block">صورة الإجابة النموذجية (اختياري)</label>
+                                        <div className="flex items-center gap-3">
+                                            <label className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 cursor-pointer transition-colors text-sm text-slate-600">
+                                                <ImageIcon size={16} />
+                                                <span>{question.model_answer_image || question.model_answer_image_url ? 'تغيير الصورة' : 'رفع صورة'}</span>
+                                                <input
+                                                    type="file"
+                                                    accept="image/jpeg,image/png,image/jpg,image/gif,image/svg+xml"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) onModelAnswerImage(question.id, file);
+                                                    }}
+                                                    className="hidden"
+                                                />
+                                            </label>
+                                            {(question.model_answer_image_preview || question.model_answer_image_url) && (
+                                                <div className="relative">
+                                                    <img
+                                                        src={question.model_answer_image_preview || question.model_answer_image_url || ''}
+                                                        alt="معاينة صورة الإجابة النموذجية"
+                                                        className="h-12 w-12 object-cover rounded-lg border border-slate-200"
+                                                    />
+                                                    <button
+                                                        onClick={() => onModelAnswerImage(question.id, null)}
+                                                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -773,10 +812,19 @@ function LivePreview({ quizName, quizType, questions, durationMinutes, passingPe
                                 <div className="h-32 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 flex items-center justify-center">
                                     <span className="text-slate-400 text-sm">منطقة إجابة الطالب</span>
                                 </div>
-                                {currentQuestion.model_answer_ar && (
+                                {(currentQuestion.model_answer_ar || currentQuestion.model_answer_image_preview || currentQuestion.model_answer_image_url) && (
                                     <div className="mt-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
                                         <span className="text-xs font-bold text-amber-600 mb-1 block">الإجابة النموذجية:</span>
-                                        <p className="text-sm text-amber-700">{currentQuestion.model_answer_ar}</p>
+                                        {currentQuestion.model_answer_ar && (
+                                            <p className="text-sm text-amber-700">{currentQuestion.model_answer_ar}</p>
+                                        )}
+                                        {(currentQuestion.model_answer_image_preview || currentQuestion.model_answer_image_url) && (
+                                            <img
+                                                src={currentQuestion.model_answer_image_preview || currentQuestion.model_answer_image_url || ''}
+                                                alt="صورة الإجابة النموذجية"
+                                                className="mt-2 max-w-full max-h-32 rounded-lg border border-amber-200 object-contain"
+                                            />
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -882,7 +930,8 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
                         points: q.points,
                         model_answer_ar: q.model_answer ? (typeof q.model_answer === 'string' ? JSON.parse(q.model_answer).ar : (q.model_answer as any)?.ar) : '',
                         model_answer_en: q.model_answer ? (typeof q.model_answer === 'string' ? JSON.parse(q.model_answer).en : (q.model_answer as any)?.en) : '',
-                        // Preserve existing question image URL
+                        // Preserve existing image URLs
+                        model_answer_image_url: (q as any).model_answer_image_url || null,
                         question_image_url: (q as any).question_image_url || null,
                         options: q.options?.map(o => ({
                             id: o.id?.toString() || generateId(),
@@ -1028,6 +1077,35 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
         }
     }, []);
 
+    const handleModelAnswerImage = useCallback((questionId: string, file: File | null) => {
+        if (file) {
+            if (file.size > MAX_IMAGE_SIZE) {
+                toast.error('حجم الصورة يجب أن لا يتجاوز 2 ميجابايت');
+                return;
+            }
+            if (!ALLOWED_TYPES.includes(file.type)) {
+                toast.error('يجب أن تكون الصورة بصيغة JPEG, PNG, GIF, أو SVG');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setQuestions(prev => prev.map(q =>
+                    q.id === questionId
+                        ? { ...q, model_answer_image: file, model_answer_image_preview: reader.result as string }
+                        : q
+                ));
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setQuestions(prev => prev.map(q =>
+                q.id === questionId
+                    ? { ...q, model_answer_image: null, model_answer_image_preview: null, model_answer_image_url: null }
+                    : q
+            ));
+        }
+    }, []);
+
     const handleOptionImage = useCallback((questionId: string, optionId: string, file: File | null) => {
         if (file) {
             // Validate file size
@@ -1168,6 +1246,7 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
                     question_type: quizType,
                     points: q.points,
                     question_image: q.question_image || undefined,
+                    model_answer_image: quizType === 'essay' && q.model_answer_image ? q.model_answer_image : undefined,
                     model_answer: quizType === 'essay' && q.model_answer_ar
                         ? { ar: q.model_answer_ar, en: q.model_answer_en || undefined }
                         : undefined,
@@ -1332,6 +1411,7 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
                                     onUpdateOption={handleUpdateOption}
                                     onDeleteOption={handleDeleteOption}
                                     onQuestionImage={handleQuestionImage}
+                                    onModelAnswerImage={handleModelAnswerImage}
                                     onOptionImage={handleOptionImage}
                                 />
                             )}

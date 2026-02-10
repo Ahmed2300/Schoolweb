@@ -244,7 +244,8 @@ function UnitCard({
     onStartSession,
     onEndSession,
     quizzes,
-    dragHandleProps
+    dragHandleProps,
+    loadingQuizId
 }: {
     unit: Unit;
     isExpanded: boolean;
@@ -262,8 +263,10 @@ function UnitCard({
 
     onStartSession?: (lectureId: number) => void;
     onEndSession?: (lectureId: number) => void;
+    onEndSession?: (lectureId: number) => void;
     quizzes?: Quiz[];
     dragHandleProps?: any;
+    loadingQuizId?: string | number | null;
 }) {
     const { isRTL } = useLanguage();
 
@@ -583,8 +586,8 @@ function UnitCard({
                                                                 >
                                                                     {(!quiz.status || quiz.status === 'draft') ? <EyeOff size={14} className="opacity-50" /> : (quiz.is_active ? <Eye size={14} /> : <EyeOff size={14} />)}
                                                                 </button>
-                                                                <button onClick={() => onEditQuiz(quiz)} className="p-1 text-slate-400 hover:text-blue-600 rounded-md">
-                                                                    <Edit2 size={14} />
+                                                                <button onClick={() => onEditQuiz(quiz)} disabled={loadingQuizId === quiz.id} className="p-1 text-slate-400 hover:text-blue-600 rounded-md">
+                                                                    {loadingQuizId === quiz.id ? <Loader2 size={14} className="animate-spin text-blue-600" /> : <Edit2 size={14} />}
                                                                 </button>
                                                                 <button onClick={() => onDeleteQuiz(quiz)} className="p-1 text-slate-400 hover:text-red-600 rounded-md">
                                                                     <Trash2 size={14} />
@@ -630,8 +633,8 @@ function UnitCard({
                                                         >
                                                             {(!contentItem.status || contentItem.status === 'draft') ? <EyeOff size={16} className="opacity-50" /> : (contentItem.is_active ? <Eye size={16} /> : <EyeOff size={16} />)}
                                                         </button>
-                                                        <button onClick={() => onEditQuiz(contentItem)} className="p-1.5 text-slate-400 hover:text-blue-600 rounded-md">
-                                                            <Edit2 size={16} />
+                                                        <button onClick={() => onEditQuiz(contentItem)} disabled={loadingQuizId === contentItem.id} className="p-1.5 text-slate-400 hover:text-blue-600 rounded-md">
+                                                            {loadingQuizId === contentItem.id ? <Loader2 size={16} className="animate-spin text-blue-600" /> : <Edit2 size={16} />}
                                                         </button>
                                                         <button onClick={() => onDeleteQuiz(contentItem)} className="p-1.5 text-slate-400 hover:text-red-600 rounded-md">
                                                             <Trash2 size={16} />
@@ -688,6 +691,7 @@ export function TeacherCourseDetailsPage() {
     const [quizContextLecture, setQuizContextLecture] = useState<any | null>(null);
     const [startingTestSession, setStartingTestSession] = useState(false);
     const [selectedQuizForEdit, setSelectedQuizForEdit] = useState<Quiz | null>(null);
+    const [loadingQuizId, setLoadingQuizId] = useState<string | number | null>(null);
 
     // Live Session Modal States
     const [liveSessionEmbedUrl, setLiveSessionEmbedUrl] = useState<string | null>(null);
@@ -1160,6 +1164,7 @@ export function TeacherCourseDetailsPage() {
 
     const handleEditQuiz = async (quiz: Quiz) => {
         try {
+            setLoadingQuizId(quiz.id);
             const response = await quizService.getQuiz(quiz.id);
             setSelectedQuizForEdit(response.data);
             setQuizContextUnit(quiz.unit_id ? units.find(u => u.id === quiz.unit_id) || null : null);
@@ -1167,6 +1172,8 @@ export function TeacherCourseDetailsPage() {
             setShowQuizModal(true);
         } catch (err) {
             toast.error('فشل في تحميل بيانات الاختبار');
+        } finally {
+            setLoadingQuizId(null);
         }
     };
 
@@ -1485,6 +1492,7 @@ export function TeacherCourseDetailsPage() {
                                         onStartSession={handleStartSession}
                                         onEndSession={handleEndSession}
                                         quizzes={allQuizzes} // Pass all quizzes for filtering inside UnitCard
+                                        loadingQuizId={loadingQuizId}
                                     />
                                 ))}
                             </div>
@@ -1522,9 +1530,10 @@ export function TeacherCourseDetailsPage() {
                                                     <button
                                                         onPointerDown={(e) => e.stopPropagation()}
                                                         onClick={() => handleEditQuiz(quiz)}
+                                                        disabled={loadingQuizId === quiz.id}
                                                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-white rounded-lg transition-all"
                                                     >
-                                                        <Edit2 size={16} />
+                                                        {loadingQuizId === quiz.id ? <Loader2 size={16} className="animate-spin text-blue-600" /> : <Edit2 size={16} />}
                                                     </button>
                                                     <button
                                                         onPointerDown={(e) => e.stopPropagation()}

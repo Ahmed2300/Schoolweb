@@ -31,9 +31,9 @@ const STATUS_CONFIG = {
     [SLOT_REQUEST_STATUSES.REJECTED]: {
         label: 'مرفوض',
         icon: XCircle,
-        bgColor: 'bg-red-50',
-        textColor: 'text-red-600',
-        borderColor: 'border-red-200',
+        bgColor: 'bg-rose-50',
+        textColor: 'text-rose-600',
+        borderColor: 'border-rose-200',
     },
 } as const;
 

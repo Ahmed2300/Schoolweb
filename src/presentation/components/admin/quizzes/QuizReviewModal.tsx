@@ -53,8 +53,14 @@ export const QuizReviewModal: React.FC<QuizReviewModalProps> = ({ isOpen, onClos
             setIsLoadingDetails(true);
             try {
                 const data = await adminService.getQuiz(quiz.id);
+                console.log('QuizReviewModal: Fetched full quiz details:', data);
                 // @ts-ignore
-                setFullQuiz(data.data || data);
+                const quizData = data.data || data;
+                console.log('QuizReviewModal: Set fullQuiz:', quizData);
+                if (quizData.questions) {
+                    console.log('QuizReviewModal: Questions:', quizData.questions);
+                }
+                setFullQuiz(quizData);
             } catch (error) {
                 console.error('Failed to fetch quiz details:', error);
                 toast.error('فشل في تحميل تفاصيل الأسئلة');
@@ -238,8 +244,8 @@ export const QuizReviewModal: React.FC<QuizReviewModalProps> = ({ isOpen, onClos
                                                 key={idx}
                                                 onClick={() => setCurrentQuestionIndex(idx)}
                                                 className={`w-9 h-9 rounded-lg text-sm font-bold transition-all ${idx === currentQuestionIndex
-                                                        ? 'text-white'
-                                                        : 'bg-white border border-slate-200 text-slate-600 hover:border-[#AF0C15]/30 hover:text-[#AF0C15]'
+                                                    ? 'text-white'
+                                                    : 'bg-white border border-slate-200 text-slate-600 hover:border-[#AF0C15]/30 hover:text-[#AF0C15]'
                                                     }`}
                                                 style={idx === currentQuestionIndex ? {
                                                     background: '#AF0C15',
@@ -382,6 +388,8 @@ export const QuizReviewModal: React.FC<QuizReviewModalProps> = ({ isOpen, onClos
                                     <div className="max-w-3xl mx-auto space-y-6">
                                         {/* Question Card */}
                                         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+
+
                                             {/* Question Header */}
                                             <div className="px-6 py-4 flex items-start gap-4" style={{ background: 'linear-gradient(to left, rgba(175, 12, 21, 0.05), transparent)' }}>
                                                 <span
@@ -436,8 +444,8 @@ export const QuizReviewModal: React.FC<QuizReviewModalProps> = ({ isOpen, onClos
                                                         <div
                                                             key={optIndex}
                                                             className={`p-4 rounded-xl border-2 transition-all ${option.is_correct
-                                                                    ? 'border-[#27AE60] shadow-sm'
-                                                                    : 'bg-white border-slate-200 hover:border-slate-300'
+                                                                ? 'border-[#27AE60] shadow-sm'
+                                                                : 'bg-white border-slate-200 hover:border-slate-300'
                                                                 }`}
                                                             style={option.is_correct ? { background: 'rgba(39, 174, 96, 0.08)' } : {}}
                                                         >
@@ -498,6 +506,18 @@ export const QuizReviewModal: React.FC<QuizReviewModalProps> = ({ isOpen, onClos
                                                         <p className="text-amber-900 leading-relaxed">
                                                             {getTranslatedName(currentQuestion.model_answer) || 'لا توجد إجابة نموذجية'}
                                                         </p>
+                                                        {currentQuestion.model_answer_image_url && (
+                                                            <div
+                                                                className="mt-3 rounded-lg overflow-hidden border border-amber-200 bg-white cursor-pointer inline-block"
+                                                                onClick={() => setExpandedImage(currentQuestion.model_answer_image_url!)}
+                                                            >
+                                                                <img
+                                                                    src={currentQuestion.model_answer_image_url}
+                                                                    alt="صورة الإجابة النموذجية"
+                                                                    className="max-h-48 object-contain"
+                                                                />
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
