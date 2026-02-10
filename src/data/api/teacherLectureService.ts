@@ -225,14 +225,6 @@ export const teacherLectureService = {
         return response.data;
     },
 
-    /**
-     * End a live session manually.
-     */
-    endSession: async (lectureId: number): Promise<{ success: boolean; message?: string }> => {
-        const response = await apiClient.post(`/api/v1/lectures/${lectureId}/end-session`);
-        return response.data;
-    },
-
     // Recording Management
     getRecordings: async (params?: {
         course_id?: number;

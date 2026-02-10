@@ -243,7 +243,6 @@ function UnitCard({
     onDeleteQuiz,
     onToggleQuizActive,
     onStartSession,
-    onEndSession,
     quizzes,
     dragHandleProps,
     loadingQuizId
@@ -263,7 +262,6 @@ function UnitCard({
     onToggleQuizActive: (quiz: Quiz) => void;
 
     onStartSession?: (lectureId: number) => void;
-    onEndSession?: (lectureId: number) => void;
     quizzes?: Quiz[];
     dragHandleProps?: any;
     loadingQuizId?: string | number | null;
@@ -1264,32 +1262,7 @@ export function TeacherCourseDetailsPage() {
         }
     };
 
-    const handleEndSession = async (lectureId: number) => {
-        const result = await Swal.fire({
-            title: 'هل أنت متأكد من إنهاء الجلسة؟',
-            text: "سيتم إيقاف البث وحفظ التسجيل تلقائياً.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'نعم، إنهاء الجلسة',
-            cancelButtonText: 'إلغاء'
-        });
 
-        if (result.isConfirmed) {
-            const loadingToast = toast.loading('جاري إنهاء الجلسة...');
-            try {
-                await teacherLectureService.endSession(lectureId);
-                toast.dismiss(loadingToast);
-                toast.success('تم إنهاء الجلسة بنجاح، جاري معالجة التسجيل');
-                fetchCourseData(); // Refresh to update status
-            } catch (error) {
-                toast.dismiss(loadingToast);
-                console.error('End session failed:', error);
-                toast.error('فشل إنهاء الجلسة');
-            }
-        }
-    };
 
     const handleStartTestSession = async () => {
         if (startingTestSession) return;
@@ -1515,7 +1488,7 @@ export function TeacherCourseDetailsPage() {
                                         onDeleteQuiz={handleDeleteQuiz}
                                         onToggleQuizActive={handleToggleQuizActive}
                                         onStartSession={handleStartSession}
-                                        onEndSession={handleEndSession}
+
                                         quizzes={allQuizzes} // Pass all quizzes for filtering inside UnitCard
                                         loadingQuizId={loadingQuizId}
                                     />
