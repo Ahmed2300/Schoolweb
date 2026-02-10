@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { studentQuizService, QuizDetails, QuizSubmission, QuizResult, CompletedQuizAttempt, QuizReviewQuestion, NextSyllabusItem } from '../../../../data/api/studentQuizService';
 import { useLanguage } from '../../../hooks';
-import { Loader2, Timer, AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, HelpCircle, Trophy, BarChart2, ArrowRight, XCircle, Eye, Clock, Award, BookOpen, PlayCircle } from 'lucide-react';
+import { Loader2, Timer, AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, HelpCircle, Trophy, BarChart2, ArrowRight, XCircle, Eye, Clock, Award, BookOpen, PlayCircle, Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { getLocalizedName } from '../../../../data/api/studentService';
 
 interface QuizPlayerProps {
@@ -13,7 +13,7 @@ interface QuizPlayerProps {
 // Discriminated union for quiz state
 type QuizState =
     | { status: 'loading' }
-    | { status: 'error'; message: string }
+    | { status: 'error'; message: string; isRedirecting?: boolean }
     | { status: 'ready'; quiz: QuizDetails; attemptId: number }
     | { status: 'completed'; quiz: { id: number; name: { ar?: string; en?: string }; course_id?: number }; attempt: CompletedQuizAttempt; nextItem?: NextSyllabusItem | null }
     | { status: 'submitted'; result: QuizResult };
@@ -29,6 +29,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
     const [hasStarted, setHasStarted] = useState(false);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<number, number | string>>({});
+    const [answerImages, setAnswerImages] = useState<Record<number, File | null>>({});
     const [timeLeft, setTimeLeft] = useState(0);
     const [submitting, setSubmitting] = useState(false);
 
@@ -94,8 +95,11 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
         setHasStarted(true);
     };
 
-    const handleAnswerChange = (questionId: number, answer: number | string) => {
+    const handleAnswerChange = (questionId: number, answer: number | string, imageFile?: File) => {
         setAnswers(prev => ({ ...prev, [questionId]: answer }));
+        if (imageFile !== undefined) {
+            setAnswerImages(prev => ({ ...prev, [questionId]: imageFile }));
+        }
     };
 
     const handleSubmit = async () => {
@@ -108,7 +112,11 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                 if (question?.question_type === 'mcq') {
                     return { question_id: Number(qId), selected_option_id: val as number };
                 } else {
-                    return { question_id: Number(qId), essay_answer: val as string };
+                    return {
+                        question_id: Number(qId),
+                        essay_answer: val as string,
+                        answer_image: answerImages[Number(qId)] || undefined
+                    };
                 }
             })
         };
@@ -120,8 +128,28 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                 if (timerRef.current) clearInterval(timerRef.current);
                 setQuizState({ status: 'submitted', result: res.data });
             }
-        } catch (err) {
-            alert('حدث خطأ أثناء تسليم الاختبار');
+        } catch (err: any) {
+            console.error(err);
+            const errorMessage = err.response?.data?.message || err.message;
+            if (errorMessage === 'You have already submitted this quiz.' || err.response?.status === 403) {
+                // Show "Already Submitted" Dialogue
+                // We'll revert to loading then fetchQuiz to show the result
+                if (timerRef.current) clearInterval(timerRef.current);
+
+                // Small delay to let user see the button state or we could show a modal
+                // For "cool dialogue", let's use a temporary error state that looks nice
+                setQuizState({
+                    status: 'error',
+                    message: 'عذراً، لقد قمت بتسليم هذا الاختبار مسبقاً! سيتم توجيهك للنتائج...',
+                    isRedirecting: true
+                });
+
+                setTimeout(() => {
+                    fetchQuiz();
+                }, 3000); // 3 seconds delay to read message
+            } else {
+                alert('حدث خطأ أثناء تسليم الاختبار: ' + errorMessage);
+            }
         } finally {
             setSubmitting(false);
         }
@@ -134,8 +162,9 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
     // ================= LOADING STATE =================
     if (quizState.status === 'loading') {
         return (
-            <div className="h-full flex items-center justify-center">
-                <Loader2 className="animate-spin text-shibl-crimson" size={40} />
+            <div className="h-full flex items-center justify-center flex-col gap-4">
+                <Loader2 className="animate-spin text-shibl-crimson" size={48} />
+                <p className="text-slate-500 font-bold animate-pulse">جاري التحميل...</p>
             </div>
         );
     }
@@ -143,11 +172,33 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
     // ================= ERROR STATE =================
     if (quizState.status === 'error') {
         return (
-            <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                <AlertCircle size={48} className="text-red-500 mb-4" />
-                <h2 className="text-xl font-bold text-slate-800 mb-2">عذراً</h2>
-                <p className="text-slate-500 mb-6">{quizState.message}</p>
-                <button onClick={onExit} className="text-shibl-crimson font-bold hover:underline">العودة</button>
+            <div className="h-full flex flex-col items-center justify-center text-center p-6 animate-in zoom-in-95 duration-300">
+                <div className={`w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-2xl ${
+                    // @ts-ignore - isRedirecting might not exist on all error types in strict TS if not defined, but we'll add it to type
+                    quizState.isRedirecting ? 'bg-amber-50 text-amber-500' : 'bg-red-50 text-red-500'
+                    }`}>
+                    {/* @ts-ignore */}
+                    {quizState.isRedirecting ? <CheckCircle2 size={48} /> : <AlertCircle size={48} />}
+                </div>
+
+                <h2 className="text-2xl md:text-3xl font-black text-slate-800 mb-3">
+                    {/* @ts-ignore */}
+                    {quizState.isRedirecting ? 'تم التسليم مسبقاً!' : 'عذراً'}
+                </h2>
+
+                <p className="text-slate-500 text-lg mb-8 max-w-md mx-auto leading-relaxed">
+                    {quizState.message}
+                </p>
+
+                {/* @ts-ignore */}
+                {!quizState.isRedirecting && (
+                    <button
+                        onClick={onExit}
+                        className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 active:translate-y-0"
+                    >
+                        العودة للصفحة الرئيسية
+                    </button>
+                )}
             </div>
         );
     }
@@ -427,52 +478,94 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
     // START SCREEN
     if (!hasStarted) {
         return (
-            <div className="max-w-2xl mx-auto p-6 h-full flex items-center">
-                <div className="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-8 w-full">
-                    <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mb-6">
-                        <HelpCircle size={32} />
-                    </div>
+            <div className="max-w-4xl mx-auto p-4 md:p-8 h-full flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-500">
+                {/* Main Card */}
+                <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden w-full relative">
+                    {/* Background Pattern */}
+                    <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-shibl-crimson/5 via-transparent to-shibl-crimson/5"></div>
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-shibl-crimson/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
 
-                    <h1 className="text-2xl font-black text-slate-800 mb-2">{getLocalizedName(quiz.title)}</h1>
-                    {quiz.description && (
-                        <p className="text-slate-500 mb-8 leading-relaxed">{getLocalizedName(quiz.description)}</p>
-                    )}
+                    <div className="relative p-8 md:p-12 text-center">
+                        {/* Icon */}
+                        <div className="w-20 h-20 bg-gradient-to-br from-shibl-crimson to-red-600 text-white rounded-3xl rotate-3 shadow-xl shadow-red-500/20 flex items-center justify-center mx-auto mb-8 transform hover:rotate-6 transition-transform duration-500">
+                            <BookOpen size={40} className="drop-shadow-md" />
+                        </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-8">
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center gap-3">
-                            <ClockIcon className="text-slate-400" size={20} />
-                            <div>
-                                <p className="text-xs text-slate-400 font-bold">المدة الزمنية</p>
-                                <p className="font-bold text-slate-700">{quiz.duration_minutes} دقيقة</p>
+                        {/* Title & Description */}
+                        <h1 className="text-3xl md:text-5xl font-black text-slate-800 mb-4 tracking-tight leading-tight">
+                            {getLocalizedName(quiz.name)}
+                        </h1>
+                        {quiz.description && (
+                            <p className="text-lg text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+                                {getLocalizedName(quiz.description)}
+                            </p>
+                        )}
+
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10 max-w-3xl mx-auto">
+                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex flex-col items-center justify-center hover:bg-slate-100 transition-colors group">
+                                <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-shibl-crimson mb-3 group-hover:scale-110 transition-transform">
+                                    <Clock size={20} />
+                                </div>
+                                <p className="text-sm text-slate-400 font-bold uppercase tracking-wider mb-1">المدة الزمنية</p>
+                                <p className="text-xl font-black text-slate-700">{quiz.duration_minutes} دقيقة</p>
+                            </div>
+
+                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex flex-col items-center justify-center hover:bg-slate-100 transition-colors group">
+                                <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-blue-600 mb-3 group-hover:scale-110 transition-transform">
+                                    <HelpCircle size={20} />
+                                </div>
+                                <p className="text-sm text-slate-400 font-bold uppercase tracking-wider mb-1">عدد الأسئلة</p>
+                                <p className="text-xl font-black text-slate-700">{quiz.questions?.length || 0} سؤال</p>
+                            </div>
+
+                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex flex-col items-center justify-center hover:bg-slate-100 transition-colors group">
+                                <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-emerald-600 mb-3 group-hover:scale-110 transition-transform">
+                                    <Award size={20} />
+                                </div>
+                                <p className="text-sm text-slate-400 font-bold uppercase tracking-wider mb-1">درجة النجاح</p>
+                                <p className="text-xl font-black text-slate-700">{quiz.passing_percentage}%</p>
                             </div>
                         </div>
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center gap-3">
-                            <BarChart2 className="text-slate-400" size={20} />
+
+                        {/* Instructions / Warning */}
+                        <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 text-amber-800 text-sm font-medium mb-10 max-w-2xl mx-auto flex items-start gap-3 text-start">
+                            <AlertCircle className="shrink-0 mt-0.5" size={18} />
                             <div>
-                                <p className="text-xs text-slate-400 font-bold">عدد الأسئلة</p>
-                                <p className="font-bold text-slate-700">{quiz.questions?.length || 0} سؤال</p>
+                                <p className="font-bold mb-1">تنبيه هام:</p>
+                                <p className="opacity-90 leading-relaxed">
+                                    عند البدء، سيبدأ المؤقت فوراً. تأكد من استقرار اتصال الإنترنت لديك. لا يمكنك إيقاف المؤقت بعد البدء.
+                                </p>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="flex gap-4">
-                        <button
-                            onClick={onExit}
-                            className="flex-1 py-4 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors"
-                        >
-                            إلغاء
-                        </button>
-                        <button
-                            onClick={handleStart}
-                            className="flex-[2] py-4 bg-shibl-crimson text-white rounded-xl font-bold hover:bg-red-800 transition-colors shadow-lg shadow-red-900/10 flex items-center justify-center gap-2"
-                        >
-                            ابدأ الاختبار الآن
-                            <ArrowRight className={isRTL ? 'rotate-180' : ''} />
-                        </button>
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+                            <button
+                                onClick={onExit}
+                                className="px-8 py-4 bg-white border-2 border-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-200 transition-all active:scale-95"
+                            >
+                                إلغاء وخروج
+                            </button>
+                            <button
+                                onClick={handleStart}
+                                className="px-10 py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 flex items-center justify-center gap-3 group active:scale-95 flex-1"
+                            >
+                                ابدأ الاختبار الآن
+                                <ArrowRight className={`group-hover:translate-x-1 transition-transform ${isRTL ? 'rotate-180 group-hover:-translate-x-1' : ''}`} />
+                            </button>
+                        </div>
                     </div>
                 </div>
+
+                {/* Footer Info */}
+                <p className="mt-6 text-slate-400 text-sm font-medium flex items-center gap-2">
+                    <CheckCircle2 size={14} />
+                    نتمنى لك التوفيق والنجاح
+                </p>
             </div>
         );
+
     }
 
     // ACTIVE QUIZ VIEW
@@ -575,12 +668,66 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                     )}
 
                     {currentQuestion.question_type === 'essay' && (
-                        <textarea
-                            value={answers[currentQuestion.id] || ''}
-                            onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
-                            className="w-full h-48 p-4 rounded-xl border-2 border-slate-200 focus:border-shibl-crimson focus:ring-0 resize-none"
-                            placeholder="اكتب إجابتك هنا..."
-                        ></textarea>
+                        <div className="space-y-4">
+                            <textarea
+                                value={answers[currentQuestion.id] || ''}
+                                onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                                className="w-full h-48 p-4 rounded-xl border-2 border-slate-200 focus:border-shibl-crimson focus:ring-0 resize-none transition-colors"
+                                placeholder="اكتب إجابتك هنا..."
+                            ></textarea>
+
+                            <div className="flex items-start gap-4">
+                                <div className="flex-1">
+                                    <label
+                                        htmlFor={`file-upload-${currentQuestion.id}`}
+                                        className="flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors w-fit text-sm font-medium text-slate-600"
+                                    >
+                                        <Upload size={18} />
+                                        <span>إرفاق صورة (اختياري)</span>
+                                        <input
+                                            id={`file-upload-${currentQuestion.id}`}
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    // Validate file size (e.g., 2MB)
+                                                    if (file.size > 2 * 1024 * 1024) {
+                                                        alert('حجم الصورة يجب أن لا يتجاوز 2 ميجابايت');
+                                                        return;
+                                                    }
+                                                    handleAnswerChange(currentQuestion.id, answers[currentQuestion.id] || '', file);
+                                                }
+                                            }}
+                                        />
+                                    </label>
+                                    <p className="text-xs text-slate-400 mt-2">
+                                        يسمح برفع صور (PNG, JPG) بحجم أقصى 2 ميجابايت.
+                                    </p>
+                                </div>
+
+                                {/* Image Preview */}
+                                {answerImages[currentQuestion.id] && (
+                                    <div className="relative group">
+                                        <div className="w-24 h-24 rounded-xl border border-slate-200 overflow-hidden bg-slate-50">
+                                            <img
+                                                src={URL.createObjectURL(answerImages[currentQuestion.id]!)}
+                                                alt="Preview"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={() => handleAnswerChange(currentQuestion.id, answers[currentQuestion.id] || '', null!)}
+                                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                                            title="حذف الصورة"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     )}
                 </div>
             )}
@@ -763,6 +910,15 @@ function QuestionReviewCard({ question, questionNumber, totalQuestions }: Questi
                                     : getLocalizedName(question.model_answer)
                                 }
                             </p>
+                            {question.model_answer_image_url && (
+                                <div className="mt-3">
+                                    <img
+                                        src={question.model_answer_image_url}
+                                        alt="صورة الإجابة النموذجية"
+                                        className="max-w-full max-h-48 rounded-lg border border-emerald-200 object-contain bg-white"
+                                    />
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

@@ -78,6 +78,7 @@ export interface CreateQuizData {
         question_type: 'mcq' | 'essay';
         points?: number;
         model_answer?: { en?: string; ar?: string };
+        model_answer_image?: File | null;
         question_image?: File | null;
         options?: Array<{
             option_text: { en?: string; ar?: string };
@@ -152,6 +153,7 @@ export function getQuizStatusStyle(status: QuizStatus): {
 export function hasQuizImages(data: CreateQuizData): boolean {
     return data.questions.some(q =>
         q.question_image ||
+        q.model_answer_image ||
         q.options?.some(o => o.option_image)
     );
 }
@@ -198,6 +200,11 @@ export function buildQuizFormData(data: CreateQuizData): FormData {
         // Question image
         if (question.question_image) {
             formData.append(`${qPrefix}[question_image]`, question.question_image);
+        }
+
+        // Model answer image (essay questions)
+        if (question.model_answer_image) {
+            formData.append(`${qPrefix}[model_answer_image]`, question.model_answer_image);
         }
 
         // Options for MCQ

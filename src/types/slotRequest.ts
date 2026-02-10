@@ -100,6 +100,7 @@ export interface SlotRequest {
     is_pending: boolean;
     is_approved: boolean;
     is_rejected: boolean;
+    is_expired?: boolean;
     today?: string;
     description?: string;
     request_notes?: string; // Client alias for notes

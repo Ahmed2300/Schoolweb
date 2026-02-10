@@ -379,23 +379,29 @@ export function TeacherQuizzesPage() {
 
     const handleDelete = async (id: number) => {
         if (!confirm('هل أنت متأكد من حذف هذا الاختبار؟')) return;
+        // Optimistic: remove from list immediately
+        setQuizzes(prev => prev.filter(q => q.id !== id));
         try {
             await quizService.deleteQuiz(id);
-            fetchData();
         } catch (err) {
             console.error('Failed to delete quiz:', err);
             alert('فشل في حذف الاختبار');
+            // Revert on failure
+            fetchData();
         }
     };
 
     const handleSubmit = async (id: number) => {
         if (!confirm('هل تريد إرسال هذا الاختبار للموافقة؟ لن تتمكن من تعديله بعد الإرسال.')) return;
+        // Optimistic: update status to pending immediately
+        setQuizzes(prev => prev.map(q => q.id === id ? { ...q, status: 'pending' as QuizStatus } : q));
         try {
             await quizService.submitForApproval(id);
-            fetchData();
         } catch (err) {
             console.error('Failed to submit quiz:', err);
             alert('فشل في إرسال الاختبار للموافقة');
+            // Revert on failure
+            fetchData();
         }
     };
 
@@ -542,7 +548,36 @@ export function TeacherQuizzesPage() {
                     setCreateModalOpen(false);
                     setEditingQuiz(null);
                 }}
-                onSuccess={fetchData}
+                onSuccess={(optimisticQuiz?: any) => {
+                    // Optimistic UI: instantly show the new/updated quiz card
+                    if (optimisticQuiz && optimisticQuiz.id) {
+                        setQuizzes(prev => {
+                            const exists = prev.some(q => q.id === optimisticQuiz.id);
+                            if (exists) {
+                                // Update existing quiz in place
+                                return prev.map(q => q.id === optimisticQuiz.id
+                                    ? { ...q, ...optimisticQuiz, course: q.course }
+                                    : q
+                                );
+                            }
+                            // Prepend new quiz to the top of the list
+                            const newQuiz: Quiz = {
+                                ...optimisticQuiz,
+                                course: courses.find(c => c.id === optimisticQuiz.course_id)
+                                    ? { id: optimisticQuiz.course_id, name: courses.find(c => c.id === optimisticQuiz.course_id)!.name }
+                                    : undefined,
+                            };
+                            return [newQuiz, ...prev];
+                        });
+                    }
+                    setCreateModalOpen(false);
+                    setEditingQuiz(null);
+
+                    // Silent background refetch for full data consistency
+                    quizService.getQuizzes().then(res => {
+                        setQuizzes(res.data || []);
+                    }).catch(() => { /* silent */ });
+                }}
                 courses={courses}
                 quiz={editingQuiz}
             />

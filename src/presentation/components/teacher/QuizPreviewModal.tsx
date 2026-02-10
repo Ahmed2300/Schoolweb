@@ -108,13 +108,13 @@ export function QuizPreviewModal({ isOpen, onClose, quiz }: QuizPreviewModalProp
                                                         <div
                                                             key={option.id}
                                                             className={`flex items-center gap-3 p-3 rounded-lg border ${option.is_correct
-                                                                    ? 'bg-emerald-50 border-emerald-200'
-                                                                    : 'bg-white border-slate-100'
+                                                                ? 'bg-emerald-50 border-emerald-200'
+                                                                : 'bg-white border-slate-100'
                                                                 }`}
                                                         >
                                                             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${option.is_correct
-                                                                    ? 'border-emerald-500 bg-emerald-500 text-white'
-                                                                    : 'border-slate-300'
+                                                                ? 'border-emerald-500 bg-emerald-500 text-white'
+                                                                : 'border-slate-300'
                                                                 }`}>
                                                                 {option.is_correct && <CheckCircle size={12} />}
                                                             </div>
@@ -139,6 +139,15 @@ export function QuizPreviewModal({ isOpen, onClose, quiz }: QuizPreviewModalProp
                                                             ? JSON.parse(question.model_answer).ar
                                                             : (question.model_answer as any).ar}
                                                     </p>
+                                                    {(question as any).model_answer_image_url && (
+                                                        <div className="mt-3">
+                                                            <img
+                                                                src={(question as any).model_answer_image_url}
+                                                                alt="صورة الإجابة النموذجية"
+                                                                className="max-w-full max-h-48 rounded-lg border border-purple-200 object-contain bg-white"
+                                                            />
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         )}

@@ -146,7 +146,7 @@ export function StudentQuizzesPage() {
                         <div
                             key={attempt.id}
                             className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:scale-[1.01] hover:border-slate-200 transition-all duration-300 cursor-pointer group relative overflow-hidden"
-                            onClick={() => navigate(`/student/quizzes/${attempt.quiz_id}/result`)}
+                            onClick={() => navigate(`/dashboard/quizzes/${attempt.quiz_id}`)}
                             style={{ animationDelay: `${index * 100}ms` }}
                         >
                             {/* Decorative gradient blob */}
@@ -212,8 +212,8 @@ export function StudentQuizzesPage() {
                                 <div className="bg-slate-100 rounded-full h-2.5 overflow-hidden ring-1 ring-slate-100">
                                     <div
                                         className={`h-full rounded-full transition-all duration-1000 ease-out ${attempt.status === 'passed' ? 'bg-gradient-to-r from-emerald-400 to-emerald-600 shadow-[0_0_10px_rgba(16,185,129,0.3)]' :
-                                                attempt.status === 'failed' ? 'bg-gradient-to-r from-red-400 to-red-600 shadow-[0_0_10px_rgba(239,68,68,0.3)]' :
-                                                    'bg-gradient-to-r from-amber-400 to-amber-600'
+                                            attempt.status === 'failed' ? 'bg-gradient-to-r from-red-400 to-red-600 shadow-[0_0_10px_rgba(239,68,68,0.3)]' :
+                                                'bg-gradient-to-r from-amber-400 to-amber-600'
                                             }`}
                                         style={{ width: `${getScorePercentage(attempt)}%` }}
                                     />

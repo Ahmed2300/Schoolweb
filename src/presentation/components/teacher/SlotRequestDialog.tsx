@@ -68,9 +68,9 @@ function SlotCard({ slot, isSelected, onSelect, disabled }: SlotCardProps) {
             className={`
                 relative p-4 rounded-2xl border-2 transition-all duration-200 text-center
                 ${isSelected
-                    ? 'border-teal-500 bg-teal-50 ring-2 ring-teal-500/20'
+                    ? 'border-rose-500 bg-rose-50 ring-2 ring-rose-500/20'
                     : isAvailable
-                        ? 'border-slate-200 bg-white hover:border-teal-300 hover:bg-teal-50/50'
+                        ? 'border-slate-200 bg-white hover:border-rose-300 hover:bg-rose-50/50'
                         : 'border-slate-100 bg-slate-50 opacity-60 cursor-not-allowed'
                 }
                 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
@@ -78,14 +78,14 @@ function SlotCard({ slot, isSelected, onSelect, disabled }: SlotCardProps) {
         >
             {/* Selected Checkmark */}
             {isSelected && (
-                <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center">
+                <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-rose-500 flex items-center justify-center">
                     <Check className="w-4 h-4 text-white" />
                 </div>
             )}
 
             {/* Time Display */}
             <div className="flex items-center justify-center gap-2 mb-2">
-                <Clock className={`w-4 h-4 ${isAvailable ? 'text-teal-500' : 'text-slate-400'}`} />
+                <Clock className={`w-4 h-4 ${isAvailable ? 'text-rose-500' : 'text-slate-400'}`} />
                 <span className={`text-lg font-bold ${isAvailable ? 'text-charcoal' : 'text-slate-400'}`}>
                     {formatTime(slot.start)}
                 </span>
@@ -104,7 +104,7 @@ function SlotCard({ slot, isSelected, onSelect, disabled }: SlotCardProps) {
 
             {/* Available Badge */}
             {isAvailable && !isSelected && (
-                <div className="mt-2 text-xs text-teal-600 font-medium">
+                <div className="mt-2 text-xs text-rose-600 font-medium">
                     متاح للحجز
                 </div>
             )}
@@ -266,7 +266,7 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
             {/* Dialog */}
             <div className="relative bg-white rounded-[24px] shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-in zoom-in-95 fade-in duration-200">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-5 text-white">
+                <div className="bg-gradient-to-r from-shibl-crimson to-rose-600 px-6 py-5 text-white">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -290,8 +290,8 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
                 <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
                     {/* API Error */}
                     {apiError && (
-                        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center gap-2 animate-in slide-in-from-top-2">
-                            <div className="shrink-0 p-1 bg-red-100 rounded-full">
+                        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm flex items-center gap-2 animate-in slide-in-from-top-2">
+                            <div className="shrink-0 p-1 bg-rose-100 rounded-full">
                                 <AlertCircle size={14} />
                             </div>
                             <p>{apiError}</p>
@@ -311,7 +311,7 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
                                 setErrors(prev => ({ ...prev, course_id: '' }));
                             }}
                             disabled={isLoadingCourses}
-                            className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/20 ${errors.course_id ? 'border-red-400' : 'border-slate-200 focus:border-teal-500'
+                            className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-rose-500/20 ${errors.course_id ? 'border-rose-400' : 'border-slate-200 focus:border-rose-500'
                                 }`}
                         >
                             <option value="">
@@ -325,7 +325,7 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
                             ))}
                         </select>
                         {errors.course_id && (
-                            <p className="text-red-500 text-xs mt-1">{errors.course_id}</p>
+                            <p className="text-rose-500 text-xs mt-1">{errors.course_id}</p>
                         )}
                     </div>
 
@@ -354,7 +354,7 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
                                 setErrors(prev => ({ ...prev, grade_id: '' }));
                             }}
                             disabled={isLoadingGrades}
-                            className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/20 ${errors.grade_id ? 'border-red-400' : 'border-slate-200 focus:border-teal-500'
+                            className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-rose-500/20 ${errors.grade_id ? 'border-rose-400' : 'border-slate-200 focus:border-rose-500'
                                 }`}
                         >
                             <option value="">
@@ -367,7 +367,7 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
                             ))}
                         </select>
                         {errors.grade_id && (
-                            <p className="text-red-500 text-xs mt-1">{errors.grade_id}</p>
+                            <p className="text-rose-500 text-xs mt-1">{errors.grade_id}</p>
                         )}
                     </div>
 
@@ -385,11 +385,11 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
                                 setSelectedDate(e.target.value);
                                 setErrors(prev => ({ ...prev, date: '' }));
                             }}
-                            className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/20 ${errors.date ? 'border-red-400' : 'border-slate-200 focus:border-teal-500'
+                            className={`w-full px-4 py-3 rounded-xl border-2 bg-white text-charcoal transition-all focus:outline-none focus:ring-2 focus:ring-rose-500/20 ${errors.date ? 'border-rose-400' : 'border-slate-200 focus:border-rose-500'
                                 }`}
                         />
                         {errors.date && (
-                            <p className="text-red-500 text-xs mt-1">{errors.date}</p>
+                            <p className="text-rose-500 text-xs mt-1">{errors.date}</p>
                         )}
                     </div>
 
@@ -403,11 +403,11 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
 
                             {isLoadingSlots ? (
                                 <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="w-6 h-6 animate-spin text-teal-500" />
+                                    <Loader2 className="w-6 h-6 animate-spin text-rose-500" />
                                     <span className="mr-2 text-slate-500">جارٍ تحميل المواعيد...</span>
                                 </div>
                             ) : slotsError ? (
-                                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+                                <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-600 text-sm">
                                     <AlertCircle className="inline w-4 h-4 ml-1" />
                                     حدث خطأ أثناء تحميل المواعيد
                                     <button
@@ -439,7 +439,7 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
                                         ))}
                                     </div>
                                     {errors.slot && (
-                                        <p className="text-red-500 text-xs mt-2">{errors.slot}</p>
+                                        <p className="text-rose-500 text-xs mt-2">{errors.slot}</p>
                                     )}
                                 </>
                             )}
@@ -467,7 +467,7 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
                             onChange={e => setNotes(e.target.value)}
                             placeholder="أضف ملاحظات إضافية للإدارة..."
                             rows={3}
-                            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-charcoal placeholder-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
+                            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-charcoal placeholder-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 resize-none"
                         />
                     </div>
                 </div>
@@ -484,7 +484,7 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
                     <button
                         onClick={handleSubmit}
                         disabled={isCreating || !selectedSlot}
-                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-500 text-white font-bold text-sm shadow-lg shadow-teal-500/30 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center gap-2"
+                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-shibl-crimson to-rose-600 hover:shadow-lg hover:shadow-rose-500/30 text-white font-bold text-sm transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center gap-2"
                     >
                         {isCreating ? (
                             <>

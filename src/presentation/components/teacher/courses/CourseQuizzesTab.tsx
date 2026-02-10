@@ -363,10 +363,33 @@ export function CourseQuizzesTab({ courseId, courseName, units, teacherId }: Cou
         setShowCreateModal(true);
     };
 
-    const handleModalSuccess = () => {
+    const handleModalSuccess = (optimisticQuiz?: any) => {
+        // Optimistic UI: instantly show the new/updated quiz card
+        if (optimisticQuiz && optimisticQuiz.id) {
+            setQuizzes(prev => {
+                const exists = prev.some(q => q.id === optimisticQuiz.id);
+                if (exists) {
+                    // Update existing quiz in place
+                    return prev.map(q => q.id === optimisticQuiz.id
+                        ? { ...q, ...optimisticQuiz }
+                        : q
+                    );
+                }
+                // Prepend new quiz to top of list
+                const newQuiz: Quiz = {
+                    ...optimisticQuiz,
+                    course: { id: courseId, name: { ar: courseName, en: courseName } },
+                };
+                return [newQuiz, ...prev];
+            });
+        }
         setShowCreateModal(false);
         setSelectedQuiz(null);
-        fetchQuizzes();
+
+        // Silent background refetch for full data consistency
+        quizService.getQuizzes({ course_id: courseId }).then(res => {
+            setQuizzes(res.data || []);
+        }).catch(() => { /* silent */ });
     };
 
     // Loading state

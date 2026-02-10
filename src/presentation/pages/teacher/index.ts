@@ -5,6 +5,6 @@ export { TeacherSettingsPage } from './TeacherSettingsPage';
 
 export { TeacherCourseDetailsPage } from './TeacherCourseDetailsPage';
 export { TeacherAnalyticsPage } from './AnalyticsPage';
-export { default as TeacherRecordingsPage } from './TeacherRecordingsPage';
+
 export { TeacherSlotRequestsPage } from './TeacherSlotRequestsPage';
 export { default as TeacherWeeklySchedulePage } from './TeacherWeeklySchedulePage';

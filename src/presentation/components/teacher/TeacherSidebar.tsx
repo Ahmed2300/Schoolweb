@@ -17,7 +17,6 @@ import {
     GraduationCap,
     Users,
     Calendar,
-    Video,
     CalendarClock,
     CalendarRange,
     FileText
@@ -48,7 +47,7 @@ const navItems: NavItem[] = [
     { id: 'requests', label: 'طلبات المواعيد', icon: CalendarClock, path: '/teacher/slot-requests' },
     { id: 'schedule', label: 'الجدول الأسبوعي', icon: CalendarRange, path: '/teacher/weekly-schedule' },
     { id: 'quizzes', label: 'الاختبارات', icon: FileText, path: ROUTES.TEACHER_QUIZZES },
-    { id: 'recordings', label: 'التسجيلات', icon: Video, path: '/teacher/recordings' },
+
     { id: 'settings', label: 'الإعدادات', icon: Settings, path: '/teacher/settings' },
 ];
 

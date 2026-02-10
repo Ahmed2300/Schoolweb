@@ -37,7 +37,7 @@ export interface Lecture {
 export interface QuizAttempt {
     id: number;
     score: number;
-    status: 'pending' | 'completed';
+    status: 'pending' | 'completed' | 'pending_grading' | 'passed' | 'failed';
     started_at: string;
     completed_at: string | null;
 }

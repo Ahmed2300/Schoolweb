@@ -24,7 +24,7 @@ export interface MultiLangString {
 
 export interface QuizDetails {
     id: number;
-    title: string | MultiLangString;
+    name: string | MultiLangString;
     description?: string | MultiLangString;
     duration_minutes: number;
     passing_percentage: number;
@@ -38,6 +38,7 @@ export interface QuizSubmission {
         question_id: number;
         selected_option_id?: number;
         essay_answer?: string;
+        answer_image?: File;
     }[];
 }
 
@@ -58,6 +59,7 @@ export interface QuizReviewQuestion {
     // Essay specific
     is_graded?: boolean;
     model_answer?: MultiLangString | string;
+    model_answer_image_url?: string | null;
 }
 
 // Completed attempt data returned when already_completed is true
@@ -156,7 +158,29 @@ export const studentQuizService = {
      * Submit Quiz Attempt
      */
     submitQuiz: async (quizId: number | string, submission: QuizSubmission): Promise<{ success: boolean; data: QuizResult }> => {
-        const response = await apiClient.post(`/api/v1/student/quizzes/${quizId}/submit`, submission);
+        const formData = new FormData();
+
+        submission.answers.forEach((answer, index) => {
+            formData.append(`answers[${index}][question_id]`, answer.question_id.toString());
+
+            if (answer.selected_option_id !== undefined) {
+                formData.append(`answers[${index}][selected_option_id]`, answer.selected_option_id.toString());
+            }
+
+            if (answer.essay_answer !== undefined) {
+                formData.append(`answers[${index}][essay_answer]`, answer.essay_answer || '');
+            }
+
+            if (answer.answer_image) {
+                formData.append(`answers[${index}][answer_image]`, answer.answer_image);
+            }
+        });
+
+        const response = await apiClient.post(`/api/v1/student/quizzes/${quizId}/submit`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
         return response.data;
     },
 
