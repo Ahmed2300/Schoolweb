@@ -1,4 +1,4 @@
-import { ClipboardCheck, Lock, CheckCircle2, Clock, XCircle, RotateCw, Play, Eye } from 'lucide-react';
+import { ClipboardCheck, Lock, CheckCircle2, Clock, XCircle, Play } from 'lucide-react';
 import { Quiz } from '../../../../data/api/studentCourseService';
 import { useLanguage } from '../../../hooks';
 import { getLocalizedName } from '../../../../data/api/studentService';
@@ -18,7 +18,8 @@ export function QuizItem({ quiz, isSubscribed = false }: QuizItemProps) {
     const isCompleted = !!bestAttempt;
     const score = bestAttempt?.score ?? 0;
     const passingPercentage = quiz.passing_percentage ?? 60;
-    const isPassed = isCompleted && score >= passingPercentage;
+    const isPendingGrading = bestAttempt?.status === 'pending_grading';
+    const isPassed = isCompleted && !isPendingGrading && (bestAttempt?.status === 'passed' || score >= passingPercentage);
 
     const isLocked = !isSubscribed || quiz.is_locked;
 
@@ -34,6 +35,13 @@ export function QuizItem({ quiz, isSubscribed = false }: QuizItemProps) {
                 borderColor: 'border-slate-100 hover:border-purple-200',
                 iconBg: 'bg-purple-50',
                 iconColor: 'text-purple-600',
+            };
+        }
+        if (isPendingGrading) {
+            return {
+                borderColor: 'border-amber-100 hover:border-amber-300',
+                iconBg: 'bg-amber-50',
+                iconColor: 'text-amber-600',
             };
         }
         if (isPassed) {
@@ -67,7 +75,8 @@ export function QuizItem({ quiz, isSubscribed = false }: QuizItemProps) {
             {/* Icon Container */}
             <div className={`w-12 h-12 rounded-xl ${statusStyle.iconBg} ${statusStyle.iconColor} flex items-center justify-center shrink-0 ${!isLocked ? 'group-hover:scale-110' : ''} transition-transform shadow-sm`}>
                 {isCompleted ? (
-                    isPassed ? <CheckCircle2 size={22} className="stroke-[2.5]" /> : <XCircle size={22} className="stroke-[2.5]" />
+                    isPendingGrading ? <Clock size={22} className="stroke-[2.5]" /> :
+                        (isPassed ? <CheckCircle2 size={22} className="stroke-[2.5]" /> : <XCircle size={22} className="stroke-[2.5]" />)
                 ) : (
                     <ClipboardCheck size={22} className="stroke-[2.5]" />
                 )}
@@ -77,7 +86,7 @@ export function QuizItem({ quiz, isSubscribed = false }: QuizItemProps) {
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                     <h4 className={`text-base font-bold truncate transition-colors ${!isLocked && isCompleted
-                        ? (isPassed ? 'text-emerald-800 group-hover:text-emerald-600' : 'text-rose-800 group-hover:text-rose-600')
+                        ? (isPendingGrading ? 'text-amber-800 group-hover:text-amber-600' : (isPassed ? 'text-emerald-800 group-hover:text-emerald-600' : 'text-rose-800 group-hover:text-rose-600'))
                         : 'text-slate-800'
                         }`}>
                         {getLocalizedName(quiz.title, 'Quiz')}
@@ -95,8 +104,8 @@ export function QuizItem({ quiz, isSubscribed = false }: QuizItemProps) {
                         <span className="text-slate-400">{quiz.questions_count} أسئلة</span>
                     )}
 
-                    {/* Completion Status */}
-                    {isCompleted && (
+                    {/* Completion Status (Hidden if pending grading, shown if passed/failed) */}
+                    {isCompleted && !isPendingGrading && (
                         <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold ${isPassed
                             ? 'bg-emerald-100 text-emerald-700'
                             : 'bg-rose-100 text-rose-700'
@@ -116,17 +125,18 @@ export function QuizItem({ quiz, isSubscribed = false }: QuizItemProps) {
                         {!isSubscribed && <span className="text-xs font-bold">للمشتركين</span>}
                     </div>
                 ) : isCompleted ? (
-                    <button className={`
+                    <div className={`
                         px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2
-                        ${isPassed
-                            ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white'
-                            : 'bg-rose-50 text-rose-600 group-hover:bg-rose-600 group-hover:text-white'
+                        ${isPendingGrading
+                            ? 'bg-amber-100 text-amber-700'
+                            : (isPassed
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : 'bg-rose-100 text-rose-700')
                         }
-                        transition-all shadow-sm
                     `}>
-                        <RotateCw size={14} />
-                        {isPassed ? 'إعادة' : 'حاول مجدداً'}
-                    </button>
+                        {isPendingGrading ? <Clock size={16} /> : (isPassed ? <CheckCircle2 size={16} /> : <XCircle size={16} />)}
+                        {isPendingGrading ? 'قيد التصحيح' : (isPassed ? 'ناجح' : 'راسب')}
+                    </div>
                 ) : (
                     <button className={`
                         px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2
