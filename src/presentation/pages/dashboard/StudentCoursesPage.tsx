@@ -1,13 +1,11 @@
 /**
  * My Courses Page (Student Subscriptions)
  * 
- * Displays courses the student is enrolled in, grouped by status:
- * - Active subscriptions
- * - Pending approval
- * - Rejected subscriptions
+ * Displays courses the student is enrolled in, grouped by status.
+ * RELIES ON TAILWIND CSS - NO EXTERNAL CSS FILE.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { studentService, Subscription, SubscriptionStatus, getLocalizedName } from '../../../data/api/studentService';
 import { useLanguage } from '../../hooks';
@@ -23,47 +21,42 @@ import {
     GraduationCap,
     Play,
     RefreshCw,
-    Filter
+    Filter,
+    ChevronDown
 } from 'lucide-react';
-import './StudentCoursesPage.css';
 
-// Status configuration for styling and labels
+// Status configuration
 const STATUS_CONFIG = {
     0: { // INACTIVE
         label: 'غير نشط',
         labelEn: 'Inactive',
-        color: 'bg-slate-500',
-        textColor: 'text-slate-500',
-        bgLight: 'bg-slate-50',
+        bg: 'bg-slate-100',
+        text: 'text-slate-600',
         icon: AlertCircle,
     },
     1: { // ACTIVE
         label: 'نشط',
         labelEn: 'Active',
-        color: 'bg-emerald-500',
-        textColor: 'text-emerald-500',
-        bgLight: 'bg-emerald-50',
+        bg: 'bg-emerald-100',
+        text: 'text-emerald-700',
         icon: CheckCircle,
     },
     2: { // PENDING
         label: 'قيد المراجعة',
         labelEn: 'Pending',
-        color: 'bg-amber-500',
-        textColor: 'text-amber-500',
-        bgLight: 'bg-amber-50',
+        bg: 'bg-amber-100',
+        text: 'text-amber-700',
         icon: Clock,
     },
     3: { // REJECTED
         label: 'مرفوض',
         labelEn: 'Rejected',
-        color: 'bg-red-500',
-        textColor: 'text-red-500',
-        bgLight: 'bg-red-50',
+        bg: 'bg-rose-100',
+        text: 'text-rose-700',
         icon: XCircle,
     },
 } as const;
 
-// Filter tabs
 type FilterTab = 'all' | 'active' | 'pending' | 'rejected';
 
 interface SubscriptionCardProps {
@@ -83,170 +76,171 @@ function SubscriptionCard({ subscription, onUploadReceipt, onViewCourse, isRTL }
     const courseName = getLocalizedName(course.name, 'دورة غير معروفة');
     const teacherName = course.teacher?.name || 'غير محدد';
 
-    // Generate a consistent gradient based on course ID
+    // Placeholder Gradients (Theme Style)
     const gradients = [
-        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-        'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-        'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-        'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-        'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
-        'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-        'linear-gradient(135deg, #667eea 0%, #f093fb 100%)',
+        'linear-gradient(to bottom right, #FEF2F2, #FFF1F2)', // Style A
+        'linear-gradient(to bottom right, #FEF2F2, #FFE4E6)', // Style B
+        'linear-gradient(to bottom right, #FFF5F1, #FFF0F0)', // Soft Orange-ish
+        'linear-gradient(to bottom right, #F0FDFA, #E0F2FE)', // Soft Cyan
     ];
     const gradientIndex = course.id % gradients.length;
     const placeholderGradient = gradients[gradientIndex];
 
-    // Get course initial(s)
     const getInitials = (name: string): string => {
         if (!name) return '📚';
         const words = name.split(' ').filter(w => w.length > 0);
-        if (words.length >= 2) {
-            return (words[0][0] + words[1][0]).toUpperCase();
-        }
-        return name.substring(0, 2).toUpperCase();
+        return words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
     };
     const courseInitials = getInitials(courseName);
 
-    // Handle card click - navigate to course details
     const handleCardClick = () => {
         onViewCourse(course.id);
     };
 
     return (
         <div
-            className="my-courses__card group"
+            className="group relative bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col h-full"
             onClick={handleCardClick}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => e.key === 'Enter' && handleCardClick()}
         >
-            {/* Course Thumbnail */}
-            <div className="my-courses__card-thumbnail">
+            {/* Thumbnail */}
+            <div className="relative aspect-video bg-soft-cloud overflow-hidden">
                 {course.image_path ? (
-                    <img src={course.image_path} alt={courseName} className="my-courses__card-image" />
+                    <img
+                        src={course.image_path}
+                        alt={courseName}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
                 ) : (
                     <div
-                        className="my-courses__card-placeholder"
+                        className="w-full h-full flex items-center justify-center relative"
                         style={{ background: placeholderGradient }}
                     >
-                        <div className="my-courses__placeholder-pattern" />
-                        <span className="my-courses__placeholder-initials">{courseInitials}</span>
+                        <span className="text-4xl front-bold text-shibl-crimson/20 select-none">
+                            {courseInitials}
+                        </span>
                     </div>
                 )}
 
                 {/* Status Badge */}
-                <span className={`my-courses__status-badge ${statusConfig.color}`}>
-                    <StatusIcon size={14} />
+                <div className={`absolute top-3 ${isRTL ? 'left-3' : 'right-3'} flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold backdrop-blur-md shadow-sm ${statusConfig.bg} ${statusConfig.text}`}>
+                    <StatusIcon size={14} className="stroke-[2.5]" />
                     <span>{isRTL ? statusConfig.label : statusConfig.labelEn}</span>
-                </span>
+                </div>
 
-                {/* Hover Actions */}
-                <div className="my-courses__card-overlay">
-                    {subscription.status === 1 && ( // Active - can view course
+                {/* Academic Badge */}
+                {course.is_academic && (
+                    <div className={`absolute top-3 ${isRTL ? 'right-3' : 'left-3'} px-2.5 py-1 bg-charcoal/80 backdrop-blur-md text-white text-[10px] font-bold rounded-full`}>
+                        {isRTL ? 'أكاديمي' : 'Academic'}
+                    </div>
+                )}
+
+                {/* Hover Overlay Actions */}
+                <div className="absolute inset-0 bg-charcoal/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 backdrop-blur-[2px]">
+                    {subscription.status === 1 && (
                         <button
                             onClick={(e) => { e.stopPropagation(); onViewCourse(course.id); }}
-                            className="my-courses__action-btn my-courses__action-btn--primary"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-shibl-crimson text-white rounded-xl font-bold text-sm shadow-crimson hover:bg-shibl-crimson-dark transition-colors transform translate-y-4 group-hover:translate-y-0 duration-300"
                         >
-                            <Play size={20} />
-                            <span>{isRTL ? 'مشاهدة الدورة' : 'Watch Course'}</span>
+                            <Play size={18} fill="currentColor" />
+                            <span>{isRTL ? 'مشاهدة' : 'Watch'}</span>
                         </button>
                     )}
-                    {subscription.status === 2 && !subscription.bill_image_path && ( // Pending without receipt
+                    {subscription.status === 2 && !subscription.bill_image_path && (
                         <button
                             onClick={(e) => { e.stopPropagation(); onUploadReceipt(subscription); }}
-                            className="my-courses__action-btn my-courses__action-btn--warning"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-white text-charcoal rounded-xl font-bold text-sm shadow-lg hover:bg-soft-cloud transition-colors transform translate-y-4 group-hover:translate-y-0 duration-300 delay-75"
                         >
-                            <Upload size={20} />
+                            <Upload size={18} />
                             <span>{isRTL ? 'رفع الإيصال' : 'Upload Receipt'}</span>
                         </button>
                     )}
                 </div>
-
-                {/* Academic badge */}
-                {course.is_academic && (
-                    <span className="my-courses__academic-badge">
-                        {isRTL ? 'أكاديمي' : 'Academic'}
-                    </span>
-                )}
             </div>
 
-            {/* Card Content */}
-            <div className="my-courses__card-content">
-                <h3 className="my-courses__card-title">{courseName}</h3>
+            {/* Content */}
+            <div className="p-5 flex flex-col flex-1">
+                {/* Title */}
+                <h3 className="text-lg font-bold text-charcoal mb-3 line-clamp-2 leading-tight group-hover:text-shibl-crimson transition-colors">
+                    {courseName}
+                </h3>
 
-                {/* Teacher Info */}
-                <div className="my-courses__card-meta">
-                    <User size={14} />
-                    <span>{teacherName}</span>
-                </div>
-
-                {/* Grade & Semester */}
-                {(course.grade || course.semester) && (
-                    <div className="my-courses__card-meta">
-                        <BookOpen size={14} />
-                        <span>
-                            {course.grade && getLocalizedName(course.grade.name)}
-                            {course.grade && course.semester && ' - '}
-                            {course.semester && getLocalizedName(course.semester.name)}
-                        </span>
+                {/* Metadata */}
+                <div className="space-y-2 mb-4 flex-1">
+                    <div className="flex items-center gap-2 text-slate-grey text-xs lg:text-sm">
+                        <User size={14} className="text-shibl-crimson/70" />
+                        <span className="truncate">{teacherName}</span>
                     </div>
-                )}
 
-                {/* Subscription Date */}
-                <div className="my-courses__card-meta">
-                    <Calendar size={14} />
-                    <span>
-                        {isRTL ? 'تاريخ الاشتراك: ' : 'Subscribed: '}
-                        {subscription.created_at
-                            ? new Date(subscription.created_at).toLocaleDateString(isRTL ? 'ar-EG' : 'en-US')
-                            : '-'
-                        }
-                    </span>
-                </div>
-
-                {/* Rejection Reason */}
-                {subscription.status === 3 && subscription.rejection_reason && (
-                    <div className="my-courses__rejection-reason">
-                        <AlertCircle size={14} />
-                        <span>{subscription.rejection_reason}</span>
-                    </div>
-                )}
-
-                {/* Receipt Status */}
-                {subscription.status === 2 && (
-                    <div className={`my-courses__receipt-status ${subscription.bill_image_path ? 'uploaded' : 'missing'}`}>
-                        {subscription.bill_image_path ? (
-                            <>
-                                <CheckCircle size={14} />
-                                <span>{isRTL ? 'تم رفع الإيصال' : 'Receipt Uploaded'}</span>
-                            </>
-                        ) : (
-                            <>
-                                <AlertCircle size={14} />
-                                <span>{isRTL ? 'يرجى رفع إيصال الدفع' : 'Please upload payment receipt'}</span>
-                            </>
-                        )}
-                    </div>
-                )}
-
-                {/* Price */}
-                <div className="my-courses__card-price">
-                    {course.price && Number(course.price) > 0 ? (
-                        <>
-                            <span className="my-courses__price-current">
-                                {Number(course.price).toFixed(2)} {isRTL ? 'ر.ع' : 'OMR'}
+                    {(course.grade || course.semester) && (
+                        <div className="flex items-center gap-2 text-slate-grey text-xs lg:text-sm">
+                            <BookOpen size={14} className="text-shibl-crimson/70" />
+                            <span className="truncate">
+                                {course.grade && getLocalizedName(course.grade.name)}
+                                {course.grade && course.semester && ' • '}
+                                {course.semester && getLocalizedName(course.semester.name)}
                             </span>
-                            {course.old_price && Number(course.old_price) > Number(course.price) && (
-                                <span className="my-courses__price-old">
-                                    {Number(course.old_price).toFixed(2)}
-                                </span>
-                            )}
-                        </>
-                    ) : (
-                        <span className="my-courses__price-free">
-                            {isRTL ? 'مجاني' : 'Free'}
+                        </div>
+                    )}
+
+                    <div className="flex items-center gap-2 text-slate-grey text-xs lg:text-sm">
+                        <Calendar size={14} className="text-shibl-crimson/70" />
+                        <span>
+                            {subscription.created_at
+                                ? new Date(subscription.created_at).toLocaleDateString(isRTL ? 'ar-EG' : 'en-US')
+                                : '-'}
                         </span>
+                    </div>
+                </div>
+
+                {/* Footer / Status Messages */}
+                <div className="pt-4 border-t border-slate-50 mt-auto">
+                    {/* Rejection */}
+                    {subscription.status === 3 && subscription.rejection_reason && (
+                        <div className="flex items-start gap-2 p-3 bg-red-50 text-red-600 rounded-lg text-xs leading-relaxed">
+                            <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                            <span>{subscription.rejection_reason}</span>
+                        </div>
+                    )}
+
+                    {/* Receipt Status */}
+                    {subscription.status === 2 && (
+                        <div className={`flex items-center gap-2 p-2.5 rounded-lg text-xs font-bold ${subscription.bill_image_path
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-amber-50 text-amber-700'
+                            }`}>
+                            {subscription.bill_image_path ? (
+                                <>
+                                    <CheckCircle size={14} />
+                                    <span>{isRTL ? 'تم رفع الإيصال' : 'Receipt Uploaded'}</span>
+                                </>
+                            ) : (
+                                <>
+                                    <AlertCircle size={14} />
+                                    <span>{isRTL ? 'بانتظار الإيصال' : 'Awaiting Receipt'}</span>
+                                </>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Price (Only show if active or no specific status message taking space) */}
+                    {subscription.status !== 3 && subscription.status !== 2 && (
+                        <div className="flex items-center justify-between">
+                            <span className={`text-xs font-semibold px-2 py-1 rounded ${Number(course.price) > 0 ? 'bg-slate-100 text-slate-600' : 'bg-emerald-100 text-emerald-700'
+                                }`}>
+                                {Number(course.price) > 0 ? (isRTL ? 'مدفوع' : 'Paid') : (isRTL ? 'مجاني' : 'Free')}
+                            </span>
+
+                            {Number(course.price) > 0 && (
+                                <div className="text-right">
+                                    <span className="block text-lg font-bold text-shibl-crimson">
+                                        {Number(course.price).toFixed(2)} <span className="text-xs font-normal">{isRTL ? 'ر.ع' : 'OMR'}</span>
+                                    </span>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
             </div>
@@ -263,6 +257,7 @@ export function StudentCoursesPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
+    const [selectedGradeId, setSelectedGradeId] = useState<number | null>(null);
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
     const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null);
     const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -288,34 +283,48 @@ export function StudentCoursesPage() {
         fetchSubscriptions();
     }, [fetchSubscriptions]);
 
-    // Filter subscriptions when filter changes
+    // Filter subscriptions
     useEffect(() => {
-        if (activeFilter === 'all') {
-            setFilteredSubscriptions(subscriptions);
-        } else {
+        let filtered = subscriptions;
+
+        // 1. Filter by Status
+        if (activeFilter !== 'all') {
             const statusMap: Record<FilterTab, SubscriptionStatus> = {
-                all: 0, // Not used
+                all: 0,
                 active: 1,
                 pending: 2,
                 rejected: 3,
             };
-            setFilteredSubscriptions(subscriptions.filter(s => s.status === statusMap[activeFilter]));
+            filtered = filtered.filter(s => s.status === statusMap[activeFilter]);
         }
-    }, [activeFilter, subscriptions]);
 
-    // Get counts for tabs
-    const getCounts = () => {
-        return {
-            all: subscriptions.length,
-            active: subscriptions.filter(s => s.status === 1).length,
-            pending: subscriptions.filter(s => s.status === 2).length,
-            rejected: subscriptions.filter(s => s.status === 3).length,
-        };
+        // 2. Filter by Grade
+        if (selectedGradeId) {
+            filtered = filtered.filter(s => s.course?.grade?.id === selectedGradeId);
+        }
+
+        setFilteredSubscriptions(filtered);
+    }, [activeFilter, selectedGradeId, subscriptions]);
+
+    // Derived unique grades for filter dropdown
+    const uniqueGrades = useMemo(() => {
+        const gradesMap = new Map<number, any>();
+        subscriptions.forEach(sub => {
+            if (sub.course?.grade) {
+                gradesMap.set(sub.course.grade.id, sub.course.grade);
+            }
+        });
+        return Array.from(gradesMap.values());
+    }, [subscriptions]);
+
+    const counts = {
+        all: subscriptions.length,
+        active: subscriptions.filter(s => s.status === 1).length,
+        pending: subscriptions.filter(s => s.status === 2).length,
+        rejected: subscriptions.filter(s => s.status === 3).length,
     };
 
-    const counts = getCounts();
-
-    // Handle upload receipt
+    // Upload Handlers
     const handleUploadReceipt = (subscription: Subscription) => {
         setSelectedSubscription(subscription);
         setUploadModalOpen(true);
@@ -323,9 +332,7 @@ export function StudentCoursesPage() {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            setUploadFile(file);
-        }
+        if (file) setUploadFile(file);
     };
 
     const handleUploadSubmit = async () => {
@@ -337,7 +344,6 @@ export function StudentCoursesPage() {
             setUploadModalOpen(false);
             setUploadFile(null);
             setSelectedSubscription(null);
-            // Refresh subscriptions
             await fetchSubscriptions();
         } catch (err: any) {
             console.error('Upload failed:', err);
@@ -352,184 +358,236 @@ export function StudentCoursesPage() {
     };
 
     return (
-        <div className="my-courses" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="p-6 lg:p-10 max-w-7xl mx-auto min-h-screen" dir={isRTL ? 'rtl' : 'ltr'}>
             {/* Header */}
-            <header className="my-courses__header">
-                <div className="my-courses__header-content">
-                    <h1 className="my-courses__title">
-                        {isRTL ? 'دوراتي' : 'My Courses'}
+            <header className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10">
+                <div>
+                    <h1 className="text-3xl lg:text-4xl font-extrabold text-charcoal mb-2 tracking-tight">
+                        {isRTL ? 'دوراتي التعليمية' : 'My Learning Journey'}
                     </h1>
-                    <p className="my-courses__subtitle">
+                    <p className="text-slate-grey text-sm lg:text-base max-w-2xl leading-relaxed">
                         {isRTL
-                            ? 'عرض جميع الدورات المشترك بها وحالة كل اشتراك'
-                            : 'View all your subscribed courses and their status'
+                            ? 'تابع تقدمك في الدورات التعليمية، وتصفح الاشتراكات الحالية والسابقة.'
+                            : 'Track your progress, manage subscriptions, and continue learning.'
                         }
                     </p>
                 </div>
                 <button
                     onClick={fetchSubscriptions}
-                    className="my-courses__refresh-btn"
                     disabled={isLoading}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:border-shibl-crimson hover:text-shibl-crimson hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
-                    <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
-                    <span>{isRTL ? 'تحديث' : 'Refresh'}</span>
+                    <RefreshCw size={18} className={`group-hover:rotate-180 transition-transform duration-500 ${isLoading ? 'animate-spin' : ''}`} />
+                    <span className="font-bold text-sm">{isRTL ? 'تحديث' : 'Refresh'}</span>
                 </button>
             </header>
 
-            {/* Filter Tabs */}
-            <div className="my-courses__filters">
-                <button
-                    className={`my-courses__filter-tab ${activeFilter === 'all' ? 'active' : ''}`}
-                    onClick={() => setActiveFilter('all')}
-                >
-                    <Filter size={16} />
-                    <span>{isRTL ? 'الكل' : 'All'}</span>
-                    <span className="my-courses__filter-count">{counts.all}</span>
-                </button>
-                <button
-                    className={`my-courses__filter-tab ${activeFilter === 'active' ? 'active' : ''}`}
-                    onClick={() => setActiveFilter('active')}
-                >
-                    <CheckCircle size={16} />
-                    <span>{isRTL ? 'نشط' : 'Active'}</span>
-                    <span className="my-courses__filter-count">{counts.active}</span>
-                </button>
-                <button
-                    className={`my-courses__filter-tab ${activeFilter === 'pending' ? 'active' : ''}`}
-                    onClick={() => setActiveFilter('pending')}
-                >
-                    <Clock size={16} />
-                    <span>{isRTL ? 'قيد المراجعة' : 'Pending'}</span>
-                    <span className="my-courses__filter-count">{counts.pending}</span>
-                </button>
-                <button
-                    className={`my-courses__filter-tab ${activeFilter === 'rejected' ? 'active' : ''}`}
-                    onClick={() => setActiveFilter('rejected')}
-                >
-                    <XCircle size={16} />
-                    <span>{isRTL ? 'مرفوض' : 'Rejected'}</span>
-                    <span className="my-courses__filter-count">{counts.rejected}</span>
-                </button>
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+                {/* Status Tabs */}
+                <div className="flex overflow-x-auto pb-2 gap-3 no-scrollbar w-full sm:w-auto">
+                    {(['all', 'active', 'pending', 'rejected'] as FilterTab[]).map((tab) => {
+                        const isActive = activeFilter === tab;
+                        const count = counts[tab];
+                        const labels = {
+                            all: isRTL ? 'الكل' : 'All',
+                            active: isRTL ? 'نشط' : 'Active',
+                            pending: isRTL ? 'قيد المراجعة' : 'Pending',
+                            rejected: isRTL ? 'مرفوض' : 'Rejected',
+                        };
+                        const icons = {
+                            all: Filter,
+                            active: CheckCircle,
+                            pending: Clock,
+                            rejected: XCircle,
+                        };
+                        const Icon = icons[tab];
+
+                        return (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveFilter(tab)}
+                                className={`
+                                    flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap transition-all border
+                                    ${isActive
+                                        ? 'bg-shibl-crimson text-white border-shibl-crimson shadow-crimson'
+                                        : 'bg-white text-slate-500 border-slate-100 hover:border-slate-300 hover:bg-slate-50'
+                                    }
+                                `}
+                            >
+                                <Icon size={16} />
+                                <span>{labels[tab]}</span>
+                                <span className={`
+                                    ml-1 px-2 py-0.5 rounded-full text-xs
+                                    ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}
+                                `}>
+                                    {count}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Grade Filter Dropdown */}
+                {uniqueGrades.length > 0 && (
+                    <div className="relative min-w-[200px]">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <GraduationCap size={16} />
+                        </div>
+                        <select
+                            value={selectedGradeId || ''}
+                            onChange={(e) => setSelectedGradeId(e.target.value ? Number(e.target.value) : null)}
+                            className="bg-white border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-shibl-crimson focus:border-shibl-crimson block w-full pl-10 p-2.5 appearance-none font-semibold cursor-pointer pr-8"
+                            style={{ backgroundImage: 'none' }} // Remove default arrow to style custom one if desired, or keep simple
+                        >
+                            <option value="">{isRTL ? 'جميع الصفوف' : 'All Grades'}</option>
+                            {uniqueGrades.map((grade) => (
+                                <option key={grade.id} value={grade.id}>
+                                    {getLocalizedName(grade.name)}
+                                </option>
+                            ))}
+                        </select>
+                        <div className={`absolute inset-y-0 ${isRTL ? 'left-3' : 'right-3'} flex items-center pointer-events-none text-slate-400`}>
+                            <ChevronDown size={14} />
+                        </div>
+                    </div>
+                )}
             </div>
 
-            {/* Error State */}
+            {/* Error */}
             {error && (
-                <div className="my-courses__error">
+                <div className="flex items-center gap-4 p-4 bg-red-50 text-red-600 border border-red-100 rounded-2xl mb-8">
                     <AlertCircle size={24} />
-                    <span>{error}</span>
-                    <button onClick={fetchSubscriptions}>
+                    <span className="font-semibold">{error}</span>
+                    <button onClick={fetchSubscriptions} className="underline hover:text-red-800">
                         {isRTL ? 'إعادة المحاولة' : 'Retry'}
                     </button>
                 </div>
             )}
 
-            {/* Loading State */}
-            {isLoading && (
-                <div className="my-courses__loading">
-                    <div className="my-courses__loading-grid">
-                        {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="my-courses__skeleton-card">
-                                <div className="my-courses__skeleton-thumbnail" />
-                                <div className="my-courses__skeleton-content">
-                                    <div className="my-courses__skeleton-title" />
-                                    <div className="my-courses__skeleton-meta" />
-                                    <div className="my-courses__skeleton-meta short" />
-                                </div>
+            {/* Grid */}
+            <div className={`
+                grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6
+                ${isLoading ? 'opacity-50 pointer-events-none' : ''}
+            `}>
+                {isLoading && filteredSubscriptions.length === 0 ? (
+                    // Skeletons
+                    [...Array(4)].map((_, i) => (
+                        <div key={i} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm animate-pulse">
+                            <div className="bg-slate-200 aspect-video rounded-xl mb-4" />
+                            <div className="h-4 bg-slate-200 rounded w-3/4 mb-2" />
+                            <div className="h-3 bg-slate-200 rounded w-1/2 mb-4" />
+                            <div className="flex gap-2">
+                                <div className="h-8 bg-slate-200 rounded w-full" />
                             </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Empty State */}
-            {!isLoading && !error && filteredSubscriptions.length === 0 && (
-                <div className="my-courses__empty">
-                    <div className="my-courses__empty-icon">
-                        <BookOpen size={64} />
-                    </div>
-                    <h3>
-                        {activeFilter === 'all'
-                            ? (isRTL ? 'لا توجد دورات مشترك بها' : 'No subscribed courses')
-                            : (isRTL ? 'لا توجد دورات في هذه الفئة' : 'No courses in this category')
-                        }
-                    </h3>
-                    <p>
-                        {isRTL
-                            ? 'ابدأ رحلتك التعليمية باستكشاف الدورات المتاحة'
-                            : 'Start your learning journey by exploring available courses'
-                        }
-                    </p>
-                    <button
-                        onClick={() => navigate('/dashboard/academic-browse')}
-                        className="my-courses__browse-btn"
-                    >
-                        <GraduationCap size={18} />
-                        <span>{isRTL ? 'استكشاف الدورات' : 'Browse Courses'}</span>
-                    </button>
-                </div>
-            )}
-
-            {/* Courses Grid */}
-            {!isLoading && !error && filteredSubscriptions.length > 0 && (
-                <div className="my-courses__grid">
-                    {filteredSubscriptions.map(subscription => (
+                        </div>
+                    ))
+                ) : filteredSubscriptions.length > 0 ? (
+                    filteredSubscriptions.map(sub => (
                         <SubscriptionCard
-                            key={subscription.id}
-                            subscription={subscription}
+                            key={sub.id}
+                            subscription={sub}
                             onUploadReceipt={handleUploadReceipt}
                             onViewCourse={handleViewCourse}
                             isRTL={isRTL}
                         />
-                    ))}
-                </div>
-            )}
-
-            {/* Upload Receipt Modal */}
-            {uploadModalOpen && selectedSubscription && (
-                <div className="my-courses__modal-overlay" onClick={() => setUploadModalOpen(false)}>
-                    <div className="my-courses__modal" onClick={e => e.stopPropagation()}>
-                        <h3>{isRTL ? 'رفع إيصال الدفع' : 'Upload Payment Receipt'}</h3>
-                        <p>
+                    ))
+                ) : !isLoading && (
+                    <div className="col-span-full py-20 flex flex-col items-center justify-center text-center">
+                        <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-6">
+                            <BookOpen size={48} />
+                        </div>
+                        <h3 className="text-xl font-bold text-charcoal mb-2">
+                            {isRTL ? 'لا توجد دورات هنا' : 'No courses found'}
+                        </h3>
+                        <p className="text-slate-500 max-w-sm mx-auto mb-8">
                             {isRTL
-                                ? 'يرجى رفع صورة إيصال الدفع للمراجعة من قبل الإدارة'
-                                : 'Please upload a payment receipt image for admin review'
+                                ? 'لم يتم العثور على أي دورات في هذه القائمة. تصفح الدورات المتاحة للاشتراك.'
+                                : 'We couldn\'t find any courses in this list. Browse available courses to subscribe.'
+                            }
+                        </p>
+                        <button
+                            onClick={() => navigate('/dashboard/academic-browse')}
+                            className="flex items-center gap-2 px-6 py-3 bg-shibl-crimson text-white rounded-xl font-bold hover:bg-shibl-crimson-dark shadow-crimson transition-all"
+                        >
+                            <GraduationCap size={20} />
+                            <span>{isRTL ? 'تصفح الدورات' : 'Browse Courses'}</span>
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {/* Upload Modal */}
+            {uploadModalOpen && selectedSubscription && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+                    <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-sm" onClick={() => setUploadModalOpen(false)} />
+                    <div className="relative bg-white w-full max-w-lg rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+                        <h3 className="text-2xl font-bold text-charcoal mb-2">
+                            {isRTL ? 'رفع إيصال الدفع' : 'Upload Payment Receipt'}
+                        </h3>
+                        <p className="text-slate-500 mb-8">
+                            {isRTL
+                                ? 'يرجى رفع صورة واضحة لإيصال التحويل البنكي للمراجعة.'
+                                : 'Please upload a clear image of the bank transfer receipt for review.'
                             }
                         </p>
 
-                        <div className="my-courses__upload-area">
+                        <div className="mb-8">
                             <input
                                 type="file"
+                                id="receipt-upload"
+                                className="hidden"
                                 accept="image/*"
                                 onChange={handleFileChange}
-                                id="receipt-upload"
                             />
-                            <label htmlFor="receipt-upload">
-                                <Upload size={32} />
-                                <span>
-                                    {uploadFile
-                                        ? uploadFile.name
-                                        : (isRTL ? 'اختر صورة الإيصال' : 'Select receipt image')
+                            <label
+                                htmlFor="receipt-upload"
+                                className={`
+                                    flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border-2 border-dashed cursor-pointer transition-all
+                                    ${uploadFile
+                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                                        : 'border-slate-200 hover:border-shibl-crimson hover:bg-slate-50 text-slate-500'
                                     }
-                                </span>
+                                `}
+                            >
+                                {uploadFile ? (
+                                    <>
+                                        <CheckCircle size={40} />
+                                        <span className="font-bold">{uploadFile.name}</span>
+                                        <span className="text-xs opacity-70">
+                                            {isRTL ? 'انقر للتغيير' : 'Click to change'}
+                                        </span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                            <Upload size={32} />
+                                        </div>
+                                        <div className="text-center">
+                                            <span className="block font-bold text-charcoal text-lg mb-1">
+                                                {isRTL ? 'اضغط لرفع ملف' : 'Click to upload'}
+                                            </span>
+                                            <span className="text-xs text-slate-400">PNG, JPG up to 5MB</span>
+                                        </div>
+                                    </>
+                                )}
                             </label>
                         </div>
 
-                        <div className="my-courses__modal-actions">
+                        <div className="flex items-center justify-end gap-3">
                             <button
                                 onClick={() => setUploadModalOpen(false)}
-                                className="my-courses__modal-btn secondary"
+                                className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-colors"
                             >
                                 {isRTL ? 'إلغاء' : 'Cancel'}
                             </button>
                             <button
                                 onClick={handleUploadSubmit}
                                 disabled={!uploadFile || isUploading}
-                                className="my-courses__modal-btn primary"
+                                className="px-8 py-3 rounded-xl font-bold text-white bg-shibl-crimson hover:bg-shibl-crimson-dark shadow-crimson disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
                             >
-                                {isUploading
-                                    ? (isRTL ? 'جاري الرفع...' : 'Uploading...')
-                                    : (isRTL ? 'رفع الإيصال' : 'Upload Receipt')
-                                }
+                                {isUploading && <RefreshCw size={18} className="animate-spin" />}
+                                <span>{isRTL ? 'تأكيد الرفع' : 'Confirm Upload'}</span>
                             </button>
                         </div>
                     </div>
