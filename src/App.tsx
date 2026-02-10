@@ -35,6 +35,7 @@ import {
   AdminRecordingsPage,
   AdminScheduleConfigPage,
   AdminSlotRequestsPage,
+  AdminClassSchedulesPage,
   StudentLayout,
   StudentHomePage,
   StudentCoursesPage,
@@ -210,6 +211,7 @@ function App() {
               <Route path="settings" element={<AdminSettingsPage />} />
               <Route path="schedule-config" element={<AdminScheduleConfigPage />} />
               <Route path="slot-requests" element={<AdminSlotRequestsPage />} />
+              <Route path="class-schedules" element={<AdminClassSchedulesPage />} />
             </Route>
 
             {/* 404 Catch-all Route */}

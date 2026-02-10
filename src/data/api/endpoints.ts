@@ -382,6 +382,10 @@ export const endpoints = {
             bulkApprove: '/api/v1/admin/schedule/requests/bulk-approve',
             bulkReject: '/api/v1/admin/schedule/requests/bulk-reject',
         },
+        // Class Schedules (View Only)
+        classSchedules: {
+            list: '/api/v1/admin/class-schedules',
+        },
     },
 
     // Grades (authenticated)

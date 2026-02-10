@@ -2308,6 +2308,37 @@ export const adminService = {
         const response = await apiClient.post(endpoints.admin.slotRequests.bulkReject, { ids, reason, type });
         return response.data;
     },
+
+    // ==================== CLASS SCHEDULES (VIEW ONLY) ====================
+
+    /**
+     * Get class schedules with filters
+     */
+    getClassSchedules: async (params?: {
+        grade_id?: number;
+        teacher_id?: number;
+        subject_id?: number;
+        date_from?: string;
+        date_to?: string;
+        search?: string;
+        page?: number;
+        per_page?: number;
+        sort_by?: string;
+        sort_order?: 'asc' | 'desc';
+    }) => {
+        const response = await apiClient.get(endpoints.admin.classSchedules.list, { params });
+        return response.data;
+    },
+
+    getClassSchedulesGrouped: async (params?: {
+        grade_id?: number;
+        teacher_id?: number;
+        day_of_week?: number;
+        search?: string;
+    }): Promise<any> => {
+        const response = await apiClient.get(`${endpoints.admin.classSchedules.list}/grouped`, { params });
+        return response.data;
+    },
 };
 
 export default adminService;

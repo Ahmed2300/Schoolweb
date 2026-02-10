@@ -86,6 +86,7 @@ const navGroups: NavGroup[] = [
         icon: <Clock size={18} />,
         items: [
             { icon: <CheckCircle size={18} />, label: 'طلبات المواعيد', path: '/admin/slot-requests' },
+            { icon: <Calendar size={18} />, label: 'جداول الحصص', path: '/admin/class-schedules' },
         ],
     },
     {
