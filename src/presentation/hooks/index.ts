@@ -19,3 +19,4 @@ export {
 export * from './useTeacherTimeSlots';
 export * from './useTeacherContent';
 export * from './useSlotRequests';
+export { useGrades, useTeachers, useSubjects } from './useAdminData';
