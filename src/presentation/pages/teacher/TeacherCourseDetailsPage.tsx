@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLanguage, useAuth } from '../../hooks';
 import { teacherService, getCourseName, getCourseDescription, type TeacherCourse, type TeacherCourseStudent } from '../../../data/api';
+import { Skeleton } from '../../components/ui/Skeleton';
 import { teacherLectureService } from '../../../data/api/teacherLectureService';
 import { teacherContentApprovalService } from '../../../data/api/teacherContentApprovalService';
 import type { Unit, CreateUnitRequest, UpdateUnitRequest, UnitLecture } from '../../../types/unit';
@@ -262,7 +263,6 @@ function UnitCard({
     onToggleQuizActive: (quiz: Quiz) => void;
 
     onStartSession?: (lectureId: number) => void;
-    onEndSession?: (lectureId: number) => void;
     onEndSession?: (lectureId: number) => void;
     quizzes?: Quiz[];
     dragHandleProps?: any;
@@ -697,6 +697,10 @@ export function TeacherCourseDetailsPage() {
     const [liveSessionEmbedUrl, setLiveSessionEmbedUrl] = useState<string | null>(null);
     const [isLiveSessionModalOpen, setIsLiveSessionModalOpen] = useState(false);
 
+    // Student State
+    const [students, setStudents] = useState<TeacherCourseStudent[]>([]);
+    const [loadingStudents, setLoadingStudents] = useState(false);
+
     // Fetch Course Data
     const fetchCourseData = useCallback(async () => {
         if (!courseId) return;
@@ -807,6 +811,27 @@ export function TeacherCourseDetailsPage() {
     useEffect(() => {
         fetchCourseData();
     }, [fetchCourseData]);
+
+    const fetchStudents = useCallback(async () => {
+        if (!courseId) return;
+
+        try {
+            setLoadingStudents(true);
+            const response = await teacherService.getCourseStudents(courseId);
+            setStudents(response.data);
+        } catch (error) {
+            console.error('Error fetching students:', error);
+            // toast.error('فشل تحميل قائمة الطلاب');
+        } finally {
+            setLoadingStudents(false);
+        }
+    }, [courseId]);
+
+    useEffect(() => {
+        if (activeTab === 'students') {
+            fetchStudents();
+        }
+    }, [activeTab, fetchStudents]);
 
     // Listen for real-time quiz status changes (WebSocket notifications)
     useEffect(() => {
@@ -1559,14 +1584,55 @@ export function TeacherCourseDetailsPage() {
 
             {/* Students Tab */}
             {activeTab === 'students' && (
-                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-200">
-                    <div className="w-20 h-20 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mb-6">
-                        <Users size={40} />
-                    </div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-2">قائمة الطلاب المسجلين</h3>
-                    <p className="text-slate-500 max-w-sm mx-auto text-center">
-                        لا يوجد طلاب مسجلين في هذا الكورس حالياً. سيظهر جميع الطلاب المنضمين إلى الكورس في هذه القائمة.
-                    </p>
+                <div className="space-y-6">
+                    {loadingStudents ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[1, 2, 3, 4, 5, 6].map((i) => (
+                                <div key={i} className="bg-white rounded-xl border border-slate-200 p-5 flex items-start gap-4">
+                                    <Skeleton className="w-12 h-12 rounded-full flex-shrink-0" />
+                                    <div className="flex-1 min-w-0 space-y-2">
+                                        <Skeleton className="h-5 w-3/4" />
+                                        <Skeleton className="h-4 w-1/2" />
+                                        <Skeleton className="h-6 w-24 mt-2" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : students.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {students.map((student) => (
+                                <div key={student.id} className="bg-white rounded-xl border border-slate-200 p-5 flex items-start gap-4 hover:shadow-md transition-all">
+                                    <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100 flex-shrink-0 flex items-center justify-center">
+                                        {student.avatar ? (
+                                            <img src={student.avatar} alt={student.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User size={24} className="text-slate-400" />
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="font-bold text-slate-900 mb-1 truncate text-base">{student.name}</h4>
+                                        <div className="text-sm text-slate-500 flex items-center gap-2 mb-2 truncate">
+                                            <span className="truncate" dir="ltr">{student.email}</span>
+                                        </div>
+                                        <div className="text-xs text-slate-400 flex items-center gap-1 bg-slate-50 w-fit px-2 py-1 rounded">
+                                            <Clock size={12} />
+                                            <span>تاريخ الانضمام: {new Date(student.subscribed_at).toLocaleDateString('ar-EG')}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-200">
+                            <div className="w-20 h-20 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mb-6">
+                                <Users size={40} />
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-900 mb-2">قائمة الطلاب المسجلين</h3>
+                            <p className="text-slate-500 max-w-sm mx-auto text-center">
+                                لا يوجد طلاب مسجلين في هذا الكورس حالياً. سيظهر جميع الطلاب المنضمين إلى الكورس في هذه القائمة.
+                            </p>
+                        </div>
+                    )}
                 </div>
             )}
 
