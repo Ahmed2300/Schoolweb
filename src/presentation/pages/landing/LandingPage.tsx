@@ -48,7 +48,6 @@ export function LandingPage() {
                     <div
                         className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none transition-opacity hover:opacity-80"
                         onDoubleClick={() => navigate(ROUTES.ADMIN_LOGIN)}
-                        title="Double tap for admin access"
                     >
                         <img src="/images/subol-red.png" alt="سُبُل" className="w-6 h-6 sm:w-8 sm:h-8" />
                         <span className="text-base sm:text-xl font-extrabold text-charcoal whitespace-nowrap">سُبُل</span>
@@ -235,8 +234,8 @@ export function LandingPage() {
                             <div className="absolute inset-4 bg-gradient-to-br from-red-50 to-white rounded-[2.5rem] rotate-3 shadow-2xl border border-white" />
                             <div className="absolute inset-4 bg-white rounded-[2.5rem] -rotate-3 shadow-xl overflow-hidden border border-slate-100">
                                 <img
-                                    src="/images/hero-student.png"
-                                    alt="Student studying with tablet"
+                                    src="/images/hero-teacher.png"
+                                    alt="Professional Omani teacher explaining lesson"
                                     className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
                                 />
                                 {/* Overlay Gradient */}
