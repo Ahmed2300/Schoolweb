@@ -35,6 +35,8 @@ export const ROUTES = {
     PARENT_DASHBOARD: '/parent',
     PARENT_CHILDREN: '/parent/children',
     PARENT_CHILD_PROGRESS: '/parent/children/:id',
+    PARENT_STORE: '/parent/children/:childId/store',
+    PARENT_COURSE_PROGRESS: '/parent/children/:childId/courses/:courseId/progress',
 
     // Teacher routes
     TEACHER_DASHBOARD: '/teacher',
@@ -55,6 +57,7 @@ export const ROUTES = {
     ADMIN_RECORDINGS: '/admin/recordings',
     ADMIN_REPORTS: '/admin/reports',
     ADMIN_SETTINGS: '/admin/settings',
+    ADMIN_PACKAGES: '/admin/packages',
 } as const;
 
 // Helper to generate paths with params

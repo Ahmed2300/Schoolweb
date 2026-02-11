@@ -41,6 +41,11 @@ const BANK_INFO = {
     iban: 'OM72BMSC0476079726660011',
 };
 
+const WALLET_INFO = {
+    label: 'محفظة إلكترونية',
+    number: '91938082',
+};
+
 const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     isOpen,
     onClose,
@@ -274,6 +279,17 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                                 <BankInfoItem label="اسم الحساب" value={BANK_INFO.accountName} field="name" />
                                 <BankInfoItem label="رقم الحساب" value={BANK_INFO.accountNumber} field="account" />
                                 <BankInfoItem label="رقم IBAN" value={BANK_INFO.iban} field="iban" />
+
+                                <div className="relative py-2">
+                                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                                        <div className="w-full border-t border-slate-200"></div>
+                                    </div>
+                                    <div className="relative flex justify-center">
+                                        <span className="bg-white px-2 text-xs text-slate-500">أو</span>
+                                    </div>
+                                </div>
+
+                                <BankInfoItem label={WALLET_INFO.label} value={WALLET_INFO.number} field="wallet" />
                             </div>
 
                             {/* Instructions */}

@@ -760,6 +760,30 @@ export function StudentPackagesPage() {
                                             </div>
                                         </div>
 
+                                        {/* Digital Wallet */}
+                                        <div className="relative py-2">
+                                            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                                                <div className="w-full border-t border-slate-200"></div>
+                                            </div>
+                                            <div className="relative flex justify-center">
+                                                <span className="bg-white px-2 text-xs text-slate-500">أو</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-shibl-crimson/30 transition-colors group">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs text-slate-400">محفظة إلكترونية</p>
+                                                <p className="font-semibold text-charcoal text-sm" dir="ltr">91938082</p>
+                                            </div>
+                                            <button
+                                                onClick={() => { navigator.clipboard.writeText('91938082'); }}
+                                                className="w-8 h-8 rounded-lg bg-white hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2 border border-slate-200"
+                                                title="نسخ"
+                                            >
+                                                <svg className="w-4 h-4 text-slate-400 group-hover:text-shibl-crimson" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                                            </button>
+                                        </div>
+
                                         {/* Bill Upload */}
                                         <div>
                                             <label className="block text-sm font-bold text-slate-600 mb-2">

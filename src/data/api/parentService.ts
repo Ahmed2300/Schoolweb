@@ -63,7 +63,8 @@ export interface LinkedStudent {
     uid: string;
     name: string;
     email: string;
-    grade?: string;
+    grade?: string | { name: string };
+    grade_id?: number;
     image_path?: string;
     avatar?: string;
     phone?: string;
@@ -82,6 +83,7 @@ export interface LinkedStudent {
         image?: string;
         score?: number;
         grade?: string;
+        grade_id?: number;
         feedback?: string;
         progress?: number;
         assignments?: { total: number; completed: number };
@@ -93,6 +95,14 @@ export interface LinkedStudent {
     }>;
     total_subscriptions?: number;
     active_subscriptions?: number;
+    package_subscriptions?: Array<{
+        id: number;
+        package_id: number;
+        status: 'pending' | 'active' | 'rejected' | 'expired' | 'cancelled';
+        status_label: string;
+        start_date?: string;
+        end_date?: string;
+    }>;
     quizzes?: Array<{
         quiz_title: string;
         score: number;
@@ -101,6 +111,28 @@ export interface LinkedStudent {
         status: 'passed' | 'failed' | 'completed';
         completed_at: string;
     }>;
+}
+
+/** Response from parent purchase/subscribe endpoints */
+export interface ParentPurchaseResponse {
+    success: boolean;
+    message: string;
+    data?: {
+        id: number;
+        student_id: number;
+        status: string;
+        created_at?: string;
+    };
+}
+
+/** Package purchase status check response */
+export interface PackagePurchaseStatus {
+    purchased: boolean;
+    subscription?: {
+        id: number;
+        status: string;
+        created_at?: string;
+    };
 }
 
 // ============================================================
@@ -211,11 +243,16 @@ export const parentService = {
         return response.data.data || [];
     },
 
-    /**
-     * Get detailed report for a specific linked student
-     */
     getStudentReport: async (studentId: number): Promise<unknown> => {
         const response = await apiClient.get(endpoints.parent.reports.studentDetail(studentId));
+        return response.data.data;
+    },
+
+    /**
+     * Get detailed course progress for a student
+     */
+    getStudentCourseProgress: async (studentId: number, courseId: number): Promise<any> => {
+        const response = await apiClient.get(endpoints.parent.reports.courseProgress(studentId, courseId));
         return response.data.data;
     },
 
@@ -242,6 +279,85 @@ export const parentService = {
      */
     logoutAll: async (): Promise<void> => {
         await apiClient.post(endpoints.parentAuth.logoutAll);
+    },
+
+    // ============================================================
+    // Purchase Methods (Guardian buying for children)
+    // ============================================================
+
+    /**
+     * Purchase a package for a linked student.
+     * Requires bill image (payment receipt).
+     */
+    purchasePackageForStudent: async (
+        studentId: number,
+        packageId: number,
+        billImage: File
+    ): Promise<ParentPurchaseResponse> => {
+        const formData = new FormData();
+        formData.append('student_id', String(studentId));
+        formData.append('package_id', String(packageId));
+        formData.append('bill_image', billImage);
+
+        const response = await apiClient.post(
+            endpoints.parentPurchase.purchasePackage,
+            formData,
+            { headers: { 'Content-Type': 'multipart/form-data' } }
+        );
+        return response.data;
+    },
+
+    /**
+     * Subscribe a linked student to a course.
+     * Requires bill image (payment receipt).
+     */
+    subscribeCourseForStudent: async (
+        studentId: number,
+        courseId: number,
+        billImage: File
+    ): Promise<ParentPurchaseResponse> => {
+        const formData = new FormData();
+        formData.append('student_id', String(studentId));
+        formData.append('course_id', String(courseId));
+        formData.append('bill_image', billImage);
+
+        const response = await apiClient.post(
+            endpoints.parentPurchase.subscribeCourse,
+            formData,
+            { headers: { 'Content-Type': 'multipart/form-data' } }
+        );
+        return response.data;
+    },
+
+    /**
+     * Check if a package has been purchased for a student.
+     */
+    checkPackagePurchase: async (
+        studentId: number,
+        packageId: number
+    ): Promise<PackagePurchaseStatus> => {
+        const response = await apiClient.post(
+            endpoints.parentPurchase.checkPackagePurchase,
+            { student_id: studentId, package_id: packageId }
+        );
+        return response.data;
+    },
+
+    /**
+     * Get available courses for a student (filtered by grade).
+     * Reuses the public courses endpoint.
+     */
+    getAvailableCoursesForStudent: async (params?: {
+        grade_id?: number;
+        semester_id?: number;
+        per_page?: number;
+        page?: number;
+    }): Promise<{ data: Array<Record<string, unknown>>; meta?: Record<string, unknown> }> => {
+        const response = await apiClient.get(endpoints.courses.list, { params });
+        return {
+            data: response.data.data || [],
+            meta: response.data.meta,
+        };
     },
 };
 

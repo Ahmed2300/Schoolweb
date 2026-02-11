@@ -73,7 +73,6 @@ export function StudentLayout() {
         { id: '/packages', icon: Package, label: 'الباقات', path: '/dashboard/packages' },
         { id: '/schedule', icon: Calendar, label: 'الجدول', path: '/dashboard/schedule' },
         { id: '/quizzes', icon: FileQuestion, label: 'الاختبارات', path: '/dashboard/quizzes' },
-        { id: '/live', icon: Video, label: 'جلسات مباشرة', path: '/dashboard/live' },
         { id: '/profile', icon: User, label: 'الملف الشخصي', path: '/dashboard/profile' },
         {
             id: '/parent-requests',

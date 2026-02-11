@@ -14,7 +14,7 @@
 import { useState, useMemo } from 'react';
 import { Calendar as CalendarIcon, Plus, CalendarDays } from 'lucide-react';
 import { useSchedules, useCompleteSchedule, useDeleteSchedule } from '@/hooks/useSchedule';
-import { format, parseISO, isSameDay, startOfDay } from 'date-fns';
+import { format, parseISO, isSameDay, startOfDay, isAfter } from 'date-fns';
 import ScheduleLectureModal from '@/presentation/components/student/ScheduleLectureModal';
 import { WeekStrip, DayTimeline, UpcomingSchedules } from '@/presentation/components/student/schedule';
 
@@ -123,17 +123,29 @@ export function StudentSchedulePage() {
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // Filter out schedules with missing lectures (e.g., deleted by teacher)
+    const validSchedules = useMemo(() => {
+        return schedules?.filter(s => s.lecture) || [];
+    }, [schedules]);
+
+    const upcomingList = useMemo(() => {
+        const now = new Date();
+        return validSchedules
+            .filter((s) => !s.is_completed && isAfter(parseISO(s.scheduled_at), now))
+            .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())
+            .slice(0, 3);
+    }, [validSchedules]);
+
     // Filter schedules for selected date
     const daySchedules = useMemo(() => {
-        if (!schedules) return [];
-        return schedules.filter((s) => isSameDay(parseISO(s.scheduled_at), selectedDate));
-    }, [schedules, selectedDate]);
+        return validSchedules.filter((s) => isSameDay(parseISO(s.scheduled_at), selectedDate));
+    }, [validSchedules, selectedDate]);
 
     // Calculate schedule counts per day for the week strip
     const scheduleCounts = useMemo(() => {
-        if (!schedules) return {};
+        if (!validSchedules) return {};
         const counts: Record<string, number> = {};
-        schedules.forEach((s) => {
+        validSchedules.forEach((s) => {
             const dateKey = format(parseISO(s.scheduled_at), 'yyyy-MM-dd');
             counts[dateKey] = (counts[dateKey] || 0) + 1;
         });

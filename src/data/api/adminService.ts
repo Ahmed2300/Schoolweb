@@ -211,12 +211,16 @@ export interface CreateStudentRequest {
     password: string;
     password_confirmation: string;
     phone?: string;
-    parent_phone?: string;
     how_do_you_know_us?: string;
     grade_id?: number;
     country_id?: number;
     city_id?: number;
     status?: 'active' | 'inactive';
+    // Parent fields (mandatory section)
+    parent_email: string;
+    parent_name?: string;
+    parent_password?: string;
+    parent_phone?: string;
 }
 
 // Create parent request based on backend StoreParentRequest
@@ -871,6 +875,21 @@ export const adminService = {
     createParent: async (data: CreateParentRequest): Promise<UserData> => {
         const response = await apiClient.post(endpoints.admin.parents.create, data);
         return { ...response.data.data, role: 'parent' as UserRole };
+    },
+
+    /**
+     * Search for a parent by exact email match
+     */
+    searchParentByEmail: async (email: string): Promise<UserData | null> => {
+        try {
+            const response = await adminService.getParents({ search: email, per_page: 1 });
+            const match = response.data.find(
+                (p: UserData) => p.email?.toLowerCase() === email.toLowerCase()
+            );
+            return match ?? null;
+        } catch {
+            return null;
+        }
     },
 
     // ==================== TEACHERS ====================

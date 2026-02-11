@@ -74,6 +74,7 @@ export function StudentProfilePage() {
     // UID generation state
     const [isGeneratingUid, setIsGeneratingUid] = useState(false);
     const [studentUid, setStudentUid] = useState<string | null>((user as any)?.uid || null);
+    const [parentImageError, setParentImageError] = useState(false);
 
     const handleCopy = (text: string, fieldName: string) => {
         if (!text || text === 'غير مسجل') return;
@@ -534,15 +535,20 @@ export function StudentProfilePage() {
                         <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-6 rounded-2xl border border-emerald-100">
                             <div className="flex items-center gap-4 mb-6">
                                 <div className="w-16 h-16 rounded-full overflow-hidden bg-emerald-100 border-2 border-white shadow-md">
-                                    {((user as any)?.linked_parent?.avatar || (user as any)?.linked_parent?.image_path) ? (
+                                    {((user as any)?.linked_parent?.avatar || (user as any)?.linked_parent?.image_path) && !parentImageError ? (
                                         <img
                                             src={(user as any).linked_parent.avatar || (user as any).linked_parent.image_path}
                                             alt={(user as any).linked_parent.name}
                                             className="w-full h-full object-cover"
+                                            onError={() => setParentImageError(true)}
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-emerald-600 text-white">
-                                            <User size={28} />
+                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-inner">
+                                            {(user as any)?.linked_parent?.name ? (
+                                                <span className="text-2xl font-bold">{(user as any).linked_parent.name.charAt(0).toUpperCase()}</span>
+                                            ) : (
+                                                <User size={28} />
+                                            )}
                                         </div>
                                     )}
                                 </div>

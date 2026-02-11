@@ -60,6 +60,7 @@ export const endpoints = {
         reports: {
             students: '/api/v1/parents/reports/students',
             studentDetail: (id: number) => `/api/v1/parents/reports/students/${id}`,
+            courseProgress: (studentId: number, courseId: number) => `/api/v1/parents/reports/students/${studentId}/courses/${courseId}/progress`,
         },
         // Unlink student
         unlinkStudent: (studentId: number) => `/api/v1/parents/students/${studentId}/unlink`,
@@ -476,6 +477,13 @@ export const endpoints = {
         pendingSubscriptions: '/api/v1/package-subscriptions/pending',
         approveSubscription: (id: number) => `/api/v1/package-subscriptions/${id}/approve`,
         rejectSubscription: (id: number) => `/api/v1/package-subscriptions/${id}/reject`,
+    },
+
+    // Parent Purchases (Guardian buying for children)
+    parentPurchase: {
+        purchasePackage: '/api/v1/parents/purchases/packages/purchase',
+        subscribeCourse: '/api/v1/parents/purchases/courses/subscribe',
+        checkPackagePurchase: '/api/v1/parents/purchases/packages/check-purchase',
     },
 
     // User Notifications (Shared)

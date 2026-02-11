@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES, generatePath } from '../../../shared/constants';
 import {
     GraduationCap,
     Calendar,
@@ -16,7 +18,8 @@ import {
     Users,
     Unlink2,
     X,
-    AlertTriangle
+    AlertTriangle,
+    ShoppingBag
 } from 'lucide-react';
 import { LinkStudentModal } from '../../components/parent';
 import { parentService, type LinkedStudent } from '../../../data/api';
@@ -58,7 +61,7 @@ interface Child {
     grade: string;
     avatar: string;
     school: string;
-    gpa: string;
+    gpa: number;
     attendance?: number;
     ranking?: number;
     alertCount?: number;
@@ -269,19 +272,9 @@ export function ParentChildrenPage() {
             const students = await parentService.getLinkedStudents();
 
             // Map API data to UI model (filling missing fields with placeholders)
-            const mappedChildren = students.map((student: LinkedStudent) => ({
-                id: student.id,
-                name: student.name,
-                grade: student.grade || 'غير محدد',
-                school: 'مدرسة سُبُل', // Placeholder
-                avatar: student.image_path || student.avatar || null,
-                uid: student.uid,
-                gpa: student.overall_average_score ? `${student.overall_average_score}%` : 'N/A',
-                attendance: student.attendance,
-                ranking: student.ranking,
-                // gpaHistory & skills removed (will be undefined)
-                // Use subjects from API if available
-                subjects: (student.subjects || []).map((s: any) => ({
+            const mappedChildren = students.map((student: LinkedStudent) => {
+                // Map subjects first to allow for GPA calculation
+                const subjects = (student.subjects || []).map((s: any) => ({
                     id: s.id,
                     name: s.name,
                     teacher: s.teacher || 'غير محدد',
@@ -294,22 +287,47 @@ export function ParentChildrenPage() {
                     image: s.image || null,
                     subscription_status: s.subscription_status || 'نشط',
                     subscription_status_key: s.subscription_status_key || 'ACTIVE',
-                })),
-                totalSubscriptions: student.total_subscriptions || 0,
-                activeSubscriptions: student.active_subscriptions || 0,
-                // Map quizzes from API
-                quizzes: (student.quizzes || []).map((q: any) => ({
-                    quiz_title: q.quiz_title,
-                    score: Number(q.score),
-                    total_possible_score: Number(q.total_possible_score),
-                    passing_percentage: Number(q.passing_percentage),
-                    status: q.status,
-                    completed_at: q.completed_at
-                })),
-                // Mock performance/payment data removed
-                // nextPayment: { date: '2024-03-01', amount: 0, status: 'paid' },
-                // performance: { attendance: 0, assignments: 0, quizzes: 0 }
-            }));
+                }));
+
+                // Calculate GPA Algorithm:
+                // 1. Use backend 'overall_average_score' if available and non-zero.
+                // 2. Fallback: Calculate mean of scores from all academic subjects.
+                let gpaValue = Number(student.overall_average_score) || 0;
+
+                if (gpaValue === 0) {
+                    const academicSubjects = subjects.filter(s => s.isAcademic);
+
+                    if (academicSubjects.length > 0) {
+                        const totalScore = academicSubjects.reduce((acc, curr) => acc + (curr.score || 0), 0);
+                        // Divide by total number of academic subjects (including those with 0 score) to get accurate average
+                        gpaValue = Math.round(totalScore / academicSubjects.length);
+                    }
+                }
+
+                return {
+                    id: student.id,
+                    name: student.name,
+                    grade: student.grade || 'غير محدد',
+                    school: 'مدرسة سُبُل',
+                    avatar: student.image_path || student.avatar || null,
+                    uid: student.uid,
+                    gpa: gpaValue, // Store as number for CircularProgress
+                    attendance: student.attendance,
+                    ranking: student.ranking,
+                    subjects: subjects,
+                    totalSubscriptions: student.total_subscriptions || 0,
+                    activeSubscriptions: student.active_subscriptions || 0,
+                    // Map quizzes from API
+                    quizzes: (student.quizzes || []).map((q: any) => ({
+                        quiz_title: q.quiz_title,
+                        score: Number(q.score),
+                        total_possible_score: Number(q.total_possible_score),
+                        passing_percentage: Number(q.passing_percentage),
+                        status: q.status,
+                        completed_at: q.completed_at
+                    })),
+                };
+            });
 
             setChildrenData(mappedChildren);
             if (mappedChildren.length > 0 && !selectedChildId) {
@@ -322,6 +340,7 @@ export function ParentChildrenPage() {
             setIsLoading(false);
         }
     };
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchChildren();
@@ -486,7 +505,7 @@ export function ParentChildrenPage() {
 
                                 {/* Circular Stats Row - Responsive */}
                                 <div className="flex items-center justify-center gap-4 md:gap-6 w-full pt-6 border-t border-slate-100 flex-wrap sm:flex-nowrap">
-                                    <CircularProgress value={Number(selectedChild.gpa) || 0} color="#10B981" label="المعدل" size={50} />
+                                    <CircularProgress value={selectedChild.gpa || 0} color="#10B981" label="المعدل" size={50} />
                                 </div>
 
 
@@ -571,6 +590,19 @@ export function ParentChildrenPage() {
 
                         {/* Quick Actions */}
                         <div className="space-y-3">
+                            <button
+                                onClick={() => navigate(generatePath(ROUTES.PARENT_STORE, { childId: selectedChild.id.toString() }))}
+                                className="w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-shibl-crimson/30 hover:shadow-sm transition-all group"
+                            >
+                                <span className="flex items-center gap-3 font-bold text-charcoal text-sm md:text-base">
+                                    <div className="w-8 h-8 rounded-lg bg-shibl-crimson/10 text-shibl-crimson flex items-center justify-center">
+                                        <ShoppingBag size={16} />
+                                    </div>
+                                    تصفح المتجر (جديد)
+                                </span>
+                                <ArrowRight size={18} className="text-slate-300 group-hover:text-shibl-crimson transition-colors rtl:rotate-180" />
+                            </button>
+
                             <button className="w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-shibl-crimson/30 hover:shadow-sm transition-all group">
                                 <span className="flex items-center gap-3 font-bold text-charcoal text-sm md:text-base">
                                     <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -678,87 +710,103 @@ export function ParentChildrenPage() {
                             const nonAcademicCourses = selectedChild.subjects.filter((s: any) => s.isAcademic === false);
 
                             const renderCourseCard = (subject: any, isAcademic: boolean) => (
-                                <div key={subject.id} className="bg-white rounded-2xl border border-slate-200 hover:border-blue-200 hover:shadow-lg transition-all group relative overflow-hidden">
+                                <div key={subject.id} className="bg-white rounded-[24px] border border-slate-100 hover:border-shibl-crimson/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden flex flex-col h-full">
                                     {/* Course Cover Image */}
-                                    <div className="h-28 md:h-32 relative overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
+                                    <div className={`h-32 md:h-40 relative overflow-hidden ${isAcademic ? 'bg-gradient-to-br from-blue-50 to-indigo-50' : 'bg-gradient-to-br from-purple-50 to-fuchsia-50'}`}>
                                         {subject.image ? (
                                             <img
                                                 src={subject.image}
                                                 alt={subject.name}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                                             />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
+                                            <div className="w-full h-full flex items-center justify-center relative">
+                                                {/* Decorative Pattern */}
+                                                <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]"></div>
+
                                                 {isAcademic ? (
-                                                    <GraduationCap size={40} className="text-slate-300" />
+                                                    <div className="w-16 h-16 rounded-3xl bg-white/60 backdrop-blur-sm flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-500">
+                                                        <GraduationCap size={32} className="text-blue-500" />
+                                                    </div>
                                                 ) : (
-                                                    <Zap size={40} className="text-slate-300" />
+                                                    <div className="w-16 h-16 rounded-3xl bg-white/60 backdrop-blur-sm flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-500">
+                                                        <Zap size={32} className="text-purple-500" />
+                                                    </div>
                                                 )}
                                             </div>
                                         )}
+
                                         {/* Status Badge */}
-                                        <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-[10px] font-bold ${subject.subscription_status_key === 'ACTIVE'
-                                            ? 'bg-green-500 text-white'
+                                        <div className={`absolute top-4 left-4 px-3 py-1.5 rounded-xl text-[10px] font-bold shadow-sm backdrop-blur-md border border-white/20 ${subject.subscription_status_key === 'ACTIVE'
+                                            ? 'bg-emerald-500/90 text-white'
                                             : subject.subscription_status_key === 'PENDING'
-                                                ? 'bg-amber-500 text-white'
-                                                : 'bg-slate-400 text-white'
+                                                ? 'bg-amber-500/90 text-white'
+                                                : 'bg-slate-500/90 text-white'
                                             }`}>
                                             {subject.subscription_status || 'نشط'}
                                         </div>
                                     </div>
 
                                     {/* Card Content */}
-                                    <div className="p-4 md:p-5">
-                                        <div className="flex justify-between items-start mb-4">
+                                    <div className="p-5 flex flex-col flex-1">
+                                        <div className="flex justify-between items-start mb-4 gap-3">
                                             <div className="flex-1 min-w-0">
-                                                <h4 className="font-extrabold text-base md:text-lg text-charcoal truncate">{subject.name}</h4>
-                                                <p className="text-xs text-slate-400 font-bold mt-1 flex items-center gap-1">
-                                                    <Users size={12} />
+                                                <h4 className="font-extrabold text-lg text-charcoal truncate leading-tight mb-2 group-hover:text-shibl-crimson transition-colors">
+                                                    {subject.name}
+                                                </h4>
+                                                <p className="text-xs text-slate-400 font-bold flex items-center gap-1.5 bg-slate-50 w-fit px-2 py-1 rounded-lg">
+                                                    <Users size={12} className="text-slate-400" />
                                                     {subject.teacher}
                                                 </p>
                                             </div>
-                                            {/* Grade Badge - Only for Academic */}
-                                            {isAcademic && (
+
+                                            {/* Grade Badge - Only show if valid */}
+                                            {isAcademic && subject.grade && subject.grade !== 'N/A' && subject.grade !== 'غير متاح' && subject.grade !== 'غير محدد' && (
                                                 <div className={`
-                                                    w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center font-black text-lg md:text-xl shadow-sm shrink-0
-                                                    ${subject.grade && subject.grade !== 'N/A' && subject.grade !== 'غير متاح'
-                                                        ? subject.grade.startsWith('A') ? 'bg-green-100 text-green-700'
-                                                            : subject.grade.startsWith('B') ? 'bg-blue-100 text-blue-700'
-                                                                : 'bg-amber-100 text-amber-700'
-                                                        : 'bg-slate-100 text-slate-400'
+                                                    w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg shadow-sm shrink-0 border
+                                                    ${subject.grade.startsWith('A') ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                        : subject.grade.startsWith('B') ? 'bg-blue-50 text-blue-600 border-blue-100'
+                                                            : 'bg-amber-50 text-amber-600 border-amber-100'
                                                     }
                                                 `}>
-                                                    {subject.grade && subject.grade !== 'N/A' ? subject.grade : 'غير متاح'}
+                                                    {subject.grade}
                                                 </div>
                                             )}
                                         </div>
 
                                         {/* Progress Bar */}
-                                        <div className="space-y-2 mb-4">
-                                            <div className="flex justify-between text-xs font-bold text-slate-500">
-                                                <span>اكتمال المنهج</span>
-                                                <span>{subject.progress || 0}%</span>
+                                        <div className="mt-auto space-y-3 mb-5">
+                                            <div className="flex justify-between items-end text-xs font-bold">
+                                                <span className="text-slate-400">نسبة الاكتمال</span>
+                                                <span className={`${isAcademic ? 'text-blue-600' : 'text-purple-600'}`}>
+                                                    {subject.progress || 0}%
+                                                </span>
                                             </div>
-                                            <div className="h-2 bg-slate-50 rounded-full overflow-hidden">
+                                            <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden p-[2px]">
                                                 <div
-                                                    className={`h-full rounded-full transition-all ${isAcademic ? 'bg-blue-500 group-hover:bg-blue-600' : 'bg-purple-500 group-hover:bg-purple-600'}`}
+                                                    className={`h-full rounded-full transition-all duration-1000 ${isAcademic
+                                                        ? 'bg-gradient-to-r from-blue-500 to-blue-400 shadow-blue-200'
+                                                        : 'bg-gradient-to-r from-purple-500 to-purple-400 shadow-purple-200'
+                                                        } shadow-[0_0_10px_rgba(0,0,0,0.1)]`}
                                                     style={{ width: `${subject.progress || 0}%` }}
                                                 />
                                             </div>
                                         </div>
 
                                         {/* Footer */}
-                                        <div className="flex items-center justify-between pt-3 border-t border-slate-50">
-                                            <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-slate-500">
-                                                <CheckCircle2 size={14} className="text-green-500" />
-                                                {subject.assignments?.completed || 0}/{subject.assignments?.total || 0} واجبات
+                                        <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+                                            <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl">
+                                                <CheckCircle2 size={14} className={subject.assignments?.completed === subject.assignments?.total && subject.assignments?.total > 0 ? "text-emerald-500" : "text-slate-400"} />
+                                                {subject.assignments?.completed || 0} / {subject.assignments?.total || 0} واجبات
                                             </div>
-                                            <button className={`text-[10px] md:text-xs font-bold flex items-center gap-1 transition-colors px-3 py-1.5 rounded-lg ${isAcademic
-                                                ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-50'
-                                                : 'text-purple-600 hover:text-purple-800 hover:bg-purple-50'
-                                                }`}>
+                                            <button
+                                                onClick={() => navigate(generatePath(ROUTES.PARENT_COURSE_PROGRESS, { childId: selectedChild.id.toString(), courseId: subject.id.toString() }))}
+                                                className={`text-xs font-black flex items-center gap-1.5 transition-all px-4 py-2 rounded-xl group/btn ${isAcademic
+                                                    ? 'bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white'
+                                                    : 'bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white'
+                                                    }`}>
                                                 التفاصيل
-                                                <ArrowRight size={14} className="rtl:rotate-180" />
+                                                <ArrowRight size={14} className="rtl:rotate-180 transition-transform group-hover/btn:-translate-x-1" />
                                             </button>
                                         </div>
                                     </div>
@@ -769,15 +817,19 @@ export function ParentChildrenPage() {
                                 <>
                                     {/* Academic Courses Section */}
                                     {academicCourses.length > 0 && (
-                                        <div className="mb-8">
-                                            <div className="flex items-center justify-between mb-4 md:mb-6">
-                                                <h3 className="text-lg md:text-xl font-extrabold text-charcoal flex items-center gap-2">
-                                                    <GraduationCap className="text-blue-500" />
-                                                    المواد الأكاديمية
-                                                    <span className="text-sm font-bold text-slate-400">({academicCourses.length})</span>
-                                                </h3>
+                                        <div className="mb-10">
+                                            <div className="flex items-center justify-between mb-6">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                                                        <GraduationCap size={20} />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-xl font-extrabold text-charcoal">المواد الأكاديمية</h3>
+                                                        <p className="text-xs text-slate-400 font-bold mt-0.5">{academicCourses.length} مادة مسجلة</p>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                                                 {academicCourses.map((subject: any) => renderCourseCard(subject, true))}
                                             </div>
                                         </div>

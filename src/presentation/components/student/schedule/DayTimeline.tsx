@@ -7,7 +7,7 @@
 
 import { useMemo } from 'react';
 import { Clock, PlayCircle, CheckCircle, Trash2, Loader2, Calendar, Radio, Lock } from 'lucide-react';
-import { format, parseISO, getHours, getMinutes, isBefore } from 'date-fns';
+import { format, parseISO, getHours, getMinutes, isBefore, addMinutes } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { getLocalizedName } from '@/data/api/studentService';
 
@@ -16,6 +16,7 @@ import { getLocalizedName } from '@/data/api/studentService';
 // ============================================================
 
 import { Schedule } from '@/types/schedule';
+import { AlertCircle } from 'lucide-react';
 
 interface DayTimelineProps {
     selectedDate: Date;
@@ -81,15 +82,24 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
     const isDisabled = isCompleting || isDeleting;
     const isExpired = schedule.is_accessible === false;
 
+    // Calculate Missed Status
+    const now = new Date();
+    const startTime = parseISO(schedule.scheduled_at);
+    const durationMins = schedule.lecture?.duration_minutes || 60;
+    const endTime = addMinutes(startTime, durationMins);
+    const isMissed = !schedule.is_completed && !isExpired && now > endTime;
+
     return (
         <div
             className={`
                 group relative rounded-xl border-2 p-4 transition-all duration-200 mr-4
                 ${isExpired
                     ? 'bg-slate-50 border-slate-200 opacity-60'
-                    : schedule.is_completed
-                        ? 'bg-green-50/50 border-green-200'
-                        : 'bg-white border-shibl-crimson/20 hover:border-shibl-crimson/40 hover:shadow-md'
+                    : isMissed
+                        ? 'bg-red-50/50 border-red-200'
+                        : schedule.is_completed
+                            ? 'bg-green-50/50 border-green-200'
+                            : 'bg-white border-shibl-crimson/20 hover:border-shibl-crimson/40 hover:shadow-md'
                 }
             `}
         >
@@ -98,9 +108,11 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
                     absolute right-[-13px] top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2
                     ${isExpired
                         ? 'bg-slate-400 border-slate-300'
-                        : schedule.is_completed
-                            ? 'bg-green-500 border-green-200'
-                            : 'bg-shibl-crimson border-shibl-crimson/30'
+                        : isMissed
+                            ? 'bg-red-500 border-red-200'
+                            : schedule.is_completed
+                                ? 'bg-green-500 border-green-200'
+                                : 'bg-shibl-crimson border-shibl-crimson/30'
                     }
                 `}
             />
@@ -111,25 +123,33 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
                         w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0
                         ${isExpired
                             ? 'bg-slate-200 text-slate-500'
-                            : schedule.is_completed
-                                ? 'bg-green-100 text-green-600'
-                                : 'bg-shibl-crimson/10 text-shibl-crimson'
+                            : isMissed
+                                ? 'bg-red-100 text-red-500'
+                                : schedule.is_completed
+                                    ? 'bg-green-100 text-green-600'
+                                    : 'bg-shibl-crimson/10 text-shibl-crimson'
                         }
                     `}
                 >
-                    {isExpired ? <Lock size={20} /> : schedule.is_completed ? <CheckCircle size={20} /> : <PlayCircle size={20} />}
+                    {isExpired ? <Lock size={20} /> : isMissed ? <AlertCircle size={20} /> : schedule.is_completed ? <CheckCircle size={20} /> : <PlayCircle size={20} />}
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                        <h4 className={`font-bold truncate ${schedule.is_completed ? 'text-green-700' : 'text-charcoal'}`}>
+                        <h4 className={`font-bold truncate ${isMissed ? 'text-red-700' : schedule.is_completed ? 'text-green-700' : 'text-charcoal'}`}>
                             {lectureTitle}
                         </h4>
                         {isExpired && (
                             <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
                                 <Lock size={10} />
                                 الاشتراك منتهي
+                            </span>
+                        )}
+                        {!isExpired && isMissed && (
+                            <span className="bg-red-100 text-red-700 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                فائتة
                             </span>
                         )}
                         {!isExpired && schedule.is_completed && (

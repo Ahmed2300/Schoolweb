@@ -49,6 +49,7 @@ import {
   ParentLayout,
   ParentHomePage,
   ParentChildrenPage,
+  ParentStorePage,
   ParentSettingsPage,
   TeacherDashboardPage,
   TeacherCoursesPage,
@@ -59,7 +60,8 @@ import {
   TeacherSlotRequestsPage,
   TeacherWeeklySchedulePage,
   NotFoundPage,
-  LecturePlayerPage
+  LecturePlayerPage,
+  ParentCourseProgressPage
 } from './presentation/pages';
 import { AdminLayout } from './presentation/components/admin';
 import { TeacherLayout } from './presentation/components/teacher';
@@ -141,7 +143,6 @@ function App() {
               <Route path="schedule" element={<StudentSchedulePage />} />
               <Route path="quizzes" element={<StudentQuizzesPage />} />
               <Route path="quizzes/:id" element={<StudentQuizzesPage />} />
-              <Route path="live" element={<StudentLivePage />} />
               <Route path="profile" element={<StudentProfilePage />} />
               <Route path="parent-requests" element={<StudentParentRequestsPage />} />
             </Route>
@@ -157,6 +158,8 @@ function App() {
             >
               <Route index element={<ParentHomePage />} />
               <Route path="children" element={<ParentChildrenPage />} />
+              <Route path="children/:childId/store" element={<ParentStorePage />} />
+              <Route path="children/:childId/courses/:courseId/progress" element={<ParentCourseProgressPage />} />
               <Route path="settings" element={<ParentSettingsPage />} />
             </Route>
 

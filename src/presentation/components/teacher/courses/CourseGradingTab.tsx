@@ -236,10 +236,8 @@ export function CourseGradingTab({ courseId, courseName }: CourseGradingTabProps
     const fetchAttempts = useCallback(async () => {
         try {
             setLoading(true);
-            // Get all teacher attempts, then filter by course
-            const response = await quizService.getAllTeacherAttempts();
-            // Filter attempts whose quiz belongs to this course
-            // The backend should ideally filter by course, but we filter client-side for now
+            // Get attempts filtered by course
+            const response = await quizService.getAllTeacherAttempts(courseId);
             setAttempts(response.data || []);
         } catch (error) {
             console.error('Failed to fetch grading attempts:', error);

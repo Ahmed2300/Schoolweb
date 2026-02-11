@@ -15,8 +15,9 @@ export function UpcomingSchedules({ schedules }: UpcomingSchedulesProps) {
     const navigate = useNavigate();
     const upcomingList = useMemo(() => {
         const now = new Date();
+        // Filter out completed schedules, past schedules, and those with missing lecture data (deleted)
         return schedules
-            .filter((s) => !s.is_completed && isAfter(parseISO(s.scheduled_at), now))
+            .filter((s) => !s.is_completed && s.lecture && isAfter(parseISO(s.scheduled_at), now))
             .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())
             .slice(0, 3);
     }, [schedules]);
@@ -42,7 +43,14 @@ export function UpcomingSchedules({ schedules }: UpcomingSchedulesProps) {
                     const date = parseISO(schedule.scheduled_at);
                     const isLectureToday = isToday(date);
                     const isLectureTomorrow = isTomorrow(date);
-                    const isLive = schedule.lecture?.is_online;
+                    const isLive = (() => {
+                        if (!schedule.lecture?.is_online) return false;
+                        const now = new Date();
+                        const startTime = parseISO(schedule.scheduled_at);
+                        const duration = schedule.lecture.duration_minutes || 60; // Default 60 mins if not set
+                        const endTime = addMinutes(startTime, duration);
+                        return now >= startTime && now <= endTime;
+                    })();
 
                     const dateLabel = isLectureToday
                         ? 'اليوم'
@@ -103,7 +111,7 @@ export function UpcomingSchedules({ schedules }: UpcomingSchedulesProps) {
                                     <button
                                         onClick={() => {
                                             if (schedule.lecture?.course?.id && schedule.lecture?.id) {
-                                                navigate(`/student/courses/${schedule.lecture.course.id}/lectures/${schedule.lecture.id}`);
+                                                navigate(`/dashboard/courses/${schedule.lecture.course.id}/lecture/${schedule.lecture.id}`);
                                             }
                                         }}
                                         className="px-3 py-1.5 rounded-lg bg-shibl-crimson text-white text-xs font-semibold shadow-sm hover:bg-shibl-crimson/90 transition-colors flex items-center gap-1.5"

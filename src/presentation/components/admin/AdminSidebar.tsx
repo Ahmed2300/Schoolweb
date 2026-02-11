@@ -77,7 +77,7 @@ const navGroups: NavGroup[] = [
 
             { icon: <CheckCircle size={18} />, label: 'طلبات التعديل', path: '/admin/content-approvals' },
             { icon: <Video size={18} />, label: 'التسجيلات', path: '/admin/recordings' },
-            { icon: <Package size={18} />, label: 'الباقات', path: '/admin/packages' },
+
         ],
     },
     {
@@ -94,6 +94,7 @@ const navGroups: NavGroup[] = [
         label: 'المالية',
         icon: <Wallet size={18} />,
         items: [
+            { icon: <Package size={18} />, label: 'الباقات', path: ROUTES.ADMIN_PACKAGES },
             { icon: <CreditCard size={18} />, label: 'الاشتراكات', path: ROUTES.ADMIN_SUBSCRIPTIONS },
             { icon: <Package size={18} />, label: 'اشتراكات الباقات', path: '/admin/package-subscriptions' },
             { icon: <Banknote size={18} />, label: 'المدفوعات', path: '/admin/payments' },

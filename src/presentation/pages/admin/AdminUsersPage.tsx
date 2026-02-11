@@ -18,7 +18,6 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { EditUserModal } from '../../components/admin/EditUserModal';
 import { ViewUserModal } from '../../components/admin/ViewUserModal';
 import { AddStudentModal } from '../../components/admin/AddStudentModal';
-import { AddParentModal } from '../../components/admin/AddParentModal';
 
 // Types
 type FilterTab = 'all' | 'students' | 'parents';
@@ -174,7 +173,6 @@ export function AdminUsersPage() {
 
     // Add user modal states
     const [showAddStudentModal, setShowAddStudentModal] = useState(false);
-    const [showAddParentModal, setShowAddParentModal] = useState(false);
 
 
     // Open delete confirmation dialog
@@ -279,20 +277,13 @@ export function AdminUsersPage() {
                         <Filter size={18} />
                     </button>
 
-                    {/* Add User Buttons */}
+                    {/* Add Student + Parent Button */}
                     <button
                         onClick={() => setShowAddStudentModal(true)}
                         className="h-11 px-5 rounded-pill bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
                     >
                         <UserCheck size={18} />
-                        <span>إضافة طالب</span>
-                    </button>
-                    <button
-                        onClick={() => setShowAddParentModal(true)}
-                        className="h-11 px-5 rounded-pill bg-green-600 hover:bg-green-700 text-white font-bold text-sm shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
-                    >
-                        <Users size={18} />
-                        <span>إضافة ولي أمر</span>
+                        <span>إضافة طالب وولي أمر</span>
                     </button>
                 </div>
             </div>
@@ -553,15 +544,7 @@ export function AdminUsersPage() {
                 }}
             />
 
-            {/* Add Parent Modal */}
-            <AddParentModal
-                isOpen={showAddParentModal}
-                onClose={() => setShowAddParentModal(false)}
-                onSuccess={() => {
-                    setShowAddParentModal(false);
-                    refetchUsers(); // Changed from fetchUsers to refetchUsers
-                }}
-            />
+
         </>
     );
 }

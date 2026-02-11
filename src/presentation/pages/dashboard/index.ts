@@ -13,6 +13,8 @@ export { StudentParentRequestsPage } from './StudentParentRequestsPage';
 export { ParentLayout } from './ParentLayout';
 export { ParentHomePage } from './ParentHomePage';
 export { ParentChildrenPage } from './ParentChildrenPage';
+export { ParentStorePage } from './ParentStorePage';
 export { ParentSettingsPage } from './ParentSettingsPage';
+export { ParentCourseProgressPage } from './ParentCourseProgressPage';
 
 export { LecturePlayerPage } from '../student/LecturePlayerPage';
