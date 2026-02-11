@@ -489,7 +489,7 @@ function UnitCard({
                                                         <div className="flex items-center gap-1">
                                                             {!contentItem.is_pending_approval && contentItem.is_online && (
                                                                 (() => {
-                                                                    const now = currentTime;
+                                                                    const now = currentTime || new Date();
                                                                     const startTime = contentItem.start_time ? new Date(contentItem.start_time) : null;
                                                                     const endTime = contentItem.end_time ? new Date(contentItem.end_time) : null;
 
@@ -1667,7 +1667,7 @@ export function TeacherCourseDetailsPage() {
                                                             <GripVertical size={16} />
                                                         </div>
                                                         <div>
-                                                            <h4 className="text-sm font-medium text-slate-900">{quiz.title}</h4>
+                                                            <h4 className="text-sm font-medium text-slate-900">{getLocalizedTitle(quiz.name)}</h4>
                                                             <span className="text-xs text-slate-500">سحب وإفلات</span>
                                                         </div>
                                                     </div>
