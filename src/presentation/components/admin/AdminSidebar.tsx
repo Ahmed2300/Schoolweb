@@ -25,6 +25,7 @@ import {
     CheckCircle,
     CircleHelp,
     Video,
+    MessageSquare,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../shared/constants';
@@ -105,6 +106,7 @@ const navGroups: NavGroup[] = [
         label: 'النظام',
         icon: <Settings size={18} />,
         items: [
+            { icon: <MessageSquare size={18} />, label: 'بلاغات الدعم', path: '/admin/client-reports' },
             { icon: <BarChart3 size={18} />, label: 'التقارير', path: ROUTES.ADMIN_REPORTS },
             { icon: <Calendar size={18} />, label: 'إعدادات الجدولة', path: '/admin/schedule-config' },
             { icon: <Settings size={18} />, label: 'الإعدادات', path: ROUTES.ADMIN_SETTINGS },

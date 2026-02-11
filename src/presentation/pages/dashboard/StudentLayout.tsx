@@ -8,6 +8,7 @@ import { ROUTES } from '../../../shared/constants';
 import { LogoutModal } from '../../components/ui';
 import { StudentNotificationBell } from '@/components/notifications/StudentNotificationBell';
 import { StudentNotificationToast } from '@/components/notifications/StudentNotificationToast';
+import { Footer } from '../../components/common/Footer';
 
 // Lucide Icons
 import {
@@ -210,7 +211,7 @@ export function StudentLayout() {
             {/* Main Content */}
             <main
                 className={`
-                    flex-1 transition-all duration-300
+                    flex-1 transition-all duration-300 flex flex-col min-h-screen
                     ${isCollapsed ? 'mr-20' : 'mr-64'}
                 `}
             >
@@ -236,7 +237,11 @@ export function StudentLayout() {
                 </header>
 
                 {/* Page Content */}
-                <Outlet />
+                {/* Page Content */}
+                <div className="flex-1">
+                    <Outlet />
+                </div>
+                <Footer />
             </main>
 
             {/* Student Notification Toast */}

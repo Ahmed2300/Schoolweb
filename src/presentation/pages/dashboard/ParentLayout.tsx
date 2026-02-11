@@ -5,6 +5,7 @@ import { useAuthStore } from '../../store';
 import { authService } from '../../../data/api/authService';
 import { ROUTES } from '../../../shared/constants';
 import { LogoutModal } from '../../components/ui';
+import { Footer } from '../../components/common/Footer';
 
 // Lucide Icons
 import {
@@ -192,7 +193,7 @@ export function ParentLayout() {
             {/* Main Content */}
             <main
                 className={`
-                    flex-1 transition-all duration-300 min-h-screen
+                    flex-1 transition-all duration-300 min-h-screen flex flex-col
                     ${isCollapsed ? 'md:mr-20' : 'md:mr-64'}
                 `}
             >
@@ -210,9 +211,10 @@ export function ParentLayout() {
                 </header>
 
                 {/* Page Content */}
-                <div className="w-full">
+                <div className="w-full flex-1">
                     <Outlet />
                 </div>
+                <Footer />
             </main>
         </div>
     );

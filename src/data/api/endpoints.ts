@@ -304,6 +304,7 @@ export const endpoints = {
             update: (id: number) => `/api/v1/admin/cities/${id}`,
             delete: (id: number) => `/api/v1/admin/cities/${id}`,
         },
+
         // Settings
         settings: {
             list: '/api/v1/admin/settings',
@@ -484,6 +485,12 @@ export const endpoints = {
         purchasePackage: '/api/v1/parents/purchases/packages/purchase',
         subscribeCourse: '/api/v1/parents/purchases/courses/subscribe',
         checkPackagePurchase: '/api/v1/parents/purchases/packages/check-purchase',
+    },
+
+    // Client Reportings
+    clientReportings: {
+        list: '/api/v1/client-reportings',
+        store: '/api/v1/client-reportings',
     },
 
     // User Notifications (Shared)
