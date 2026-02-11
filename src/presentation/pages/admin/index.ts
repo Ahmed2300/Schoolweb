@@ -20,3 +20,4 @@ export { AdminRecordingsPage } from './AdminRecordingsPage';
 export { AdminScheduleConfigPage } from './AdminScheduleConfigPage';
 export { AdminSlotRequestsPage } from './AdminSlotRequestsPage';
 export { AdminClassSchedulesPage } from './AdminClassSchedulesPage';
+export { AdminClientReportsPage } from './AdminClientReportsPage';

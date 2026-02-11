@@ -303,6 +303,7 @@ export const endpoints = {
             update: (id: number) => `/api/v1/admin/cities/${id}`,
             delete: (id: number) => `/api/v1/admin/cities/${id}`,
         },
+
         // Settings
         settings: {
             list: '/api/v1/admin/settings',
@@ -476,6 +477,12 @@ export const endpoints = {
         pendingSubscriptions: '/api/v1/package-subscriptions/pending',
         approveSubscription: (id: number) => `/api/v1/package-subscriptions/${id}/approve`,
         rejectSubscription: (id: number) => `/api/v1/package-subscriptions/${id}/reject`,
+    },
+
+    // Client Reportings
+    clientReportings: {
+        list: '/api/v1/client-reportings',
+        store: '/api/v1/client-reportings',
     },
 
     // User Notifications (Shared)
