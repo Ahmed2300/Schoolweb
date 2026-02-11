@@ -5,6 +5,7 @@ import { useLanguage } from '../../hooks';
 import { useAuthStore } from '../../store';
 import { teacherAuthService } from '../../../data/api/teacherAuthService';
 import { ROUTES } from '../../../shared/constants';
+import { Footer } from '../common/Footer';
 
 // Icons
 import { Search } from 'lucide-react';
@@ -110,7 +111,7 @@ export function TeacherLayout({
             {/* Main Content Area */}
             <div
                 className={`
-                    transition-all duration-300
+                    transition-all duration-300 flex flex-col min-h-screen
                     ${isRTL
                         ? isSidebarCollapsed ? 'lg:mr-20' : 'lg:mr-64'
                         : isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'
@@ -155,11 +156,12 @@ export function TeacherLayout({
                 </header>
 
                 {/* Page Content - Only this changes on route navigation */}
-                <main className="p-8">
+                <main className="p-8 flex-1">
                     <Suspense fallback={<PageLoadingFallback />}>
                         <Outlet />
                     </Suspense>
                 </main>
+                <Footer />
             </div>
         </div>
     );

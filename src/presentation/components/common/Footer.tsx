@@ -1,9 +1,17 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { ROUTES } from '../../../shared/constants';
+import { ReportProblemModal } from '../ui/ReportProblemModal';
 
 export const Footer = () => {
+    const [showReportModal, setShowReportModal] = useState(false);
+
     return (
         <footer className="bg-charcoal pt-10 sm:pt-14 md:pt-16 lg:pt-20 pb-6 sm:pb-8 md:pb-10 px-4 sm:px-6 text-white" id="contact">
+            <ReportProblemModal
+                isOpen={showReportModal}
+                onClose={() => setShowReportModal(false)}
+            />
             <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-10 md:gap-12 mb-8 sm:mb-12 md:mb-16 border-b border-slate-700 pb-8 sm:pb-12 md:pb-16 items-start text-center sm:text-right">
                     <div className="sm:col-span-2 md:col-span-1">
@@ -22,6 +30,12 @@ export const Footer = () => {
                         <a href="#stages" className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">المراحل الدراسية</a>
                         <a href="#features" className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">المميزات</a>
                         <Link to="/privacy-policy" className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">سياسة الخصوصية</Link>
+                        <button
+                            onClick={() => setShowReportModal(true)}
+                            className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base text-right"
+                        >
+                            الإبلاغ عن مشكلة
+                        </button>
                         <a href="#contact" className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">تواصل معنا</a>
                     </div>
 
