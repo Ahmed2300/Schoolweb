@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { CircularProgressbarWithChildren, buildStyles } from 'react-circular-progressbar';
 // Re-trigger build
 import 'react-circular-progressbar/dist/styles.css';
-import { Trophy, Flame, Target, Video, Radio, ClipboardCheck, Star } from 'lucide-react';
+import { Trophy, Target, Video, Radio, ClipboardCheck, Star, HelpCircle, Lightbulb, Clock } from 'lucide-react';
 import { StudentCourseProgress } from '../../../../data/api/studentCourseService';
 import { getLocalizedName } from '../../../../data/api/studentService';
 
@@ -11,6 +12,8 @@ interface CourseProgressWidgetProps {
 }
 
 export function CourseProgressWidget({ progress, courseName }: CourseProgressWidgetProps) {
+    const [showPointsInfo, setShowPointsInfo] = useState(false);
+
     // Theme colors based on level
     const getLevelColor = (level: string) => {
         switch (level) {
@@ -26,7 +29,7 @@ export function CourseProgressWidget({ progress, courseName }: CourseProgressWid
     return (
         <div className="bg-white rounded-[3rem] p-8 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] border border-slate-50 sticky top-10">
             {/* Header: Level & Points */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-8 relative">
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg" style={{ backgroundColor: `${levelColor}20` }}>
@@ -42,12 +45,57 @@ export function CourseProgressWidget({ progress, courseName }: CourseProgressWid
                     </div>
                 </div>
 
-                <div className="text-left">
-                    <p className="text-xs text-slate-400 font-bold mb-0.5">النقاط</p>
+                <div
+                    className="text-left relative z-10"
+                    onMouseEnter={() => setShowPointsInfo(true)}
+                    onMouseLeave={() => setShowPointsInfo(false)}
+                >
+                    <div className="flex items-center gap-1 cursor-help">
+                        <HelpCircle size={14} className="text-slate-300 hover:text-slate-500 transition-colors" />
+                        <p className="text-xs text-slate-400 font-bold mb-0.5">النقاط</p>
+                    </div>
                     <div className="flex items-center gap-1">
                         <Star size={16} className="text-amber-400 fill-amber-400" />
                         <span className="text-xl font-black text-slate-900">{progress.points_earned}</span>
                     </div>
+
+                    {/* Points Calculation Tooltip */}
+                    {showPointsInfo && (
+                        <div className="absolute top-12 left-0 w-72 bg-white rounded-2xl shadow-xl border border-slate-100 p-4 z-50 transform transition-all duration-300 origin-top-left animate-in fade-in zoom-in-95">
+                            <div className="absolute -top-2 left-6 w-4 h-4 bg-white border-t border-r border-slate-100 transform -rotate-45"></div>
+
+                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-50">
+                                <Lightbulb size={18} className="text-amber-500" />
+                                <h4 className="font-bold text-slate-800 text-sm">كيف تحتسب النقاط؟</h4>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex items-start gap-3 p-2 bg-slate-50 rounded-xl">
+                                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                        <Video size={14} className="text-blue-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-bold text-slate-700">الدروس ومشاهدة الحصص</p>
+                                        <p className="text-[10px] text-slate-500 mt-0.5">كل دقيقة مشاهدة = <span className="text-blue-600 font-bold">1 نقطة</span></p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start gap-3 p-2 bg-slate-50 rounded-xl">
+                                    <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                        <ClipboardCheck size={14} className="text-purple-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-bold text-slate-700">حل الكويزات</p>
+                                        <p className="text-[10px] text-slate-500 mt-0.5">كل دقيقة من مدة الكويز = <span className="text-purple-600 font-bold">1.5 نقطة</span></p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-2 text-[10px] text-slate-400 text-center px-2">
+                                    تُمنح النقاط عند إكمال المحتوى التعليمي بنجاح
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

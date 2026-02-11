@@ -113,6 +113,12 @@ export const endpoints = {
             show: (id: number) => `/api/v1/teacher/quizzes/${id}`,
             update: (id: number) => `/api/v1/teacher/quizzes/${id}`,
             delete: (id: number) => `/api/v1/teacher/quizzes/${id}`,
+            // Grading endpoints
+            attempts: (quizId: number) => `/api/v1/teacher/quizzes/${quizId}/attempts`,
+            attemptDetail: (attemptId: number) => `/api/v1/teacher/attempts/${attemptId}`,
+            gradeAnswer: (attemptId: number, answerId: number) => `/api/v1/teacher/attempts/${attemptId}/grade/${answerId}`,
+            allAttempts: '/api/v1/teacher/quizzes/attempts/all',
+            courseAttempts: (courseId: number) => `/api/v1/teacher/courses/${courseId}/attempts`,
         },
         // Time Slots - Teacher's slot management
         timeSlots: {

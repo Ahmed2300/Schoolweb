@@ -44,16 +44,19 @@ import {
     Loader2,
     GripVertical,
     HelpCircle,
-    PlayCircle
+    PlayCircle,
+    ClipboardCheck
 } from 'lucide-react';
 import {
     DndContext,
     closestCenter,
     KeyboardSensor,
-    PointerSensor,
+    MouseSensor,
+    TouchSensor,
     useSensor,
     useSensors,
     DragEndEvent,
+    DragStartEvent,
     useDraggable,
     useDroppable,
     DragOverlay
@@ -75,6 +78,7 @@ import { DeleteConfirmModal } from '../../components/admin/DeleteConfirmModal';
 
 // Tabs
 import { CourseQuizzesTab } from '../../components/teacher/courses/CourseQuizzesTab';
+import { CourseGradingTab } from '../../components/teacher/courses/CourseGradingTab';
 import { CreateQuizModal } from '../../components/teacher/CreateQuizModal';
 import { useMutation } from '@tanstack/react-query';
 import { CourseDetailsSkeleton } from '../../components/ui/skeletons/CourseDetailsSkeleton';
@@ -245,7 +249,9 @@ function UnitCard({
     onStartSession,
     quizzes,
     dragHandleProps,
-    loadingQuizId
+    loadingQuizId,
+    currentTime,
+    isOverlay
 }: {
     unit: Unit;
     isExpanded: boolean;
@@ -260,17 +266,18 @@ function UnitCard({
     onEditQuiz: (quiz: Quiz) => void;
     onDeleteQuiz: (quiz: Quiz) => void;
     onToggleQuizActive: (quiz: Quiz) => void;
-
     onStartSession?: (lectureId: number) => void;
     quizzes?: Quiz[];
     dragHandleProps?: any;
-    loadingQuizId?: string | number | null;
+    loadingQuizId?: number | null;
+    currentTime?: Date;
+    isOverlay?: boolean;
 }) {
     const { isRTL } = useLanguage();
 
     // Make Unit Droppable
     const { setNodeRef, isOver } = useDroppable({
-        id: `unit-${unit.id}`,
+        id: isOverlay ? `overlay-unit-${unit.id}` : `unit-${unit.id}`,
         data: {
             type: 'unit',
             unit
@@ -297,7 +304,17 @@ function UnitCard({
     }, [unit, quizzes]); // Added quizzes dependency
 
     const sensors = useSensors(
-        useSensor(PointerSensor),
+        useSensor(MouseSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 200,
+                tolerance: 5,
+            },
+        }),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
         })
@@ -345,7 +362,7 @@ function UnitCard({
             >
                 <div className="flex items-center gap-3 flex-1">
                     <div
-                        className="p-2 cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600"
+                        className="p-2 cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 touch-none"
                         onClick={(e) => e.stopPropagation()}
                         {...dragHandleProps}
                     >
@@ -472,7 +489,7 @@ function UnitCard({
                                                         <div className="flex items-center gap-1">
                                                             {!contentItem.is_pending_approval && contentItem.is_online && (
                                                                 (() => {
-                                                                    const now = new Date();
+                                                                    const now = currentTime;
                                                                     const startTime = contentItem.start_time ? new Date(contentItem.start_time) : null;
                                                                     const endTime = contentItem.end_time ? new Date(contentItem.end_time) : null;
 
@@ -664,11 +681,21 @@ export function TeacherCourseDetailsPage() {
     // State
     const [course, setCourse] = useState<TeacherCourse | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'content' | 'students' | 'quizzes' | 'settings'>('content');
+
+    // Ticker for real-time session button state transitions (every 30s)
+    const [currentTime, setCurrentTime] = useState(new Date());
+    useEffect(() => {
+        const interval = setInterval(() => setCurrentTime(new Date()), 30000);
+        return () => clearInterval(interval);
+    }, []);
+    const [activeTab, setActiveTab] = useState<'content' | 'students' | 'quizzes' | 'grading' | 'settings'>('content');
 
     // Content State
     const [units, setUnits] = useState<Unit[]>([]);
     const [allQuizzes, setAllQuizzes] = useState<Quiz[]>([]); // All quizzes for the course
+    const unassignedQuizzes = useMemo(() => {
+        return allQuizzes.filter(q => !q.unit_id && !q.lecture_id);
+    }, [allQuizzes]);
     const [expandedUnits, setExpandedUnits] = useState<number[]>([]);
 
     // Modal States
@@ -778,7 +805,7 @@ export function TeacherCourseDetailsPage() {
 
                 // Ensure units are sorted by order
                 const sortedUnits = unitsWithPending.sort((a: Unit, b: Unit) => (a.order || 0) - (b.order || 0));
-                console.log('DEBUG UNITS:', JSON.stringify(sortedUnits, null, 2));
+
                 setUnits(sortedUnits);
 
                 // Expand first unit by default if none expanded
@@ -835,19 +862,19 @@ export function TeacherCourseDetailsPage() {
     useEffect(() => {
         const handleQuizStatusChange = async (event: Event) => {
             const customEvent = event as CustomEvent;
-            console.log('TeacherCourseDetailsPage: Quiz status changed, refreshing data...', customEvent.detail);
+
 
             // Refresh quizzes only (not the entire course to avoid full page reload flicker)
             try {
                 const quizzesResponse = await quizService.getQuizzes({ course_id: courseId });
                 setAllQuizzes(quizzesResponse.data || []);
-                console.log('TeacherCourseDetailsPage: Quiz data refreshed successfully');
+
             } catch (err) {
                 console.error('Failed to refresh quizzes after status change:', err);
             }
         };
 
-        console.log('TeacherCourseDetailsPage: Adding quiz-status-change event listener');
+
         window.addEventListener('quiz-status-change', handleQuizStatusChange);
         return () => {
             window.removeEventListener('quiz-status-change', handleQuizStatusChange);
@@ -858,13 +885,13 @@ export function TeacherCourseDetailsPage() {
     useEffect(() => {
         const handleApprovalUpdate = (event: Event) => {
             const customEvent = event as CustomEvent;
-            console.log('TeacherCourseDetailsPage: Content approval update received:', customEvent.detail);
+
 
             // Refresh full course data to update units/lectures list
             fetchCourseData();
         };
 
-        console.log('TeacherCourseDetailsPage: Adding teacher-approval-update listener');
+
         window.addEventListener('teacher-approval-update', handleApprovalUpdate);
         return () => {
             window.removeEventListener('teacher-approval-update', handleApprovalUpdate);
@@ -914,16 +941,33 @@ export function TeacherCourseDetailsPage() {
         }
     };
 
-    // Unit Drag and Drop
+    // Unit Drag and Drop (Mouse + Touch Sensors)
     const sensors = useSensors(
-        useSensor(PointerSensor),
+        useSensor(MouseSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 200,
+                tolerance: 5,
+            },
+        }),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
         })
     );
 
+    const [activeId, setActiveId] = useState<number | string | null>(null);
+
+    const handleDragStart = (event: DragStartEvent) => {
+        setActiveId(event.active.id);
+    };
+
     const handleGlobalDragEnd = async (event: DragEndEvent) => {
         const { active, over } = event;
+        setActiveId(null);
 
         if (!over) return;
 
@@ -932,9 +976,16 @@ export function TeacherCourseDetailsPage() {
             active.data?.current?.sortable?.containerId === 'units-list' ||
             (typeof active.id === 'number' && units.some(u => u.id === active.id))
         ) {
-            if (active.id !== over.id) {
+            let overId = over.id;
+
+            // Normalize overId if it hits the inner droppable 'unit-ID'
+            if (typeof overId === 'string' && overId.startsWith('unit-')) {
+                overId = parseInt(overId.replace('unit-', ''));
+            }
+
+            if (active.id !== overId) {
                 const oldIndex = units.findIndex((unit) => unit.id === active.id);
-                const newIndex = units.findIndex((unit) => unit.id === over.id);
+                const newIndex = units.findIndex((unit) => unit.id === overId);
 
                 if (oldIndex !== -1 && newIndex !== -1) {
                     const newUnits = arrayMove(units, oldIndex, newIndex);
@@ -1400,7 +1451,8 @@ export function TeacherCourseDetailsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
                     <StatCard icon={BookOpen} label="الوحدات" value={units.length} />
                     <StatCard icon={Users} label="الطلاب" value={course.students_count || 0} />
-                    <StatCard icon={Video} label="المحاضرات" value={course.lectures_count || 0} />
+                    <StatCard icon={Video} label="محاضرات فعلية" value={course.real_lectures_count || 0} />
+                    <StatCard icon={PlayCircle} label="محاضرات تجريبية" value={course.trial_lectures_count || 0} />
                     <StatCard icon={Clock} label="الساعات" value={0} />
                 </div>
 
@@ -1433,6 +1485,16 @@ export function TeacherCourseDetailsPage() {
                     >
                         الاختبارات
                     </button>
+                    <button
+                        onClick={() => setActiveTab('grading')}
+                        className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors flex items-center gap-1.5 ${activeTab === 'grading'
+                            ? 'text-shibl-crimson border-b-2 border-shibl-crimson'
+                            : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                    >
+                        <ClipboardCheck size={16} />
+                        التصحيح
+                    </button>
 
                 </div>
             </div>
@@ -1454,6 +1516,7 @@ export function TeacherCourseDetailsPage() {
                     <DndContext
                         sensors={sensors}
                         collisionDetection={closestCenter}
+                        onDragStart={handleDragStart}
                         onDragEnd={handleGlobalDragEnd}
                     >
                         {/* Units List */}
@@ -1488,6 +1551,7 @@ export function TeacherCourseDetailsPage() {
                                         onDeleteQuiz={handleDeleteQuiz}
                                         onToggleQuizActive={handleToggleQuizActive}
                                         onStartSession={handleStartSession}
+                                        currentTime={currentTime}
 
                                         quizzes={allQuizzes} // Pass all quizzes for filtering inside UnitCard
                                         loadingQuizId={loadingQuizId}
@@ -1550,7 +1614,71 @@ export function TeacherCourseDetailsPage() {
                                 </p>
                             </div>
                         )}
-                        <DragOverlay />
+                        <DragOverlay>
+                            {activeId ? (
+                                (() => {
+                                    // Case 1: Dragging a Unit
+                                    const activeUnit = units.find(u => u.id === activeId);
+                                    if (activeUnit) {
+                                        return (
+                                            <div className="opacity-90 rotate-2 cursor-grabbing bg-white rounded-xl shadow-xl w-full pointer-events-none transform scale-105 border-2 border-primary">
+                                                <UnitCard
+                                                    unit={activeUnit}
+                                                    isExpanded={false}
+                                                    currentTime={currentTime}
+                                                    onToggle={() => { }}
+                                                    onEditUnit={() => { }}
+                                                    onDeleteUnit={() => { }}
+                                                    onAddLecture={() => { }}
+                                                    onEditLecture={() => { }}
+                                                    onDeleteLecture={() => { }}
+                                                    onAddQuizToUnit={() => { }}
+                                                    onAddQuizToLecture={() => { }}
+                                                    onEditQuiz={() => { }}
+                                                    onDeleteQuiz={() => { }}
+                                                    onToggleQuizActive={() => { }}
+                                                    onStartSession={() => { }}
+                                                    quizzes={[]}
+                                                    dragHandleProps={{}}
+                                                    loadingQuizId={null}
+                                                    isOverlay={true}
+                                                />
+                                            </div>
+                                        );
+                                    }
+
+                                    // Case 2: Dragging an Unassigned Quiz
+                                    if (typeof activeId === 'string' && activeId.startsWith('unassigned-quiz-')) {
+                                        // We need access to unassigned quizzes list to render it perfectly, 
+                                        // but usually the draggable data contains the quiz object if passed correctly.
+                                        // Assuming we can find it in 'unassignedQuizzes' variable if it's available in scope.
+                                        // Checking if unassignedQuizzes is available...
+                                        // It seems unassignedQuizzes comes from 'course?.unassigned_quizzes' likely?
+                                        // Let's iterate course.quizzes filtered? 
+                                        // Or just render a generic placeholders if data not easily accessible.
+                                        // Actually, let's try to find it in `unassigned` computed variable.
+                                        const quizId = parseInt(activeId.split('-')[2]);
+                                        const quiz = unassignedQuizzes?.find(q => q.id === quizId);
+                                        if (quiz) {
+                                            return (
+                                                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-lg flex items-center justify-between gap-3 opacity-90 rotate-2 cursor-grabbing w-64">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2 bg-slate-50 rounded-lg text-slate-400">
+                                                            <GripVertical size={16} />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-sm font-medium text-slate-900">{quiz.title}</h4>
+                                                            <span className="text-xs text-slate-500">سحب وإفلات</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+                                    }
+                                    return null;
+                                })()
+                            ) : null}
+                        </DragOverlay>
                     </DndContext>
                 </div>
             )}
@@ -1616,6 +1744,14 @@ export function TeacherCourseDetailsPage() {
                     courseName={courseName}
                     units={units}
                     teacherId={user?.teacher_id || 0}
+                />
+            )}
+
+            {/* Grading Tab */}
+            {activeTab === 'grading' && (
+                <CourseGradingTab
+                    courseId={courseId}
+                    courseName={courseName}
                 />
             )}
 

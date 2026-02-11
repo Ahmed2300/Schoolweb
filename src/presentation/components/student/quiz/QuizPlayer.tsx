@@ -355,7 +355,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
 
 
                 {/* Navigation Footer */}
-                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 md:px-10 z-20">
+                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 md:px-10 z-[60]">
                     <div className="max-w-4xl mx-auto flex items-center justify-between">
                         <button
                             disabled={reviewQuestionIndex === 0}
@@ -733,7 +733,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
             )}
 
             {/* Navigation Footer */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 md:px-10 z-20">
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 md:px-10 z-[60]">
                 <div className="max-w-4xl mx-auto flex items-center justify-between">
                     <button
                         disabled={currentQuestionIndex === 0}

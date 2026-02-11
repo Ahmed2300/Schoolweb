@@ -111,6 +111,8 @@ function App() {
             <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLoginPage />} />
             <Route path={ROUTES.TEACHER_LOGIN} element={<AdminLoginPage />} />
             <Route path={ROUTES.TEACHER_VERIFY_EMAIL} element={<TeacherVerifyEmailPage />} />
+            <Route path={ROUTES.TEACHER_FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+            <Route path={ROUTES.TEACHER_RESET_PASSWORD} element={<ResetPasswordPage />} />
 
             {/* Secure Classroom - Standalone Route */}
             <Route

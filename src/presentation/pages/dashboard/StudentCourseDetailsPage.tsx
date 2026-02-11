@@ -51,6 +51,7 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
                     studentCourseService.getSyllabusStatus(courseId)
                 ]);
 
+                // Set state directly without logs
                 setCourse(detailsData);
                 setSyllabus(syllabusData);
             } catch (err) {

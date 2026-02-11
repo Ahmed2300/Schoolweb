@@ -3,12 +3,13 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../../hooks';
 import { AuthNavbar } from '../../components';
 import { ROUTES } from '../../../shared/constants';
-import { authService } from '../../../data/api';
+import { authService, teacherAuthService } from '../../../data/api';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Lucide Icons
-import { KeyRound, Lock, Eye, EyeOff, ArrowLeft, CheckCircle, RefreshCw } from 'lucide-react';
+import { KeyRound, Lock, Eye, EyeOff, ArrowLeft, CheckCircle2, RefreshCw, AlertCircle, ShieldCheck } from 'lucide-react';
 
-type UserType = 'student' | 'parent';
+type UserType = 'student' | 'parent' | 'teacher';
 
 export function ResetPasswordPage() {
     const navigate = useNavigate();
@@ -17,7 +18,8 @@ export function ResetPasswordPage() {
 
     // Get email and userType from navigation state
     const email = location.state?.email || '';
-    const userType: UserType = location.state?.userType || 'student';
+    const userType: UserType = location.state?.userType ||
+        (location.pathname === ROUTES.TEACHER_RESET_PASSWORD ? 'teacher' : 'student');
 
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const [password, setPassword] = useState('');
@@ -82,9 +84,14 @@ export function ResetPasswordPage() {
         setResendSuccess('');
 
         try {
-            const forgotFn = userType === 'student'
-                ? authService.studentForgotPassword
-                : authService.parentForgotPassword;
+            let forgotFn;
+            if (userType === 'student') {
+                forgotFn = authService.studentForgotPassword;
+            } else if (userType === 'parent') {
+                forgotFn = authService.parentForgotPassword;
+            } else {
+                forgotFn = teacherAuthService.forgotPassword;
+            }
 
             // Re-call forgot password to generate new token
             await forgotFn(email);
@@ -122,9 +129,14 @@ export function ResetPasswordPage() {
         setError('');
 
         try {
-            const resetFn = userType === 'student'
-                ? authService.studentResetPassword
-                : authService.parentResetPassword;
+            let resetFn;
+            if (userType === 'student') {
+                resetFn = authService.studentResetPassword;
+            } else if (userType === 'parent') {
+                resetFn = authService.parentResetPassword;
+            } else {
+                resetFn = teacherAuthService.resetPassword;
+            }
 
             await resetFn({
                 email,
@@ -135,63 +147,105 @@ export function ResetPasswordPage() {
 
             setSuccess(true);
         } catch (err: any) {
-            setError(err.message || 'رمز التحقق غير صحيح أو منتهي الصلاحية');
+            setError(err.message || 'حدث خطأ. يرجى التحقق من صحة الرمز والمحاولة مرة أخرى');
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Redirect if no email provided
-    useEffect(() => {
-        if (!email) {
-            navigate(ROUTES.FORGOT_PASSWORD);
+    // Animation Variants
+    const containerVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                duration: 0.6,
+                staggerChildren: 0.1
+            }
         }
-    }, [email, navigate]);
+    };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-soft-cloud to-red-50" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-shibl-crimson/5 relative overflow-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
+
+            {/* Background Decorative Elements */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+                <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-shibl-crimson/5 rounded-full blur-[100px]" />
+                <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[100px]" />
+            </div>
+
             <AuthNavbar />
 
-            <div className="pt-[72px] min-h-screen flex items-center justify-center p-8">
-                <div className="w-full max-w-md">
-                    {/* Card */}
-                    <div className="bg-white rounded-3xl shadow-card p-8">
-                        {!success ? (
-                            <>
-                                {/* Header */}
-                                <div className="text-center mb-8">
-                                    <div className="w-20 h-20 bg-shibl-crimson/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <KeyRound size={40} className="text-shibl-crimson" />
-                                    </div>
-                                    <h1 className="text-2xl font-extrabold text-charcoal mb-2">
-                                        إعادة تعيين كلمة المرور
-                                    </h1>
-                                    <p className="text-slate-grey">
-                                        أدخل رمز التحقق وكلمة المرور الجديدة
-                                    </p>
-                                    <p className="text-sm text-slate-400 mt-2 dir-ltr">{email}</p>
-                                </div>
+            <div className="pt-[80px] min-h-screen flex items-center justify-center p-4 sm:p-8 relative z-10">
+                <motion.div
+                    className="w-full max-w-lg"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                >
+                    {/* Main Card */}
+                    <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-white/50 p-8 sm:p-12 relative overflow-hidden">
 
-                                {/* Messages */}
-                                {error && (
-                                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-center text-sm">
-                                        {error}
-                                    </div>
-                                )}
-                                {resendSuccess && (
-                                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-600 text-center text-sm">
-                                        {resendSuccess}
-                                    </div>
-                                )}
+                        {/* Top Gradient Line */}
+                        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-shibl-crimson via-amber-500 to-shibl-crimson" />
 
-                                {/* Form */}
-                                <form onSubmit={handleSubmit}>
+                        <AnimatePresence mode="wait">
+                            {!success ? (
+                                <motion.div
+                                    key="form"
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 20 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    {/* Header */}
+                                    <div className="text-center mb-10">
+                                        <motion.div
+                                            className="w-24 h-24 bg-gradient-to-tr from-green-50 to-emerald-50 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner ring-1 ring-green-100"
+                                            whileHover={{ scale: 1.05, rotate: -5 }}
+                                            transition={{ type: "spring", stiffness: 300 }}
+                                        >
+                                            <ShieldCheck size={40} className="text-green-600 drop-shadow-sm" />
+                                        </motion.div>
+                                        <h1 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">
+                                            تعيين كلمة المرور
+                                        </h1>
+                                        <p className="text-slate-500 text-lg leading-relaxed">
+                                            أدخل الرمز المرسل إلى بريدك الإلكتروني وكلمة المرور الجديدة
+                                        </p>
+                                    </div>
+
+                                    {/* Notifications */}
+                                    <AnimatePresence>
+                                        {error && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -10, height: 0 }}
+                                                animate={{ opacity: 1, y: 0, height: 'auto' }}
+                                                exit={{ opacity: 0, y: -10, height: 0 }}
+                                                className="mb-6 p-4 bg-red-50/80 border border-red-100 rounded-2xl text-red-600 text-sm font-medium text-center flex items-center justify-center gap-2 backdrop-blur-sm"
+                                            >
+                                                <AlertCircle size={18} />
+                                                {error}
+                                            </motion.div>
+                                        )}
+                                        {resendSuccess && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -10, height: 0 }}
+                                                animate={{ opacity: 1, y: 0, height: 'auto' }}
+                                                exit={{ opacity: 0, y: -10, height: 0 }}
+                                                className="mb-6 p-4 bg-green-50/80 border border-green-100 rounded-2xl text-green-700 text-sm font-medium text-center flex items-center justify-center gap-2 backdrop-blur-sm"
+                                            >
+                                                <CheckCircle2 size={18} />
+                                                {resendSuccess}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
                                     {/* OTP Input */}
-                                    <div className="mb-6">
-                                        <label className="block text-sm font-bold text-slate-700 mb-2 text-center">
-                                            رمز التحقق
-                                        </label>
-                                        <div className="flex justify-center gap-3 dir-ltr mb-4">
+                                    <div className="mb-8" dir="ltr">
+                                        <label className="block text-slate-700 font-bold mb-4 text-center text-sm">رمز التحقق (OTP)</label>
+                                        <div className="flex justify-between gap-2 sm:gap-4">
                                             {otp.map((digit, index) => (
                                                 <input
                                                     key={index}
@@ -200,143 +254,184 @@ export function ResetPasswordPage() {
                                                     inputMode="numeric"
                                                     maxLength={1}
                                                     value={digit}
-                                                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                                                    onKeyDown={(e) => handleKeyDown(index, e)}
+                                                    onChange={e => handleOtpChange(index, e.target.value)}
+                                                    onKeyDown={e => handleKeyDown(index, e)}
                                                     onPaste={handlePaste}
-                                                    className="w-11 h-12 text-center text-xl font-bold border-2 border-slate-200 rounded-xl focus:border-shibl-crimson focus:ring-2 focus:ring-shibl-crimson/20 outline-none transition-all"
+                                                    className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold rounded-2xl bg-slate-50 border-2 border-slate-200 focus:bg-white focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 transition-all caret-shibl-crimson shadow-sm"
+                                                    disabled={isLoading}
+                                                    required
                                                 />
                                             ))}
                                         </div>
-
-                                        {/* Resend Link */}
-                                        <div className="text-center">
-                                            <button
-                                                type="button"
-                                                onClick={handleResendOtp}
-                                                disabled={countdown > 0 || isResending}
-                                                className={`text-sm font-bold inline-flex items-center gap-1 transition-colors ${countdown > 0 ? 'text-slate-400 cursor-not-allowed' : 'text-shibl-crimson hover:underline'
-                                                    }`}
-                                            >
-                                                {isResending ? (
-                                                    <span className="loading loading-spinner loading-xs"></span>
-                                                ) : (
-                                                    <RefreshCw size={14} />
-                                                )}
-                                                {countdown > 0
-                                                    ? `إعادة الإرسال بعد ${countdown} ثانية`
-                                                    : 'إعادة إرسال الرمز'
-                                                }
-                                            </button>
-                                        </div>
                                     </div>
 
-                                    {/* New Password */}
-                                    <div className="form-control w-full mb-4">
-                                        <label className="label pb-1">
-                                            <span className="label-text font-bold text-slate-700">كلمة المرور الجديدة</span>
-                                        </label>
-                                        <div className="relative">
-                                            <input
-                                                type={showPassword ? 'text' : 'password'}
-                                                placeholder="••••••••"
-                                                className="input input-bordered w-full pr-12 pl-12 text-right"
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                minLength={8}
-                                                required
-                                            />
-                                            <Lock size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                                            >
-                                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                            </button>
+                                    {/* Form */}
+                                    <form onSubmit={handleSubmit} className="space-y-6">
+                                        {/* New Password */}
+                                        <div className="form-control w-full group">
+                                            <label className="label pb-2">
+                                                <span className="label-text font-bold text-slate-700 group-focus-within:text-shibl-crimson transition-colors">
+                                                    كلمة المرور الجديدة
+                                                </span>
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type={showPassword ? 'text' : 'password'}
+                                                    placeholder="********"
+                                                    className="input input-bordered w-full h-14 pr-12 text-right bg-slate-50 border-slate-200 focus:bg-white focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 rounded-2xl transition-all font-bold placeholder:font-normal placeholder:text-slate-400"
+                                                    value={password}
+                                                    onChange={(e) => {
+                                                        setPassword(e.target.value);
+                                                        setError('');
+                                                    }}
+                                                    dir="ltr"
+                                                    disabled={isLoading}
+                                                    required
+                                                />
+                                                <Lock size={22} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-shibl-crimson transition-colors" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                                >
+                                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Confirm Password */}
-                                    <div className="form-control w-full mb-6">
-                                        <label className="label pb-1">
-                                            <span className="label-text font-bold text-slate-700">تأكيد كلمة المرور</span>
-                                        </label>
-                                        <div className="relative">
-                                            <input
-                                                type={showConfirmPassword ? 'text' : 'password'}
-                                                placeholder="••••••••"
-                                                className="input input-bordered w-full pr-12 pl-12 text-right"
-                                                value={confirmPassword}
-                                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                                minLength={8}
-                                                required
-                                            />
-                                            <Lock size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                                            >
-                                                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                            </button>
+                                        {/* Confirm Password */}
+                                        <div className="form-control w-full group">
+                                            <label className="label pb-2">
+                                                <span className="label-text font-bold text-slate-700 group-focus-within:text-shibl-crimson transition-colors">
+                                                    تأكيد كلمة المرور
+                                                </span>
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type={showConfirmPassword ? 'text' : 'password'}
+                                                    placeholder="********"
+                                                    className="input input-bordered w-full h-14 pr-12 text-right bg-slate-50 border-slate-200 focus:bg-white focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 rounded-2xl transition-all font-bold placeholder:font-normal placeholder:text-slate-400"
+                                                    value={confirmPassword}
+                                                    onChange={(e) => {
+                                                        setConfirmPassword(e.target.value);
+                                                        setError('');
+                                                    }}
+                                                    dir="ltr"
+                                                    disabled={isLoading}
+                                                    required
+                                                />
+                                                <Lock size={22} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-shibl-crimson transition-colors" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                                >
+                                                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Submit Button */}
-                                    <button
-                                        type="submit"
-                                        className="btn-primary-pro w-full h-14 text-lg gap-3"
-                                        disabled={isLoading}
+                                        {/* Submit Button */}
+                                        <button
+                                            type="submit"
+                                            className="btn-primary-pro w-full h-14 text-lg font-bold rounded-2xl shadow-lg shadow-shibl-crimson/20 hover:shadow-xl hover:shadow-shibl-crimson/30 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-3 group relative overflow-hidden"
+                                            disabled={isLoading}
+                                        >
+                                            {isLoading ? (
+                                                <span className="loading loading-spinner loading-md text-white"></span>
+                                            ) : (
+                                                <>
+                                                    <span className="relative z-10">تعيين كلمة المرور</span>
+                                                    <KeyRound size={20} className="relative z-10 group-hover:rotate-12 transition-transform" />
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-shibl-crimson opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                                </>
+                                            )}
+                                        </button>
+                                    </form>
+
+                                    {/* Resend OTP */}
+                                    <div className="mt-8 text-center bg-slate-50/50 p-4 rounded-2xl">
+                                        <p className="text-slate-500 mb-2 font-medium">لم يصلك الرمز؟</p>
+                                        <button
+                                            type="button"
+                                            onClick={handleResendOtp}
+                                            disabled={countdown > 0 || isResending}
+                                            className="inline-flex items-center gap-2 font-bold text-shibl-crimson hover:text-red-700 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            {isResending ? (
+                                                <span className="loading loading-spinner loading-xs"></span>
+                                            ) : (
+                                                <RefreshCw size={16} className={isResending ? 'animate-spin' : ''} />
+                                            )}
+                                            {countdown > 0
+                                                ? `أعد الإرسال خلال ${countdown} ثانية`
+                                                : 'أعد إرسال الرمز'
+                                            }
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                /* Success State */
+                                <motion.div
+                                    key="success"
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ type: "spring", duration: 0.5 }}
+                                    className="text-center py-8"
+                                >
+                                    <motion.div
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                                        className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 ring-8 ring-green-50/50"
                                     >
-                                        {isLoading ? (
-                                            <span className="loading loading-spinner"></span>
-                                        ) : (
-                                            <>
-                                                <KeyRound size={20} />
-                                                <span>إعادة تعيين كلمة المرور</span>
-                                            </>
-                                        )}
+                                        <CheckCircle2 size={48} className="text-green-500" />
+                                    </motion.div>
+
+                                    <h2 className="text-3xl font-black text-slate-800 mb-3">
+                                        تم بنجاح!
+                                    </h2>
+
+                                    <p className="text-slate-500 mb-8 max-w-sm mx-auto leading-relaxed">
+                                        تم تحديث كلمة المرور الخاصة بك بنجاح.
+                                        يمكنك الآن تسجيل الدخول باستخدام كلمة المرور الجديدة.
+                                    </p>
+
+                                    <button
+                                        onClick={() => navigate(ROUTES.LOGIN)}
+                                        className="btn-primary-pro w-full h-14 text-lg font-bold rounded-2xl shadow-lg shadow-shibl-crimson/20 hover:shadow-xl hover:shadow-shibl-crimson/30 hover:-translate-y-1 transition-all duration-300 gap-3 group"
+                                    >
+                                        <span>تسجيل الدخول</span>
+                                        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
                                     </button>
-                                </form>
-                            </>
-                        ) : (
-                            /* Success State */
-                            <div className="text-center">
-                                <div className="w-20 h-20 bg-success-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <CheckCircle size={40} className="text-success-green" />
-                                </div>
-                                <h2 className="text-2xl font-extrabold text-charcoal mb-2">
-                                    تم بنجاح!
-                                </h2>
-                                <p className="text-slate-grey mb-6">
-                                    تم إعادة تعيين كلمة المرور بنجاح.
-                                    <br />
-                                    يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.
-                                </p>
-                                <Link
-                                    to={ROUTES.LOGIN}
-                                    className="btn-primary-pro w-full h-14 text-lg gap-3"
-                                >
-                                    <span>تسجيل الدخول</span>
-                                    <ArrowLeft size={20} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
-                                </Link>
-                            </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Background Link */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                        className="mt-8 text-center"
+                    >
+                        {!success && (
+                            <Link
+                                to={ROUTES.LOGIN}
+                                className="inline-flex items-center gap-2 text-slate-500 font-bold hover:text-shibl-crimson transition-colors py-2 px-4 rounded-xl hover:bg-slate-50/50"
+                            >
+                                <ArrowLeft size={18} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                                <span>العودة لتسجيل الدخول</span>
+                            </Link>
                         )}
 
-                        {/* Back Link */}
-                        {!success && (
-                            <div className="mt-8 text-center">
-                                <Link
-                                    to={ROUTES.FORGOT_PASSWORD}
-                                    className="inline-flex items-center gap-2 text-slate-grey hover:text-shibl-crimson"
-                                >
-                                    <ArrowLeft size={18} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
-                                    <span>العودة</span>
-                                </Link>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                        {/* Footer Copyright */}
+                        <div className="mt-8 text-slate-400 text-sm font-medium">
+                            <p>© {new Date().getFullYear()} منصة شبل التعليمية. جميع الحقوق محفوظة.</p>
+                        </div>
+                    </motion.div>
+                </motion.div>
             </div>
         </div>
     );

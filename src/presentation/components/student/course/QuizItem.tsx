@@ -111,7 +111,7 @@ export function QuizItem({ quiz, isSubscribed = false }: QuizItemProps) {
                             : 'bg-rose-100 text-rose-700'
                             }`}>
                             {isPassed ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
-                            <span>{Math.round(score)}%</span>
+                            <span>{bestAttempt?.percentage !== undefined ? `${bestAttempt.percentage}%` : `${Math.round(score)}%`}</span>
                         </div>
                     )}
                 </div>

@@ -6,6 +6,7 @@ import {
     Calendar, FileQuestion, ChevronLeft, ChevronRight,
     User, BookOpen, Target, Maximize2, Image as ImageIcon
 } from 'lucide-react';
+import { Skeleton } from '../../ui/Skeleton';
 import toast from 'react-hot-toast';
 
 interface QuizReviewModalProps {
@@ -308,8 +309,8 @@ export const QuizReviewModal: React.FC<QuizReviewModalProps> = ({ isOpen, onClos
                                             <div className="flex flex-col gap-3">
                                                 <button
                                                     onClick={handleApprove}
-                                                    disabled={isProcessing}
-                                                    className="w-full px-6 py-3 text-white rounded-full font-bold transition flex items-center justify-center gap-2"
+                                                    disabled={isLoadingDetails || isProcessing}
+                                                    className="w-full px-6 py-3 text-white rounded-full font-bold transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                                     style={{
                                                         background: 'linear-gradient(135deg, #27AE60 0%, #1e8449 100%)',
                                                         boxShadow: '0 4px 12px -2px rgba(39, 174, 96, 0.3)'
@@ -323,7 +324,8 @@ export const QuizReviewModal: React.FC<QuizReviewModalProps> = ({ isOpen, onClos
                                                 </button>
                                                 <button
                                                     onClick={() => setShowRejectInput(true)}
-                                                    className="w-full px-6 py-3 border-2 rounded-full font-bold transition hover:bg-red-50"
+                                                    disabled={isLoadingDetails || isProcessing}
+                                                    className="w-full px-6 py-3 border-2 rounded-full font-bold transition hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                                     style={{ borderColor: '#AF0C15', color: '#AF0C15' }}
                                                 >
                                                     رفض الاختبار
@@ -380,9 +382,36 @@ export const QuizReviewModal: React.FC<QuizReviewModalProps> = ({ isOpen, onClos
                             {/* Question Content */}
                             <div className="flex-1 overflow-y-auto p-6">
                                 {isLoadingDetails ? (
-                                    <div className="h-full flex flex-col items-center justify-center" style={{ color: '#636E72' }}>
-                                        <Loader2 className="animate-spin mb-3" size={32} style={{ color: '#AF0C15' }} />
-                                        <span>جاري تحميل الأسئلة...</span>
+                                    <div className="max-w-3xl mx-auto space-y-6 animate-pulse">
+                                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
+                                            {/* Header Skeleton */}
+                                            <div className="flex gap-4">
+                                                <Skeleton className="w-10 h-10 rounded-xl flex-shrink-0" />
+                                                <div className="flex-1 space-y-3">
+                                                    <Skeleton className="h-4 w-3/4" />
+                                                    <Skeleton className="h-4 w-1/2" />
+                                                    <div className="flex gap-2 pt-2">
+                                                        <Skeleton className="h-6 w-16 rounded-full" />
+                                                        <Skeleton className="h-6 w-24 rounded-full" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Image Skeleton */}
+                                            <Skeleton className="w-full h-48 rounded-xl" />
+
+                                            {/* Options Skeleton */}
+                                            <div className="space-y-3 pt-2">
+                                                {[1, 2, 3, 4].map((i) => (
+                                                    <div key={i} className="flex gap-3 p-4 border border-slate-100 rounded-xl">
+                                                        <Skeleton className="w-7 h-7 rounded-full flex-shrink-0" />
+                                                        <div className="flex-1 space-y-2">
+                                                            <Skeleton className="h-4 w-full" />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
                                 ) : currentQuestion ? (
                                     <div className="max-w-3xl mx-auto space-y-6">

@@ -51,7 +51,7 @@ export function initializeEcho(authToken: string): Echo<'reverb'> | null {
         return echoInstance;
     }
 
-    const apiBaseUrl = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`;
+    const apiBaseUrl = (import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`).replace(/\/$/, '');
 
     echoInstance = new Echo({
         broadcaster: 'reverb',
@@ -81,7 +81,7 @@ export function initializeStudentEcho(authToken: string): Echo<'reverb'> {
         return studentEchoInstance;
     }
 
-    const apiBaseUrl = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`;
+    const apiBaseUrl = (import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`).replace(/\/$/, '');
 
     studentEchoInstance = new Echo({
         broadcaster: 'reverb',
@@ -110,7 +110,7 @@ export function initializeParentEcho(authToken: string): Echo<'reverb'> {
         return parentEchoInstance;
     }
 
-    const apiBaseUrl = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`;
+    const apiBaseUrl = (import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`).replace(/\/$/, '');
 
     parentEchoInstance = new Echo({
         broadcaster: 'reverb',
@@ -363,7 +363,7 @@ export function initializeTeacherEcho(authToken: string): Echo<'reverb'> {
         return teacherEchoInstance;
     }
 
-    const apiBaseUrl = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`;
+    const apiBaseUrl = (import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`).replace(/\/$/, '');
 
     teacherEchoInstance = new Echo({
         broadcaster: 'reverb',
@@ -417,15 +417,12 @@ export function subscribeToTeacherChannel(
     echo
         .private(`teacher.${teacherId}`)
         .listen('.notification', (event: unknown) => {
-            console.log('Received teacher notification:', event);
             onNotification(event);
         })
         .listen('.content.decision', (event: unknown) => {
-            console.log('Received content decision:', event);
             onNotification(event);
         })
         .listen('.slot.decision', (event: unknown) => {
-            console.log('Received slot decision:', event);
             onNotification(event);
         });
 }

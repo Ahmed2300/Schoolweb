@@ -108,6 +108,82 @@ export interface QuizResponse {
     data: Quiz;
 }
 
+// ==================== GRADING TYPES ====================
+
+export interface QuizAttemptForGrading {
+    id: number;
+    quiz_id: number;
+    quiz: {
+        id: number;
+        name: { en?: string; ar?: string };
+        unit?: {
+            id: number;
+            name: { en?: string; ar?: string };
+        };
+        lecture?: {
+            id: number;
+            title: { en?: string; ar?: string };
+        };
+    };
+    student: {
+        id: number;
+        name: string;
+        email: string;
+    };
+    score: number | null;
+    started_at: string;
+    completed_at: string;
+    status: string;
+    is_fully_graded: boolean;
+    answers: AttemptAnswerForGrading[];
+}
+
+export interface AttemptAnswerForGrading {
+    id: number;
+    question_id: number;
+    question_text: { en?: string; ar?: string };
+    question_image_url?: string | null;
+    question_type: 'mcq' | 'essay' | 'true_false';
+    points: number;
+    earned_points: number | null;
+    user_answer: string | number | null;
+    user_answer_image_url?: string | null;
+    is_correct: boolean | null;
+    teacher_feedback?: string | null;
+    // MCQ-specific fields
+    options?: Array<{
+        id: number;
+        option_text: { en?: string; ar?: string };
+        option_image_url?: string | null;
+    }>;
+    correct_option_id?: number | null;
+    // Essay-specific fields
+    model_answer?: { en?: string; ar?: string };
+    model_answer_image_url?: string | null;
+    is_graded?: boolean;
+}
+
+export interface GradeAnswerPayload {
+    is_correct: boolean;
+    earned_points: number;
+    teacher_feedback?: string;
+}
+
+export interface GradingAttemptsResponse {
+    success: boolean;
+    data: QuizAttemptForGrading[];
+}
+
+export interface GradingAttemptResponse {
+    success: boolean;
+    data: QuizAttemptForGrading;
+}
+
+export interface GradeAnswerResponse {
+    success: boolean;
+    data: AttemptAnswerForGrading;
+}
+
 // ==================== HELPER FUNCTIONS ====================
 
 /**
@@ -345,6 +421,61 @@ export const quizService = {
         );
         return response.data;
     },
+
+    // ==================== GRADING API METHODS ====================
+
+    /**
+     * Get all attempts for a specific quiz
+     * Returns attempts with grading status information
+     */
+    async getQuizAttempts(quizId: number): Promise<GradingAttemptsResponse> {
+        const response = await apiClient.get<GradingAttemptsResponse>(
+            endpoints.teacher.quizzes.attempts(quizId)
+        );
+        return response.data;
+    },
+
+    /**
+     * Get a single attempt with full answer details
+     * Used when opening the grading modal for a specific attempt
+     */
+    async getAttemptDetails(attemptId: number): Promise<GradingAttemptResponse> {
+        const response = await apiClient.get<GradingAttemptResponse>(
+            endpoints.teacher.quizzes.attemptDetail(attemptId)
+        );
+        return response.data;
+    },
+
+    /**
+     * Grade a single essay answer within an attempt
+     * Sends is_correct, earned_points, and optional teacher_feedback
+     * Backend automatically recalculates the total attempt score
+     */
+    async gradeEssayAnswer(
+        attemptId: number,
+        answerId: number,
+        data: GradeAnswerPayload
+    ): Promise<GradeAnswerResponse> {
+        const response = await apiClient.post<GradeAnswerResponse>(
+            endpoints.teacher.quizzes.gradeAnswer(attemptId, answerId),
+            data
+        );
+        return response.data;
+    },
+
+    /**
+     * Get ALL attempts across all quizzes owned by the teacher
+     * Used for the global grading dashboard / course grading tab
+     */
+    async getAllTeacherAttempts(courseId?: number): Promise<GradingAttemptsResponse> {
+        const url = courseId
+            ? endpoints.teacher.quizzes.courseAttempts(courseId)
+            : endpoints.teacher.quizzes.allAttempts;
+
+        const response = await apiClient.get<GradingAttemptsResponse>(url);
+        return response.data;
+    },
 };
 
 export default quizService;
+

@@ -50,17 +50,13 @@ export function useTeacherNotifications() {
 
     // Handle incoming WebSocket notification
     const handleNotification = useCallback((event: any) => {
-        console.log('Teacher Notification Received:', event);
-
         // Refresh notification counts
         fetchNotifications();
 
         // Handle quiz approval/rejection notifications
         const notificationType = event.type;
-        console.log('Processing notification type:', notificationType);
 
         if (notificationType === 'quiz_approved' || notificationType === 'quiz_rejected') {
-            console.log('Quiz notification detected, showing toast...');
             const isApproved = notificationType === 'quiz_approved';
 
             // Play notification sound
@@ -68,13 +64,11 @@ export function useTeacherNotifications() {
 
             // Show toast notification
             if (isApproved) {
-                console.log('Showing success toast for quiz approval');
                 toast.success(event.title || 'تمت الموافقة على الاختبار', {
                     duration: 5000,
                     icon: '✅'
                 });
             } else {
-                console.log('Showing error toast for quiz rejection');
                 toast.error(event.title || 'تم رفض الاختبار', {
                     duration: 5000,
                     icon: '❌'
@@ -82,7 +76,6 @@ export function useTeacherNotifications() {
             }
 
             // Dispatch event for quiz list refresh
-            console.log('Dispatching quiz-status-change event');
             window.dispatchEvent(new CustomEvent('quiz-status-change', {
                 detail: {
                     quizId: event.data?.quiz_id,
@@ -95,7 +88,6 @@ export function useTeacherNotifications() {
 
         // Handle slot decision events (approve/reject from admin)
         if (event.status === 'approved' || event.status === 'rejected') {
-            console.log('Slot decision notification detected:', event);
             const isSlotApproved = event.status === 'approved';
 
             // Play notification sound
@@ -115,7 +107,6 @@ export function useTeacherNotifications() {
             }
 
             // Dispatch event for schedule page to refresh
-            console.log('Dispatching slot-decision-change event');
             window.dispatchEvent(new CustomEvent('slot-decision-change', {
                 detail: {
                     slotId: event.slot_id,
@@ -145,6 +136,7 @@ export function useTeacherNotifications() {
         }
     }, [fetchNotifications]);
 
+
     // Initial fetch
     useEffect(() => {
         if (isAuthenticated) {
@@ -161,8 +153,7 @@ export function useTeacherNotifications() {
             const echo = initializeTeacherEcho(token);
             if (!echo) return;
 
-            subscribeToTeacherChannel(Number(user.id), handleNotification);
-            console.log('WebSocket connected for teacher:', user.id);
+
         } catch (err) {
             console.error('Failed to connect to Teacher WebSocket:', err);
         }
