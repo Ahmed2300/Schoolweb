@@ -142,11 +142,11 @@ export default function TeacherRecordingsPage() {
             : new Date(recording.updated_at);
 
         return (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-lg transition-all group">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-all group">
                 {/* Video Thumbnail Area */}
                 <div className="relative aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <Film size={48} className="text-slate-600" />
+                    <Film size={48} className="text-slate-600 dark:text-slate-500" />
 
                     {/* Play Button Overlay */}
                     {recordingUrl && (
@@ -176,17 +176,17 @@ export default function TeacherRecordingsPage() {
 
                 {/* Content */}
                 <div className="p-5">
-                    <h3 className="font-bold text-slate-800 text-lg mb-2 line-clamp-1">
+                    <h3 className="font-bold text-slate-800 dark:text-white text-lg mb-2 line-clamp-1">
                         {getTitle(recording.title)}
                     </h3>
 
                     {recording.course && (
-                        <p className="text-slate-500 text-sm mb-3 line-clamp-1">
+                        <p className="text-slate-500 dark:text-slate-400 text-sm mb-3 line-clamp-1">
                             {getTitle(recording.course.title)}
                         </p>
                     )}
 
-                    <div className="flex items-center gap-4 text-slate-400 text-sm mb-4">
+                    <div className="flex items-center gap-4 text-slate-400 dark:text-slate-500 text-sm mb-4">
                         <span className="flex items-center gap-1">
                             <Calendar size={14} />
                             {formatDistanceToNow(sessionDate, { addSuffix: true, locale: ar })}
@@ -194,7 +194,7 @@ export default function TeacherRecordingsPage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 pt-4 border-t border-slate-100">
+                    <div className="flex items-center gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
                         {recordingUrl ? (
                             <>
                                 <button
@@ -207,21 +207,21 @@ export default function TeacherRecordingsPage() {
                                 <a
                                     href={recordingUrl}
                                     download
-                                    className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-colors"
+                                    className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl transition-colors"
                                     title="تحميل"
                                 >
                                     <Download size={18} />
                                 </a>
                                 <button
                                     onClick={() => setDeleteModalId(recording.id)}
-                                    className="p-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-colors"
+                                    className="p-2.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-xl transition-colors"
                                     title="حذف"
                                 >
                                     <Trash2 size={18} />
                                 </button>
                             </>
                         ) : (
-                            <div className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-600 rounded-xl font-medium text-sm">
+                            <div className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-xl font-medium text-sm">
                                 <Loader2 size={16} className="animate-spin" />
                                 جاري تجهيز التسجيل...
                             </div>
@@ -237,8 +237,8 @@ export default function TeacherRecordingsPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-800">التسجيلات</h1>
-                    <p className="text-slate-500 mt-1">إدارة تسجيلات الجلسات المباشرة</p>
+                    <h1 className="text-3xl font-black text-slate-800 dark:text-white">التسجيلات</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">إدارة تسجيلات الجلسات المباشرة</p>
                 </div>
             </div>
 
@@ -249,39 +249,39 @@ export default function TeacherRecordingsPage() {
                         icon={Film}
                         label="إجمالي التسجيلات"
                         value={stats.total_recordings}
-                        gradient="bg-gradient-to-br from-purple-500 to-purple-700"
+                        gradient="bg-gradient-to-br from-purple-500 to-purple-700 dark:from-purple-600 dark:to-purple-800"
                     />
                     <StatCard
                         icon={Eye}
                         label="إجمالي المشاهدات"
                         value={stats.total_views}
-                        gradient="bg-gradient-to-br from-teal-400 to-teal-600"
+                        gradient="bg-gradient-to-br from-teal-400 to-teal-600 dark:from-teal-500 dark:to-teal-700"
                     />
                     <StatCard
                         icon={TrendingUp}
                         label="تسجيلات هذا الشهر"
                         value={stats.recordings_this_month}
-                        gradient="bg-gradient-to-br from-amber-400 to-yellow-500"
+                        gradient="bg-gradient-to-br from-amber-400 to-yellow-500 dark:from-amber-500 dark:to-yellow-600"
                     />
                     <StatCard
                         icon={Clock}
                         label="قيد التجهيز"
                         value={stats.pending_recordings}
-                        gradient="bg-gradient-to-br from-rose-500 to-shibl-crimson"
+                        gradient="bg-gradient-to-br from-rose-500 to-shibl-crimson dark:from-rose-600 dark:to-red-700"
                     />
                 </div>
             )}
 
             {/* Search */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-6">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-4 mb-6">
                 <div className="relative">
-                    <Search size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Search size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
                     <input
                         type="text"
                         placeholder="البحث في التسجيلات..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pr-12 pl-4 py-3 bg-slate-50 border-0 rounded-xl text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500"
+                        className="w-full pr-12 pl-4 py-3 bg-slate-50 dark:bg-slate-800 border-0 rounded-xl text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                     />
                 </div>
             </div>
@@ -289,18 +289,18 @@ export default function TeacherRecordingsPage() {
             {/* Loading */}
             {isLoading ? (
                 <div className="flex items-center justify-center py-20">
-                    <Loader2 size={40} className="animate-spin text-blue-600" />
+                    <Loader2 size={40} className="animate-spin text-blue-600 dark:text-blue-400" />
                 </div>
             ) : filteredRecordings.length === 0 ? (
                 /* Empty State */
-                <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-12 text-center">
-                    <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                        <Video size={40} className="text-slate-400" />
+                <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 p-12 text-center">
+                    <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <Video size={40} className="text-slate-400 dark:text-slate-500" />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-800 mb-2">
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
                         {searchQuery ? 'لا توجد نتائج' : 'لا توجد تسجيلات'}
                     </h3>
-                    <p className="text-slate-500">
+                    <p className="text-slate-500 dark:text-slate-400">
                         {searchQuery
                             ? 'جرب البحث بكلمات مختلفة'
                             : 'ستظهر تسجيلات الجلسات المباشرة هنا بعد انتهائها'}
@@ -317,22 +317,22 @@ export default function TeacherRecordingsPage() {
 
             {/* Delete Modal */}
             {deleteModalId && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
-                        <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                            <AlertCircle size={32} className="text-red-600" />
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100 dark:border-slate-800">
+                        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <AlertCircle size={32} className="text-red-600 dark:text-red-400" />
                         </div>
-                        <h3 className="text-xl font-bold text-slate-800 text-center mb-2">
+                        <h3 className="text-xl font-bold text-slate-800 dark:text-white text-center mb-2">
                             حذف التسجيل
                         </h3>
-                        <p className="text-slate-500 text-center mb-6">
+                        <p className="text-slate-500 dark:text-slate-400 text-center mb-6">
                             هل أنت متأكد من حذف هذا التسجيل؟ لا يمكن التراجع عن هذا الإجراء.
                         </p>
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setDeleteModalId(null)}
                                 disabled={isDeleting}
-                                className="flex-1 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors"
+                                className="flex-1 px-6 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-colors"
                             >
                                 إلغاء
                             </button>

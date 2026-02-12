@@ -1001,7 +1001,7 @@ export const adminService = {
      * Update admin by ID
      */
     updateAdmin: async (id: number, data: Partial<CreateAdminRequest>): Promise<any> => {
-        const response = await apiClient.put(endpoints.admin.admins.update(id), data);
+        const response = await apiClient.post(endpoints.admin.admins.update(id), data);
         return response.data.data;
     },
 
@@ -1544,23 +1544,7 @@ export const adminService = {
         return response.data.data;
     },
 
-    upsertSetting: async (data: UpsertSettingRequest): Promise<SettingData> => {
-        const response = await apiClient.post(endpoints.admin.settings.upsert, data);
-        return response.data.data;
-    },
 
-    deleteSetting: async (id: number): Promise<void> => {
-        await apiClient.delete(endpoints.admin.settings.delete(id));
-    },
-
-    uploadLogo: async (file: File): Promise<{ url: string }> => {
-        const formData = new FormData();
-        formData.append('logo', file);
-        const response = await apiClient.post(endpoints.admin.settings.uploadLogo, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        return response.data;
-    },
 
 
     // ==================== VIDEO UPLOAD ====================
@@ -2354,14 +2338,47 @@ export const adminService = {
         teacher_id?: number;
         day_of_week?: number;
         search?: string;
+        booking_status?: 'all' | 'booked' | 'not_booked';
     }): Promise<any> => {
         const response = await apiClient.get(`${endpoints.admin.classSchedules.list}/grouped`, { params });
         return response.data;
     },
+
+
+    // Settings
+    getAllSettings: async (): Promise<any> => {
+        const response = await apiClient.get(endpoints.settings.admin.list);
+        return response.data;
+    },
+
+    upsertSetting: async (key: string, value: string, type: string = 'text', description?: string): Promise<any> => {
+        const response = await apiClient.post(endpoints.settings.admin.upsert, {
+            key,
+            value,
+            type,
+            description
+        });
+        return response.data;
+    },
+
+    uploadLogo: async (file: File): Promise<{ path: string }> => {
+        const formData = new FormData();
+        formData.append('logo', file);
+
+        const response = await apiClient.post(endpoints.settings.admin.uploadLogo, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
+
+    deleteSetting: async (key: string): Promise<void> => {
+        await apiClient.delete(endpoints.settings.admin.delete(key));
+    },
 };
 
 export default adminService;
-
 
 
 

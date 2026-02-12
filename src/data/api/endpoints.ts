@@ -493,6 +493,20 @@ export const endpoints = {
         store: '/api/v1/client-reportings',
     },
 
+    // Settings
+    settings: {
+        public: {
+            list: '/api/v1/settings',
+            get: (key: string) => `/api/v1/settings/${key}`,
+        },
+        admin: {
+            list: '/api/v1/admin/settings',
+            upsert: '/api/v1/admin/settings/upsert',
+            uploadLogo: '/api/v1/admin/settings/upload-logo',
+            delete: (key: string) => `/api/v1/admin/settings/${key}`,
+        }
+    },
+
     // User Notifications (Shared)
     notifications: {
         list: '/api/user/notifications',

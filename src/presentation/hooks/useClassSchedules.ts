@@ -12,6 +12,7 @@ interface UseClassSchedulesParams {
     sort_by?: string;
     sort_order?: 'asc' | 'desc';
     grouped?: boolean;
+    booking_status?: 'all' | 'booked' | 'not_booked';
 }
 
 export const useClassSchedules = (params: UseClassSchedulesParams = {}) => {

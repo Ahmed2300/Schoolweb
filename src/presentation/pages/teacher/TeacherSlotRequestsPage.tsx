@@ -49,31 +49,31 @@ interface StatsCardProps {
 function StatsCard({ label, value, icon, type, isActive, onClick }: StatsCardProps) {
     const styles = {
         pending: {
-            bg: 'bg-gradient-to-br from-amber-50 via-white to-amber-50/50',
-            border: 'border-amber-100',
-            checkedBorder: 'border-amber-400',
-            text: 'text-amber-700',
-            iconBg: 'bg-amber-100 text-amber-600',
-            shadow: 'shadow-amber-100/50',
-            activeRing: 'ring-amber-200'
+            bg: 'bg-gradient-to-br from-amber-50 via-white to-amber-50/50 dark:from-amber-900/20 dark:via-slate-900 dark:to-amber-900/10',
+            border: 'border-amber-100 dark:border-amber-900/50',
+            checkedBorder: 'border-amber-400 dark:border-amber-500',
+            text: 'text-amber-700 dark:text-amber-400',
+            iconBg: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
+            shadow: 'shadow-amber-100/50 dark:shadow-none',
+            activeRing: 'ring-amber-200 dark:ring-amber-900/40'
         },
         approved: {
-            bg: 'bg-gradient-to-br from-emerald-50 via-white to-emerald-50/50',
-            border: 'border-emerald-100',
-            checkedBorder: 'border-emerald-400',
-            text: 'text-emerald-700',
-            iconBg: 'bg-emerald-100 text-emerald-600',
-            shadow: 'shadow-emerald-100/50',
-            activeRing: 'ring-emerald-200'
+            bg: 'bg-gradient-to-br from-emerald-50 via-white to-emerald-50/50 dark:from-emerald-900/20 dark:via-slate-900 dark:to-emerald-900/10',
+            border: 'border-emerald-100 dark:border-emerald-900/50',
+            checkedBorder: 'border-emerald-400 dark:border-emerald-500',
+            text: 'text-emerald-700 dark:text-emerald-400',
+            iconBg: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
+            shadow: 'shadow-emerald-100/50 dark:shadow-none',
+            activeRing: 'ring-emerald-200 dark:ring-emerald-900/40'
         },
         rejected: {
-            bg: 'bg-gradient-to-br from-rose-50 via-white to-rose-50/50',
-            border: 'border-rose-100',
-            checkedBorder: 'border-rose-400',
-            text: 'text-rose-700',
-            iconBg: 'bg-rose-100 text-rose-600',
-            shadow: 'shadow-rose-100/50',
-            activeRing: 'ring-rose-200'
+            bg: 'bg-gradient-to-br from-rose-50 via-white to-rose-50/50 dark:from-rose-900/20 dark:via-slate-900 dark:to-rose-900/10',
+            border: 'border-rose-100 dark:border-rose-900/50',
+            checkedBorder: 'border-rose-400 dark:border-rose-500',
+            text: 'text-rose-700 dark:text-rose-400',
+            iconBg: 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400',
+            shadow: 'shadow-rose-100/50 dark:shadow-none',
+            activeRing: 'ring-rose-200 dark:ring-rose-900/40'
         },
     };
 
@@ -99,7 +99,7 @@ function StatsCard({ label, value, icon, type, isActive, onClick }: StatsCardPro
                 )}
             </div>
 
-            <span className="text-3xl font-bold text-slate-800 mb-1 font-numeric">
+            <span className="text-3xl font-bold text-slate-800 dark:text-white mb-1 font-numeric">
                 {value}
             </span>
             <span className={`text-sm font-medium ${style.text}`}>
@@ -136,7 +136,7 @@ function RequestCard({ request, onCancel, isCanceling }: RequestCardProps) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="group relative bg-white rounded-2xl border border-slate-100/80 p-5 shadow-[0_2px_15px_-4px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] hover:border-slate-200 transition-all duration-300"
+            className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-100/80 dark:border-slate-800 p-5 shadow-[0_2px_15px_-4px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-300"
         >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 {/* Info Section */}
@@ -145,8 +145,8 @@ function RequestCard({ request, onCancel, isCanceling }: RequestCardProps) {
                     <div className={`
                         shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center border transition-colors
                         ${isWeekly
-                            ? 'bg-purple-50 border-purple-100 text-purple-600 group-hover:bg-purple-100'
-                            : 'bg-blue-50 border-blue-100 text-blue-600 group-hover:bg-blue-100'
+                            ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-800/30 text-purple-600 dark:text-purple-400 group-hover:bg-purple-100 dark:group-hover:bg-purple-900/30'
+                            : 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30 text-blue-600 dark:text-blue-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30'
                         }
                     `}>
                         {isWeekly ? <CalendarDays size={24} strokeWidth={1.5} /> : <Calendar size={24} strokeWidth={1.5} />}
@@ -155,20 +155,20 @@ function RequestCard({ request, onCancel, isCanceling }: RequestCardProps) {
                     {/* Details */}
                     <div>
                         <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <h3 className="text-base font-bold text-slate-800">
+                            <h3 className="text-base font-bold text-slate-800 dark:text-white">
                                 {isWeekly ? getDayName(request.day_of_week) : formatDate(request.specific_date || '')}
                             </h3>
                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${isWeekly
-                                ? 'bg-purple-50 text-purple-600 border-purple-100'
-                                : 'bg-blue-50 text-blue-600 border-blue-100'
+                                ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-100 dark:border-purple-800/30'
+                                : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-800/30'
                                 }`}>
                                 {isWeekly ? 'أسبوعي' : 'مرة واحدة'}
                             </span>
                         </div>
 
-                        <div className="flex items-center gap-4 text-sm text-slate-500">
-                            <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-lg">
-                                <Clock size={14} className="text-slate-400" />
+                        <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+                            <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-lg">
+                                <Clock size={14} className="text-slate-400 dark:text-slate-500" />
                                 <span className="dir-ltr font-medium font-numeric">
                                     {formatTime(request.start_time)} - {formatTime(request.end_time)}
                                 </span>
@@ -185,7 +185,7 @@ function RequestCard({ request, onCancel, isCanceling }: RequestCardProps) {
                 </div>
 
                 {/* Status & Actions Section */}
-                <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 border-slate-50 md:border-none">
+                <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 border-slate-50 dark:border-slate-800 md:border-none">
                     <div className="flex flex-col items-end gap-1">
                         <SlotRequestStatusBadge status={request.status} />
                         <span className="text-[10px] text-slate-400">
@@ -194,12 +194,12 @@ function RequestCard({ request, onCancel, isCanceling }: RequestCardProps) {
                     </div>
 
                     {request.can_cancel && (
-                        <div className="pr-4 border-r border-slate-100 mr-2">
+                        <div className="pr-4 border-r border-slate-100 dark:border-slate-800 mr-2">
                             <button
                                 type="button"
                                 onClick={() => onCancel(request)}
                                 disabled={isCanceling}
-                                className="w-9 h-9 rounded-full flex items-center justify-center text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors disabled:opacity-50"
+                                className="w-9 h-9 rounded-full flex items-center justify-center text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-700 dark:hover:text-rose-400 transition-colors disabled:opacity-50"
                                 title="إلغاء الطلب"
                             >
                                 {isCanceling ? <Loader2 size={16} className="animate-spin" /> : <X size={18} />}
@@ -211,7 +211,7 @@ function RequestCard({ request, onCancel, isCanceling }: RequestCardProps) {
 
             {/* Notes Section - Animated */}
             {request.notes && (
-                <div className="mt-4 p-3 bg-slate-50 rounded-xl text-sm text-slate-600 border border-slate-100/50 flex gap-2 items-start">
+                <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm text-slate-600 dark:text-slate-300 border border-slate-100/50 dark:border-slate-700/50 flex gap-2 items-start">
                     <ArrowRight size={14} className="mt-1 text-slate-400 shrink-0 rotate-180" />
                     <span>{request.notes}</span>
                 </div>
@@ -219,13 +219,13 @@ function RequestCard({ request, onCancel, isCanceling }: RequestCardProps) {
 
             {/* Rejection Reason - Prominent */}
             {request.is_rejected && request.rejection_reason && (
-                <div className="mt-4 p-4 bg-rose-50/50 rounded-xl border border-rose-100 flex gap-3 animate-in fade-in slide-in-from-top-1">
-                    <div className="shrink-0 p-1 bg-rose-100 rounded-full h-fit text-rose-600">
+                <div className="mt-4 p-4 bg-rose-50/50 dark:bg-rose-900/10 rounded-xl border border-rose-100 dark:border-rose-900/20 flex gap-3 animate-in fade-in slide-in-from-top-1">
+                    <div className="shrink-0 p-1 bg-rose-100 dark:bg-rose-900/30 rounded-full h-fit text-rose-600 dark:text-rose-400">
                         <AlertCircle size={16} />
                     </div>
                     <div>
-                        <span className="text-xs font-bold text-rose-800 block mb-1">سبب الرفض</span>
-                        <p className="text-sm text-rose-700 leading-relaxed">
+                        <span className="text-xs font-bold text-rose-800 dark:text-rose-300 block mb-1">سبب الرفض</span>
+                        <p className="text-sm text-rose-700 dark:text-rose-400 leading-relaxed">
                             {request.rejection_reason}
                         </p>
                     </div>
@@ -296,7 +296,7 @@ export function TeacherSlotRequestsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-soft-cloud/30 pb-20 p-6 md:p-8" style={{ direction: 'rtl' }}>
+        <div className="min-h-screen bg-soft-cloud/30 dark:bg-slate-950 pb-20 p-6 md:p-8" style={{ direction: 'rtl' }}>
             <div className="max-w-7xl mx-auto space-y-8">
 
                 {/* Header Section */}
@@ -305,7 +305,7 @@ export function TeacherSlotRequestsPage() {
                         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-l from-shibl-crimson to-rose-600 mb-2">
                             طلبات المواعيد
                         </h1>
-                        <p className="text-slate-500 text-lg max-w-xl leading-relaxed">
+                        <p className="text-slate-500 dark:text-slate-400 text-lg max-w-xl leading-relaxed">
                             إدارة طلباتك للحصص الإضافية والأسبوعية، ومتابعة حالة الموافقات.
                         </p>
                     </div>
@@ -364,10 +364,10 @@ export function TeacherSlotRequestsPage() {
                             exit={{ opacity: 0, height: 0 }}
                             className="flex items-center"
                         >
-                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full shadow-sm text-sm text-slate-600">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full shadow-sm text-sm text-slate-600 dark:text-slate-300">
                                 <Filter size={14} className="text-slate-400" />
                                 <span>تصفية حسب:</span>
-                                <span className="font-bold text-charcoal">
+                                <span className="font-bold text-charcoal dark:text-white">
                                     {statusFilter === SLOT_REQUEST_STATUSES.PENDING && 'قيد الانتظار'}
                                     {statusFilter === SLOT_REQUEST_STATUSES.APPROVED && 'موافق عليها'}
                                     {statusFilter === SLOT_REQUEST_STATUSES.REJECTED && 'مرفوضة'}
@@ -387,13 +387,13 @@ export function TeacherSlotRequestsPage() {
                 <div className="space-y-4">
                     {/* Section Header */}
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-charcoal flex items-center gap-3">
-                            <span className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
+                        <h2 className="text-xl font-bold text-charcoal dark:text-white flex items-center gap-3">
+                            <span className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400">
                                 <Clock size={16} />
                             </span>
                             سجل الطلبات
                             {!isLoading && (
-                                <span className="px-2.5 py-0.5 rounded-md bg-slate-100 text-xs text-slate-500 font-numeric">
+                                <span className="px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-xs text-slate-500 dark:text-slate-400 font-numeric">
                                     {filteredRequests.length}
                                 </span>
                             )}
@@ -407,14 +407,14 @@ export function TeacherSlotRequestsPage() {
                             ))}
                         </div>
                     ) : filteredRequests.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-20 px-4 bg-white rounded-3xl border border-dashed border-slate-200">
-                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6 shadow-sm">
-                                <Search size={32} className="text-slate-300" />
+                        <div className="flex flex-col items-center justify-center py-20 px-4 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                            <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 shadow-sm">
+                                <Search size={32} className="text-slate-300 dark:text-slate-600" />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-800 mb-2">
+                            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
                                 {statusFilter === 'all' ? 'لا توجد طلبات حالياً' : 'لا توجد نتائج مطابقة'}
                             </h3>
-                            <p className="text-slate-500 text-center max-w-sm mb-8 leading-relaxed">
+                            <p className="text-slate-500 dark:text-slate-400 text-center max-w-sm mb-8 leading-relaxed">
                                 {statusFilter === 'all'
                                     ? 'يمكنك البدء بتقديم طلب جديد لتحديد مواعيد حصصك الإضافية أو الأسبوعية.'
                                     : 'لم يتم العثور على طلبات بهذه الحالة. حاول تغيير خيارات التصفية.'
@@ -423,7 +423,7 @@ export function TeacherSlotRequestsPage() {
                             {statusFilter === 'all' && (
                                 <button
                                     onClick={() => setShowRequestDialog(true)}
-                                    className="px-6 py-2.5 bg-slate-900 text-white rounded-xl shadow-lg shadow-slate-200 hover:shadow-xl hover:scale-105 transition-all text-sm font-bold"
+                                    className="px-6 py-2.5 bg-slate-900 dark:bg-slate-800 text-white rounded-xl shadow-lg shadow-slate-200 dark:shadow-none hover:shadow-xl hover:scale-105 transition-all text-sm font-bold"
                                 >
                                     إنشاء طلب جديد
                                 </button>

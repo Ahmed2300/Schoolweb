@@ -40,6 +40,8 @@ interface TeacherLayoutProps {
 
 
 
+import { useThemeEffect } from '../../../hooks/useThemeEffect';
+
 export function TeacherLayout({
     sessionTimeoutMinutes = 30,
     sessionWarningSeconds = 120,
@@ -49,6 +51,9 @@ export function TeacherLayout({
     const { user, logout: storeLogout } = useAuthStore();
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+    // Initialize Theme Effect
+    useThemeEffect();
 
     // Session management - security feature
     const handleSessionExpired = () => {
@@ -82,7 +87,7 @@ export function TeacherLayout({
 
     return (
         <div
-            className="min-h-screen bg-[#F8F9FA]"
+            className="min-h-screen bg-[#F8F9FA] dark:bg-slate-950 transition-colors duration-300"
             dir={isRTL ? 'rtl' : 'ltr'}
         >
             {/* Session Timeout Modal - Security */}
@@ -118,14 +123,14 @@ export function TeacherLayout({
                     }
                 `}
             >
-                {/* Header - Fixed at top - Light theme */}
-                <header className="h-20 bg-white/90 backdrop-blur-xl border-b border-slate-200 px-4 md:px-8 flex items-center justify-between sticky top-0 z-40 shadow-sm">
+                {/* Header - Fixed at top */}
+                <header className="h-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 px-4 md:px-8 flex items-center justify-between sticky top-0 z-40 shadow-sm transition-colors duration-300">
                     {/* Left side - User profile */}
                     <div className="flex items-center gap-3">
                         {/* Mobile Menu Toggle */}
                         <button
                             onClick={() => setIsMobileSidebarOpen(true)}
-                            className="lg:hidden p-2 -ms-2 text-slate-500 hover:bg-slate-100 rounded-lg"
+                            className="lg:hidden p-2 -ms-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" x2="21" y1="6" y2="6" /><line x1="3" x2="21" y1="12" y2="12" /><line x1="3" x2="21" y1="18" y2="18" /></svg>
                         </button>
@@ -133,17 +138,17 @@ export function TeacherLayout({
                         <img
                             src={user?.image_path || teacherPlaceholder}
                             alt={user?.name || 'Teacher'}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-slate-200"
+                            className="w-10 h-10 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700"
                             onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.src = teacherPlaceholder;
                             }}
                         />
                         <div className="flex flex-col">
-                            <span className="text-sm font-bold text-[#1F1F1F]">
+                            <span className="text-sm font-bold text-[#1F1F1F] dark:text-slate-100">
                                 {user?.name || 'المعلم'}
                             </span>
-                            <span className="text-xs text-[#636E72]">معلم</span>
+                            <span className="text-xs text-[#636E72] dark:text-slate-400">معلم</span>
                         </div>
                     </div>
 

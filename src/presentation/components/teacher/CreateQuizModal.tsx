@@ -130,7 +130,7 @@ function Step1SelectType({
                 {/* Course Selection */}
                 {showCourseSelect ? (
                     <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-[#1F1F1F] mb-2">
+                        <label className="block text-sm font-medium text-[#1F1F1F] dark:text-slate-200 mb-2">
                             الدورة <span className="text-red-500">*</span>
                         </label>
                         <select
@@ -140,7 +140,7 @@ function Step1SelectType({
                                 onSelectUnit(null);
                                 onSelectLecture(null);
                             }}
-                            className="w-full h-12 px-4 rounded-xl bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-[#1F1F1F]"
+                            className="w-full h-12 px-4 rounded-xl bg-[#F8F9FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-[#1F1F1F] dark:text-white"
                         >
                             <option value="">-- اختر الدورة --</option>
                             {courses.map(course => (
@@ -155,7 +155,7 @@ function Step1SelectType({
                 {/* Unit Selection */}
                 {showUnitSelect && (
                     <div className={showCourseSelect ? "" : "md:col-span-2"}>
-                        <label className="block text-sm font-medium text-[#1F1F1F] mb-2">
+                        <label className="block text-sm font-medium text-[#1F1F1F] dark:text-slate-200 mb-2">
                             الوحدة <span className="text-red-500">*</span>
                         </label>
                         <select
@@ -165,7 +165,7 @@ function Step1SelectType({
                                 onSelectLecture(null);
                             }}
                             disabled={!selectedCourse || loadingUnits}
-                            className="w-full h-12 px-4 rounded-xl bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-[#1F1F1F] disabled:opacity-50"
+                            className="w-full h-12 px-4 rounded-xl bg-[#F8F9FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-[#1F1F1F] dark:text-white disabled:opacity-50"
                         >
                             <option value="">{loadingUnits ? 'جاري التحميل...' : '-- اختر الوحدة --'}</option>
                             {units.map(unit => (
@@ -181,14 +181,14 @@ function Step1SelectType({
                 {/* Lecture Selection */}
                 {showLectureSelect && (
                     <div className={showUnitSelect ? "" : "md:col-span-2"}>
-                        <label className="block text-sm font-medium text-[#1F1F1F] mb-2">
+                        <label className="block text-sm font-medium text-[#1F1F1F] dark:text-slate-200 mb-2">
                             المحاضرة <span className="text-xs text-slate-400">(اختياري)</span>
                         </label>
                         <select
                             value={selectedLecture || ''}
                             onChange={(e) => onSelectLecture(Number(e.target.value) || null)}
                             disabled={!selectedUnit}
-                            className="w-full h-12 px-4 rounded-xl bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-[#1F1F1F] disabled:opacity-50"
+                            className="w-full h-12 px-4 rounded-xl bg-[#F8F9FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-[#1F1F1F] dark:text-white disabled:opacity-50"
                         >
                             <option value="">-- اختر المحاضرة --</option>
                             {lectures.map((lecture: any) => (
@@ -202,8 +202,8 @@ function Step1SelectType({
             </div>
 
             {/* Context Summary Badge (Shows what's locked/active) */}
-            <div className="flex flex-wrap gap-2 items-center text-sm text-[#636E72] bg-slate-50 p-3 rounded-lg border border-slate-100">
-                <span className="font-medium text-[#1F1F1F]">المسار المحدد:</span>
+            <div className="flex flex-wrap gap-2 items-center text-sm text-[#636E72] dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
+                <span className="font-medium text-[#1F1F1F] dark:text-white">المسار المحدد:</span>
 
                 <div className="flex items-center gap-1">
                     <BookOpen size={14} />
@@ -234,7 +234,7 @@ function Step1SelectType({
 
             {/* Quiz Type Selection */}
             <div>
-                <label className="block text-sm font-medium text-[#1F1F1F] mb-3">
+                <label className="block text-sm font-medium text-[#1F1F1F] dark:text-white mb-3">
                     نوع الاختبار <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-4">
@@ -242,16 +242,16 @@ function Step1SelectType({
                     <button
                         onClick={() => onSelectType('mcq')}
                         className={`p-6 rounded-2xl border-2 transition-all text-center ${quizType === 'mcq'
-                            ? 'border-shibl-crimson bg-red-50'
-                            : 'border-slate-200 hover:border-slate-300 bg-white'
+                            ? 'border-shibl-crimson bg-red-50 dark:bg-red-900/10'
+                            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800'
                             }`}
                     >
-                        <div className={`w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 ${quizType === 'mcq' ? 'bg-shibl-crimson text-white' : 'bg-blue-100 text-blue-600'
+                        <div className={`w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 ${quizType === 'mcq' ? 'bg-shibl-crimson text-white' : 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
                             }`}>
                             <FileQuestion size={28} />
                         </div>
-                        <h3 className="font-semibold text-[#1F1F1F] mb-1">اختيار من متعدد</h3>
-                        <p className="text-sm text-[#636E72]">
+                        <h3 className="font-semibold text-[#1F1F1F] dark:text-white mb-1">اختيار من متعدد</h3>
+                        <p className="text-sm text-[#636E72] dark:text-slate-400">
                             أسئلة مع خيارات متعددة تُصحح تلقائياً
                         </p>
                     </button>
@@ -260,21 +260,21 @@ function Step1SelectType({
                     <button
                         onClick={() => onSelectType('essay')}
                         className={`p-6 rounded-2xl border-2 transition-all text-center ${quizType === 'essay'
-                            ? 'border-shibl-crimson bg-red-50'
-                            : 'border-slate-200 hover:border-slate-300 bg-white'
+                            ? 'border-shibl-crimson bg-red-50 dark:bg-red-900/10'
+                            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800'
                             }`}
                     >
-                        <div className={`w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 ${quizType === 'essay' ? 'bg-shibl-crimson text-white' : 'bg-purple-100 text-purple-600'
+                        <div className={`w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 ${quizType === 'essay' ? 'bg-shibl-crimson text-white' : 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
                             }`}>
                             <FileEdit size={28} />
                         </div>
-                        <h3 className="font-semibold text-[#1F1F1F] mb-1">أسئلة مكتوبة</h3>
-                        <p className="text-sm text-[#636E72]">
+                        <h3 className="font-semibold text-[#1F1F1F] dark:text-white mb-1">أسئلة مكتوبة</h3>
+                        <p className="text-sm text-[#636E72] dark:text-slate-400">
                             أسئلة مقالية مع إجابة نموذجية للطالب
                         </p>
                     </button>
                 </div>
-                <p className="text-xs text-[#636E72] mt-3 flex items-center gap-1">
+                <p className="text-xs text-[#636E72] dark:text-slate-400 mt-3 flex items-center gap-1">
                     <AlertCircle size={12} />
                     لا يمكن الجمع بين النوعين في اختبار واحد
                 </p>
@@ -326,7 +326,7 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-[#1F1F1F]">
+                <h3 className="font-semibold text-[#1F1F1F] dark:text-white">
                     الأسئلة ({questions.length})
                 </h3>
                 <button
@@ -339,9 +339,9 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
             </div>
 
             {questions.length === 0 ? (
-                <div className="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-                    <FileQuestion size={40} className="mx-auto text-slate-400 mb-3" />
-                    <p className="text-[#636E72]">لا توجد أسئلة بعد</p>
+                <div className="text-center py-12 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+                    <FileQuestion size={40} className="mx-auto text-slate-400 dark:text-slate-500 mb-3" />
+                    <p className="text-[#636E72] dark:text-slate-400">لا توجد أسئلة بعد</p>
                     <button
                         onClick={onAddQuestion}
                         className="mt-3 text-shibl-crimson hover:underline text-sm font-medium"
@@ -352,7 +352,7 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
             ) : (
                 <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                     {questions.map((question, index) => (
-                        <div key={question.id} className="bg-white rounded-xl border border-slate-200 p-4">
+                        <div key={question.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
                             {/* Question Header */}
                             <div className="flex items-center justify-between mb-3">
                                 <span className="text-sm font-medium text-shibl-crimson">
@@ -360,7 +360,7 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
                                 </span>
                                 <button
                                     onClick={() => onDeleteQuestion(question.id)}
-                                    className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+                                    className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                                 >
                                     <Trash2 size={16} />
                                 </button>
@@ -373,7 +373,7 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
                                     placeholder="نص السؤال بالعربية *"
                                     value={question.question_text_ar}
                                     onChange={(e) => onUpdateQuestion(question.id, { question_text_ar: e.target.value })}
-                                    className="w-full h-10 px-3 rounded-lg bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson outline-none transition-all text-sm"
+                                    className="w-full h-10 px-3 rounded-lg bg-[#F8F9FA] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson outline-none transition-all text-sm dark:text-white"
                                 />
                             </div>
 
@@ -384,16 +384,16 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
                                     placeholder="Question text in English (optional)"
                                     value={question.question_text_en}
                                     onChange={(e) => onUpdateQuestion(question.id, { question_text_en: e.target.value })}
-                                    className="w-full h-10 px-3 rounded-lg bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson outline-none transition-all text-sm"
+                                    className="w-full h-10 px-3 rounded-lg bg-[#F8F9FA] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson outline-none transition-all text-sm dark:text-white"
                                     dir="ltr"
                                 />
                             </div>
 
                             {/* Question Image Upload */}
                             <div className="mb-3">
-                                <label className="text-xs text-[#636E72] mb-2 block">صورة السؤال (اختياري)</label>
+                                <label className="text-xs text-[#636E72] dark:text-slate-400 mb-2 block">صورة السؤال (اختياري)</label>
                                 <div className="flex items-center gap-3">
-                                    <label className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 cursor-pointer transition-colors text-sm text-slate-600">
+                                    <label className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 cursor-pointer transition-colors text-sm text-slate-600 dark:text-slate-300">
                                         <ImageIcon size={16} />
                                         <span>{question.question_image || question.question_image_url ? 'تغيير الصورة' : 'رفع صورة'}</span>
                                         <input
@@ -411,7 +411,7 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
                                             <img
                                                 src={question.question_image_preview || question.question_image_url || ''}
                                                 alt="معاينة صورة السؤال"
-                                                className="h-12 w-12 object-cover rounded-lg border border-slate-200"
+                                                className="h-12 w-12 object-cover rounded-lg border border-slate-200 dark:border-slate-700"
                                             />
                                             <button
                                                 onClick={() => onQuestionImage(question.id, null)}
@@ -427,13 +427,13 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
                             {/* Points */}
                             <div className="mb-3">
                                 <div className="flex items-center gap-2">
-                                    <label className="text-xs text-[#636E72]">الدرجة:</label>
+                                    <label className="text-xs text-[#636E72] dark:text-slate-400">الدرجة:</label>
                                     <input
                                         type="number"
                                         min="1"
                                         value={question.points}
                                         onChange={(e) => onUpdateQuestion(question.id, { points: Number(e.target.value) })}
-                                        className="w-16 h-8 px-2 rounded-lg bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson outline-none transition-all text-sm text-center"
+                                        className="w-16 h-8 px-2 rounded-lg bg-[#F8F9FA] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson outline-none transition-all text-sm text-center dark:text-white"
                                     />
                                 </div>
                             </div>
@@ -441,15 +441,15 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
                             {/* MCQ Options */}
                             {quizType === 'mcq' && question.options && (
                                 <div className="mt-4 space-y-3">
-                                    <label className="text-xs text-[#636E72] mb-2 block">الخيارات:</label>
+                                    <label className="text-xs text-[#636E72] dark:text-slate-400 mb-2 block">الخيارات:</label>
                                     {question.options.map((option, optIndex) => (
-                                        <div key={option.id} className="space-y-2 p-3 bg-slate-50 rounded-lg">
+                                        <div key={option.id} className="space-y-2 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => onUpdateOption(question.id, option.id, { is_correct: !option.is_correct })}
                                                     className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${option.is_correct
                                                         ? 'border-emerald-500 bg-emerald-500 text-white'
-                                                        : 'border-slate-300 hover:border-slate-400'
+                                                        : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500'
                                                         }`}
                                                 >
                                                     {option.is_correct && <CheckCircle size={14} />}
@@ -459,10 +459,10 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
                                                     placeholder={`الخيار ${optIndex + 1} بالعربية`}
                                                     value={option.option_text_ar}
                                                     onChange={(e) => onUpdateOption(question.id, option.id, { option_text_ar: e.target.value })}
-                                                    className="flex-1 h-9 px-3 rounded-lg bg-white border border-slate-200 focus:border-shibl-crimson outline-none transition-all text-sm"
+                                                    className="flex-1 h-9 px-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson outline-none transition-all text-sm dark:text-white"
                                                 />
                                                 {/* Option Image Upload */}
-                                                <label className="p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 cursor-pointer transition-colors flex-shrink-0" title="إضافة صورة للخيار">
+                                                <label className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer transition-colors flex-shrink-0" title="إضافة صورة للخيار">
                                                     <ImageIcon size={14} className="text-slate-500" />
                                                     <input
                                                         type="file"
@@ -476,7 +476,7 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
                                                 </label>
                                                 <button
                                                     onClick={() => onDeleteOption(question.id, option.id)}
-                                                    className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+                                                    className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                                                 >
                                                     <Trash2 size={14} />
                                                 </button>
@@ -488,7 +488,7 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
                                                         <img
                                                             src={option.option_image_preview || option.option_image_url || ''}
                                                             alt={`صورة الخيار ${optIndex + 1}`}
-                                                            className="h-10 w-10 object-cover rounded-md border border-slate-200"
+                                                            className="h-10 w-10 object-cover rounded-md border border-slate-200 dark:border-slate-700"
                                                         />
                                                         <button
                                                             onClick={() => onOptionImage(question.id, option.id, null)}
@@ -517,20 +517,20 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
                             {/* Essay Model Answer */}
                             {quizType === 'essay' && (
                                 <div className="mt-4 space-y-3">
-                                    <label className="text-xs text-[#636E72] mb-2 block">الإجابة النموذجية:</label>
+                                    <label className="text-xs text-[#636E72] dark:text-slate-400 mb-2 block">الإجابة النموذجية:</label>
                                     <textarea
                                         placeholder="الإجابة النموذجية بالعربية (تظهر للطالب بعد التسليم)"
                                         value={question.model_answer_ar || ''}
                                         onChange={(e) => onUpdateQuestion(question.id, { model_answer_ar: e.target.value })}
                                         rows={3}
-                                        className="w-full px-3 py-2 rounded-lg bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson outline-none transition-all text-sm resize-none"
+                                        className="w-full px-3 py-2 rounded-lg bg-[#F8F9FA] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson outline-none transition-all text-sm resize-none dark:text-white"
                                     />
 
                                     {/* Model Answer Image Upload */}
                                     <div>
-                                        <label className="text-xs text-[#636E72] mb-2 block">صورة الإجابة النموذجية (اختياري)</label>
+                                        <label className="text-xs text-[#636E72] dark:text-slate-400 mb-2 block">صورة الإجابة النموذجية (اختياري)</label>
                                         <div className="flex items-center gap-3">
-                                            <label className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 cursor-pointer transition-colors text-sm text-slate-600">
+                                            <label className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 cursor-pointer transition-colors text-sm text-slate-600 dark:text-slate-300">
                                                 <ImageIcon size={16} />
                                                 <span>{question.model_answer_image || question.model_answer_image_url ? 'تغيير الصورة' : 'رفع صورة'}</span>
                                                 <input
@@ -548,7 +548,7 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
                                                     <img
                                                         src={question.model_answer_image_preview || question.model_answer_image_url || ''}
                                                         alt="معاينة صورة الإجابة النموذجية"
-                                                        className="h-12 w-12 object-cover rounded-lg border border-slate-200"
+                                                        className="h-12 w-12 object-cover rounded-lg border border-slate-200 dark:border-slate-700"
                                                     />
                                                     <button
                                                         onClick={() => onModelAnswerImage(question.id, null)}
@@ -569,14 +569,14 @@ function Step2Questions({ quizType, questions, onAddQuestion, onUpdateQuestion, 
 
             {/* Validation Errors Display */}
             {validationErrors.length > 0 && (
-                <div className="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200">
+                <div className="mt-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50">
                     <div className="flex items-start gap-2">
-                        <AlertCircle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                        <AlertCircle size={18} className="text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
                         <div>
-                            <p className="text-sm font-medium text-amber-800 mb-2">يجب إكمال التالي للمتابعة:</p>
+                            <p className="text-sm font-medium text-amber-800 dark:text-amber-400 mb-2">يجب إكمال التالي للمتابعة:</p>
                             <ul className="space-y-1">
                                 {validationErrors.map((error, idx) => (
-                                    <li key={idx} className="text-sm text-amber-700 flex items-center gap-1">
+                                    <li key={idx} className="text-sm text-amber-700 dark:text-amber-300 flex items-center gap-1">
                                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
                                         {error}
                                     </li>
@@ -605,7 +605,7 @@ function Step3Settings({ quizName, durationMinutes, passingPercentage, onUpdateN
         <div className="space-y-6">
             {/* Quiz Name */}
             <div>
-                <label className="block text-sm font-medium text-[#1F1F1F] mb-2">
+                <label className="block text-sm font-medium text-[#1F1F1F] dark:text-white mb-2">
                     اسم الاختبار <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -613,33 +613,33 @@ function Step3Settings({ quizName, durationMinutes, passingPercentage, onUpdateN
                     placeholder="مثال: اختبار الفصل الأول"
                     value={quizName}
                     onChange={(e) => onUpdateName(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-[#1F1F1F]"
+                    className="w-full h-12 px-4 rounded-xl bg-[#F8F9FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-[#1F1F1F] dark:text-white"
                 />
             </div>
 
             {/* Duration */}
             <div>
-                <label className="block text-sm font-medium text-[#1F1F1F] mb-2">
+                <label className="block text-sm font-medium text-[#1F1F1F] dark:text-white mb-2">
                     مدة الاختبار (بالدقائق)
                 </label>
                 <div className="flex items-center gap-3">
-                    <Clock size={20} className="text-[#636E72]" />
+                    <Clock size={20} className="text-[#636E72] dark:text-slate-400" />
                     <input
                         type="number"
                         min="0"
                         max="180"
                         value={durationMinutes}
                         onChange={(e) => onUpdateDuration(Number(e.target.value))}
-                        className="w-24 h-12 px-4 rounded-xl bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson outline-none transition-all text-[#1F1F1F] text-center"
+                        className="w-24 h-12 px-4 rounded-xl bg-[#F8F9FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson outline-none transition-all text-[#1F1F1F] dark:text-white text-center"
                     />
-                    <span className="text-sm text-[#636E72]">دقيقة</span>
+                    <span className="text-sm text-[#636E72] dark:text-slate-400">دقيقة</span>
                 </div>
                 <p className="text-xs text-[#636E72] mt-1">اتركه 0 للسماح بوقت غير محدود</p>
             </div>
 
             {/* Passing Percentage */}
             <div>
-                <label className="block text-sm font-medium text-[#1F1F1F] mb-2">
+                <label className="block text-sm font-medium text-[#1F1F1F] dark:text-white mb-2">
                     نسبة النجاح (%)
                 </label>
                 <div className="flex items-center gap-3">
@@ -650,7 +650,7 @@ function Step3Settings({ quizName, durationMinutes, passingPercentage, onUpdateN
                         max="100"
                         value={passingPercentage}
                         onChange={(e) => onUpdatePassing(Number(e.target.value))}
-                        className="w-24 h-12 px-4 rounded-xl bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson outline-none transition-all text-[#1F1F1F] text-center"
+                        className="w-24 h-12 px-4 rounded-xl bg-[#F8F9FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson outline-none transition-all text-[#1F1F1F] dark:text-white text-center"
                     />
                     <span className="text-sm text-[#636E72]">%</span>
                 </div>
@@ -684,23 +684,23 @@ function LivePreview({ quizName, quizType, questions, durationMinutes, passingPe
     const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
 
     return (
-        <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
             {/* Preview Header */}
-            <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-slate-200">
+            <div className="flex items-center justify-between px-5 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
                 <div className="flex items-center gap-2">
                     <Eye size={18} className="text-shibl-crimson" />
-                    <span className="font-bold text-slate-700">معاينة الاختبار</span>
+                    <span className="font-bold text-slate-700 dark:text-white">معاينة الاختبار</span>
                 </div>
-                <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-lg">كما يراه الطالب</span>
+                <span className="text-xs text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">كما يراه الطالب</span>
             </div>
 
             {/* Preview Content */}
             <div className="flex-1 overflow-y-auto p-5">
                 {/* Quiz Info Card */}
                 {currentStep >= 3 && quizName ? (
-                    <div className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-slate-100">
-                        <h3 className="font-bold text-lg text-slate-800 mb-2">{quizName || 'اسم الاختبار'}</h3>
-                        <div className="flex flex-wrap gap-4 text-sm text-slate-500">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl p-4 mb-4 shadow-sm border border-slate-100 dark:border-slate-700">
+                        <h3 className="font-bold text-lg text-slate-800 dark:text-white mb-2">{quizName || 'اسم الاختبار'}</h3>
+                        <div className="flex flex-wrap gap-4 text-sm text-slate-500 dark:text-slate-400">
                             {durationMinutes > 0 && (
                                 <div className="flex items-center gap-1.5">
                                     <Timer size={14} />
@@ -719,20 +719,20 @@ function LivePreview({ quizName, quizType, questions, durationMinutes, passingPe
                     </div>
                 ) : currentStep === 1 ? (
                     <div className="flex flex-col items-center justify-center py-16 text-center">
-                        <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
-                            <FileQuestion size={32} className="text-slate-300" />
+                        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-4">
+                            <FileQuestion size={32} className="text-slate-300 dark:text-slate-600" />
                         </div>
-                        <p className="text-slate-400 text-sm">اختر نوع الاختبار للبدء</p>
+                        <p className="text-slate-400 dark:text-slate-500 text-sm">اختر نوع الاختبار للبدء</p>
                     </div>
                 ) : null}
 
                 {/* Question Preview */}
                 {currentStep >= 2 && questions.length > 0 && currentQuestion ? (
-                    <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-100">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-700">
                         {/* Question Navigation */}
                         {questions.length > 1 && (
-                            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-                                <span className="text-xs font-bold text-slate-400">
+                            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-700">
+                                <span className="text-xs font-bold text-slate-400 dark:text-slate-500">
                                     السؤال {previewQuestionIndex + 1} من {questions.length}
                                 </span>
                                 <div className="flex gap-1">
@@ -742,7 +742,7 @@ function LivePreview({ quizName, quizType, questions, durationMinutes, passingPe
                                             onClick={() => setPreviewQuestionIndex(idx)}
                                             className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${idx === previewQuestionIndex
                                                 ? 'bg-shibl-crimson text-white'
-                                                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                                                : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
                                                 }`}
                                         >
                                             {idx + 1}
@@ -754,10 +754,10 @@ function LivePreview({ quizName, quizType, questions, durationMinutes, passingPe
 
                         {/* Question Content */}
                         <div className="mb-4">
-                            <span className="inline-block px-2 py-1 bg-slate-100 text-slate-500 rounded-lg text-xs font-bold mb-3">
+                            <span className="inline-block px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-lg text-xs font-bold mb-3">
                                 {currentQuestion.points} درجة
                             </span>
-                            <h4 className="text-lg font-bold text-slate-800 leading-relaxed">
+                            <h4 className="text-lg font-bold text-slate-800 dark:text-white leading-relaxed">
                                 {currentQuestion.question_text_ar || 'نص السؤال...'}
                             </h4>
                             {/* Question Image Preview */}
@@ -765,7 +765,7 @@ function LivePreview({ quizName, quizType, questions, durationMinutes, passingPe
                                 <img
                                     src={currentQuestion.question_image_preview || currentQuestion.question_image_url || ''}
                                     alt="صورة السؤال"
-                                    className="mt-3 max-w-full max-h-48 rounded-lg border border-slate-200 object-contain"
+                                    className="mt-3 max-w-full max-h-48 rounded-lg border border-slate-200 dark:border-slate-700 object-contain"
                                 />
                             )}
                         </div>
@@ -777,16 +777,16 @@ function LivePreview({ quizName, quizType, questions, durationMinutes, passingPe
                                     <div
                                         key={option.id}
                                         className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all ${option.is_correct
-                                            ? 'border-emerald-300 bg-emerald-50/50'
-                                            : 'border-slate-100 bg-white'
+                                            ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-900/20'
+                                            : 'border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800'
                                             }`}
                                     >
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${option.is_correct ? 'border-emerald-500' : 'border-slate-300'
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${option.is_correct ? 'border-emerald-500' : 'border-slate-300 dark:border-slate-600'
                                             }`}>
                                             {option.is_correct && <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />}
                                         </div>
                                         <div className="flex-1">
-                                            <span className={`text-sm ${option.is_correct ? 'text-emerald-700 font-medium' : 'text-slate-600'}`}>
+                                            <span className={`text-sm ${option.is_correct ? 'text-emerald-700 dark:text-emerald-400 font-medium' : 'text-slate-600 dark:text-slate-300'}`}>
                                                 {option.option_text_ar || `الخيار ${optIdx + 1}`}
                                             </span>
                                             {option.is_correct && (
@@ -809,20 +809,20 @@ function LivePreview({ quizName, quizType, questions, durationMinutes, passingPe
                         {/* Essay Answer Area Preview */}
                         {quizType === 'essay' && (
                             <div className="mt-4">
-                                <div className="h-32 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 flex items-center justify-center">
-                                    <span className="text-slate-400 text-sm">منطقة إجابة الطالب</span>
+                                <div className="h-32 bg-slate-50 dark:bg-slate-900/50 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-center">
+                                    <span className="text-slate-400 dark:text-slate-500 text-sm">منطقة إجابة الطالب</span>
                                 </div>
                                 {(currentQuestion.model_answer_ar || currentQuestion.model_answer_image_preview || currentQuestion.model_answer_image_url) && (
-                                    <div className="mt-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                                        <span className="text-xs font-bold text-amber-600 mb-1 block">الإجابة النموذجية:</span>
+                                    <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-900/50">
+                                        <span className="text-xs font-bold text-amber-600 dark:text-amber-400 mb-1 block">الإجابة النموذجية:</span>
                                         {currentQuestion.model_answer_ar && (
-                                            <p className="text-sm text-amber-700">{currentQuestion.model_answer_ar}</p>
+                                            <p className="text-sm text-amber-700 dark:text-amber-300">{currentQuestion.model_answer_ar}</p>
                                         )}
                                         {(currentQuestion.model_answer_image_preview || currentQuestion.model_answer_image_url) && (
                                             <img
                                                 src={currentQuestion.model_answer_image_preview || currentQuestion.model_answer_image_url || ''}
                                                 alt="صورة الإجابة النموذجية"
-                                                className="mt-2 max-w-full max-h-32 rounded-lg border border-amber-200 object-contain"
+                                                className="mt-2 max-w-full max-h-32 rounded-lg border border-amber-200 dark:border-amber-900/50 object-contain"
                                             />
                                         )}
                                     </div>
@@ -831,22 +831,22 @@ function LivePreview({ quizName, quizType, questions, durationMinutes, passingPe
                         )}
                     </div>
                 ) : currentStep >= 2 && questions.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-center bg-white rounded-xl border border-dashed border-slate-200">
-                        <FileQuestion size={40} className="text-slate-300 mb-3" />
-                        <p className="text-slate-400 text-sm">أضف أسئلة لعرضها هنا</p>
+                    <div className="flex flex-col items-center justify-center py-12 text-center bg-white dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+                        <FileQuestion size={40} className="text-slate-300 dark:text-slate-600 mb-3" />
+                        <p className="text-slate-400 dark:text-slate-500 text-sm">أضف أسئلة لعرضها هنا</p>
                     </div>
                 ) : null}
 
                 {/* Summary Stats */}
                 {currentStep >= 2 && questions.length > 0 && (
                     <div className="mt-4 grid grid-cols-2 gap-3">
-                        <div className="bg-white rounded-xl p-3 text-center border border-slate-100">
+                        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 text-center border border-slate-100 dark:border-slate-700">
                             <p className="text-2xl font-black text-shibl-crimson">{questions.length}</p>
-                            <p className="text-xs text-slate-400">سؤال</p>
+                            <p className="text-xs text-slate-400 dark:text-slate-500">سؤال</p>
                         </div>
-                        <div className="bg-white rounded-xl p-3 text-center border border-slate-100">
-                            <p className="text-2xl font-black text-slate-700">{totalPoints}</p>
-                            <p className="text-xs text-slate-400">درجة كاملة</p>
+                        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 text-center border border-slate-100 dark:border-slate-700">
+                            <p className="text-2xl font-black text-slate-700 dark:text-white">{totalPoints}</p>
+                            <p className="text-xs text-slate-400 dark:text-slate-500">درجة كاملة</p>
                         </div>
                     </div>
                 )}
@@ -1317,18 +1317,18 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
 
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" dir={isRTL ? 'rtl' : 'ltr'}>
-            <div className="bg-white rounded-2xl w-full max-w-[95vw] xl:max-w-[1400px] h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-[95vw] xl:max-w-[1400px] h-[90vh] flex flex-col overflow-hidden shadow-2xl">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                     <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-shibl-crimson/10 rounded-xl flex items-center justify-center">
                             <FileQuestion size={20} className="text-shibl-crimson" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-[#1F1F1F]">
+                            <h2 className="text-lg font-bold text-[#1F1F1F] dark:text-white">
                                 {quiz ? 'تعديل الاختبار' : 'إنشاء اختبار جديد'}
                             </h2>
-                            <p className="text-sm text-[#636E72]">الخطوة {currentStep} من {totalSteps}</p>
+                            <p className="text-sm text-[#636E72] dark:text-slate-400">الخطوة {currentStep} من {totalSteps}</p>
                         </div>
                     </div>
                     {/* Progress Indicator */}
@@ -1340,19 +1340,19 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
                                         ? 'bg-emerald-500 text-white'
                                         : step === currentStep
                                             ? 'bg-shibl-crimson text-white'
-                                            : 'bg-slate-100 text-slate-400'
+                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
                                         }`}>
                                         {step < currentStep ? <CheckCircle size={16} /> : step}
                                     </div>
                                     {step < 3 && (
-                                        <div className={`w-8 h-0.5 ${step < currentStep ? 'bg-emerald-500' : 'bg-slate-200'}`} />
+                                        <div className={`w-8 h-0.5 ${step < currentStep ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
                                     )}
                                 </div>
                             ))}
                         </div>
                         <button
                             onClick={handleClose}
-                            className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-600"
+                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
                         >
                             <X size={20} />
                         </button>
@@ -1360,7 +1360,7 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
                 </div>
 
                 {/* Progress Bar (mobile) */}
-                <div className="h-1 bg-slate-100 sm:hidden">
+                <div className="h-1 bg-slate-100 dark:bg-slate-800 sm:hidden">
                     <div
                         className="h-full bg-shibl-crimson transition-all duration-300"
                         style={{ width: `${(currentStep / totalSteps) * 100}%` }}
@@ -1370,10 +1370,10 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
                 {/* Split View Container */}
                 <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
                     {/* Edit Panel (Right in RTL) */}
-                    <div className="flex flex-col overflow-hidden border-l border-slate-100">
+                    <div className="flex flex-col overflow-hidden border-l border-slate-100 dark:border-slate-800">
                         {/* Edit Header */}
-                        <div className="px-6 py-3 bg-slate-50 border-b border-slate-100">
-                            <span className="text-sm font-bold text-slate-600">
+                        <div className="px-6 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700">
+                            <span className="text-sm font-bold text-slate-600 dark:text-slate-300">
                                 {currentStep === 1 && 'اختيار نوع الاختبار'}
                                 {currentStep === 2 && 'إضافة الأسئلة'}
                                 {currentStep === 3 && 'إعدادات الاختبار'}
@@ -1428,7 +1428,7 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
 
                             {/* Error */}
                             {error && (
-                                <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+                                <div className="mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400 text-sm flex items-center gap-2">
                                     <AlertCircle size={16} />
                                     {error}
                                 </div>
@@ -1437,7 +1437,7 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
                     </div>
 
                     {/* Preview Panel (Left in RTL) */}
-                    <div className="hidden lg:flex flex-col h-full p-6 bg-slate-50 border-r border-slate-100">
+                    <div className="hidden lg:flex flex-col h-full p-6 bg-slate-50 dark:bg-slate-950 border-r border-slate-100 dark:border-slate-800">
                         <LivePreview
                             quizName={quizName}
                             quizType={quizType}
@@ -1450,12 +1450,12 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between p-6 border-t border-slate-100 bg-slate-50">
+                <div className="flex items-center justify-between p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
                     {/* Left: Back/Cancel */}
                     <button
                         onClick={currentStep === 1 ? handleClose : handleBack}
                         disabled={submitting}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-[#636E72] hover:bg-white transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-[#636E72] dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
                     >
                         <BackIcon size={18} />
                         {currentStep === 1 ? 'إلغاء' : 'السابق'}
@@ -1466,7 +1466,7 @@ export function CreateQuizModal({ isOpen, onClose, onSuccess, courses, quiz, loc
                         <button
                             onClick={() => handleSubmit(false)}
                             disabled={!canSaveDraft() || submitting}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {submitting ? <Loader2 size={18} className="animate-spin" /> : <FileEdit size={18} />}
                             {quiz ? 'حفظ التعديلات' : 'حفظ كمسودة'}

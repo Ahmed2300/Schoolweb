@@ -12,10 +12,13 @@ import {
     GraduationCap,
     Upload,
     X,
-    Clock
+    Clock,
+    Copy,
+    Check,
+    Building2
 } from 'lucide-react';
 import { packageService, Package as PackageType, PackageSubscription } from '../../../data/api';
-import { getLocalizedName } from '../../../data/api/studentService';
+import studentService, { getLocalizedName } from '../../../data/api/studentService';
 
 // Status badge component
 const StatusBadge = ({ status }: { status: string }) => {
@@ -41,6 +44,13 @@ const StatusBadge = ({ status }: { status: string }) => {
     );
 };
 
+const DEFAULT_BANK_INFO = {
+    bankName: 'Bank Muscat',
+    accountName: 'ABDALLA MOHSEN KAMAL MOHAMMED ALI',
+    accountNumber: '0476079726660011',
+    iban: 'OM72BMSC0476079726660011',
+};
+
 export function StudentPackagesPage() {
     const [view, setView] = useState<'browse' | 'subscriptions' | 'details'>('browse');
     const [packages, setPackages] = useState<PackageType[]>([]);
@@ -55,6 +65,15 @@ export function StudentPackagesPage() {
     const [billImage, setBillImage] = useState<File | null>(null);
     const [isPurchasing, setIsPurchasing] = useState(false);
     const [purchaseSuccess, setPurchaseSuccess] = useState(false);
+
+    // Dynamic Payment Settings
+    const [loadingSettings, setLoadingSettings] = useState(false);
+    const [copiedField, setCopiedField] = useState<string | null>(null);
+    const [bankInfo, setBankInfo] = useState(DEFAULT_BANK_INFO);
+    const [walletInfo, setWalletInfo] = useState<{ label: string; number: string }>({
+        label: 'محفظة إلكترونية',
+        number: '91938082', // Fallback
+    });
 
     // Fetch packages and subscriptions
     const fetchData = useCallback(async () => {
@@ -104,6 +123,54 @@ export function StudentPackagesPage() {
             window.removeEventListener('student-notification', handlePackageSubscriptionUpdate);
         };
     }, [fetchData]);
+
+    // Fetch System Settings (Bank Info)
+    useEffect(() => {
+        const fetchSettings = async () => {
+            if (!showPurchaseModal) return;
+
+            setLoadingSettings(true);
+            try {
+                const settings = await studentService.getSystemSettings();
+
+                // Parse bank account info if available
+                if (settings.bank_account) {
+                    const lines = settings.bank_account.split('\n').map(l => l.trim()).filter(Boolean);
+
+                    if (lines.length > 0) {
+                        setBankInfo({
+                            bankName: lines[0] || DEFAULT_BANK_INFO.bankName,
+                            accountName: lines[1] || '',
+                            accountNumber: lines[2] || '',
+                            iban: lines[3] || '',
+                        });
+                    }
+                }
+
+                // Parse wallet info
+                if (settings.phone_wallet) {
+                    setWalletInfo({
+                        label: 'محفظة إلكترونية',
+                        number: settings.phone_wallet,
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to load payment settings', err);
+            } finally {
+                setLoadingSettings(false);
+            }
+        };
+
+        if (showPurchaseModal) {
+            fetchSettings();
+        }
+    }, [showPurchaseModal]);
+
+    const handleCopy = (text: string, field: string) => {
+        navigator.clipboard.writeText(text);
+        setCopiedField(field);
+        setTimeout(() => setCopiedField(null), 2000);
+    };
 
     // Handle package selection
     const handleViewDetails = async (pkg: PackageType) => {
@@ -695,93 +762,133 @@ export function StudentPackagesPage() {
                                         {/* Bank Account Info */}
                                         <div className="space-y-3">
                                             <h4 className="font-bold text-charcoal text-sm flex items-center gap-2">
-                                                <svg className="w-4 h-4 text-shibl-crimson" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="5" rx="2" /><path d="M2 10h20" /></svg>
+                                                <Building2 className="w-4 h-4 text-shibl-crimson" />
                                                 معلومات الحساب البنكي
                                             </h4>
 
-                                            {/* Bank Name */}
-                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-shibl-crimson/30 transition-colors group">
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-xs text-slate-400">اسم البنك</p>
-                                                    <p className="font-semibold text-charcoal text-sm" dir="ltr">Bank Muscat</p>
+                                            {loadingSettings ? (
+                                                <div className="flex justify-center py-8">
+                                                    <Loader2 className="animate-spin text-shibl-crimson" size={24} />
                                                 </div>
-                                                <button
-                                                    onClick={() => { navigator.clipboard.writeText('Bank Muscat'); }}
-                                                    className="w-8 h-8 rounded-lg bg-white hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2 border border-slate-200"
-                                                    title="نسخ"
-                                                >
-                                                    <svg className="w-4 h-4 text-slate-400 group-hover:text-shibl-crimson" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
-                                                </button>
-                                            </div>
+                                            ) : (
+                                                <>
+                                                    {/* Bank Name */}
+                                                    {bankInfo.bankName && (
+                                                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-shibl-crimson/30 transition-colors group">
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-xs text-slate-400">اسم البنك</p>
+                                                                <p className="font-semibold text-charcoal text-sm" dir="ltr">{bankInfo.bankName}</p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleCopy(bankInfo.bankName, 'bank')}
+                                                                className="w-8 h-8 rounded-lg bg-white hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2 border border-slate-200"
+                                                                title="نسخ"
+                                                            >
+                                                                {copiedField === 'bank' ? (
+                                                                    <Check size={16} className="text-emerald-500" />
+                                                                ) : (
+                                                                    <Copy size={16} className="text-slate-400 group-hover:text-shibl-crimson" />
+                                                                )}
+                                                            </button>
+                                                        </div>
+                                                    )}
 
-                                            {/* Account Name */}
-                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-shibl-crimson/30 transition-colors group">
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-xs text-slate-400">اسم الحساب</p>
-                                                    <p className="font-semibold text-charcoal text-sm truncate" dir="ltr">ABDALLA MOHSEN KAMAL MOHAMMED ALI</p>
-                                                </div>
-                                                <button
-                                                    onClick={() => { navigator.clipboard.writeText('ABDALLA MOHSEN KAMAL MOHAMMED ALI'); }}
-                                                    className="w-8 h-8 rounded-lg bg-white hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2 border border-slate-200"
-                                                    title="نسخ"
-                                                >
-                                                    <svg className="w-4 h-4 text-slate-400 group-hover:text-shibl-crimson" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
-                                                </button>
-                                            </div>
+                                                    {/* Account Name */}
+                                                    {bankInfo.accountName && (
+                                                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-shibl-crimson/30 transition-colors group">
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-xs text-slate-400">اسم الحساب</p>
+                                                                <p className="font-semibold text-charcoal text-sm truncate" dir="ltr">{bankInfo.accountName}</p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleCopy(bankInfo.accountName, 'name')}
+                                                                className="w-8 h-8 rounded-lg bg-white hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2 border border-slate-200"
+                                                                title="نسخ"
+                                                            >
+                                                                {copiedField === 'name' ? (
+                                                                    <Check size={16} className="text-emerald-500" />
+                                                                ) : (
+                                                                    <Copy size={16} className="text-slate-400 group-hover:text-shibl-crimson" />
+                                                                )}
+                                                            </button>
+                                                        </div>
+                                                    )}
 
-                                            {/* Account Number */}
-                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-shibl-crimson/30 transition-colors group">
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-xs text-slate-400">رقم الحساب</p>
-                                                    <p className="font-semibold text-charcoal text-sm font-mono" dir="ltr">0476079726660011</p>
-                                                </div>
-                                                <button
-                                                    onClick={() => { navigator.clipboard.writeText('0476079726660011'); }}
-                                                    className="w-8 h-8 rounded-lg bg-white hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2 border border-slate-200"
-                                                    title="نسخ"
-                                                >
-                                                    <svg className="w-4 h-4 text-slate-400 group-hover:text-shibl-crimson" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
-                                                </button>
-                                            </div>
+                                                    {/* Account Number */}
+                                                    {bankInfo.accountNumber && (
+                                                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-shibl-crimson/30 transition-colors group">
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-xs text-slate-400">رقم الحساب</p>
+                                                                <p className="font-semibold text-charcoal text-sm font-mono" dir="ltr">{bankInfo.accountNumber}</p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleCopy(bankInfo.accountNumber, 'account')}
+                                                                className="w-8 h-8 rounded-lg bg-white hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2 border border-slate-200"
+                                                                title="نسخ"
+                                                            >
+                                                                {copiedField === 'account' ? (
+                                                                    <Check size={16} className="text-emerald-500" />
+                                                                ) : (
+                                                                    <Copy size={16} className="text-slate-400 group-hover:text-shibl-crimson" />
+                                                                )}
+                                                            </button>
+                                                        </div>
+                                                    )}
 
-                                            {/* IBAN */}
-                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-shibl-crimson/30 transition-colors group">
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-xs text-slate-400">رقم IBAN</p>
-                                                    <p className="font-semibold text-charcoal text-sm font-mono" dir="ltr">OM72BMSC0476079726660011</p>
-                                                </div>
-                                                <button
-                                                    onClick={() => { navigator.clipboard.writeText('OM72BMSC0476079726660011'); }}
-                                                    className="w-8 h-8 rounded-lg bg-white hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2 border border-slate-200"
-                                                    title="نسخ"
-                                                >
-                                                    <svg className="w-4 h-4 text-slate-400 group-hover:text-shibl-crimson" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
-                                                </button>
-                                            </div>
-                                        </div>
+                                                    {/* IBAN */}
+                                                    {bankInfo.iban && (
+                                                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-shibl-crimson/30 transition-colors group">
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-xs text-slate-400">رقم IBAN</p>
+                                                                <p className="font-semibold text-charcoal text-sm font-mono" dir="ltr">{bankInfo.iban}</p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleCopy(bankInfo.iban, 'iban')}
+                                                                className="w-8 h-8 rounded-lg bg-white hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2 border border-slate-200"
+                                                                title="نسخ"
+                                                            >
+                                                                {copiedField === 'iban' ? (
+                                                                    <Check size={16} className="text-emerald-500" />
+                                                                ) : (
+                                                                    <Copy size={16} className="text-slate-400 group-hover:text-shibl-crimson" />
+                                                                )}
+                                                            </button>
+                                                        </div>
+                                                    )}
 
-                                        {/* Digital Wallet */}
-                                        <div className="relative py-2">
-                                            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                                                <div className="w-full border-t border-slate-200"></div>
-                                            </div>
-                                            <div className="relative flex justify-center">
-                                                <span className="bg-white px-2 text-xs text-slate-500">أو</span>
-                                            </div>
-                                        </div>
+                                                    {/* Digital Wallet */}
+                                                    {walletInfo.number && (
+                                                        <>
+                                                            <div className="relative py-2">
+                                                                <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                                                                    <div className="w-full border-t border-slate-200"></div>
+                                                                </div>
+                                                                <div className="relative flex justify-center">
+                                                                    <span className="bg-white px-2 text-xs text-slate-500">أو</span>
+                                                                </div>
+                                                            </div>
 
-                                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-shibl-crimson/30 transition-colors group">
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs text-slate-400">محفظة إلكترونية</p>
-                                                <p className="font-semibold text-charcoal text-sm" dir="ltr">91938082</p>
-                                            </div>
-                                            <button
-                                                onClick={() => { navigator.clipboard.writeText('91938082'); }}
-                                                className="w-8 h-8 rounded-lg bg-white hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2 border border-slate-200"
-                                                title="نسخ"
-                                            >
-                                                <svg className="w-4 h-4 text-slate-400 group-hover:text-shibl-crimson" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
-                                            </button>
+                                                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-shibl-crimson/30 transition-colors group">
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-xs text-slate-400">{walletInfo.label}</p>
+                                                                    <p className="font-semibold text-charcoal text-sm" dir="ltr">{walletInfo.number}</p>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => handleCopy(walletInfo.number, 'wallet')}
+                                                                    className="w-8 h-8 rounded-lg bg-white hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2 border border-slate-200"
+                                                                    title="نسخ"
+                                                                >
+                                                                    {copiedField === 'wallet' ? (
+                                                                        <Check size={16} className="text-emerald-500" />
+                                                                    ) : (
+                                                                        <Copy size={16} className="text-slate-400 group-hover:text-shibl-crimson" />
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </>
+                                            )}
                                         </div>
 
                                         {/* Bill Upload */}

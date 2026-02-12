@@ -8,6 +8,7 @@ import {
     User,
     BookOpen,
     GraduationCap,
+    Filter,
 } from 'lucide-react';
 import { useClassSchedules } from '../../hooks/useClassSchedules';
 import { useGrades, useTeachers } from '../../hooks';
@@ -30,6 +31,7 @@ export function AdminClassSchedulesPage() {
     const [selectedGrade, setSelectedGrade] = useState<string>('');
     const [selectedTeacher, setSelectedTeacher] = useState<string>('');
     const [selectedDay, setSelectedDay] = useState<string>('');
+    const [bookingStatus, setBookingStatus] = useState<'all' | 'booked' | 'not_booked'>('all');
 
     // Queries
     const { data: groupedData, isLoading, error } = useClassSchedules({
@@ -38,6 +40,7 @@ export function AdminClassSchedulesPage() {
         teacher_id: selectedTeacher ? Number(selectedTeacher) : undefined,
         day_of_week: selectedDay !== '' ? Number(selectedDay) : undefined,
         grouped: true,
+        booking_status: bookingStatus,
     });
 
     const { data: grades } = useGrades();
@@ -48,6 +51,7 @@ export function AdminClassSchedulesPage() {
         setSelectedGrade('');
         setSelectedTeacher('');
         setSelectedDay('');
+        setBookingStatus('all');
     };
 
     if (error) {
@@ -90,7 +94,7 @@ export function AdminClassSchedulesPage() {
                 </div>
 
                 {/* Filter Controls */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                     <select
                         value={selectedGrade}
                         onChange={(e) => setSelectedGrade(e.target.value)}
@@ -127,10 +131,20 @@ export function AdminClassSchedulesPage() {
                         <option value="5">الجمعة</option>
                         <option value="6">السبت</option>
                     </select>
+
+                    <select
+                        value={bookingStatus}
+                        onChange={(e) => setBookingStatus(e.target.value as 'all' | 'booked' | 'not_booked')}
+                        className="px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson"
+                    >
+                        <option value="all">جميع الحصص</option>
+                        <option value="booked">المحجوزة فقط</option>
+                        <option value="not_booked">غير المحجوزة</option>
+                    </select>
                 </div>
 
                 {/* Active Filters Summary & Clear */}
-                {(selectedGrade || selectedTeacher || selectedDay) && (
+                {(selectedGrade || selectedTeacher || selectedDay || bookingStatus !== 'all') && (
                     <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                         <div className="flex flex-wrap gap-2">
                             {/* Chips could go here */}
@@ -172,7 +186,14 @@ export function AdminClassSchedulesPage() {
                                 </div>
                                 <div>
                                     <h2 className="text-lg font-bold text-slate-800">{group.name}</h2>
-                                    <p className="text-sm text-slate-500">{group.slots.length} حصة مجدولة</p>
+                                    <p className="text-sm text-slate-500">
+                                        {group.slots.length} حصة مجدولة
+                                        {bookingStatus === 'all' && group.slots.length > 0 && (
+                                            <span className="text-slate-400 mr-1">
+                                                ({group.slots.filter((s: any) => s.is_booked).length} محجوزة)
+                                            </span>
+                                        )}
+                                    </p>
                                 </div>
                             </div>
 
@@ -192,25 +213,42 @@ export function AdminClassSchedulesPage() {
                                         </thead>
                                         <tbody className="divide-y divide-slate-100">
                                             {group.slots.map((slot: any) => (
-                                                <tr key={slot.id} className="hover:bg-slate-50/80 transition-colors">
+                                                <tr
+                                                    key={slot.id}
+                                                    className={`transition-colors ${slot.is_booked
+                                                            ? 'hover:bg-slate-50/80'
+                                                            : 'bg-slate-50/40 border-r-2 border-r-dashed border-r-slate-300 hover:bg-slate-100/60'
+                                                        }`}
+                                                >
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${slot.is_booked
+                                                                    ? 'bg-slate-100 text-slate-500'
+                                                                    : 'bg-slate-200/60 text-slate-400'
+                                                                }`}>
                                                                 <User size={14} />
                                                             </div>
-                                                            <span className="font-medium text-slate-700">{slot.teacher_name}</span>
+                                                            <span className={`font-medium ${slot.is_booked ? 'text-slate-700' : 'text-slate-400 italic'
+                                                                }`}>
+                                                                {slot.is_booked ? slot.teacher_name : 'شاغر'}
+                                                            </span>
                                                         </div>
                                                     </td>
 
                                                     <td className="px-6 py-4">
-                                                        <div className="flex items-center gap-2 text-slate-600">
-                                                            {slot.type === 'Lecture' ? (
-                                                                <Video size={16} className="text-blue-500" />
+                                                        <div className={`flex items-center gap-2 ${slot.is_booked ? 'text-slate-600' : 'text-slate-400'
+                                                            }`}>
+                                                            {slot.is_booked ? (
+                                                                slot.type === 'Lecture' ? (
+                                                                    <Video size={16} className="text-blue-500" />
+                                                                ) : (
+                                                                    <Clock size={16} className="text-orange-500" />
+                                                                )
                                                             ) : (
-                                                                <Clock size={16} className="text-orange-500" />
+                                                                <Clock size={16} className="text-slate-300" />
                                                             )}
                                                             <span className="truncate max-w-[200px]" title={slot.lecture_title}>
-                                                                {slot.lecture_title || 'حجز موعد'}
+                                                                {slot.is_booked ? (slot.lecture_title || 'حجز موعد') : '—'}
                                                             </span>
                                                         </div>
                                                     </td>

@@ -82,23 +82,23 @@ export function UnitFormModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                className="absolute inset-0"
                 onClick={onClose}
             />
 
             {/* Modal */}
-            <div className="relative w-full max-w-lg mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-800">
                 {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-slate-100">
-                    <h2 className="text-xl font-bold text-slate-800">
+                <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-white">
                         {isEditing ? 'تعديل الوحدة' : 'إضافة وحدة جديدة'}
                     </h2>
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                        className="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         aria-label="إغلاق"
                     >
                         <X size={20} />
@@ -109,7 +109,7 @@ export function UnitFormModal({
                 <form onSubmit={handleSubmit} className="p-5 space-y-5">
                     {/* Title Arabic */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                             عنوان الوحدة (عربي) <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -118,9 +118,10 @@ export function UnitFormModal({
                             onChange={(e) => setTitleAr(e.target.value)}
                             placeholder="مثال: الوحدة الأولى - الجبر"
                             className={`
-                                w-full px-4 py-3 rounded-xl border-2 text-right
+                                w-full px-4 py-3 rounded-xl border-2 text-right transition-all
+                                bg-white dark:bg-slate-950/50 text-slate-900 dark:text-white
                                 focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson
-                                ${errors.titleAr ? 'border-red-300 bg-red-50' : 'border-slate-200'}
+                                ${errors.titleAr ? 'border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/10' : 'border-slate-200 dark:border-slate-700'}
                             `}
                             dir="rtl"
                         />
@@ -131,7 +132,7 @@ export function UnitFormModal({
 
                     {/* Title English */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                             عنوان الوحدة (إنجليزي)
                         </label>
                         <input
@@ -139,14 +140,14 @@ export function UnitFormModal({
                             value={titleEn}
                             onChange={(e) => setTitleEn(e.target.value)}
                             placeholder="e.g. Unit 1 - Algebra"
-                            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson"
+                            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950/50 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson transition-all"
                             dir="ltr"
                         />
                     </div>
 
                     {/* Description Arabic */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                             وصف الوحدة (عربي)
                         </label>
                         <textarea
@@ -154,16 +155,16 @@ export function UnitFormModal({
                             onChange={(e) => setDescriptionAr(e.target.value)}
                             placeholder="وصف مختصر للوحدة..."
                             rows={3}
-                            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson resize-none"
+                            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950/50 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson resize-none transition-all"
                             dir="rtl"
                         />
                     </div>
 
                     {/* Publish Toggle */}
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
                         <div>
-                            <p className="font-medium text-slate-700">نشر الوحدة</p>
-                            <p className="text-sm text-slate-500">الوحدة ستكون مرئية للطلاب</p>
+                            <p className="font-medium text-slate-700 dark:text-slate-200">نشر الوحدة</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">الوحدة ستكون مرئية للطلاب</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input
@@ -172,7 +173,7 @@ export function UnitFormModal({
                                 onChange={(e) => setIsPublished(e.target.checked)}
                                 className="sr-only peer"
                             />
-                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-shibl-crimson/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-shibl-crimson"></div>
+                            <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-shibl-crimson/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-shibl-crimson"></div>
                         </label>
                     </div>
 
@@ -181,14 +182,14 @@ export function UnitFormModal({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-3 text-slate-600 bg-slate-100 rounded-xl font-medium hover:bg-slate-200 transition-colors"
+                            className="flex-1 px-4 py-3 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-xl font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                         >
                             إلغاء
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-shibl-crimson text-white rounded-xl font-medium hover:bg-shibl-crimson/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-shibl-crimson text-white rounded-xl font-medium hover:bg-shibl-crimson/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-shibl-crimson/20"
                         >
                             {isSubmitting ? (
                                 <>

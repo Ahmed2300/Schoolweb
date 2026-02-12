@@ -146,14 +146,14 @@ export function TeacherCourseModal({ isOpen, onClose, onSuccess, initialData }: 
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in-95">
+            <div className="relative bg-white dark:bg-slate-900 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in-95">
                 {/* Header */}
-                <div className="sticky top-0 z-10 bg-white border-b border-slate-100 flex items-center justify-between p-6">
-                    <h2 className="text-xl font-bold text-charcoal flex items-center gap-2">
+                <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between p-6">
+                    <h2 className="text-xl font-bold text-charcoal dark:text-white flex items-center gap-2">
                         <BookOpen className="text-shibl-crimson" />
                         {initialData ? 'تعديل الدورة' : 'إضافة دورة جديدة'}
                     </h2>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition">
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg transition">
                         <X size={20} />
                     </button>
                 </div>
@@ -162,15 +162,15 @@ export function TeacherCourseModal({ isOpen, onClose, onSuccess, initialData }: 
 
                     {/* Image Upload */}
                     <div className="flex justify-center">
-                        <div className="relative w-full max-w-md aspect-video bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center overflow-hidden hover:border-shibl-crimson/50 transition-colors group">
+                        <div className="relative w-full max-w-md aspect-video bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col items-center justify-center overflow-hidden hover:border-shibl-crimson/50 dark:hover:border-shibl-crimson/50 transition-colors group">
                             {imagePreview ? (
                                 <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                             ) : (
                                 <div className="text-center p-6">
-                                    <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mx-auto mb-3 text-shibl-crimson">
+                                    <div className="w-12 h-12 bg-white dark:bg-slate-700 rounded-xl shadow-sm flex items-center justify-center mx-auto mb-3 text-shibl-crimson dark:text-shibl-crimson-400">
                                         <ImageIcon size={24} />
                                     </div>
-                                    <p className="font-medium text-slate-700">صورة الدورة</p>
+                                    <p className="font-medium text-slate-700 dark:text-slate-300">صورة الدورة</p>
                                     <p className="text-xs text-slate-400 mt-1">PNG, JPG حتى 2MB</p>
                                 </div>
                             )}
@@ -197,11 +197,11 @@ export function TeacherCourseModal({ isOpen, onClose, onSuccess, initialData }: 
                     </div>
 
                     {/* Language Tabs */}
-                    <div className="flex bg-slate-100 p-1 rounded-xl w-fit mx-auto">
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit mx-auto">
                         <button
                             type="button"
                             onClick={() => setActiveTab('ar')}
-                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'ar' ? 'bg-white shadow text-charcoal' : 'text-slate-500 hover:text-charcoal'
+                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'ar' ? 'bg-white dark:bg-slate-700 shadow text-charcoal dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-200'
                                 }`}
                         >
                             العربية
@@ -209,7 +209,7 @@ export function TeacherCourseModal({ isOpen, onClose, onSuccess, initialData }: 
                         <button
                             type="button"
                             onClick={() => setActiveTab('en')}
-                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'en' ? 'bg-white shadow text-charcoal' : 'text-slate-500 hover:text-charcoal'
+                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'en' ? 'bg-white dark:bg-slate-700 shadow text-charcoal dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-charcoal dark:hover:text-slate-200'
                                 }`}
                         >
                             English
@@ -219,19 +219,19 @@ export function TeacherCourseModal({ isOpen, onClose, onSuccess, initialData }: 
                     <div className="grid gap-4">
                         {/* Name */}
                         <div className={activeTab === 'ar' ? 'block' : 'hidden'}>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">اسم الدورة (بالعربية)</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">اسم الدورة (بالعربية)</label>
                             <input
                                 {...register('name_ar')}
-                                className="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none"
+                                className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-charcoal dark:text-white focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none"
                                 placeholder="مثال: الرياضيات للصف الأول"
                             />
                             {errors.name_ar && <p className="text-red-500 text-xs mt-1">{errors.name_ar.message}</p>}
                         </div>
                         <div className={activeTab === 'en' ? 'block' : 'hidden'}>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Course Name (English)</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Course Name (English)</label>
                             <input
                                 {...register('name_en')}
-                                className="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none"
+                                className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-charcoal dark:text-white focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none"
                                 placeholder="Ex: Mathematics for Grade 1"
                                 dir="ltr"
                             />
@@ -239,18 +239,18 @@ export function TeacherCourseModal({ isOpen, onClose, onSuccess, initialData }: 
 
                         {/* Description */}
                         <div className={activeTab === 'ar' ? 'block' : 'hidden'}>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">الوصف (بالعربية)</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الوصف (بالعربية)</label>
                             <textarea
                                 {...register('description_ar')}
-                                className="w-full p-4 rounded-xl border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none h-32 resize-none"
+                                className="w-full p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-charcoal dark:text-white focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none h-32 resize-none"
                                 placeholder="وصف محتويات الدورة..."
                             />
                         </div>
                         <div className={activeTab === 'en' ? 'block' : 'hidden'}>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Description (English)</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Description (English)</label>
                             <textarea
                                 {...register('description_en')}
-                                className="w-full p-4 rounded-xl border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none h-32 resize-none"
+                                className="w-full p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-charcoal dark:text-white focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none h-32 resize-none"
                                 placeholder="Course description..."
                                 dir="ltr"
                             />
@@ -260,12 +260,12 @@ export function TeacherCourseModal({ isOpen, onClose, onSuccess, initialData }: 
                     {/* Meta Data */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">السعر</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">السعر</label>
                             <div className="relative">
                                 <input
                                     type="number"
                                     {...register('price', { valueAsNumber: true })}
-                                    className="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none"
+                                    className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-charcoal dark:text-white focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none"
                                 />
                                 <DollarSign size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                             </div>
@@ -273,12 +273,12 @@ export function TeacherCourseModal({ isOpen, onClose, onSuccess, initialData }: 
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">سعر الخصم (اختياري)</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">سعر الخصم (اختياري)</label>
                             <div className="relative">
                                 <input
                                     type="number"
                                     {...register('discount_price', { valueAsNumber: true })}
-                                    className="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none"
+                                    className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-charcoal dark:text-white focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none"
                                 />
                                 <DollarSign size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                             </div>
@@ -288,10 +288,10 @@ export function TeacherCourseModal({ isOpen, onClose, onSuccess, initialData }: 
                     {/* Taxonomies */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">المادة</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">المادة</label>
                             <select
                                 {...register('subject_id', { valueAsNumber: true })}
-                                className="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none bg-white"
+                                className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-charcoal dark:text-white focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none"
                                 disabled={loadingData}
                             >
                                 <option value="">{loadingData ? 'جاري التحميل...' : 'اختر المادة'}</option>
@@ -304,10 +304,10 @@ export function TeacherCourseModal({ isOpen, onClose, onSuccess, initialData }: 
                             {errors.subject_id && <p className="text-red-500 text-xs mt-1">{errors.subject_id.message}</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">الصف</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الصف</label>
                             <select
                                 {...register('grade_id', { valueAsNumber: true })}
-                                className="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none bg-white"
+                                className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-charcoal dark:text-white focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none"
                                 disabled={loadingData}
                             >
                                 <option value="">{loadingData ? 'جاري التحميل...' : 'اختر الصف'}</option>
@@ -320,10 +320,10 @@ export function TeacherCourseModal({ isOpen, onClose, onSuccess, initialData }: 
                             {errors.grade_id && <p className="text-red-500 text-xs mt-1">{errors.grade_id.message}</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">الفصل الدراسي</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الفصل الدراسي</label>
                             <select
                                 {...register('semester_id', { valueAsNumber: true })}
-                                className="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none bg-white"
+                                className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-charcoal dark:text-white focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none"
                                 disabled={loadingData}
                             >
                                 <option value="">{loadingData ? 'جاري التحميل...' : 'اختر الفصل'}</option>
@@ -340,10 +340,10 @@ export function TeacherCourseModal({ isOpen, onClose, onSuccess, initialData }: 
                 </form>
 
                 {/* Footer */}
-                <div className="sticky bottom-0 bg-white border-t border-slate-100 p-6 flex gap-3 z-10">
+                <div className="sticky bottom-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 p-6 flex gap-3 z-10">
                     <button
                         onClick={onClose}
-                        className="flex-1 py-3 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold transition text-slate-600"
+                        className="flex-1 py-3 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-bold transition text-slate-600 dark:text-slate-300"
                         disabled={isSubmitting}
                     >
                         إلغاء

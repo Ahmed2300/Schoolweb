@@ -34,16 +34,17 @@ interface SubscriptionModalProps {
 type Step = 'payment' | 'upload' | 'processing' | 'success' | 'error';
 
 // Bank info - In production, this would come from settings/API
-const BANK_INFO = {
+// Fallback values in case settings are missing
+const DEFAULT_BANK_INFO = {
     bankName: 'Bank Muscat',
-    accountName: 'ABDALLA MOHSEN KAMAL MOHAMMED ALI',
-    accountNumber: '0476079726660011',
-    iban: 'OM72BMSC0476079726660011',
+    accountName: '', // Empty by default if not set
+    accountNumber: '',
+    iban: '',
 };
 
-const WALLET_INFO = {
+const DEFAULT_WALLET_INFO = {
     label: 'محفظة إلكترونية',
-    number: '91938082',
+    number: '',
 };
 
 const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
@@ -55,6 +56,9 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     const [step, setStep] = useState<Step>('payment');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [bankInfo, setBankInfo] = useState(DEFAULT_BANK_INFO);
+    const [walletInfo, setWalletInfo] = useState(DEFAULT_WALLET_INFO);
+    const [loadingSettings, setLoadingSettings] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [subscriptionId, setSubscriptionId] = useState<number | null>(null);
@@ -75,13 +79,83 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         }
     }, [isOpen]);
 
+    // Fetch system settings on mount
+    useEffect(() => {
+        const fetchSettings = async () => {
+            if (!isOpen) return;
+
+            setLoadingSettings(true);
+            try {
+                const settings = await studentService.getSystemSettings();
+
+                // Parse bank account info if available
+                if (settings.bank_account) {
+                    // Try to parse if it's JSON, otherwise use as raw text or structured string
+                    // For now, assuming it comes as a string, let's just use it directly 
+                    // or parse if the admin saves it as specific format.
+                    // Based on AdminSettingsPage, it's a simple text area.
+                    // Let's assume the text area contains lines like:
+                    // Bank Name: ...
+                    // Account Name: ...
+                    // Account Number: ...
+                    // IBAN: ...
+                    // OR just simple text.
+
+                    // Actually, looking at the UI in the screenshot, it expects structured data.
+                    // But the Admin Settings page only has a single text area for "Bank Account Details".
+                    // We need to parse this text area to extract the fields, or simple display the text.
+                    // The current UI components <BankInfoItem> expect specific fields.
+                    // Let's try to map the text content to these fields if possible, or 
+                    // we might need to adjust the UI to just show the text block.
+
+                    // improved approach: The Admin Settings save it as a string. 
+                    // Let's see if we can perform a simple split by newline.
+                    const lines = settings.bank_account.split('\n').map(l => l.trim()).filter(Boolean);
+
+                    // Heuristic mapping:
+                    // 1st line -> Bank Name
+                    // 2nd line -> Account Name
+                    // 3rd line -> Account Number
+                    // 4th line -> IBAN
+                    // This is a bit fragile but workable for now until we have structured settings.
+                    // If less than 4 lines, fill what we can.
+
+                    if (lines.length > 0) {
+                        setBankInfo({
+                            bankName: lines[0] || DEFAULT_BANK_INFO.bankName,
+                            accountName: lines[1] || '',
+                            accountNumber: lines[2] || '',
+                            iban: lines[3] || '',
+                        });
+                    }
+                }
+
+                // Parse wallet info
+                if (settings.phone_wallet) {
+                    setWalletInfo({
+                        label: 'محفظة إلكترونية',
+                        number: settings.phone_wallet,
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to load payment settings', err);
+            } finally {
+                setLoadingSettings(false);
+            }
+        };
+
+        if (isOpen) {
+            fetchSettings();
+        }
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
     const courseName = getLocalizedName(course.name, 'الدورة');
     const coursePrice = course.price || 0;
 
     // Copy to clipboard
-    const copyToClipboard = async (text: string, field: string) => {
+    const handleCopy = async (text: string, field: string) => {
         try {
             await navigator.clipboard.writeText(text);
             setCopiedField(field);
@@ -177,14 +251,14 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     };
 
     // Render bank info item with copy
-    const BankInfoItem = ({ label, value, field }: { label: string; value: string; field: string }) => (
+    const BankInfoItem = ({ label, value, field, onCopy }: { label: string; value: string; field: string; onCopy: (text: string, field: string) => void }) => (
         <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 group hover:border-shibl-crimson/30 transition-colors">
             <div className="flex-1 min-w-0">
                 <p className="text-xs text-slate-500 mb-0.5">{label}</p>
                 <p className="font-semibold text-charcoal text-sm truncate" dir="ltr">{value}</p>
             </div>
             <button
-                onClick={() => copyToClipboard(value, field)}
+                onClick={() => onCopy(value, field)}
                 className="w-9 h-9 rounded-lg bg-slate-50 hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2"
                 title="نسخ"
             >
@@ -270,26 +344,39 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
                             {/* Bank Info */}
                             <div className="space-y-3">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Building2 size={18} className="text-shibl-crimson" />
-                                    <h3 className="font-bold text-charcoal">معلومات الحساب البنكي</h3>
-                                </div>
+                                <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                    <Building2 className="text-red-600" size={24} />
+                                    معلومات الحساب البنكي
+                                </h3>
 
-                                <BankInfoItem label="اسم البنك" value={BANK_INFO.bankName} field="bank" />
-                                <BankInfoItem label="اسم الحساب" value={BANK_INFO.accountName} field="name" />
-                                <BankInfoItem label="رقم الحساب" value={BANK_INFO.accountNumber} field="account" />
-                                <BankInfoItem label="رقم IBAN" value={BANK_INFO.iban} field="iban" />
-
-                                <div className="relative py-2">
-                                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                                        <div className="w-full border-t border-slate-200"></div>
+                                {loadingSettings ? (
+                                    <div className="flex justify-center py-8">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
                                     </div>
-                                    <div className="relative flex justify-center">
-                                        <span className="bg-white px-2 text-xs text-slate-500">أو</span>
-                                    </div>
-                                </div>
+                                ) : (
+                                    <>
+                                        <div className="space-y-4 mb-8">
+                                            {/* Only show items that have values */}
+                                            {bankInfo.bankName && <BankInfoItem label="اسم البنك" value={bankInfo.bankName} field="bank" onCopy={handleCopy} />}
+                                            {bankInfo.accountName && <BankInfoItem label="اسم الحساب" value={bankInfo.accountName} field="name" onCopy={handleCopy} />}
+                                            {bankInfo.accountNumber && <BankInfoItem label="رقم الحساب" value={bankInfo.accountNumber} field="account" onCopy={handleCopy} />}
+                                            {bankInfo.iban && <BankInfoItem label="رقم IBAN" value={bankInfo.iban} field="iban" onCopy={handleCopy} />}
+                                        </div>
 
-                                <BankInfoItem label={WALLET_INFO.label} value={WALLET_INFO.number} field="wallet" />
+                                        <div className="relative">
+                                            <div className="absolute inset-0 flex items-center">
+                                                <div className="w-full border-t border-gray-200"></div>
+                                            </div>
+                                            <div className="relative flex justify-center text-sm">
+                                                <span className="px-2 bg-white text-gray-500">أو</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-8">
+                                            {walletInfo.number && <BankInfoItem label={walletInfo.label} value={walletInfo.number} field="wallet" onCopy={handleCopy} />}
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
                             {/* Instructions */}
@@ -499,8 +586,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                         </div>
                     )}
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

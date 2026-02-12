@@ -81,11 +81,11 @@ export function ConfirmDialog({
             />
 
             {/* Dialog */}
-            <div className="relative bg-white rounded-[20px] shadow-xl w-full max-w-md mx-4 overflow-hidden animate-in zoom-in-95 fade-in duration-200">
+            <div className="relative bg-white dark:bg-slate-900 rounded-[20px] shadow-xl w-full max-w-md mx-4 overflow-hidden animate-in zoom-in-95 fade-in duration-200">
                 {/* Close button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 left-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-charcoal transition-colors"
+                    className="absolute top-4 left-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-charcoal dark:hover:text-white transition-colors"
                 >
                     <X size={18} />
                 </button>
@@ -98,12 +98,12 @@ export function ConfirmDialog({
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-xl font-extrabold text-charcoal mb-2">
+                    <h3 className="text-xl font-extrabold text-charcoal dark:text-white mb-2">
                         {title}
                     </h3>
 
                     {/* Message */}
-                    <p className="text-slate-grey text-sm leading-relaxed mb-6">
+                    <p className="text-slate-grey dark:text-slate-400 text-sm leading-relaxed mb-6">
                         {message}
                     </p>
 
@@ -112,7 +112,7 @@ export function ConfirmDialog({
                         <button
                             onClick={onClose}
                             disabled={isLoading}
-                            className="px-6 py-3 rounded-pill bg-slate-100 hover:bg-slate-200 text-charcoal font-semibold text-sm transition-all duration-200 disabled:opacity-50"
+                            className="px-6 py-3 rounded-pill bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-charcoal dark:text-slate-200 font-semibold text-sm transition-all duration-200 disabled:opacity-50"
                         >
                             {cancelText}
                         </button>

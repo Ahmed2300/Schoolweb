@@ -210,30 +210,30 @@ export function TeacherAddLectureModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" style={{ direction: 'rtl' }}>
-            <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-xl text-right">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-xl text-right border border-slate-200 dark:border-slate-800">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-none">
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50 flex-none">
                     <div>
-                        <h2 className="text-lg font-bold text-charcoal">إضافة محاضرة جديدة</h2>
-                        <p className="text-sm text-slate-500">الخطوة {step} من 2</p>
+                        <h2 className="text-lg font-bold text-slate-900 dark:text-white">إضافة محاضرة جديدة</h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">الخطوة {step} من 2</p>
                     </div>
-                    <button onClick={handleClose} disabled={loading} className="text-slate-400 hover:text-slate-600 transition-colors">
+                    <button onClick={handleClose} disabled={loading} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
                         <X size={24} />
                     </button>
                 </div>
 
                 {/* Steps Indicator */}
-                <div className="px-6 py-4 flex-none border-b border-slate-50">
+                <div className="px-6 py-4 flex-none border-b border-slate-50 dark:border-slate-800">
                     <div className="flex items-center justify-between relative max-w-md mx-auto">
-                        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-100 -z-10" />
-                        <div className={`flex flex-col items-center gap-2 bg-white px-2 ${step >= 1 ? 'text-blue-600' : 'text-slate-400'}`}>
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${step >= 1 ? 'border-blue-600 bg-blue-50' : 'border-slate-200 bg-white'}`}>
+                        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-100 dark:bg-slate-800 -z-10" />
+                        <div className={`flex flex-col items-center gap-2 bg-white dark:bg-slate-900 px-2 ${step >= 1 ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-600'}`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${step >= 1 ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'}`}>
                                 <FileText size={20} />
                             </div>
                             <span className="text-xs font-medium">بيانات المحاضرة</span>
                         </div>
-                        <div className={`flex flex-col items-center gap-2 bg-white px-2 ${step >= 2 ? 'text-blue-600' : 'text-slate-400'}`}>
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${step >= 2 ? 'border-blue-600 bg-blue-50' : 'border-slate-200 bg-white'}`}>
+                        <div className={`flex flex-col items-center gap-2 bg-white dark:bg-slate-900 px-2 ${step >= 2 ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-600'}`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${step >= 2 ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'}`}>
                                 <Video size={20} />
                             </div>
                             <span className="text-xs font-medium">الفيديو (اختياري)</span>
@@ -243,7 +243,7 @@ export function TeacherAddLectureModal({
 
                 <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
                     {error && (
-                        <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-2 text-sm">
+                        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl flex items-center gap-2 text-sm">
                             <X size={18} />
                             {error}
                         </div>
@@ -253,64 +253,64 @@ export function TeacherAddLectureModal({
                         <form id="detailsForm" onSubmit={handleSubmitDetails} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal">عنوان المحاضرة (بالعربية) *</label>
+                                    <label className="text-sm font-medium text-slate-900 dark:text-white">عنوان المحاضرة (بالعربية) *</label>
                                     <input
                                         type="text"
                                         required
                                         value={formData.titleAr}
                                         onChange={(e) => setFormData(prev => ({ ...prev, titleAr: e.target.value }))}
-                                        className="w-full h-11 px-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none transition-colors"
+                                        className="w-full h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-colors placeholder-slate-400"
                                         dir="rtl"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal">عنوان المحاضرة (بالانجليزية)</label>
+                                    <label className="text-sm font-medium text-slate-900 dark:text-white">عنوان المحاضرة (بالانجليزية)</label>
                                     <input
                                         type="text"
                                         value={formData.titleEn}
                                         onChange={(e) => setFormData(prev => ({ ...prev, titleEn: e.target.value }))}
-                                        className="w-full h-11 px-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none transition-colors"
+                                        className="w-full h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-colors placeholder-slate-400"
                                         dir="ltr"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal">الكورس</label>
+                                    <label className="text-sm font-medium text-slate-900 dark:text-white">الكورس</label>
                                     <input
                                         type="text"
                                         value={courseName}
                                         disabled
-                                        className="w-full h-11 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                                        className="w-full h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal flex items-center gap-2">
+                                    <label className="text-sm font-medium text-slate-900 dark:text-white flex items-center gap-2">
                                         الوحدة
                                     </label>
                                     <select
                                         value={formData.unitId}
                                         onChange={(e) => setFormData(prev => ({ ...prev, unitId: e.target.value }))}
-                                        className="w-full h-11 px-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none bg-white"
+                                        className="w-full h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-colors appearance-none"
                                     >
                                         <option value="">اختر الوحدة (اختياري)</option>
-                                        {units.map(u => <option key={u.id} value={u.id}>{getLocalizedName(u.title)}</option>)}
+                                        {units.map(u => <option key={u.id} value={u.id} className="dark:bg-slate-800">{getLocalizedName(u.title)}</option>)}
                                     </select>
                                 </div>
 
                                 <div className="col-span-full">
-                                    <label className="text-sm font-medium text-charcoal mb-1.5 block">الوصف (بالعربية)</label>
+                                    <label className="text-sm font-medium text-slate-900 dark:text-white mb-1.5 block">الوصف (بالعربية)</label>
                                     <textarea
                                         rows={4}
                                         value={formData.descriptionAr}
                                         onChange={(e) => setFormData(prev => ({ ...prev, descriptionAr: e.target.value }))}
-                                        className="w-full p-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none transition-colors resize-none"
+                                        className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-colors resize-none placeholder-slate-400"
                                         dir="rtl"
                                     />
                                 </div>
 
                                 <div className="col-span-full pt-2">
-                                    <label className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+                                    <label className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                         <input
                                             type="checkbox"
                                             checked={formData.isOnline}
@@ -321,19 +321,19 @@ export function TeacherAddLectureModal({
                                                     setSelectedDate(null);
                                                 }
                                             }}
-                                            className="w-5 h-5 rounded text-blue-600 focus:ring-offset-0 focus:ring-0 cursor-pointer"
+                                            className="w-5 h-5 rounded text-blue-600 focus:ring-offset-0 focus:ring-0 cursor-pointer dark:bg-slate-700 dark:border-slate-600"
                                         />
                                         <div>
-                                            <span className="text-sm font-bold text-charcoal block">محاضرة أونلاين (بث مباشر)</span>
-                                            <span className="text-xs text-slate-500">سيتم جدولة موعد للبث المباشر بدلاً من رفع فيديو مسجل</span>
+                                            <span className="text-sm font-bold text-slate-900 dark:text-white block">محاضرة أونلاين (بث مباشر)</span>
+                                            <span className="text-xs text-slate-500 dark:text-slate-400">سيتم جدولة موعد للبث المباشر بدلاً من رفع فيديو مسجل</span>
                                         </div>
                                     </label>
                                 </div>
 
                                 {formData.isOnline && (
-                                    <div className="col-span-full border-t border-slate-100 pt-4">
-                                        <label className="text-sm font-medium text-charcoal mb-3 block flex items-center gap-2">
-                                            <Calendar size={18} className="text-blue-600" />
+                                    <div className="col-span-full border-t border-slate-100 dark:border-slate-800 pt-4">
+                                        <label className="text-sm font-medium text-slate-900 dark:text-white mb-3 block flex items-center gap-2">
+                                            <Calendar size={18} className="text-blue-600 dark:text-blue-400" />
                                             اختر فترة البث المباشر *
                                         </label>
                                         <ApprovedSlotSelector
@@ -357,8 +357,8 @@ export function TeacherAddLectureModal({
                     ) : (
                         <div className="space-y-6 max-w-2xl mx-auto">
                             <div className="text-center space-y-2">
-                                <h3 className="font-semibold text-charcoal text-lg">رفع فيديو المحاضرة</h3>
-                                <p className="text-sm text-slate-500">يمكنك رفع فيديو مسجل للمحاضرة الآن أو تخطي هذه الخطوة</p>
+                                <h3 className="font-semibold text-slate-900 dark:text-white text-lg">رفع فيديو المحاضرة</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">يمكنك رفع فيديو مسجل للمحاضرة الآن أو تخطي هذه الخطوة</p>
                             </div>
 
                             <TeacherVideoUploader
@@ -366,7 +366,7 @@ export function TeacherAddLectureModal({
                                 onError={(msg) => console.error(msg)}
                             />
 
-                            <div className="p-5 bg-blue-50 text-blue-800 rounded-2xl text-sm border border-blue-100">
+                            <div className="p-5 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 rounded-2xl text-sm border border-blue-100 dark:border-blue-900/30">
                                 <p className="font-bold mb-2 flex items-center gap-2">
                                     <Video size={16} />
                                     معلومات عن الفيديو المطلوب:
@@ -382,12 +382,12 @@ export function TeacherAddLectureModal({
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between flex-none rounded-b-2xl">
+                <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between flex-none rounded-b-2xl">
                     {step === 1 ? (
                         <>
                             <button
                                 onClick={handleClose}
-                                className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-white hover:border-slate-300 transition-all"
+                                className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium hover:bg-white dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all"
                             >
                                 إلغاء
                             </button>
@@ -415,7 +415,7 @@ export function TeacherAddLectureModal({
                             <button
                                 onClick={() => setStep(1)}
                                 disabled={loading}
-                                className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-white hover:border-slate-300 transition-all flex items-center gap-2"
+                                className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium hover:bg-white dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all flex items-center gap-2"
                             >
                                 <ChevronRight size={18} />
                                 السابق

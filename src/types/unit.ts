@@ -45,6 +45,7 @@ export interface UnitLecture {
     thumbnail_path?: string;
     teacher_id?: number;
     is_online?: boolean;
+    is_test?: boolean;
     start_time?: string;
     end_time?: string;
     video_url?: string;

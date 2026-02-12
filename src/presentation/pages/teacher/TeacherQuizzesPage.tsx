@@ -51,7 +51,7 @@ function StatusBadge({ status }: { status: QuizStatus }) {
 function TypeBadge({ type }: { type: QuizType }) {
     const isEssay = type === 'essay';
     return (
-        <span className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${isEssay ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+        <span className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${isEssay ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400' : 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
             }`}>
             {isEssay ? <FileEdit size={12} /> : <FileQuestion size={12} />}
             {getQuizTypeLabel(type)}
@@ -75,14 +75,14 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
     const canSubmit = status === 'draft' || status === 'rejected';
 
     return (
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all group">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md dark:shadow-none hover:border-slate-200 dark:hover:border-slate-700 transition-all group">
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-[#1F1F1F] font-semibold text-base truncate mb-1">
+                    <h3 className="text-[#1F1F1F] dark:text-white font-semibold text-base truncate mb-1">
                         {getQuizName(quiz.name)}
                     </h3>
-                    <div className="flex items-center gap-2 text-sm text-[#636E72]">
+                    <div className="flex items-center gap-2 text-sm text-[#636E72] dark:text-slate-400">
                         <BookOpen size={14} />
                         <span className="truncate">
                             {quiz.course ? getCourseName(quiz.course.name) : 'بدون دورة'}
@@ -94,7 +94,7 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
                 <div className="relative">
                     <button
                         onClick={() => setMenuOpen(!menuOpen)}
-                        className="p-2 rounded-lg hover:bg-slate-100 text-[#636E72] transition-colors"
+                        className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-[#636E72] dark:text-slate-400 transition-colors"
                     >
                         <MoreVertical size={18} />
                     </button>
@@ -105,10 +105,10 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
                                 className="fixed inset-0 z-10"
                                 onClick={() => setMenuOpen(false)}
                             />
-                            <div className="absolute left-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-20 min-w-[160px]">
+                            <div className="absolute left-0 top-full mt-1 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 py-1 z-20 min-w-[160px]">
                                 <button
                                     onClick={() => { onView(quiz.id); setMenuOpen(false); }}
-                                    className="w-full px-4 py-2 text-right text-sm text-[#1F1F1F] hover:bg-slate-50 flex items-center gap-2"
+                                    className="w-full px-4 py-2 text-right text-sm text-[#1F1F1F] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                                 >
                                     <Eye size={16} />
                                     عرض التفاصيل
@@ -116,7 +116,7 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
                                 {canEdit && (
                                     <button
                                         onClick={() => { onEdit(quiz.id); setMenuOpen(false); }}
-                                        className="w-full px-4 py-2 text-right text-sm text-[#1F1F1F] hover:bg-slate-50 flex items-center gap-2"
+                                        className="w-full px-4 py-2 text-right text-sm text-[#1F1F1F] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                                     >
                                         <Edit size={16} />
                                         تعديل
@@ -125,7 +125,7 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
                                 {canSubmit && (
                                     <button
                                         onClick={() => { onSubmit(quiz.id); setMenuOpen(false); }}
-                                        className="w-full px-4 py-2 text-right text-sm text-emerald-600 hover:bg-emerald-50 flex items-center gap-2"
+                                        className="w-full px-4 py-2 text-right text-sm text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 flex items-center gap-2"
                                     >
                                         <Send size={16} />
                                         إرسال للموافقة
@@ -134,7 +134,7 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
                                 {canEdit && (
                                     <button
                                         onClick={() => { onDelete(quiz.id); setMenuOpen(false); }}
-                                        className="w-full px-4 py-2 text-right text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                        className="w-full px-4 py-2 text-right text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center gap-2"
                                     >
                                         <Trash2 size={16} />
                                         حذف
@@ -150,14 +150,14 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
                 <div className="flex items-center gap-2 mb-4">
                     <button
                         onClick={() => onEdit(quiz.id)}
-                        className="flex-1 h-9 rounded-lg bg-shibl-crimson/10 text-shibl-crimson hover:bg-shibl-crimson hover:text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        className="flex-1 h-9 rounded-lg bg-shibl-crimson/10 dark:bg-shibl-crimson/20 text-shibl-crimson dark:text-shibl-crimson-400 hover:bg-shibl-crimson hover:text-white dark:hover:text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
                     >
                         <Edit size={16} />
                         {status === 'draft' ? 'متابعة التعديل' : 'تعديل الاختبار'}
                     </button>
                     <button
                         onClick={() => onSubmit(quiz.id)}
-                        className="h-9 px-3 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center justify-center"
+                        className="h-9 px-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors flex items-center justify-center"
                         title="إرسال للموافقة"
                     >
                         <Send size={18} />
@@ -172,7 +172,7 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
             </div>
 
             {/* Stats */}
-            <div className="flex items-center gap-4 text-sm text-[#636E72]">
+            <div className="flex items-center gap-4 text-sm text-[#636E72] dark:text-slate-400">
                 <div className="flex items-center gap-1.5">
                     <FileQuestion size={14} />
                     <span>{quiz.questions_count || 0} سؤال</span>
@@ -189,12 +189,12 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
 
             {/* Admin Feedback */}
             {status === 'rejected' && quiz.admin_feedback && (
-                <div className="mb-4 bg-red-50 border border-red-100 rounded-lg p-3">
+                <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg p-3">
                     <div className="flex items-start gap-2">
-                        <AlertCircle size={16} className="text-red-600 mt-0.5" />
+                        <AlertCircle size={16} className="text-red-600 dark:text-red-400 mt-0.5" />
                         <div>
-                            <p className="text-xs font-semibold text-red-700 mb-1">سبب الرفض:</p>
-                            <p className="text-sm text-red-600">{quiz.admin_feedback}</p>
+                            <p className="text-xs font-semibold text-red-700 dark:text-red-300 mb-1">سبب الرفض:</p>
+                            <p className="text-sm text-red-600 dark:text-red-300">{quiz.admin_feedback}</p>
                         </div>
                     </div>
                 </div>
@@ -204,24 +204,24 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
 }
 
 // Quiz card skeleton
-function QuizCardSkeleton() {
+export function QuizCardSkeleton() {
     return (
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 animate-pulse">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 animate-pulse">
             <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                    <div className="h-5 w-40 bg-slate-200 rounded mb-2" />
-                    <div className="h-4 w-24 bg-slate-200 rounded" />
+                    <div className="h-5 w-40 bg-slate-200 dark:bg-slate-800 rounded mb-2" />
+                    <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
                 </div>
-                <div className="h-8 w-8 bg-slate-200 rounded" />
+                <div className="h-8 w-8 bg-slate-200 dark:bg-slate-800 rounded" />
             </div>
             <div className="flex gap-2 mb-4">
-                <div className="h-6 w-24 bg-slate-200 rounded-full" />
-                <div className="h-6 w-20 bg-slate-200 rounded-full" />
+                <div className="h-6 w-24 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800 rounded-full" />
             </div>
             <div className="flex gap-4">
-                <div className="h-4 w-16 bg-slate-200 rounded" />
-                <div className="h-4 w-16 bg-slate-200 rounded" />
-                <div className="h-4 w-16 bg-slate-200 rounded" />
+                <div className="h-4 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-4 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-4 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
             </div>
         </div>
     );
@@ -230,14 +230,14 @@ function QuizCardSkeleton() {
 // Empty state
 function EmptyState({ onCreateNew }: { onCreateNew: () => void }) {
     return (
-        <div className="text-center py-16 bg-white rounded-2xl border border-slate-100">
-            <div className="w-20 h-20 mx-auto rounded-full bg-slate-100 flex items-center justify-center mb-6">
-                <ClipboardList size={40} className="text-slate-400" />
+        <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
+            <div className="w-20 h-20 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-6">
+                <ClipboardList size={40} className="text-slate-400 dark:text-slate-500" />
             </div>
-            <h3 className="text-xl font-semibold text-[#1F1F1F] mb-2">
+            <h3 className="text-xl font-semibold text-[#1F1F1F] dark:text-white mb-2">
                 لا توجد اختبارات بعد
             </h3>
-            <p className="text-[#636E72] mb-6 max-w-md mx-auto">
+            <p className="text-[#636E72] dark:text-slate-400 mb-6 max-w-md mx-auto">
                 ابدأ بإنشاء اختبارك الأول لتقييم طلابك. يمكنك إنشاء اختبارات اختيار من متعدد أو أسئلة مكتوبة.
             </p>
             <button
@@ -414,10 +414,10 @@ export function TeacherQuizzesPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-[#1F1F1F]">
+                    <h1 className="text-2xl md:text-3xl font-bold text-[#1F1F1F] dark:text-white">
                         إدارة الاختبارات
                     </h1>
-                    <p className="text-[#636E72] mt-1">
+                    <p className="text-[#636E72] dark:text-slate-400 mt-1">
                         إنشاء وإدارة اختبارات الدورات الخاصة بك
                     </p>
                 </div>
@@ -431,7 +431,7 @@ export function TeacherQuizzesPage() {
             </div>
 
             {/* Search & Filters */}
-            <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm">
                 <div className="flex flex-col lg:flex-row gap-4">
                     {/* Search */}
                     <div className="relative flex-1">
@@ -440,21 +440,21 @@ export function TeacherQuizzesPage() {
                             placeholder="ابحث عن اختبار..."
                             value={searchQuery}
                             onChange={(e) => handleSearch(e.target.value)}
-                            className="w-full h-11 px-4 pr-11 rounded-xl bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm text-[#1F1F1F] placeholder:text-[#636E72]"
+                            className="w-full h-11 px-4 pr-11 rounded-xl bg-[#F8F9FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm text-[#1F1F1F] dark:text-white placeholder:text-[#636E72] dark:placeholder:text-slate-500"
                         />
                         <Search
                             size={18}
-                            className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-[#636E72]`}
+                            className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-[#636E72] dark:text-slate-500`}
                         />
                     </div>
 
                     {/* Type Filter */}
                     <div className="flex items-center gap-2">
-                        <Filter size={16} className="text-[#636E72]" />
+                        <Filter size={16} className="text-[#636E72] dark:text-slate-500" />
                         <select
                             value={filterType}
                             onChange={(e) => handleTypeFilter(e.target.value)}
-                            className="h-11 px-4 rounded-xl bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson outline-none transition-all text-sm text-[#1F1F1F]"
+                            className="h-11 px-4 rounded-xl bg-[#F8F9FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson outline-none transition-all text-sm text-[#1F1F1F] dark:text-white"
                         >
                             <option value="all">كل الأنواع</option>
                             <option value="mcq">اختيار من متعدد</option>
@@ -466,7 +466,7 @@ export function TeacherQuizzesPage() {
                     <select
                         value={filterStatus}
                         onChange={(e) => handleStatusFilter(e.target.value)}
-                        className="h-11 px-4 rounded-xl bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson outline-none transition-all text-sm text-[#1F1F1F]"
+                        className="h-11 px-4 rounded-xl bg-[#F8F9FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson outline-none transition-all text-sm text-[#1F1F1F] dark:text-white"
                     >
                         <option value="all">كل الحالات</option>
                         <option value="draft">مسودة</option>
@@ -487,7 +487,7 @@ export function TeacherQuizzesPage() {
                                 }
                                 setSearchParams(searchParams);
                             }}
-                            className="h-11 px-4 rounded-xl bg-[#F8F9FA] border border-slate-200 focus:border-shibl-crimson outline-none transition-all text-sm text-[#1F1F1F]"
+                            className="h-11 px-4 rounded-xl bg-[#F8F9FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson outline-none transition-all text-sm text-[#1F1F1F] dark:text-white"
                         >
                             <option value="all">كل الدورات</option>
                             {courses.map(course => (
@@ -502,14 +502,14 @@ export function TeacherQuizzesPage() {
 
             {/* Error State */}
             {error && (
-                <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-center justify-between">
+                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <AlertCircle size={20} className="text-red-500" />
-                        <span className="text-red-700">{error}</span>
+                        <AlertCircle size={20} className="text-red-500 dark:text-red-400" />
+                        <span className="text-red-700 dark:text-red-400">{error}</span>
                     </div>
                     <button
                         onClick={fetchData}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-sm transition-colors"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 text-sm transition-colors"
                     >
                         <RefreshCw size={14} />
                         إعادة المحاولة

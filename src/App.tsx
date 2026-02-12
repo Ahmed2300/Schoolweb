@@ -62,7 +62,8 @@ import {
   TeacherWeeklySchedulePage,
   NotFoundPage,
   LecturePlayerPage,
-  ParentCourseProgressPage
+  ParentCourseProgressPage,
+  ContactPage
 } from './presentation/pages';
 import { AdminLayout } from './presentation/components/admin';
 import { TeacherLayout } from './presentation/components/teacher';
@@ -105,6 +106,7 @@ function App() {
           <Routes>
             {/* Public routes */}
             <Route path={ROUTES.HOME} element={<LandingPage />} />
+            <Route path="/contact" element={<ContactPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path={ROUTES.LOGIN} element={<SignInPage />} />
             <Route path={ROUTES.REGISTER} element={<SignupPage />} />

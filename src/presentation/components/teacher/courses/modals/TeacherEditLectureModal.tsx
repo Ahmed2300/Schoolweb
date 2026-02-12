@@ -165,12 +165,12 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" style={{ direction: 'rtl' }}>
             <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-xl text-right">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
                     <div>
-                        <h2 className="text-lg font-bold text-charcoal">تعديل المحاضرة</h2>
-                        <p className="text-sm text-slate-500">{formData.titleAr}</p>
+                        <h2 className="text-lg font-bold text-charcoal dark:text-white">تعديل المحاضرة</h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{formData.titleAr}</p>
                     </div>
-                    <button onClick={handleClose} disabled={loading} className="text-slate-400 hover:text-slate-600 transition-colors">
+                    <button onClick={handleClose} disabled={loading} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
                         <X size={24} />
                     </button>
                 </div>
@@ -178,15 +178,15 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                 {/* Steps Indicator */}
                 <div className="px-6 py-4">
                     <div className="flex items-center justify-between relative">
-                        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-100 -z-10" />
-                        <div className={`flex flex-col items-center gap-2 bg-white px-2 ${step >= 1 ? 'text-blue-600' : 'text-slate-400'}`}>
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${step >= 1 ? 'border-blue-600 bg-blue-50' : 'border-slate-200 bg-white'}`}>
+                        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-100 dark:bg-slate-800 -z-10" />
+                        <div className={`flex flex-col items-center gap-2 bg-white dark:bg-slate-900 px-2 ${step >= 1 ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-600'}`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${step >= 1 ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'}`}>
                                 <FileText size={20} />
                             </div>
                             <span className="text-xs font-medium">بيانات المحاضرة</span>
                         </div>
-                        <div className={`flex flex-col items-center gap-2 bg-white px-2 ${step >= 2 ? 'text-blue-600' : 'text-slate-400'}`}>
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${step >= 2 ? 'border-blue-600 bg-blue-50' : 'border-slate-200 bg-white'}`}>
+                        <div className={`flex flex-col items-center gap-2 bg-white dark:bg-slate-900 px-2 ${step >= 2 ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-600'}`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${step >= 2 ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'}`}>
                                 <Video size={20} />
                             </div>
                             <span className="text-xs font-medium">الفيديو</span>
@@ -206,58 +206,58 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                         <form id="editForm" onSubmit={handleSubmitDetails} className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal">عنوان المحاضرة (بالعربية) *</label>
+                                    <label className="text-sm font-medium text-charcoal dark:text-white">عنوان المحاضرة (بالعربية) *</label>
                                     <input
                                         type="text"
                                         required
                                         value={formData.titleAr}
                                         onChange={(e) => setFormData(prev => ({ ...prev, titleAr: e.target.value }))}
-                                        className="w-full h-10 px-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors"
+                                        className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-blue-500 outline-none transition-colors"
                                         dir="rtl"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal">Lecture Title (English)</label>
+                                    <label className="text-sm font-medium text-charcoal dark:text-white">Lecture Title (English)</label>
                                     <input
                                         type="text"
                                         value={formData.titleEn}
                                         onChange={(e) => setFormData(prev => ({ ...prev, titleEn: e.target.value }))}
-                                        className="w-full h-10 px-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors"
+                                        className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-blue-500 outline-none transition-colors"
                                         dir="ltr"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal">الكورس</label>
+                                    <label className="text-sm font-medium text-charcoal dark:text-white">الكورس</label>
                                     <input
                                         type="text"
                                         value={courseName || 'الكورس الحالي'} // Use prop
                                         disabled
-                                        className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                                        className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal flex items-center gap-2">
+                                    <label className="text-sm font-medium text-charcoal dark:text-white flex items-center gap-2">
                                         الوحدة
                                     </label>
                                     <select
                                         value={formData.unitId}
                                         onChange={(e) => setFormData(prev => ({ ...prev, unitId: e.target.value }))}
-                                        className="w-full h-10 px-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none bg-white"
+                                        className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-blue-500 outline-none transition-colors appearance-none"
                                     >
                                         <option value="">اختر الوحدة (اختياري)</option>
-                                        {(units || []).map(u => <option key={u.id} value={u.id}>{getLocalizedName(u.title)}</option>)}
+                                        {(units || []).map(u => <option key={u.id} value={u.id} className="dark:bg-slate-800">{getLocalizedName(u.title)}</option>)}
                                     </select>
                                 </div>
 
                                 <div className="col-span-full">
-                                    <label className="text-sm font-medium text-charcoal mb-1.5 block">الوصف (بالعربية)</label>
+                                    <label className="text-sm font-medium text-charcoal dark:text-white mb-1.5 block">الوصف (بالعربية)</label>
                                     <textarea
                                         rows={3}
                                         value={formData.descriptionAr}
                                         onChange={(e) => setFormData(prev => ({ ...prev, descriptionAr: e.target.value }))}
-                                        className="w-full p-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors resize-none"
+                                        className="w-full p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-blue-500 outline-none transition-colors resize-none"
                                         dir="rtl"
                                     />
                                 </div>
@@ -265,7 +265,7 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                                 {formData.isOnline && (
                                     <>
                                         <div className="space-y-1.5">
-                                            <label className="text-sm font-medium text-charcoal flex items-center gap-2">
+                                            <label className="text-sm font-medium text-charcoal dark:text-white flex items-center gap-2">
                                                 وقت البدء
                                             </label>
                                             <div className="relative">
@@ -274,12 +274,12 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                                                     type="datetime-local"
                                                     value={formData.startTime}
                                                     onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                                                    className="w-full h-10 pl-10 pr-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm"
+                                                    className="w-full h-10 pl-10 pr-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-blue-500 outline-none transition-colors text-sm"
                                                 />
                                             </div>
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-sm font-medium text-charcoal flex items-center gap-2">
+                                            <label className="text-sm font-medium text-charcoal dark:text-white flex items-center gap-2">
                                                 وقت الانتهاء
                                             </label>
                                             <div className="relative">
@@ -288,7 +288,7 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                                                     type="datetime-local"
                                                     value={formData.endTime}
                                                     onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-                                                    className="w-full h-10 pl-10 pr-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm"
+                                                    className="w-full h-10 pl-10 pr-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-blue-500 outline-none transition-colors text-sm"
                                                 />
                                             </div>
                                         </div>
@@ -302,9 +302,9 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                                                 type="checkbox"
                                                 checked={formData.isOnline}
                                                 onChange={(e) => setFormData(prev => ({ ...prev, isOnline: e.target.checked }))}
-                                                className="w-4 h-4 rounded text-blue-600 focus:ring-offset-0 focus:ring-0 cursor-pointer"
+                                                className="w-4 h-4 rounded text-blue-600 focus:ring-offset-0 focus:ring-0 cursor-pointer dark:bg-slate-700 dark:border-slate-600"
                                             />
-                                            <span className="text-sm text-charcoal select-none">محاضرة أونلاين (بث مباشر)</span>
+                                            <span className="text-sm text-charcoal dark:text-white select-none">محاضرة أونلاين (بث مباشر)</span>
                                         </label>
                                     </div>
                                 )}
@@ -326,14 +326,14 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                                                 <Video size={48} className="text-white opacity-50" />
                                             </div>
                                         )}
-                                        <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur rounded-lg p-3 flex items-center justify-between transition-opacity opacity-0 group-hover:opacity-100">
+                                        <div className="absolute bottom-4 left-4 right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur rounded-lg p-3 flex items-center justify-between transition-opacity opacity-0 group-hover:opacity-100">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center text-green-600">
+                                                <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
                                                     <Video size={20} />
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium text-sm text-charcoal">فيديو المحاضرة الحالي</p>
-                                                    <p className="text-xs text-green-600">متوفر</p>
+                                                    <p className="font-medium text-sm text-charcoal dark:text-white">فيديو المحاضرة الحالي</p>
+                                                    <p className="text-xs text-green-600 dark:text-green-400">متوفر</p>
                                                 </div>
                                             </div>
                                             <button
@@ -352,7 +352,7 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                                                         }
                                                     }
                                                 }}
-                                                className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100 transition-colors flex items-center gap-1.5"
+                                                className="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-medium hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors flex items-center gap-1.5"
                                             >
                                                 <Trash2 size={14} />
                                                 حذف الفيديو
@@ -360,7 +360,7 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                                         </div>
                                     </div>
 
-                                    <div className="p-4 bg-blue-50 text-blue-800 rounded-xl text-sm flex items-start gap-3">
+                                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 rounded-xl text-sm flex items-start gap-3">
                                         <div className="shrink-0 mt-0.5"><Video size={18} /></div>
                                         <div>
                                             <p className="font-semibold mb-1">استبدال الفيديو:</p>
@@ -377,7 +377,7 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                             />
 
                             {lecture.recording_path && newVideoPath && (
-                                <div className="p-4 bg-orange-50 text-orange-800 rounded-xl text-sm flex items-start gap-3">
+                                <div className="p-4 bg-orange-50 dark:bg-orange-900/20 text-orange-800 dark:text-orange-300 rounded-xl text-sm flex items-start gap-3">
                                     <Video size={20} className="shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold mb-1">تنبيه:</p>
@@ -396,12 +396,12 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
                     {step === 1 ? (
                         <>
                             <button
                                 onClick={handleClose}
-                                className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-white hover:border-slate-300 transition-all"
+                                className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium hover:bg-white dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all"
                             >
                                 إلغاء
                             </button>
@@ -419,7 +419,7 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                             <button
                                 onClick={() => setStep(1)}
                                 disabled={loading}
-                                className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-white hover:border-slate-300 transition-all flex items-center gap-2"
+                                className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium hover:bg-white dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all flex items-center gap-2"
                             >
                                 <ChevronRight size={18} />
                                 السابق

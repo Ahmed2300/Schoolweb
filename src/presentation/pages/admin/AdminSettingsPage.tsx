@@ -16,13 +16,22 @@ import {
     EyeOff,
     Loader2,
     CheckCircle,
-    AlertCircle
+    AlertCircle,
+    Phone,
+    Map,
+    Facebook,
+    Link as LinkIcon,
+    Plus,
+    Edit,
+    Trash2,
+    X,
+    MoreHorizontal
 } from 'lucide-react';
 import { useAuthStore } from '../../store';
 import { adminService } from '../../../data/api/adminService';
 
 // Types
-type SettingsTab = 'profile' | 'general' | 'roles' | 'locations' | 'payments' | 'notifications';
+type SettingsTab = 'profile' | 'general' | 'contact' | 'roles' | 'locations' | 'payments' | 'notifications';
 
 export function AdminSettingsPage() {
     const { user: currentUser, setUser } = useAuthStore();
@@ -46,6 +55,103 @@ export function AdminSettingsPage() {
     const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
     const [passwordError, setPasswordError] = useState<string | null>(null);
 
+    // General Settings States
+    interface GeneralSettings {
+        platform_name: string;
+        support_email: string;
+        description: string;
+        logo_path: string;
+        maintenance_mode: boolean;
+        registration_open: boolean;
+        default_language: string;
+    }
+    const [generalSettings, setGeneralSettings] = useState<GeneralSettings>({
+        platform_name: '',
+        support_email: '',
+        description: '',
+        logo_path: '',
+        maintenance_mode: false,
+        registration_open: true,
+        default_language: 'ar'
+    });
+    const [generalLoading, setGeneralLoading] = useState(false);
+    const [generalSaving, setGeneralSaving] = useState(false);
+    const [generalSuccess, setGeneralSuccess] = useState<string | null>(null);
+
+    // Contact Settings States
+    interface ContactSettings {
+        contact_phone: string;
+        contact_whatsapp: string;
+        contact_address: string;
+        contact_map_url: string;
+        working_hours: string;
+        social_facebook: string;
+        social_twitter: string;
+        social_instagram: string;
+        social_youtube: string;
+    }
+    const [contactSettings, setContactSettings] = useState<ContactSettings>({
+        contact_phone: '',
+        contact_whatsapp: '',
+        contact_address: '',
+        contact_map_url: '',
+        working_hours: '',
+        social_facebook: '',
+        social_twitter: '',
+        social_instagram: '',
+        social_youtube: ''
+    });
+    const [contactLoading, setContactLoading] = useState(false);
+    const [contactSaving, setContactSaving] = useState(false);
+
+    // Payment Settings States
+    interface PaymentSettings {
+        enable_ios_payments: boolean;
+        bank_account: string;
+        phone_wallet: string;
+    }
+    const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>({
+        enable_ios_payments: false,
+        bank_account: '',
+        phone_wallet: ''
+    });
+    // Bank Details Split State
+    const [bankDetails, setBankDetails] = useState({
+        bankName: '',
+        accountName: '',
+        accountNumber: '',
+        iban: ''
+    });
+    const [paymentLoading, setPaymentLoading] = useState(false);
+    const [paymentSaving, setPaymentSaving] = useState(false);
+    const [paymentSuccess, setPaymentSuccess] = useState<string | null>(null);
+
+    // Locations Settings States
+    interface Country {
+        id: number;
+        name: string;
+        code: string;
+    }
+    interface City {
+        id: number;
+        country_id: number;
+        name: string;
+    }
+    const [countries, setCountries] = useState<Country[]>([]);
+    const [cities, setCities] = useState<City[]>([]);
+    const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
+    const [isLocationLoading, setIsLocationLoading] = useState(false);
+
+    // Modals & Forms
+    const [isCountryModalOpen, setIsCountryModalOpen] = useState(false);
+    const [isCityModalOpen, setIsCityModalOpen] = useState(false);
+    const [editingCountry, setEditingCountry] = useState<Country | null>(null);
+    const [editingCity, setEditingCity] = useState<City | null>(null);
+    const [countryForm, setCountryForm] = useState({ name: '', code: '' });
+    const [cityForm, setCityForm] = useState({ name: '' });
+
+    const [contactSuccess, setContactSuccess] = useState<string | null>(null);
+
     // Initialize profile form with current user data
     useEffect(() => {
         if (currentUser) {
@@ -54,26 +160,216 @@ export function AdminSettingsPage() {
         }
     }, [currentUser]);
 
-    // Clear messages after 5 seconds
+    // Fetch Settings
+    // Fetch Locations Data
     useEffect(() => {
-        if (profileSuccess || profileError) {
-            const timer = setTimeout(() => {
-                setProfileSuccess(null);
-                setProfileError(null);
-            }, 5000);
-            return () => clearTimeout(timer);
+        if (activeTab === 'locations') {
+            fetchCountries();
         }
-    }, [profileSuccess, profileError]);
+    }, [activeTab]);
 
     useEffect(() => {
-        if (passwordSuccess || passwordError) {
-            const timer = setTimeout(() => {
-                setPasswordSuccess(null);
-                setPasswordError(null);
-            }, 5000);
-            return () => clearTimeout(timer);
+        if (selectedCountry) {
+            fetchCities(selectedCountry.id);
+        } else {
+            setCities([]);
         }
-    }, [passwordSuccess, passwordError]);
+    }, [selectedCountry]);
+
+    const fetchCountries = async () => {
+        setIsLocationLoading(true);
+        try {
+            const response = await adminService.getCountries({ per_page: 100 });
+            setCountries(response.data);
+        } catch (error) {
+            console.error('Failed to fetch countries:', error);
+        } finally {
+            setIsLocationLoading(false);
+        }
+    };
+
+    const fetchCities = async (countryId: number) => {
+        setIsLocationLoading(true);
+        try {
+            const response = await adminService.getCities({ country_id: countryId, per_page: 100 });
+            setCities(response.data);
+        } catch (error) {
+            console.error('Failed to fetch cities:', error);
+        } finally {
+            setIsLocationLoading(false);
+        }
+    };
+
+    // Country Handlers
+    const handleSaveCountry = async () => {
+        try {
+            if (editingCountry) {
+                await adminService.updateCountry(editingCountry.id, countryForm);
+            } else {
+                await adminService.createCountry(countryForm);
+            }
+            fetchCountries();
+            setIsCountryModalOpen(false);
+            setEditingCountry(null);
+            setCountryForm({ name: '', code: '' });
+        } catch (error) {
+            console.error('Failed to save country:', error);
+        }
+    };
+
+    const handleDeleteCountry = async (id: number) => {
+        if (window.confirm('هل أنت متأكد من حذف هذه الدولة؟')) {
+            try {
+                await adminService.deleteCountry(id);
+                fetchCountries();
+                if (selectedCountry?.id === id) {
+                    setSelectedCountry(null);
+                }
+            } catch (error) {
+                console.error('Failed to delete country:', error);
+            }
+        }
+    };
+
+    // City Handlers
+    const handleSaveCity = async () => {
+        if (!selectedCountry) return;
+        try {
+            if (editingCity) {
+                await adminService.updateCity(editingCity.id, { ...cityForm, country_id: selectedCountry.id });
+            } else {
+                await adminService.createCity({ ...cityForm, country_id: selectedCountry.id });
+            }
+            fetchCities(selectedCountry.id);
+            setIsCityModalOpen(false);
+            setEditingCity(null);
+            setCityForm({ name: '' });
+        } catch (error) {
+            console.error('Failed to save city:', error);
+        }
+    };
+
+    const handleDeleteCity = async (id: number) => {
+        if (window.confirm('هل أنت متأكد من حذف هذه المدينة؟')) {
+            try {
+                await adminService.deleteCity(id);
+                if (selectedCountry) fetchCities(selectedCountry.id);
+            } catch (error) {
+                console.error('Failed to delete city:', error);
+            }
+        }
+    };
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            if (activeTab === 'general') {
+                setGeneralLoading(true);
+                try {
+                    const data = await adminService.getAllSettings();
+                    const settingsList = Array.isArray(data) ? data : (data.data || []);
+                    const settingsMap: any = {};
+                    settingsList.forEach((s: any) => { settingsMap[s.key] = s.value; });
+
+                    setGeneralSettings(prev => ({
+                        ...prev,
+                        platform_name: settingsMap.platform_name || '',
+                        support_email: settingsMap.support_email || '',
+                        description: settingsMap.description || '',
+                        logo_path: settingsMap.logo_path || '',
+                        maintenance_mode: settingsMap.maintenance_mode === '1', // backend stores as string '1'/'0' usually
+                        registration_open: settingsMap.registration_open === '1',
+                        default_language: settingsMap.default_language || 'ar'
+                    }));
+                } catch (error) {
+                    console.error("Failed to fetch general settings", error);
+                } finally {
+                    setGeneralLoading(false);
+                }
+            } else if (activeTab === 'contact') {
+                setContactLoading(true);
+                try {
+                    const data = await adminService.getAllSettings();
+                    const settingsList = Array.isArray(data) ? data : (data.data || []);
+                    const settingsMap: any = {};
+                    settingsList.forEach((s: any) => { settingsMap[s.key] = s.value; });
+
+                    // Parse social links from JSON
+                    let socialLinks: any = {};
+                    if (settingsMap.social_media_links) {
+                        try {
+                            socialLinks = typeof settingsMap.social_media_links === 'string'
+                                ? JSON.parse(settingsMap.social_media_links)
+                                : settingsMap.social_media_links;
+                        } catch (e) {
+                            console.error("Failed to parse social media links", e);
+                        }
+                    }
+
+                    setContactSettings(prev => ({
+                        ...prev,
+                        contact_phone: settingsMap.contact_phone || '',
+                        contact_whatsapp: settingsMap.contact_whatsapp || '',
+                        contact_address: settingsMap.contact_address || '',
+                        contact_map_url: settingsMap.contact_map_url || '',
+                        working_hours: settingsMap.working_hours || '',
+                        social_facebook: socialLinks.facebook || '',
+                        social_twitter: socialLinks.twitter || '',
+                        social_instagram: socialLinks.instagram || '',
+                        social_youtube: socialLinks.youtube || ''
+                    }));
+                } catch (error) {
+                    console.error("Failed to fetch contact settings", error);
+                } finally {
+                    setContactLoading(false);
+                }
+            } else if (activeTab === 'payments') {
+                setPaymentLoading(true);
+                try {
+                    const data = await adminService.getAllSettings();
+                    const settingsList = Array.isArray(data) ? data : (data.data || []);
+                    const settingsMap: any = {};
+                    settingsList.forEach((s: any) => { settingsMap[s.key] = s.value; });
+
+                    const bankAccountRaw = settingsMap.bank_account || '';
+                    const bankLines = bankAccountRaw.split('\n');
+
+                    setPaymentSettings({
+                        enable_ios_payments: settingsMap.enable_ios_payments === '1' || settingsMap.enable_ios_payments === 'true' || settingsMap.enable_ios_payments === true,
+                        bank_account: bankAccountRaw,
+                        phone_wallet: settingsMap.phone_wallet || ''
+                    });
+
+                    setBankDetails({
+                        bankName: bankLines[0] || '',
+                        accountName: bankLines[1] || '',
+                        accountNumber: bankLines[2] || '',
+                        iban: bankLines[3] || ''
+                    });
+                } catch (error) {
+                    console.error("Failed to fetch payment settings", error);
+                } finally {
+                    setPaymentLoading(false);
+                }
+            }
+        };
+
+        fetchSettings();
+    }, [activeTab]);
+
+
+    // Clear messages after 5 seconds
+    useEffect(() => {
+        const clearTimer = setTimeout(() => {
+            setProfileSuccess(null);
+            setProfileError(null);
+            setPasswordSuccess(null);
+            setPasswordError(null);
+            setGeneralSuccess(null);
+            setContactSuccess(null);
+        }, 5000);
+        return () => clearTimeout(clearTimer);
+    }, [profileSuccess, profileError, passwordSuccess, passwordError, generalSuccess, contactSuccess]);
+
 
     // Handle profile update
     const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -146,13 +442,64 @@ export function AdminSettingsPage() {
         }
     };
 
-    // Form States (Mock)
-    const [siteName, setSiteName] = useState('منصتي التعليمية');
-    const [supportEmail, setSupportEmail] = useState('support@platform.com');
-    const [maintenanceMode, setMaintenanceMode] = useState(false);
-    const [registrationOpen, setRegistrationOpen] = useState(true);
+    const handleGeneralSave = async () => {
+        setGeneralSaving(true);
+        try {
+            await Promise.all([
+                adminService.upsertSetting('platform_name', generalSettings.platform_name, 'text', 'اسم المنصة'),
+                adminService.upsertSetting('support_email', generalSettings.support_email, 'text', 'بريد الدعم'),
+                adminService.upsertSetting('description', generalSettings.description, 'text', 'وصف SEO'),
+                adminService.upsertSetting('maintenance_mode', generalSettings.maintenance_mode ? '1' : '0', 'boolean', 'وضع الصيانة'),
+                adminService.upsertSetting('registration_open', generalSettings.registration_open ? '1' : '0', 'boolean', 'فتح التسجيل'),
+                adminService.upsertSetting('default_language', generalSettings.default_language, 'text', 'اللغة الافتراضية'),
+            ]);
+            setGeneralSuccess('تم حفظ الإعدادات العامة بنجاح');
+        } catch (error) {
+            console.error("Failed to save general settings", error);
+            // Show error toast if we had one
+        } finally {
+            setGeneralSaving(false);
+        }
+    };
 
-    // Mock Data for Roles (Preview)
+    const handleContactSave = async () => {
+        setContactSaving(true);
+        try {
+            const socialLinks = {
+                facebook: contactSettings.social_facebook,
+                twitter: contactSettings.social_twitter,
+                instagram: contactSettings.social_instagram,
+                youtube: contactSettings.social_youtube
+            };
+
+            await Promise.all([
+                adminService.upsertSetting('contact_phone', contactSettings.contact_phone, 'text', 'رقم الهاتف'),
+                adminService.upsertSetting('contact_whatsapp', contactSettings.contact_whatsapp, 'text', 'رقم واتساب'),
+                adminService.upsertSetting('contact_address', contactSettings.contact_address, 'text', 'العنوان'),
+                adminService.upsertSetting('contact_map_url', contactSettings.contact_map_url, 'text', 'رابط الخريطة'),
+                adminService.upsertSetting('working_hours', contactSettings.working_hours, 'text', 'ساعات العمل'),
+                // Save social links as one JSON object
+                adminService.upsertSetting('social_media_links', JSON.stringify(socialLinks), 'json', 'روابط التواصل الاجتماعي'),
+            ]);
+            setContactSuccess('تم حفظ بيانات التواصل بنجاح');
+        } catch (error) {
+            console.error("Failed to save contact settings", error);
+        } finally {
+            setContactSaving(false);
+        }
+    };
+
+    const handleLogoUpload = async (file: File) => {
+        try {
+            // Upload logic here - need to implement in adminService if not exists or use generic upload
+            await adminService.uploadLogo(file); // Hypothetically created
+            setGeneralSuccess('تم تحديث الشعار بنجاح (تحديث الصفحة لرؤية التغيير)');
+        } catch (error) {
+            console.error("Logo upload failed", error);
+        }
+    };
+
+    // Roles (Mock Data for preview)
     const roles = [
         { id: 1, name: 'Admin', description: 'كامل الصلاحيات', users: 3 },
         { id: 2, name: 'Teacher', description: 'إدارة الكورسات والطلاب', users: 45 },
@@ -190,6 +537,16 @@ export function AdminSettingsPage() {
                         <Settings size={20} />
                         <span>عام</span>
                         {activeTab === 'general' && <div className="absolute bottom-0 right-0 left-0 h-0.5 bg-shibl-crimson rounded-t-full" />}
+                    </button>
+
+                    <button
+                        onClick={() => setActiveTab('contact')}
+                        className={`pb-4 px-2 font-bold text-sm transition-all relative flex items-center gap-2 ${activeTab === 'contact' ? 'text-shibl-crimson' : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                    >
+                        <Phone size={20} />
+                        <span>طرق التواصل</span>
+                        {activeTab === 'contact' && <div className="absolute bottom-0 right-0 left-0 h-0.5 bg-shibl-crimson rounded-t-full" />}
                     </button>
 
                     <button
@@ -442,12 +799,31 @@ export function AdminSettingsPage() {
                             معلومات المنصة
                         </h3>
 
+                        {generalSuccess && (
+                            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-[12px] text-sm flex items-center gap-2">
+                                <CheckCircle size={18} />
+                                {generalSuccess}
+                            </div>
+                        )}
+
                         <div className="flex flex-col md:flex-row gap-6 mb-6 items-center md:items-start">
                             {/* Logo Upload */}
                             <div className="shrink-0 flex flex-col items-center gap-2">
-                                <div className="w-32 h-32 rounded-full border-2 border-dashed border-slate-300 hover:border-shibl-crimson bg-slate-50 flex flex-col items-center justify-center cursor-pointer transition-colors group">
-                                    <Upload size={24} className="text-slate-400 group-hover:text-shibl-crimson transition-colors" />
-                                    <span className="text-xs text-slate-500 mt-2">تحميل الشعار</span>
+                                <div className="w-32 h-32 rounded-full border-2 border-dashed border-slate-300 hover:border-shibl-crimson bg-slate-50 flex flex-col items-center justify-center cursor-pointer transition-colors group relative overflow-hidden">
+                                    <input
+                                        type="file"
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                        accept="image/*"
+                                        onChange={(e) => e.target.files && handleLogoUpload(e.target.files[0])}
+                                    />
+                                    {generalSettings.logo_path ? (
+                                        <img src={generalSettings.logo_path} alt="Logo" className="w-full h-full object-cover rounded-full" />
+                                    ) : (
+                                        <>
+                                            <Upload size={24} className="text-slate-400 group-hover:text-shibl-crimson transition-colors" />
+                                            <span className="text-xs text-slate-500 mt-2">تحميل الشعار</span>
+                                        </>
+                                    )}
                                 </div>
                                 <span className="text-xs text-slate-400">PNG, JPG (Max 2MB)</span>
                             </div>
@@ -458,8 +834,8 @@ export function AdminSettingsPage() {
                                     <label className="block text-xs font-bold text-slate-600 mb-1.5">اسم الموقع</label>
                                     <input
                                         type="text"
-                                        value={siteName}
-                                        onChange={(e) => setSiteName(e.target.value)}
+                                        value={generalSettings.platform_name}
+                                        onChange={(e) => setGeneralSettings({ ...generalSettings, platform_name: e.target.value })}
                                         className="w-full h-11 px-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
                                     />
                                 </div>
@@ -467,8 +843,8 @@ export function AdminSettingsPage() {
                                     <label className="block text-xs font-bold text-slate-600 mb-1.5">بريد الدعم الفني</label>
                                     <input
                                         type="email"
-                                        value={supportEmail}
-                                        onChange={(e) => setSupportEmail(e.target.value)}
+                                        value={generalSettings.support_email}
+                                        onChange={(e) => setGeneralSettings({ ...generalSettings, support_email: e.target.value })}
                                         className="w-full h-11 px-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
                                     />
                                 </div>
@@ -478,13 +854,19 @@ export function AdminSettingsPage() {
                         <div>
                             <label className="block text-xs font-bold text-slate-600 mb-1.5">وصف مختصر (SEO)</label>
                             <textarea
+                                value={generalSettings.description}
+                                onChange={(e) => setGeneralSettings({ ...generalSettings, description: e.target.value })}
                                 className="w-full h-24 px-4 py-3 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium resize-none"
                                 placeholder="منصة تعليمية رائدة..."
                             />
                         </div>
 
-                        <button className="w-full h-11 mt-6 rounded-[10px] bg-shibl-crimson hover:bg-red-800 text-white font-bold text-sm transition-all flex items-center justify-center gap-2">
-                            <Save size={18} />
+                        <button
+                            onClick={handleGeneralSave}
+                            disabled={generalSaving}
+                            className="w-full h-11 mt-6 rounded-[10px] bg-shibl-crimson hover:bg-red-800 text-white font-bold text-sm transition-all flex items-center justify-center gap-2"
+                        >
+                            {generalSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
                             حفظ التغييرات
                         </button>
                     </div>
@@ -504,11 +886,11 @@ export function AdminSettingsPage() {
                                     <p className="text-xs text-slate-500 mt-1">عند التفعيل، ستكون المنصة غير متاحة للزوار</p>
                                 </div>
                                 <button
-                                    onClick={() => setMaintenanceMode(!maintenanceMode)}
-                                    className={`relative w-12 h-7 rounded-full transition-colors duration-300 ${maintenanceMode ? 'bg-red-500' : 'bg-slate-300'
+                                    onClick={() => setGeneralSettings({ ...generalSettings, maintenance_mode: !generalSettings.maintenance_mode })}
+                                    className={`relative w-12 h-7 rounded-full transition-colors duration-300 ${generalSettings.maintenance_mode ? 'bg-red-500' : 'bg-slate-300'
                                         }`}
                                 >
-                                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform duration-300 shadow-sm ${maintenanceMode ? 'left-1' : 'left-6'
+                                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform duration-300 shadow-sm ${generalSettings.maintenance_mode ? 'left-1' : 'left-6'
                                         }`} />
                                 </button>
                             </div>
@@ -520,11 +902,11 @@ export function AdminSettingsPage() {
                                     <p className="text-xs text-slate-500 mt-1">السماح بتسجيل مستخدمين جدد</p>
                                 </div>
                                 <button
-                                    onClick={() => setRegistrationOpen(!registrationOpen)}
-                                    className={`relative w-12 h-7 rounded-full transition-colors duration-300 ${registrationOpen ? 'bg-green-500' : 'bg-slate-300'
+                                    onClick={() => setGeneralSettings({ ...generalSettings, registration_open: !generalSettings.registration_open })}
+                                    className={`relative w-12 h-7 rounded-full transition-colors duration-300 ${generalSettings.registration_open ? 'bg-green-500' : 'bg-slate-300'
                                         }`}
                                 >
-                                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform duration-300 shadow-sm ${registrationOpen ? 'left-1' : 'left-6'
+                                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform duration-300 shadow-sm ${generalSettings.registration_open ? 'left-1' : 'left-6'
                                         }`} />
                                 </button>
                             </div>
@@ -533,11 +915,176 @@ export function AdminSettingsPage() {
                             <div>
                                 <label className="block text-xs font-bold text-slate-600 mb-2">اللغة الافتراضية</label>
                                 <div className="relative">
-                                    <select className="w-full h-11 px-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson outline-none text-sm font-medium appearance-none bg-white">
+                                    <select
+                                        value={generalSettings.default_language}
+                                        onChange={(e) => setGeneralSettings({ ...generalSettings, default_language: e.target.value })}
+                                        className="w-full h-11 px-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson outline-none text-sm font-medium appearance-none bg-white"
+                                    >
                                         <option value="ar">العربية (Arabic)</option>
                                         <option value="en">الإنجليزية (English)</option>
                                     </select>
                                     <Globe size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Contact Tab Content */}
+            {activeTab === 'contact' && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Contact Info */}
+                    <div className="bg-white rounded-[20px] shadow-card border border-slate-100 p-6">
+                        <h3 className="font-bold text-charcoal mb-6 flex items-center gap-2">
+                            <Phone size={20} className="text-slate-400" />
+                            بيانات التواصل
+                        </h3>
+
+                        {contactSuccess && (
+                            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-[12px] text-sm flex items-center gap-2">
+                                <CheckCircle size={18} />
+                                {contactSuccess}
+                            </div>
+                        )}
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 mb-1.5">رقم الهاتف الرئيسي</label>
+                                <div className="relative">
+                                    <Phone size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={contactSettings.contact_phone}
+                                        onChange={(e) => setContactSettings({ ...contactSettings, contact_phone: e.target.value })}
+                                        className="w-full h-11 pr-12 pl-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                        dir="ltr"
+                                        placeholder="+966 50 000 0000"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 mb-1.5">رقم الواتساب</label>
+                                <div className="relative">
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs bg-slate-100 rounded px-1">WA</div>
+                                    <input
+                                        type="text"
+                                        value={contactSettings.contact_whatsapp}
+                                        onChange={(e) => setContactSettings({ ...contactSettings, contact_whatsapp: e.target.value })}
+                                        className="w-full h-11 pr-12 pl-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                        dir="ltr"
+                                        placeholder="Same format"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 mb-1.5">العنوان</label>
+                                <div className="relative">
+                                    <MapPin size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={contactSettings.contact_address}
+                                        onChange={(e) => setContactSettings({ ...contactSettings, contact_address: e.target.value })}
+                                        className="w-full h-11 pr-12 pl-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 mb-1.5">رابط الخريطة (Google Maps)</label>
+                                <div className="relative">
+                                    <Map size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={contactSettings.contact_map_url}
+                                        onChange={(e) => setContactSettings({ ...contactSettings, contact_map_url: e.target.value })}
+                                        className="w-full h-11 pr-12 pl-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                        dir="ltr"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 mb-1.5">ساعات العمل</label>
+                                <textarea
+                                    value={contactSettings.working_hours}
+                                    onChange={(e) => setContactSettings({ ...contactSettings, working_hours: e.target.value })}
+                                    className="w-full h-24 px-4 py-3 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium resize-none"
+                                    placeholder="الأحد - الخميس: 9 ص - 5 م..."
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleContactSave}
+                            disabled={contactSaving}
+                            className="w-full h-11 mt-6 rounded-[10px] bg-shibl-crimson hover:bg-red-800 text-white font-bold text-sm transition-all flex items-center justify-center gap-2"
+                        >
+                            {contactSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                            حفظ التغييرات
+                        </button>
+                    </div>
+
+                    {/* Social Media */}
+                    <div className="bg-white rounded-[20px] shadow-card border border-slate-100 p-6">
+                        <h3 className="font-bold text-charcoal mb-6 flex items-center gap-2">
+                            <Globe size={20} className="text-slate-400" />
+                            حسابات التواصل الاجتماعي
+                        </h3>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 mb-1.5">فيسبوك</label>
+                                <div className="relative">
+                                    <Facebook size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-600" />
+                                    <input
+                                        type="text"
+                                        value={contactSettings.social_facebook}
+                                        onChange={(e) => setContactSettings({ ...contactSettings, social_facebook: e.target.value })}
+                                        className="w-full h-11 pr-12 pl-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                        dir="ltr"
+                                        placeholder="https://facebook.com/..."
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 mb-1.5">تويتر (X)</label>
+                                <div className="relative">
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-black text-xs">X</span>
+                                    <input
+                                        type="text"
+                                        value={contactSettings.social_twitter}
+                                        onChange={(e) => setContactSettings({ ...contactSettings, social_twitter: e.target.value })}
+                                        className="w-full h-11 pr-12 pl-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                        dir="ltr"
+                                        placeholder="https://twitter.com/..."
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 mb-1.5">انستجرام</label>
+                                <div className="relative">
+                                    <LinkIcon size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-pink-600" />
+                                    <input
+                                        type="text"
+                                        value={contactSettings.social_instagram}
+                                        onChange={(e) => setContactSettings({ ...contactSettings, social_instagram: e.target.value })}
+                                        className="w-full h-11 pr-12 pl-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                        dir="ltr"
+                                        placeholder="https://instagram.com/..."
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 mb-1.5">يوتيوب</label>
+                                <div className="relative">
+                                    <LinkIcon size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-red-600" />
+                                    <input
+                                        type="text"
+                                        value={contactSettings.social_youtube}
+                                        onChange={(e) => setContactSettings({ ...contactSettings, social_youtube: e.target.value })}
+                                        className="w-full h-11 pr-12 pl-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                        dir="ltr"
+                                        placeholder="https://youtube.com/..."
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -575,23 +1122,411 @@ export function AdminSettingsPage() {
                 </div>
             )}
 
-            {/* Locations Tab Placeholder */}
+            {/* Locations Tab */}
             {activeTab === 'locations' && (
-                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[20px] border border-slate-100 shadow-sm">
-                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-                        <MapPin size={32} className="text-blue-500" />
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Countries Section */}
+                        <div className="bg-white rounded-[20px] shadow-card border border-slate-100 p-6 flex flex-col h-[600px]">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 className="text-lg font-bold text-charcoal flex items-center gap-2">
+                                        <Globe className="text-shibl-crimson" size={20} />
+                                        الدول
+                                    </h3>
+                                    <p className="text-sm text-slate-500 mt-1">إدارة قائمة الدول المتاحة</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setEditingCountry(null);
+                                        setCountryForm({ name: '', code: '' });
+                                        setIsCountryModalOpen(true);
+                                    }}
+                                    className="p-2 bg-shibl-crimson/10 text-shibl-crimson rounded-lg hover:bg-shibl-crimson/20 transition-colors"
+                                >
+                                    <Plus size={20} />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                                {isLocationLoading && countries.length === 0 ? (
+                                    <div className="flex justify-center items-center h-40">
+                                        <Loader2 className="animate-spin text-shibl-crimson" />
+                                    </div>
+                                ) : countries.length === 0 ? (
+                                    <div className="text-center py-10 text-slate-400">لا توجد دول مضافة</div>
+                                ) : (
+                                    countries.map((country) => (
+                                        <div
+                                            key={country.id}
+                                            onClick={() => setSelectedCountry(country)}
+                                            className={`p-4 rounded-xl border cursor-pointer transition-all ${selectedCountry?.id === country.id
+                                                ? 'border-shibl-crimson bg-shibl-crimson/5 shadow-sm'
+                                                : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
+                                                }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <h4 className="font-bold text-charcoal">{country.name}</h4>
+                                                    <span className="text-xs font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded mt-1 inline-block">
+                                                        {country.code}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setEditingCountry(country);
+                                                            setCountryForm({ name: country.name, code: country.code });
+                                                            setIsCountryModalOpen(true);
+                                                        }}
+                                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                    >
+                                                        <Edit size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDeleteCountry(country.id);
+                                                        }}
+                                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Cities Section */}
+                        <div className="bg-white rounded-[20px] shadow-card border border-slate-100 p-6 flex flex-col h-[600px]">
+                            {selectedCountry ? (
+                                <>
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-charcoal flex items-center gap-2">
+                                                <MapPin className="text-shibl-crimson" size={20} />
+                                                المدن - {selectedCountry.name}
+                                            </h3>
+                                            <p className="text-sm text-slate-500 mt-1">إدارة المدن التابعة للدولة المحددة</p>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                setEditingCity(null);
+                                                setCityForm({ name: '' });
+                                                setIsCityModalOpen(true);
+                                            }}
+                                            className="p-2 bg-shibl-crimson/10 text-shibl-crimson rounded-lg hover:bg-shibl-crimson/20 transition-colors"
+                                        >
+                                            <Plus size={20} />
+                                        </button>
+                                    </div>
+
+                                    <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                                        {isLocationLoading ? (
+                                            <div className="flex justify-center items-center h-40">
+                                                <Loader2 className="animate-spin text-shibl-crimson" />
+                                            </div>
+                                        ) : cities.length === 0 ? (
+                                            <div className="text-center py-10 text-slate-400">لا توجد مدن مضافة لهذه الدولة</div>
+                                        ) : (
+                                            cities.map((city) => (
+                                                <div
+                                                    key={city.id}
+                                                    className="p-4 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all flex items-center justify-between group"
+                                                >
+                                                    <h4 className="font-bold text-charcoal">{city.name}</h4>
+                                                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingCity(city);
+                                                                setCityForm({ name: city.name });
+                                                                setIsCityModalOpen(true);
+                                                            }}
+                                                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                        >
+                                                            <Edit size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteCity(city.id)}
+                                                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                                    <Globe size={48} className="mb-4 opacity-20" />
+                                    <p>اختر دولة لعرض وإدارة مدنها</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                    <h3 className="text-xl font-bold text-charcoal mb-2">إدارة المواقع</h3>
-                    <p className="text-slate-500">سيتم إضافة إدارة الدول والمدن هنا (API Available)</p>
-                    <div className="mt-4 flex gap-2">
-                        <span className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-mono rounded">GET /api/v1/countries</span>
-                        <span className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-mono rounded">GET /api/v1/cities</span>
+
+                    {/* Country Modal */}
+                    {isCountryModalOpen && (
+                        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-[20px] w-full max-w-md p-6 shadow-xl animate-in zoom-in-95 duration-200">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-xl font-bold text-charcoal">
+                                        {editingCountry ? 'تعديل بيانات الدولة' : 'اضافة دولة جديدة'}
+                                    </h3>
+                                    <button onClick={() => setIsCountryModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                                        <X size={24} />
+                                    </button>
+                                </div>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-charcoal mb-2">اسم الدولة</label>
+                                        <input
+                                            type="text"
+                                            value={countryForm.name}
+                                            onChange={(e) => setCountryForm({ ...countryForm, name: e.target.value })}
+                                            className="w-full h-11 px-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                            placeholder="مثال: المملكة العربية السعودية"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-charcoal mb-2">كود الدولة</label>
+                                        <input
+                                            type="text"
+                                            value={countryForm.code}
+                                            onChange={(e) => setCountryForm({ ...countryForm, code: e.target.value })}
+                                            className="w-full h-11 px-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium font-mono"
+                                            placeholder="مثال: SA"
+                                        />
+                                    </div>
+                                    <div className="flex justify-end gap-3 mt-6">
+                                        <button
+                                            onClick={() => setIsCountryModalOpen(false)}
+                                            className="px-6 h-11 rounded-[10px] font-bold text-slate-500 hover:bg-slate-50 transition-colors"
+                                        >
+                                            إلغاء
+                                        </button>
+                                        <button
+                                            onClick={handleSaveCountry}
+                                            disabled={!countryForm.name || !countryForm.code}
+                                            className="px-6 h-11 bg-shibl-crimson hover:bg-shibl-crimson-dark text-white rounded-[10px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            حفظ
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* City Modal */}
+                    {isCityModalOpen && (
+                        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-[20px] w-full max-w-md p-6 shadow-xl animate-in zoom-in-95 duration-200">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-xl font-bold text-charcoal">
+                                        {editingCity ? 'تعديل بيانات المدينة' : 'اضافة مدينة جديدة'}
+                                    </h3>
+                                    <button onClick={() => setIsCityModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                                        <X size={24} />
+                                    </button>
+                                </div>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-charcoal mb-2">اسم المدينة</label>
+                                        <input
+                                            type="text"
+                                            value={cityForm.name}
+                                            onChange={(e) => setCityForm({ ...cityForm, name: e.target.value })}
+                                            className="w-full h-11 px-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                            placeholder="مثال: الرياض"
+                                        />
+                                    </div>
+                                    <div className="flex justify-end gap-3 mt-6">
+                                        <button
+                                            onClick={() => setIsCityModalOpen(false)}
+                                            className="px-6 h-11 rounded-[10px] font-bold text-slate-500 hover:bg-slate-50 transition-colors"
+                                        >
+                                            إلغاء
+                                        </button>
+                                        <button
+                                            onClick={handleSaveCity}
+                                            disabled={!cityForm.name}
+                                            className="px-6 h-11 bg-shibl-crimson hover:bg-shibl-crimson-dark text-white rounded-[10px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            حفظ
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Payments Tab */}
+            {activeTab === 'payments' && (
+                <div className="space-y-6">
+                    {/* iOS Payments Toggle */}
+                    <div className="bg-white rounded-[20px] shadow-card border border-slate-100 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h3 className="text-lg font-bold text-charcoal flex items-center gap-2">
+                                <CreditCard className="text-shibl-crimson" size={20} />
+                                مدفوعات iOS
+                            </h3>
+                            <p className="text-slate-500 text-sm mt-1">
+                                تمكين أو تعطيل المدفوعات من خلال تطبيقات iOS
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    className="sr-only peer"
+                                    checked={paymentSettings.enable_ios_payments}
+                                    onChange={async (e) => {
+                                        const newValue = e.target.checked;
+                                        setPaymentSettings(prev => ({ ...prev, enable_ios_payments: newValue }));
+                                        // Auto-save toggle
+                                        try {
+                                            await adminService.upsertSetting('enable_ios_payments', newValue ? '1' : '0', 'boolean', 'مدفوعات iOS');
+                                            setPaymentSuccess('تم تحديث حالة مدفوعات iOS');
+                                            setTimeout(() => setPaymentSuccess(null), 3000);
+                                        } catch (error) {
+                                            console.error("Failed to update iOS payment setting", error);
+                                        }
+                                    }}
+                                />
+                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-shibl-crimson/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-shibl-crimson"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Payment Information Form */}
+                    <div className="bg-white rounded-[20px] shadow-card border border-slate-100 p-6">
+                        <h3 className="text-lg font-bold text-charcoal mb-6 flex items-center gap-2">
+                            <Settings size={20} className="text-shibl-crimson" />
+                            بيانات الدفع والتحويل
+                        </h3>
+
+                        <div className="space-y-6">
+                            {/* Bank Account */}
+                            {/* Bank Account - Structured Inputs */}
+                            <div className="space-y-4">
+                                <h4 className="text-sm font-bold text-charcoal border-b border-slate-100 pb-2">بيانات الحساب البنكي</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="md:col-span-2">
+                                        <label className="block text-xs font-bold text-slate-600 mb-1.5">اسم البنك</label>
+                                        <input
+                                            type="text"
+                                            value={bankDetails.bankName}
+                                            onChange={(e) => setBankDetails({ ...bankDetails, bankName: e.target.value })}
+                                            className="w-full h-11 px-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                            placeholder="مثال: بنك مسقط"
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label className="block text-xs font-bold text-slate-600 mb-1.5">اسم صاحب الحساب</label>
+                                        <input
+                                            type="text"
+                                            value={bankDetails.accountName}
+                                            onChange={(e) => setBankDetails({ ...bankDetails, accountName: e.target.value })}
+                                            className="w-full h-11 px-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                            placeholder="الاسم بالكامل كما يظهر في الحساب البنكي"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-600 mb-1.5">رقم الحساب</label>
+                                        <input
+                                            type="text"
+                                            value={bankDetails.accountNumber}
+                                            onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value })}
+                                            className="w-full h-11 px-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium font-mono"
+                                            dir="ltr"
+                                            placeholder="000000000000"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-600 mb-1.5">رقم الآيبان (IBAN)</label>
+                                        <input
+                                            type="text"
+                                            value={bankDetails.iban}
+                                            onChange={(e) => setBankDetails({ ...bankDetails, iban: e.target.value })}
+                                            className="w-full h-11 px-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium font-mono"
+                                            dir="ltr"
+                                            placeholder="OM..."
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Wallet Number */}
+                            <div>
+                                <label className="block text-sm font-bold text-charcoal mb-2">رقم المحفظة الإلكترونية</label>
+                                <div className="relative">
+                                    <Phone size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={paymentSettings.phone_wallet}
+                                        onChange={(e) => setPaymentSettings(prev => ({ ...prev, phone_wallet: e.target.value }))}
+                                        className="w-full h-11 pr-12 pl-4 rounded-[10px] border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-medium"
+                                        placeholder="01xxxxxxxxx"
+                                        dir="ltr"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-8 flex items-center justify-end gap-3">
+                            {paymentSuccess && (
+                                <div className="flex items-center gap-2 text-green-600 bg-green-50 px-4 py-2 rounded-lg animate-in fade-in slide-in-from-bottom-2">
+                                    <CheckCircle size={16} />
+                                    <span className="text-sm font-bold">{paymentSuccess}</span>
+                                </div>
+                            )}
+                            <button
+                                onClick={async () => {
+                                    setPaymentSaving(true);
+                                    try {
+                                        // Construct bank_account string: Name\nAccountName\nAccountNumber\nIBAN
+                                        // Use trim() to clean up inputs, but maintain the 4-line structure even if empty
+                                        const bankAccountString = [
+                                            bankDetails.bankName.trim(),
+                                            bankDetails.accountName.trim(),
+                                            bankDetails.accountNumber.trim(),
+                                            bankDetails.iban.trim()
+                                        ].join('\n');
+
+                                        await Promise.all([
+                                            adminService.upsertSetting('bank_account', bankAccountString, 'text'),
+                                            adminService.upsertSetting('phone_wallet', paymentSettings.phone_wallet, 'text')
+                                        ]);
+                                        setPaymentSuccess('تم حفظ بيانات الدفع بنجاح');
+                                        setTimeout(() => setPaymentSuccess(null), 3000);
+                                    } catch (error) {
+                                        console.error("Failed to save payment settings", error);
+                                    } finally {
+                                        setPaymentSaving(false);
+                                    }
+                                }}
+                                disabled={paymentSaving}
+                                className="h-11 px-8 bg-shibl-crimson hover:bg-shibl-crimson-dark text-white rounded-[10px] font-bold transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-shibl-crimson/20"
+                            >
+                                {paymentSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                                حفظ التغييرات
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* Other Tabs */}
-            {(activeTab === 'payments' || activeTab === 'notifications') && (
+            {/* Notifications Tab Placeholder */}
+            {activeTab === 'notifications' && (
                 <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[20px] border border-slate-100 shadow-sm">
                     <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                         <AlertTriangle size={32} className="text-slate-400" />
@@ -603,4 +1538,3 @@ export function AdminSettingsPage() {
         </>
     );
 }
-

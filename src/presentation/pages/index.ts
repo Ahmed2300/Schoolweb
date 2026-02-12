@@ -9,3 +9,4 @@ export * from './admin';
 export * from './teacher';
 export { NotFoundPage } from './NotFoundPage';
 export { MaintenancePage } from './MaintenancePage';
+export { ContactPage } from './ContactPage';

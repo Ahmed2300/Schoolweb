@@ -60,9 +60,26 @@ export const commonService = {
     getSemestersByGrade: async (gradeId: number): Promise<Semester[]> => {
         const response = await apiClient.get(endpoints.grades.semestersByGrade(gradeId));
         // Handle wrapped responses
+
         const data = response.data;
         if (Array.isArray(data)) return data;
         if (data && Array.isArray(data.data)) return data.data;
         return [];
+    },
+
+    // Settings
+    getSettings: async (): Promise<any> => {
+        const response = await apiClient.get(endpoints.settings.public.list);
+        return response.data?.data || response.data;
+    },
+
+    getSetting: async (key: string): Promise<any> => {
+        try {
+            const response = await apiClient.get(endpoints.settings.public.get(key));
+            return response.data?.data || response.data;
+        } catch (error) {
+            console.warn(`Setting ${key} not found.`);
+            return null;
+        }
     },
 };

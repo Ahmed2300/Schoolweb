@@ -42,24 +42,24 @@ type GradingFilter = 'all' | 'pending' | 'graded';
 
 function AttemptCardSkeleton() {
     return (
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5">
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3 flex-1">
-                    <Skeleton className="w-10 h-10 rounded-full" />
+                    <Skeleton className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700" />
                     <div className="flex-1 space-y-2">
-                        <Skeleton className="h-5 w-40" />
-                        <Skeleton className="h-4 w-56" />
+                        <Skeleton className="h-5 w-40 bg-slate-200 dark:bg-slate-700" />
+                        <Skeleton className="h-4 w-56 bg-slate-200 dark:bg-slate-700" />
                     </div>
                 </div>
-                <Skeleton className="h-7 w-24 rounded-full" />
+                <Skeleton className="h-7 w-24 rounded-full bg-slate-200 dark:bg-slate-700" />
             </div>
             <div className="flex items-center gap-4 mt-3">
-                <Skeleton className="h-4 w-28" />
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-28 bg-slate-200 dark:bg-slate-700" />
+                <Skeleton className="h-4 w-32 bg-slate-200 dark:bg-slate-700" />
+                <Skeleton className="h-4 w-20 bg-slate-200 dark:bg-slate-700" />
             </div>
             <div className="flex justify-end mt-4">
-                <Skeleton className="h-9 w-28 rounded-lg" />
+                <Skeleton className="h-9 w-28 rounded-lg bg-slate-200 dark:bg-slate-700" />
             </div>
         </div>
     );
@@ -74,7 +74,7 @@ function GradingStatusBadge({ attempt }: { attempt: QuizAttemptForGrading }) {
 
     if (totalEssays === 0) {
         return (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
                 <CheckCircle2 size={14} />
                 لا توجد أسئلة مقالية
             </span>
@@ -83,7 +83,7 @@ function GradingStatusBadge({ attempt }: { attempt: QuizAttemptForGrading }) {
 
     if (gradedCount === totalEssays) {
         return (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400">
                 <CheckCircle2 size={14} />
                 تم التصحيح ({gradedCount}/{totalEssays})
             </span>
@@ -92,7 +92,7 @@ function GradingStatusBadge({ attempt }: { attempt: QuizAttemptForGrading }) {
 
     if (gradedCount > 0) {
         return (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
                 <Clock size={14} />
                 جزئي ({gradedCount}/{totalEssays})
             </span>
@@ -100,7 +100,7 @@ function GradingStatusBadge({ attempt }: { attempt: QuizAttemptForGrading }) {
     }
 
     return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
             <AlertCircle size={14} />
             بانتظار التصحيح ({totalEssays})
         </span>
@@ -121,20 +121,20 @@ function AttemptCard({ attempt, onOpenGrading }: AttemptCardProps) {
     const earnedPoints = attempt.answers.reduce((sum, a) => sum + (a.earned_points ?? 0), 0);
 
     return (
-        <div className={`bg-white rounded-xl border transition-all hover:shadow-md group ${isFullyGraded ? 'border-emerald-200' : 'border-slate-200 hover:border-shibl-crimson/30'
+        <div className={`bg-white dark:bg-slate-900 rounded-xl border transition-all hover:shadow-md group ${isFullyGraded ? 'border-emerald-200 dark:border-emerald-900/30' : 'border-slate-200 dark:border-slate-800 hover:border-shibl-crimson/30 dark:hover:border-shibl-crimson/30'
             }`}>
             <div className="p-5">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-shibl-crimson/10 to-shibl-red-500/10 flex items-center justify-center flex-shrink-0">
-                            <User size={20} className="text-shibl-crimson" />
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-shibl-crimson/10 to-shibl-red-500/10 dark:from-shibl-crimson/20 dark:to-shibl-red-500/20 flex items-center justify-center flex-shrink-0">
+                            <User size={20} className="text-shibl-crimson dark:text-shibl-crimson-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h4 className="font-bold text-slate-900 truncate text-sm">
+                            <h4 className="font-bold text-slate-900 dark:text-white truncate text-sm">
                                 {attempt.student.name}
                             </h4>
-                            <p className="text-xs text-slate-500 truncate text-right" dir="ltr">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate text-right" dir="ltr">
                                 {attempt.student.email}
                             </p>
                         </div>
@@ -143,24 +143,24 @@ function AttemptCard({ attempt, onOpenGrading }: AttemptCardProps) {
                 </div>
 
                 {/* Quiz Info */}
-                <div className="bg-slate-50 rounded-lg p-3 mb-3">
-                    <div className="flex items-center gap-2 text-sm text-slate-700 font-medium mb-1">
-                        <FileText size={14} className="text-shibl-crimson" />
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3 mb-3">
+                    <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 font-medium mb-1">
+                        <FileText size={14} className="text-shibl-crimson dark:text-shibl-crimson-400" />
                         <span className="flex items-center gap-1.5 font-bold">
                             {getQuizName(attempt.quiz.name)}
                         </span>
                         {attempt.quiz.unit && !Array.isArray(attempt.quiz.unit.name) && (attempt.quiz.unit.name.ar || attempt.quiz.unit.name.en) && (
-                            <span className="text-[10px] font-normal px-2 py-0.5 bg-slate-100 rounded-full border border-slate-200">
+                            <span className="text-[10px] font-normal px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full border border-slate-200 dark:border-slate-600">
                                 {attempt.quiz.unit.name.ar || attempt.quiz.unit.name.en}
                             </span>
                         )}
                         {attempt.quiz.lecture && (
-                            <span className="text-[10px] font-normal px-2 py-0.5 bg-slate-100 rounded-full border border-slate-200">
+                            <span className="text-[10px] font-normal px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full border border-slate-200 dark:border-slate-600">
                                 {attempt.quiz.lecture.title.ar || attempt.quiz.lecture.title.en}
                             </span>
                         )}
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-slate-500">
+                    <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
                         <span className="flex items-center gap-1">
                             <Clock size={12} />
                             {new Date(attempt.completed_at).toLocaleDateString('ar-EG', {
@@ -186,7 +186,7 @@ function AttemptCard({ attempt, onOpenGrading }: AttemptCardProps) {
                         <button
                             onClick={() => onOpenGrading(attempt)}
                             className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${isFullyGraded
-                                ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                                 : 'bg-shibl-crimson text-white hover:bg-shibl-red-600 shadow-md shadow-shibl-crimson/20'
                                 }`}
                         >
@@ -211,12 +211,12 @@ function EmptyGradingState({ filter }: { filter: GradingFilter }) {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-200">
-            <div className="w-20 h-20 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mb-6">
+        <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+            <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-full flex items-center justify-center mb-6">
                 <ClipboardCheck size={40} />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">التصحيح</h3>
-            <p className="text-slate-500 max-w-sm mx-auto text-center">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">التصحيح</h3>
+            <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto text-center">
                 {messages[filter]}
             </p>
         </div>
@@ -299,18 +299,18 @@ export function CourseGradingTab({ courseId, courseName }: CourseGradingTabProps
             {/* Header with Stats */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <ClipboardCheck className="text-shibl-crimson" size={22} />
                         تصحيح الأسئلة المقالية
                     </h2>
-                    <p className="text-sm text-slate-500 mt-1">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                         راجع وصحح إجابات الطلاب المقالية لاختبارات هذا الكورس
                     </p>
                 </div>
                 <button
                     onClick={fetchAttempts}
                     disabled={loading}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                 >
                     <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                     تحديث
@@ -320,31 +320,31 @@ export function CourseGradingTab({ courseId, courseName }: CourseGradingTabProps
             {/* Stats Cards */}
             {!loading && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                            <FileText size={20} className="text-slate-600" />
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                            <FileText size={20} className="text-slate-600 dark:text-slate-400" />
                         </div>
                         <div>
-                            <p className="text-xs text-slate-500">إجمالي المحاولات</p>
-                            <p className="text-lg font-bold text-slate-900">{allEssayAttempts.length}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">إجمالي المحاولات</p>
+                            <p className="text-lg font-bold text-slate-900 dark:text-white">{allEssayAttempts.length}</p>
                         </div>
                     </div>
-                    <div className="bg-white rounded-xl border border-red-100 p-4 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-                            <AlertCircle size={20} className="text-red-500" />
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-red-100 dark:border-red-900/30 p-4 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-red-50 dark:bg-red-900/10 flex items-center justify-center">
+                            <AlertCircle size={20} className="text-red-500 dark:text-red-400" />
                         </div>
                         <div>
-                            <p className="text-xs text-slate-500">بانتظار التصحيح</p>
-                            <p className="text-lg font-bold text-red-600">{pendingCount}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">بانتظار التصحيح</p>
+                            <p className="text-lg font-bold text-red-600 dark:text-red-400">{pendingCount}</p>
                         </div>
                     </div>
-                    <div className="bg-white rounded-xl border border-emerald-100 p-4 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-                            <CheckCircle2 size={20} className="text-emerald-500" />
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-emerald-100 dark:border-emerald-900/30 p-4 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/10 flex items-center justify-center">
+                            <CheckCircle2 size={20} className="text-emerald-500 dark:text-emerald-400" />
                         </div>
                         <div>
-                            <p className="text-xs text-slate-500">تم التصحيح</p>
-                            <p className="text-lg font-bold text-emerald-600">{gradedCount}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">تم التصحيح</p>
+                            <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{gradedCount}</p>
                         </div>
                     </div>
                 </div>
@@ -360,12 +360,12 @@ export function CourseGradingTab({ courseId, courseName }: CourseGradingTabProps
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="بحث بالاسم أو عنوان الاختبار..."
-                        className="w-full pr-10 pl-4 py-2.5 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson transition-colors"
+                        className="w-full pr-10 pl-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson transition-colors text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                     />
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
                     {([
                         { key: 'pending' as const, label: 'بانتظار', icon: Clock },
                         { key: 'all' as const, label: 'الكل', icon: Filter },
@@ -375,8 +375,8 @@ export function CourseGradingTab({ courseId, courseName }: CourseGradingTabProps
                             key={key}
                             onClick={() => setFilter(key)}
                             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${filter === key
-                                ? 'bg-white text-shibl-crimson shadow-sm'
-                                : 'text-slate-500 hover:text-slate-700'
+                                ? 'bg-white dark:bg-slate-700 text-shibl-crimson shadow-sm'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                                 }`}
                         >
                             <Icon size={14} />

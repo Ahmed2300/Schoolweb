@@ -211,15 +211,15 @@ export function getQuizStatusStyle(status: QuizStatus): {
 } {
     switch (status) {
         case 'draft':
-            return { label: 'مسودة', bgClass: 'bg-slate-100', textClass: 'text-slate-600' };
+            return { label: 'مسودة', bgClass: 'bg-slate-100 dark:bg-slate-800', textClass: 'text-slate-600 dark:text-slate-400' };
         case 'pending':
-            return { label: 'في انتظار الموافقة', bgClass: 'bg-amber-100', textClass: 'text-amber-700' };
+            return { label: 'في انتظار الموافقة', bgClass: 'bg-amber-100 dark:bg-amber-900/20', textClass: 'text-amber-700 dark:text-amber-400' };
         case 'approved':
-            return { label: 'معتمد', bgClass: 'bg-emerald-100', textClass: 'text-emerald-700' };
+            return { label: 'معتمد', bgClass: 'bg-emerald-100 dark:bg-emerald-900/20', textClass: 'text-emerald-700 dark:text-emerald-400' };
         case 'rejected':
-            return { label: 'مرفوض', bgClass: 'bg-red-100', textClass: 'text-red-700' };
+            return { label: 'مرفوض', bgClass: 'bg-red-100 dark:bg-red-900/20', textClass: 'text-red-700 dark:text-red-400' };
         default:
-            return { label: 'غير معروف', bgClass: 'bg-slate-100', textClass: 'text-slate-600' };
+            return { label: 'غير معروف', bgClass: 'bg-slate-100 dark:bg-slate-800', textClass: 'text-slate-600 dark:text-slate-400' };
     }
 }
 

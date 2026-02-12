@@ -90,13 +90,13 @@ import { LiveSessionEmbedModal } from '../../components/shared/LiveSessionEmbedM
 
 function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | number }) {
     return (
-        <div className="flex items-center gap-3 px-4 py-3 bg-white/60 backdrop-blur-sm rounded-xl border border-slate-200/60">
-            <div className="p-2 bg-shibl-crimson/10 rounded-lg">
-                <Icon className="w-5 h-5 text-shibl-crimson" />
+        <div className="flex items-center gap-3 px-4 py-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-slate-800/60 transition-colors duration-300">
+            <div className="p-2 bg-shibl-crimson/10 dark:bg-shibl-crimson/20 rounded-lg">
+                <Icon className="w-5 h-5 text-shibl-crimson dark:text-shibl-crimson/90" />
             </div>
             <div>
-                <p className="text-sm text-slate-500">{label}</p>
-                <p className="text-lg font-bold text-slate-900">{value}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
+                <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{value}</p>
             </div>
         </div>
     );
@@ -196,7 +196,7 @@ function SortableUnit({ unit, ...props }: { unit: Unit } & any) {
 }
 
 // Sortable Content Item Wrapper (Lecture or Quiz)
-function SortableContentItem({ id, item, type, renderItem }: { id: string, item: any, type: 'lecture' | 'quiz', renderItem: (item: any) => React.ReactNode }) {
+function SortableContentItem({ id, item, type, renderItem, disabled }: { id: string, item: any, type: 'lecture' | 'quiz', renderItem: (item: any) => React.ReactNode, disabled?: boolean }) {
     const {
         attributes,
         listeners,
@@ -204,7 +204,7 @@ function SortableContentItem({ id, item, type, renderItem }: { id: string, item:
         transform,
         transition,
         isDragging
-    } = useSortable({ id });
+    } = useSortable({ id, disabled });
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -217,13 +217,15 @@ function SortableContentItem({ id, item, type, renderItem }: { id: string, item:
     return (
         <div ref={setNodeRef} style={style}>
             <div className="flex items-center gap-2">
-                <div
-                    className="p-1 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500"
-                    {...attributes}
-                    {...listeners}
-                >
-                    <GripVertical size={16} />
-                </div>
+                {!disabled && (
+                    <div
+                        className="p-1 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500"
+                        {...attributes}
+                        {...listeners}
+                    >
+                        <GripVertical size={16} />
+                    </div>
+                )}
                 <div className="flex-1">
                     {renderItem(item)}
                 </div>
@@ -251,7 +253,8 @@ function UnitCard({
     dragHandleProps,
     loadingQuizId,
     currentTime,
-    isOverlay
+    isOverlay,
+    lectureFilter = 'all'
 }: {
     unit: Unit;
     isExpanded: boolean;
@@ -272,6 +275,7 @@ function UnitCard({
     loadingQuizId?: number | null;
     currentTime?: Date;
     isOverlay?: boolean;
+    lectureFilter?: 'all' | 'real' | 'trial';
 }) {
     const { isRTL } = useLanguage();
 
@@ -291,17 +295,25 @@ function UnitCard({
 
     // Merge lectures and quizzes for sorting
     // We add a 'sortType' and 'uniqueId' to handle DND
+    const filteredLectures = (unit.lectures || []).filter(l => {
+        if (!lectureFilter || lectureFilter === 'all') return true;
+        if (lectureFilter === 'real') return !l.is_test;
+        if (lectureFilter === 'trial') return l.is_test;
+        return true;
+    });
+
     const mixedContent = [
-        ...(unit.lectures || []).map((l: any) => ({ ...l, sortType: 'lecture', uniqueId: `l-${l.id}`, order: l.order || 0 })),
+        ...filteredLectures.map((l: any) => ({ ...l, sortType: 'lecture', uniqueId: `l-${l.id}`, order: l.order || 0 })),
         ...unitQuizzes.map((q: any) => ({ ...q, sortType: 'quiz', uniqueId: `q-${q.id}`, order: q.order || 0 }))
     ].sort((a, b) => (a.order || 0) - (b.order || 0));
 
     const [items, setItems] = useState(mixedContent);
+    const isDragDisabled = lectureFilter !== 'all';
 
     // Sync state when props change
     useEffect(() => {
         setItems(mixedContent);
-    }, [unit, quizzes]); // Added quizzes dependency
+    }, [unit, quizzes, lectureFilter]); // Added lectureFilter dependency
 
     const sensors = useSensors(
         useSensor(MouseSensor, {
@@ -353,11 +365,11 @@ function UnitCard({
     return (
         <div
             ref={setNodeRef}
-            className={`bg-white rounded-xl border transition-all shadow-sm ${isOver ? 'border-shibl-crimson ring-2 ring-shibl-crimson/20 bg-red-50/10' : 'border-slate-200'} overflow-hidden`}
+            className={`bg-white dark:bg-slate-900 rounded-xl border transition-all shadow-sm ${isOver ? 'border-shibl-crimson ring-2 ring-shibl-crimson/20 bg-red-50/10 dark:bg-red-900/10' : 'border-slate-200 dark:border-slate-800'} overflow-hidden`}
         >
             {/* Unit Header */}
             <div
-                className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${isExpanded ? 'bg-slate-50' : 'hover:bg-slate-50'}`}
+                className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${isExpanded ? 'bg-slate-50 dark:bg-slate-800/50' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
                 onClick={onToggle}
             >
                 <div className="flex items-center gap-3 flex-1">
@@ -368,12 +380,12 @@ function UnitCard({
                     >
                         <GripVertical size={20} />
                     </div>
-                    <div className="w-10 h-10 rounded-lg bg-shibl-crimson/10 flex items-center justify-center text-shibl-crimson">
+                    <div className="w-10 h-10 rounded-lg bg-shibl-crimson/10 dark:bg-shibl-crimson/20 flex items-center justify-center text-shibl-crimson">
                         <Layers className="w-5 h-5" />
                     </div>
                     <div>
-                        <h4 className="font-semibold text-slate-900">{getLocalizedTitle(unit.title)}</h4>
-                        <p className="text-sm text-slate-500">
+                        <h4 className="font-semibold text-slate-900 dark:text-slate-100">{getLocalizedTitle(unit.title)}</h4>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
                             {unit.lectures?.length || 0} محاضرة • {unitQuizzes.length || 0} اختبار
                         </p>
                     </div>
@@ -406,7 +418,7 @@ function UnitCard({
 
             {/* Expanded Content */}
             {isExpanded && (
-                <div className="border-t border-slate-100 p-4 space-y-3 bg-slate-50/50">
+                <div className="border-t border-slate-100 dark:border-slate-800 p-4 space-y-3 bg-slate-50/50 dark:bg-slate-950/30">
                     <DndContext
                         sensors={sensors}
                         collisionDetection={closestCenter}
@@ -417,7 +429,7 @@ function UnitCard({
                             strategy={verticalListSortingStrategy}
                         >
                             {items.length === 0 && (
-                                <div className="text-center py-8 text-slate-400 bg-white rounded-lg border border-dashed border-slate-200">
+                                <div className="text-center py-8 text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900/50 rounded-lg border border-dashed border-slate-200 dark:border-slate-700">
                                     لا يوجد محتوى في هذه الوحدة
                                 </div>
                             )}
@@ -428,18 +440,19 @@ function UnitCard({
                                     id={item.uniqueId}
                                     item={item}
                                     type={item.sortType}
+                                    disabled={isDragDisabled}
                                     renderItem={(contentItem) => {
                                         if (item.sortType === 'lecture') {
                                             // Render Lecture
                                             return (
-                                                <div className="flex flex-col gap-2 p-3 bg-white rounded-lg border border-slate-200 hover:shadow-sm transition-shadow">
+                                                <div className="flex flex-col gap-2 p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 hover:shadow-sm transition-shadow">
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-3">
-                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${contentItem.is_online ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>
+                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${contentItem.is_online ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'}`}>
                                                                 {contentItem.is_online ? <Video size={16} /> : <PlayCircle size={16} />}
                                                             </div>
                                                             <div>
-                                                                <h5 className="text-sm font-medium text-slate-900">{getLocalizedTitle(contentItem.title)}</h5>
+                                                                <h5 className="text-sm font-medium text-slate-900 dark:text-slate-100">{getLocalizedTitle(contentItem.title)}</h5>
                                                                 <div className="flex flex-col gap-1">
                                                                     <div className="flex items-center gap-2 text-xs text-slate-500">
                                                                         {contentItem.is_pending_approval ? (
@@ -568,13 +581,13 @@ function UnitCard({
 
                                                     {/* Nested Quizzes in Lecture */}
                                                     {quizzes?.filter(q => q.lecture_id === contentItem.id).map(quiz => (
-                                                        <div key={quiz.id} className="mr-8 mt-2 flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-200 border-r-4 border-r-amber-500">
+                                                        <div key={quiz.id} className="mr-8 mt-2 flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 border-r-4 border-r-amber-500">
                                                             <div className="flex items-center gap-3">
-                                                                <div className="w-6 h-6 rounded bg-amber-100 text-amber-600 flex items-center justify-center">
+                                                                <div className="w-6 h-6 rounded bg-amber-100 dark:bg-amber-900/20 text-amber-600 dark:text-amber-500 flex items-center justify-center">
                                                                     <HelpCircle size={14} />
                                                                 </div>
                                                                 <div>
-                                                                    <h6 className="text-xs font-semibold text-slate-800">{getLocalizedTitle(quiz.name)}</h6>
+                                                                    <h6 className="text-xs font-semibold text-slate-800 dark:text-slate-200">{getLocalizedTitle(quiz.name)}</h6>
                                                                     <div className="flex items-center gap-2 text-[10px] text-slate-500">
                                                                         <span className={`px-1 py-0.5 rounded text-[9px] ${quiz.status === 'approved' ? 'bg-green-100 text-green-700' :
                                                                             quiz.status === 'pending' ? 'bg-amber-100 text-amber-700' :
@@ -615,13 +628,13 @@ function UnitCard({
                                         } else {
                                             // Render Quiz
                                             return (
-                                                <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200 hover:shadow-sm transition-shadow border-l-4 border-l-amber-500">
+                                                <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 hover:shadow-sm transition-shadow border-l-4 border-l-amber-500">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                                                        <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-500 flex items-center justify-center">
                                                             <HelpCircle size={16} />
                                                         </div>
                                                         <div>
-                                                            <h5 className="text-sm font-medium text-slate-900">{getLocalizedTitle(contentItem.name)}</h5>
+                                                            <h5 className="text-sm font-medium text-slate-900 dark:text-slate-100">{getLocalizedTitle(contentItem.name)}</h5>
                                                             <div className="flex items-center gap-2 text-xs text-slate-500">
                                                                 <span className={`px-1.5 py-0.5 rounded text-[10px] ${contentItem.status === 'approved' ? 'bg-green-100 text-green-700' :
                                                                     contentItem.status === 'pending' ? 'bg-amber-100 text-amber-700' :
@@ -1338,6 +1351,9 @@ export function TeacherCourseDetailsPage() {
         }
     };
 
+    // Filter State
+    const [lectureFilter, setLectureFilter] = useState<'all' | 'real' | 'trial'>('all');
+
     // Mutations
     const createUnit = useMutation({
         mutationFn: async (data: CreateUnitRequest) => {
@@ -1398,20 +1414,20 @@ export function TeacherCourseDetailsPage() {
     return (
         <div className="container mx-auto px-4 py-8 pb-32">
             {/* Header */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm mb-8 relative overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm mb-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-shibl-crimson to-shibl-red-500"></div>
 
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                     <div>
-                        <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
+                        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-2">
                             <span onClick={() => navigate('/teacher/courses')} className="cursor-pointer hover:text-shibl-crimson transition-colors">
                                 كورساتي
                             </span>
                             <ChevronDown className="w-4 h-4 -rotate-90 rtl:rotate-90" />
-                            <span className="text-slate-900 font-medium">تفاصيل الكورس</span>
+                            <span className="text-slate-900 dark:text-slate-100 font-medium">تفاصيل الكورس</span>
                         </div>
-                        <h1 className="text-2xl font-bold text-slate-900 mb-2">{courseName}</h1>
-                        <div className="flex items-center gap-4 text-sm text-slate-500">
+                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{courseName}</h1>
+                        <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${course.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
                                 }`}>
                                 {course.is_active ? 'نشط' : 'مسودة'}
@@ -1430,7 +1446,7 @@ export function TeacherCourseDetailsPage() {
                         <button
                             onClick={handleStartTestSession}
                             disabled={startingTestSession}
-                            className={`px-4 py-2.5 bg-white border border-shibl-crimson text-shibl-crimson hover:bg-shibl-crimson hover:text-white rounded-xl transition-all flex items-center gap-2 font-medium shadow-sm ${startingTestSession ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`px-4 py-2.5 bg-white dark:bg-slate-800 border border-shibl-crimson text-shibl-crimson hover:bg-shibl-crimson hover:text-white rounded-xl transition-all flex items-center gap-2 font-medium shadow-sm ${startingTestSession ? 'opacity-50 cursor-not-allowed' : ''}`}
                             title="جلسة تجريبية (30 دقيقة - لا تظهر للطلاب)"
                         >
                             {startingTestSession ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
@@ -1457,12 +1473,12 @@ export function TeacherCourseDetailsPage() {
                 </div>
 
                 {/* Tab Navigation */}
-                <div className="flex gap-1 overflow-x-auto pb-1 mt-8 border-b border-slate-200">
+                <div className="flex gap-1 overflow-x-auto pb-1 mt-8 border-b border-slate-200 dark:border-slate-800">
                     <button
                         onClick={() => setActiveTab('content')}
                         className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeTab === 'content'
                             ? 'text-shibl-crimson border-b-2 border-shibl-crimson'
-                            : 'text-slate-500 hover:text-slate-700'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}
                     >
                         محتوى الكورس
@@ -1471,7 +1487,7 @@ export function TeacherCourseDetailsPage() {
                         onClick={() => setActiveTab('students')}
                         className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeTab === 'students'
                             ? 'text-shibl-crimson border-b-2 border-shibl-crimson'
-                            : 'text-slate-500 hover:text-slate-700'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}
                     >
                         الطلاب
@@ -1480,7 +1496,7 @@ export function TeacherCourseDetailsPage() {
                         onClick={() => setActiveTab('quizzes')}
                         className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeTab === 'quizzes'
                             ? 'text-shibl-crimson border-b-2 border-shibl-crimson'
-                            : 'text-slate-500 hover:text-slate-700'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}
                     >
                         الاختبارات
@@ -1489,7 +1505,7 @@ export function TeacherCourseDetailsPage() {
                         onClick={() => setActiveTab('grading')}
                         className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors flex items-center gap-1.5 ${activeTab === 'grading'
                             ? 'text-shibl-crimson border-b-2 border-shibl-crimson'
-                            : 'text-slate-500 hover:text-slate-700'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}
                     >
                         <ClipboardCheck size={16} />
@@ -1502,15 +1518,49 @@ export function TeacherCourseDetailsPage() {
             {/* Tab Content */}
             {activeTab === 'content' && (
                 <div className="space-y-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold text-slate-900">محتوى الكورس</h2>
-                        <button
-                            onClick={handleCreateUnit}
-                            className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
-                        >
-                            <Plus size={18} />
-                            <span>إضافة وحدة</span>
-                        </button>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">محتوى الكورس</h2>
+
+                        <div className="flex items-center gap-3 w-full sm:w-auto">
+                            {/* Filter Tabs */}
+                            <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-lg flex items-center">
+                                <button
+                                    onClick={() => setLectureFilter('all')}
+                                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${lectureFilter === 'all'
+                                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                        }`}
+                                >
+                                    الكل
+                                </button>
+                                <button
+                                    onClick={() => setLectureFilter('real')}
+                                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${lectureFilter === 'real'
+                                        ? 'bg-white dark:bg-slate-700 text-shibl-crimson shadow-sm'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                        }`}
+                                >
+                                    محاضرات فعلية
+                                </button>
+                                <button
+                                    onClick={() => setLectureFilter('trial')}
+                                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${lectureFilter === 'trial'
+                                        ? 'bg-white dark:bg-slate-700 text-amber-600 shadow-sm'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                        }`}
+                                >
+                                    محاضرات تجريبية
+                                </button>
+                            </div>
+
+                            <button
+                                onClick={handleCreateUnit}
+                                className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors whitespace-nowrap"
+                            >
+                                <Plus size={18} />
+                                <span>إضافة وحدة</span>
+                            </button>
+                        </div>
                     </div>
 
                     <DndContext
@@ -1553,8 +1603,11 @@ export function TeacherCourseDetailsPage() {
                                         onStartSession={handleStartSession}
                                         currentTime={currentTime}
 
+
+
                                         quizzes={allQuizzes} // Pass all quizzes for filtering inside UnitCard
                                         loadingQuizId={loadingQuizId}
+                                        lectureFilter={lectureFilter}
                                     />
                                 ))}
                             </div>
@@ -1563,30 +1616,30 @@ export function TeacherCourseDetailsPage() {
                         {/* Unassigned Quizzes Section */}
                         {allQuizzes.filter(q => !q.unit_id).length > 0 && (
                             <div className="mt-8">
-                                <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
                                     <FileQuestion className="text-amber-500" />
                                     اختبارات غير مرتبطة بوحدة
-                                    <span className="text-xs font-normal text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+                                    <span className="text-xs font-normal text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">
                                         {allQuizzes.filter(q => !q.unit_id).length}
                                     </span>
                                 </h3>
                                 <div className="grid gap-3">
                                     {allQuizzes.filter(q => !q.unit_id).map(quiz => (
                                         <DraggableUnassignedQuiz key={quiz.id} quiz={quiz}>
-                                            <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl border border-amber-100 cursor-grab active:cursor-grabbing hover:shadow-md transition-all">
+                                            <div className="flex items-center justify-between p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/20 cursor-grab active:cursor-grabbing hover:shadow-md transition-all">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-lg bg-white text-amber-500 flex items-center justify-center shadow-sm">
-                                                        <GripVertical size={20} className="text-slate-300" />
+                                                    <div className="w-10 h-10 rounded-lg bg-white dark:bg-slate-800 text-amber-500 flex items-center justify-center shadow-sm">
+                                                        <GripVertical size={20} className="text-slate-300 dark:text-slate-600" />
                                                     </div>
                                                     <div>
-                                                        <h5 className="font-medium text-slate-900">{getLocalizedTitle(quiz.name)}</h5>
+                                                        <h5 className="font-medium text-slate-900 dark:text-slate-100">{getLocalizedTitle(quiz.name)}</h5>
                                                         <p className="text-xs text-slate-500 mt-0.5">
                                                             {quiz.questions_count || 0} أسئلة • {quiz.duration_minutes} دقيقة
                                                         </p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-xs text-amber-700 bg-amber-100/50 px-2 py-1 rounded">
+                                                    <span className="text-xs text-amber-700 dark:text-amber-500 bg-amber-100/50 dark:bg-amber-900/30 px-2 py-1 rounded">
                                                         غير مرتبط
                                                     </span>
                                                     <button
@@ -1642,6 +1695,7 @@ export function TeacherCourseDetailsPage() {
                                                     dragHandleProps={{}}
                                                     loadingQuizId={null}
                                                     isOverlay={true}
+                                                    lectureFilter={lectureFilter}
                                                 />
                                             </div>
                                         );
@@ -1689,12 +1743,12 @@ export function TeacherCourseDetailsPage() {
                     {loadingStudents ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {[1, 2, 3, 4, 5, 6].map((i) => (
-                                <div key={i} className="bg-white rounded-xl border border-slate-200 p-5 flex items-start gap-4">
-                                    <Skeleton className="w-12 h-12 rounded-full flex-shrink-0" />
+                                <div key={i} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 flex items-start gap-4">
+                                    <Skeleton className="w-12 h-12 rounded-full flex-shrink-0 bg-slate-200 dark:bg-slate-800" />
                                     <div className="flex-1 min-w-0 space-y-2">
-                                        <Skeleton className="h-5 w-3/4" />
-                                        <Skeleton className="h-4 w-1/2" />
-                                        <Skeleton className="h-6 w-24 mt-2" />
+                                        <Skeleton className="h-5 w-3/4 bg-slate-200 dark:bg-slate-800" />
+                                        <Skeleton className="h-4 w-1/2 bg-slate-200 dark:bg-slate-800" />
+                                        <Skeleton className="h-6 w-24 mt-2 bg-slate-200 dark:bg-slate-800" />
                                     </div>
                                 </div>
                             ))}
@@ -1702,20 +1756,20 @@ export function TeacherCourseDetailsPage() {
                     ) : students.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {students.map((student) => (
-                                <div key={student.id} className="bg-white rounded-xl border border-slate-200 p-5 flex items-start gap-4 hover:shadow-md transition-all">
-                                    <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100 flex-shrink-0 flex items-center justify-center">
+                                <div key={student.id} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 flex items-start gap-4 hover:shadow-md transition-all">
+                                    <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 flex-shrink-0 flex items-center justify-center">
                                         {student.avatar ? (
                                             <img src={student.avatar} alt={student.name} className="w-full h-full object-cover" />
                                         ) : (
-                                            <User size={24} className="text-slate-400" />
+                                            <User size={24} className="text-slate-400 dark:text-slate-500" />
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="font-bold text-slate-900 mb-1 truncate text-base">{student.name}</h4>
-                                        <div className="text-sm text-slate-500 flex items-center gap-2 mb-2 truncate">
+                                        <h4 className="font-bold text-slate-900 dark:text-white mb-1 truncate text-base">{student.name}</h4>
+                                        <div className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2 mb-2 truncate">
                                             <span className="truncate" dir="ltr">{student.email}</span>
                                         </div>
-                                        <div className="text-xs text-slate-400 flex items-center gap-1 bg-slate-50 w-fit px-2 py-1 rounded">
+                                        <div className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 w-fit px-2 py-1 rounded">
                                             <Clock size={12} />
                                             <span>تاريخ الانضمام: {new Date(student.subscribed_at).toLocaleDateString('ar-EG')}</span>
                                         </div>
@@ -1724,12 +1778,12 @@ export function TeacherCourseDetailsPage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-200">
-                            <div className="w-20 h-20 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mb-6">
+                        <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+                            <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-full flex items-center justify-center mb-6">
                                 <Users size={40} />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-900 mb-2">قائمة الطلاب المسجلين</h3>
-                            <p className="text-slate-500 max-w-sm mx-auto text-center">
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">قائمة الطلاب المسجلين</h3>
+                            <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto text-center">
                                 لا يوجد طلاب مسجلين في هذا الكورس حالياً. سيظهر جميع الطلاب المنضمين إلى الكورس في هذه القائمة.
                             </p>
                         </div>
