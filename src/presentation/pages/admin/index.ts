@@ -16,7 +16,6 @@ export { AdminPackagesPage } from './packages';
 export { AdminPackageSubscriptionsPage } from './AdminPackageSubscriptionsPage';
 export { default as AdminAcademicGraphPage } from './AdminAcademicGraphPage';
 
-export { AdminRecordingsPage } from './AdminRecordingsPage';
 export { AdminScheduleConfigPage } from './AdminScheduleConfigPage';
 export { AdminSlotRequestsPage } from './AdminSlotRequestsPage';
 export { AdminClassSchedulesPage } from './AdminClassSchedulesPage';

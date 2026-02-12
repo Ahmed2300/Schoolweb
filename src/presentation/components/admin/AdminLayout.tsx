@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { AdminSidebar } from './AdminSidebar';
 import { useLanguage } from '../../hooks';
-import { Search, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useAuthStore } from '../../store';
 import { SessionManager } from './SessionManager';
 import { NotificationBell, NotificationToast } from '@/components/notifications';
@@ -85,21 +85,7 @@ export function AdminLayout() {
                         </div>
                     </div>
 
-                    {/* Center - Search (Hidden on small mobile) */}
-                    <div className="hidden md:block flex-1 max-w-xl mx-4 lg:mx-8">
-                        <div className="relative">
-                            <input
-                                type="text"
-                                placeholder="ابحث هنا..."
-                                className="w-full h-10 lg:h-11 pl-4 pr-12 rounded-[12px] bg-slate-50 border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm"
-                            />
-                            <Search size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                        </div>
-                    </div>
-                    {/* Mobile Search Icon */}
-                    <button className="md:hidden p-2 text-slate-500">
-                        <Search size={20} />
-                    </button>
+
 
                     {/* Right side - Notifications */}
                     <NotificationBell />

@@ -64,7 +64,7 @@ export const TeacherNotificationMenu = () => {
         <div className="relative" ref={menuRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative w-10 h-10 rounded-xl bg-[#F8F9FA] hover:bg-slate-100 border border-slate-200 flex items-center justify-center text-[#636E72] hover:text-[#1F1F1F] transition-all"
+                className="relative w-10 h-10 rounded-xl bg-[#F8F9FA] dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 flex items-center justify-center text-[#636E72] dark:text-gray-400 hover:text-[#1F1F1F] dark:hover:text-white transition-all"
                 aria-label="Notifications"
             >
                 <Bell size={20} />
@@ -76,9 +76,9 @@ export const TeacherNotificationMenu = () => {
             </button>
 
             {isOpen && (
-                <div className={`absolute top-12 ${isRTL ? 'left-0' : 'right-0'} w-80 md:w-96 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200`}>
-                    <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                        <h3 className="font-bold text-slate-800">الإشعارات</h3>
+                <div className={`absolute top-12 ${isRTL ? 'left-0' : 'right-0'} w-80 md:w-96 bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-xl border border-slate-100 dark:border-white/10 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200`}>
+                    <div className="p-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
+                        <h3 className="font-bold text-slate-800 dark:text-white">الإشعارات</h3>
                         {unreadCount > 0 && (
                             <button
                                 onClick={() => markAllAsRead()}
@@ -92,28 +92,28 @@ export const TeacherNotificationMenu = () => {
 
                     <div className="max-h-[400px] overflow-y-auto">
                         {loading && notifications.length === 0 ? (
-                            <div className="p-8 text-center text-slate-400">
+                            <div className="p-8 text-center text-slate-400 dark:text-gray-500">
                                 جاري التحميل...
                             </div>
                         ) : notifications.length === 0 ? (
                             <div className="p-8 text-center flex flex-col items-center gap-3">
-                                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-300">
+                                <div className="w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center text-slate-300 dark:text-gray-600">
                                     <Bell size={24} />
                                 </div>
-                                <p className="text-slate-500 font-medium">لا توجد إشعارات جديدة</p>
+                                <p className="text-slate-500 dark:text-gray-400 font-medium">لا توجد إشعارات جديدة</p>
                             </div>
                         ) : (
-                            <div className="divide-y divide-slate-50">
+                            <div className="divide-y divide-slate-50 dark:divide-white/5">
                                 {Array.isArray(notifications) && notifications.map((notification) => (
                                     <div
                                         key={notification.id}
-                                        className={`p-4 hover:bg-slate-50 transition-colors cursor-pointer relative group ${!notification.read_at ? 'bg-amber-50/30' : ''}`}
+                                        className={`p-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer relative group ${!notification.read_at ? 'bg-amber-50/30 dark:bg-amber-500/10' : ''}`}
                                         onClick={() => handleNotificationClick(notification)}
                                     >
                                         <div className="flex gap-3">
                                             <div className={`mt-1 shrink-0 w-2 h-2 rounded-full ${!notification.read_at ? 'bg-shibl-crimson' : 'bg-transparent'}`} />
                                             <div className="flex-1">
-                                                <p className={`text-sm ${!notification.read_at ? 'text-slate-800 font-medium' : 'text-slate-600'}`}>
+                                                <p className={`text-sm ${!notification.read_at ? 'text-slate-800 dark:text-white font-medium' : 'text-slate-600 dark:text-gray-400'}`}>
                                                     {notification.data.message || 'إشعار جديد'}
                                                 </p>
                                                 {/* Specialized content based on type if needed */}
@@ -127,7 +127,7 @@ export const TeacherNotificationMenu = () => {
                                                         </span>
                                                     </div>
                                                 )}
-                                                <p className="text-xs text-slate-400 mt-1.5 flex items-center gap-1">
+                                                <p className="text-xs text-slate-400 dark:text-gray-500 mt-1.5 flex items-center gap-1">
                                                     {formatTime(notification.created_at)}
                                                 </p>
                                             </div>
@@ -138,8 +138,8 @@ export const TeacherNotificationMenu = () => {
                         )}
                     </div>
 
-                    <div className="p-3 border-t border-slate-100 bg-slate-50/50 text-center">
-                        <button className="text-xs text-slate-500 hover:text-shibl-crimson transition-colors">
+                    <div className="p-3 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 text-center">
+                        <button className="text-xs text-slate-500 dark:text-gray-400 hover:text-shibl-crimson transition-colors">
                             عرض كل الإشعارات
                         </button>
                     </div>

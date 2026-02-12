@@ -130,16 +130,16 @@ export function WeeklySchedule() {
 
     if (loading) {
         return (
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm animate-pulse">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-3xl p-6 border border-slate-100 dark:border-white/5 shadow-sm animate-pulse">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="h-8 w-8 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-                    <div className="h-6 w-40 bg-slate-200 dark:bg-slate-800 rounded" />
+                    <div className="h-8 w-8 bg-slate-200 dark:bg-white/5 rounded-xl" />
+                    <div className="h-6 w-40 bg-slate-200 dark:bg-white/5 rounded" />
                 </div>
                 <div className="space-y-6">
                     {[1, 2, 3].map(i => (
                         <div key={i}>
-                            <div className="h-5 w-32 bg-slate-100 dark:bg-slate-800 rounded mb-3" />
-                            <div className="h-20 bg-slate-50 dark:bg-slate-800/50 rounded-2xl" />
+                            <div className="h-5 w-32 bg-slate-100 dark:bg-white/5 rounded mb-3" />
+                            <div className="h-20 bg-slate-50 dark:bg-white/5 rounded-2xl" />
                         </div>
                     ))}
                 </div>
@@ -149,24 +149,24 @@ export function WeeklySchedule() {
 
     if (error) {
         return (
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-red-100 dark:border-red-900/30 text-center">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-3xl p-6 border border-red-100 dark:border-red-900/30 text-center">
                 <p className="text-red-500 dark:text-red-400">{error}</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
+        <div className="bg-white dark:bg-[#1E1E1E] rounded-3xl border border-slate-100 dark:border-white/5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
             {/* Header */}
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-l from-slate-50/50 to-white dark:from-slate-800/50 dark:to-slate-900">
+            <div className="p-6 border-b border-slate-100 dark:border-white/5 bg-gradient-to-l from-slate-50/50 to-white dark:from-[#2A2A2A] dark:to-[#1E1E1E]">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-shibl-crimson to-red-600 flex items-center justify-center text-white shadow-lg shadow-red-200/50 dark:shadow-none">
                             <Calendar size={20} />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-slate-800 dark:text-white">الجدول الأسبوعي</h2>
-                            <p className="text-sm text-slate-400 dark:text-slate-500">
+                            <h2 className="text-lg font-bold text-charcoal dark:text-white">الجدول الأسبوعي</h2>
+                            <p className="text-sm text-slate-400 dark:text-gray-400">
                                 {totalLectures === 0
                                     ? 'لا توجد محاضرات هذا الأسبوع'
                                     : `${totalLectures} محاضرة خلال الأسبوع`
@@ -208,20 +208,20 @@ export function WeeklySchedule() {
                                 transition={{ delay: groupIdx * 0.05 }}
                             >
                                 {/* Day Header */}
-                                <div className={`flex items-center gap-3 mb-3 ${isCurrentDay ? 'text-shibl-crimson' : 'text-slate-500'}`}>
+                                <div className={`flex items-center gap-3 mb-3 ${isCurrentDay ? 'text-shibl-crimson' : 'text-gray-500'}`}>
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${isCurrentDay
                                         ? 'bg-shibl-crimson text-white shadow-md shadow-red-200 dark:shadow-none'
                                         : hasLectures
-                                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-                                            : 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500'
+                                            ? 'bg-slate-100 dark:bg-[#333333] text-slate-600 dark:text-gray-300'
+                                            : 'bg-slate-50 dark:bg-[#2A2A2A] text-slate-400 dark:text-gray-500'
                                         }`}>
                                         {format(group.date, 'd')}
                                     </div>
-                                    <span className={`text-sm font-semibold ${isCurrentDay ? 'text-shibl-crimson' : hasLectures ? 'text-slate-700 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500'}`}>
+                                    <span className={`text-sm font-semibold ${isCurrentDay ? 'text-shibl-crimson' : hasLectures ? 'text-charcoal dark:text-gray-300' : 'text-slate-400 dark:text-gray-500'}`}>
                                         {group.label}
                                     </span>
                                     {!hasLectures && (
-                                        <span className="text-xs text-slate-300 dark:text-slate-600 bg-slate-50 dark:bg-slate-800/50 px-2 py-0.5 rounded-full">يوم حر</span>
+                                        <span className="text-xs text-slate-300 dark:text-gray-600 bg-slate-50 dark:bg-[#2A2A2A] px-2 py-0.5 rounded-full">يوم حر</span>
                                     )}
                                 </div>
 
@@ -240,8 +240,8 @@ export function WeeklySchedule() {
                                                     animate={{ opacity: 1, x: 0 }}
                                                     transition={{ delay: groupIdx * 0.05 + itemIdx * 0.03 }}
                                                     className={`relative rounded-2xl border p-4 transition-all duration-300 ${isLive
-                                                        ? 'bg-gradient-to-l from-red-50 to-white dark:from-red-900/10 dark:to-slate-800 border-red-200 dark:border-red-900/30 shadow-lg shadow-red-100/50 dark:shadow-none'
-                                                        : 'bg-white dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 hover:shadow-md'
+                                                        ? 'bg-gradient-to-l from-red-50 to-white dark:from-red-900/10 dark:to-[#1E1E1E] border-red-200 dark:border-red-900/30 shadow-lg shadow-red-100/50 dark:shadow-none'
+                                                        : 'bg-white dark:bg-[#2A2A2A] border-slate-100 dark:border-white/5 hover:border-slate-200 dark:hover:border-white/10 hover:shadow-md'
                                                         }`}
                                                 >
                                                     {/* Live Indicator */}
@@ -254,22 +254,22 @@ export function WeeklySchedule() {
                                                     <div className="flex items-start justify-between gap-4">
                                                         <div className="flex-1 min-w-0">
                                                             {/* Title & Course */}
-                                                            <h4 className="font-bold text-slate-800 dark:text-white truncate mb-1">{item.title}</h4>
-                                                            <p className="text-sm text-slate-400 dark:text-slate-500 truncate">{item.course_name}</p>
+                                                            <h4 className="font-bold text-charcoal dark:text-white truncate mb-1">{item.title}</h4>
+                                                            <p className="text-sm text-slate-400 dark:text-gray-400 truncate">{item.course_name}</p>
 
                                                             {/* Meta Row */}
-                                                            <div className="flex items-center gap-4 mt-3 text-xs text-slate-500 dark:text-slate-400">
+                                                            <div className="flex items-center gap-4 mt-3 text-xs text-slate-500 dark:text-gray-400">
                                                                 <span className="flex items-center gap-1.5">
-                                                                    <Clock size={12} className="text-slate-400 dark:text-slate-500" />
+                                                                    <Clock size={12} className="text-slate-400 dark:text-gray-500" />
                                                                     {format(item.start_time, 'hh:mm a', { locale: ar })}
                                                                 </span>
                                                                 <span className="flex items-center gap-1.5">
-                                                                    <Users size={12} className="text-slate-400 dark:text-slate-500" />
+                                                                    <Users size={12} className="text-slate-400 dark:text-gray-500" />
                                                                     {item.students_count} طالب
                                                                 </span>
                                                                 <span className={`px-2 py-0.5 rounded-full font-medium ${item.is_online
                                                                     ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                                                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                                                                    : 'bg-slate-100 dark:bg-[#333333] text-slate-500 dark:text-gray-400'
                                                                     }`}>
                                                                     {item.is_online ? 'بث مباشر' : 'مسجلة'}
                                                                 </span>
@@ -313,13 +313,13 @@ export function WeeklySchedule() {
                                                                 </button>
                                                             )}
                                                             {item.status === 'completed' && !item.has_recording && (
-                                                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 text-xs font-medium rounded-lg">
+                                                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-[#333333] text-slate-500 dark:text-gray-400 text-xs font-medium rounded-lg">
                                                                     <XCircle size={14} />
                                                                     انتهت
                                                                 </div>
                                                             )}
                                                             {item.meeting_status !== 'preparing' && !isLive && isUpcoming && minutesUntil > 60 && (
-                                                                <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-300 dark:text-slate-500">
+                                                                <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-[#2A2A2A] flex items-center justify-center text-slate-300 dark:text-gray-500">
                                                                     <Play size={16} />
                                                                 </div>
                                                             )}
@@ -330,7 +330,7 @@ export function WeeklySchedule() {
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="mr-11 py-3 px-4 bg-slate-50/50 dark:bg-slate-800/20 rounded-xl border border-dashed border-slate-100 dark:border-slate-700 text-center text-sm text-slate-300 dark:text-slate-500">
+                                    <div className="mr-11 py-3 px-4 bg-slate-50/50 dark:bg-white/5 rounded-xl border border-dashed border-slate-100 dark:border-white/10 text-center text-sm text-slate-300 dark:text-gray-500">
                                         لا توجد محاضرات
                                     </div>
                                 )}

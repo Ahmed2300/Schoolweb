@@ -27,8 +27,8 @@ import {
 // Section component for grouping settings
 function SettingsSection({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
     return (
-        <div className={`bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden ${className}`}>
-            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+        <div className={`bg-white dark:bg-[#1E1E1E] rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm overflow-hidden ${className}`}>
+            <div className="px-6 py-4 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
                 <h2 className="text-lg font-bold text-charcoal dark:text-slate-100">{title}</h2>
             </div>
             <div className="p-6">{children}</div>
@@ -40,7 +40,7 @@ function SettingsSection({ title, children, className = '' }: { title: string; c
 function FormField({ label, children, error, required = false }: { label: string; children: React.ReactNode; error?: string; required?: boolean }) {
     return (
         <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label className="block text-sm font-medium text-slate-700 dark:text-gray-300">
                 {label}
                 {required && <span className="text-red-500 mx-1">*</span>}
             </label>
@@ -221,7 +221,7 @@ export function TeacherSettingsPage() {
                                         {avatarPreview ? (
                                             <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500">
+                                            <div className="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-white/10 text-slate-400 dark:text-gray-500">
                                                 <User size={40} />
                                             </div>
                                         )}
@@ -250,7 +250,7 @@ export function TeacherSettingsPage() {
                                 </div>
                                 <div className="text-center sm:text-right flex-1">
                                     <h3 className="font-semibold text-charcoal dark:text-white">{user?.name || 'المعلم'}</h3>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">{user?.email}</p>
+                                    <p className="text-sm text-slate-500 dark:text-gray-400 mb-2">{user?.email}</p>
                                     <p className="text-xs text-slate-400">
                                         صيغ المدعومة: JPG, PNG. الحد الأقصى: 5MB
                                     </p>
@@ -263,7 +263,7 @@ export function TeacherSettingsPage() {
                                         <input
                                             type="text"
                                             {...registerProfile('name')}
-                                            className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-white dark:bg-slate-950 border outline-none transition-all dark:text-white ${profileErrors.name ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 dark:border-slate-700 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'}`}
+                                            className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-white dark:bg-[#121212] border outline-none transition-all dark:text-white ${profileErrors.name ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'}`}
                                             placeholder="الاسم الكامل"
                                         />
                                         <User size={18} className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 text-slate-400`} />
@@ -276,7 +276,7 @@ export function TeacherSettingsPage() {
                                             type="email"
                                             {...registerProfile('email')}
                                             readOnly
-                                            className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed outline-none`}
+                                            className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-slate-50 dark:bg-white/10 border border-slate-200 dark:border-white/5 text-slate-500 dark:text-gray-400 cursor-not-allowed outline-none`}
                                             dir="ltr"
                                         />
                                         <Mail size={18} className={`absolute ${isRTL ? 'left-3 pl-1' : 'right-3'} top-1/2 -translate-y-1/2 text-slate-400`} />
@@ -288,7 +288,7 @@ export function TeacherSettingsPage() {
                                         <input
                                             type="tel"
                                             {...registerProfile('phone')}
-                                            className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-white dark:bg-slate-950 border outline-none transition-all dark:text-white ${profileErrors.phone ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 dark:border-slate-700 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'}`}
+                                            className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-white dark:bg-[#121212] border outline-none transition-all dark:text-white ${profileErrors.phone ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-slate-200 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'}`}
                                             placeholder="+966 5XX XXX XXXX"
                                             dir="ltr"
                                         />
@@ -301,7 +301,7 @@ export function TeacherSettingsPage() {
                                         <input
                                             type="text"
                                             {...registerProfile('specialization')}
-                                            className="w-full h-12 px-4 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all placeholder:text-slate-400 dark:text-white"
+                                            className="w-full h-12 px-4 rounded-xl bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all placeholder:text-slate-400 dark:text-white"
                                             placeholder="مثال: الرياضيات"
                                         />
                                         <Briefcase size={18} className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 text-slate-400`} />
@@ -312,7 +312,7 @@ export function TeacherSettingsPage() {
                                     <input
                                         type="text"
                                         {...registerProfile('qualification')}
-                                        className="w-full h-12 px-4 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all placeholder:text-slate-400 dark:text-white"
+                                        className="w-full h-12 px-4 rounded-xl bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all placeholder:text-slate-400 dark:text-white"
                                         placeholder="مثال: بكالوريوس تربية"
                                     />
                                 </FormField>
@@ -349,7 +349,7 @@ export function TeacherSettingsPage() {
                                     <input
                                         type={showPasswords.current ? 'text' : 'password'}
                                         {...registerPassword('currentPassword')}
-                                        className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-white dark:bg-slate-950 border outline-none transition-all dark:text-white ${passwordErrors.currentPassword ? 'border-red-300 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'}`}
+                                        className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-white dark:bg-[#121212] border outline-none transition-all dark:text-white ${passwordErrors.currentPassword ? 'border-red-300 focus:border-red-500' : 'border-slate-200 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'}`}
                                         dir="ltr"
                                     />
                                     <button
@@ -367,7 +367,7 @@ export function TeacherSettingsPage() {
                                     <input
                                         type={showPasswords.new ? 'text' : 'password'}
                                         {...registerPassword('newPassword')}
-                                        className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-white dark:bg-slate-950 border outline-none transition-all dark:text-white ${passwordErrors.newPassword ? 'border-red-300 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'}`}
+                                        className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-white dark:bg-[#121212] border outline-none transition-all dark:text-white ${passwordErrors.newPassword ? 'border-red-300 focus:border-red-500' : 'border-slate-200 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'}`}
                                         dir="ltr"
                                     />
                                     <button
@@ -385,7 +385,7 @@ export function TeacherSettingsPage() {
                                     <input
                                         type={showPasswords.confirm ? 'text' : 'password'}
                                         {...registerPassword('confirmPassword')}
-                                        className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-white dark:bg-slate-950 border outline-none transition-all dark:text-white ${passwordErrors.confirmPassword ? 'border-red-300 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'}`}
+                                        className={`w-full h-12 px-4 ${isRTL ? 'pl-10' : 'pr-10'} rounded-xl bg-white dark:bg-[#121212] border outline-none transition-all dark:text-white ${passwordErrors.confirmPassword ? 'border-red-300 focus:border-red-500' : 'border-slate-200 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10'}`}
                                         dir="ltr"
                                     />
                                     <button
@@ -426,19 +426,19 @@ export function TeacherSettingsPage() {
                     <SettingsSection title="تفضيلات التطبيق">
                         <div className="space-y-4">
                             {/* Dark Mode */}
-                            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100/50 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 transition-colors">
+                            <div className="flex items-center justify-center p-3 rounded-xl bg-slate-50 dark:bg-[#1E1E1E] border border-slate-100/50 dark:border-white/10 hover:border-slate-200 dark:hover:border-white/20 transition-colors">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-lg bg-indigo-100/50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                                    <div className="w-9 h-9 rounded-lg bg-indigo-100/50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
                                         <Moon size={18} />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-charcoal dark:text-slate-200 text-sm">الوضع الداكن</p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">مظهر مريح للعين</p>
+                                        <p className="font-medium text-charcoal dark:text-white text-sm">الوضع الداكن</p>
+                                        <p className="text-xs text-slate-500 dark:text-gray-400">مظهر مريح للعين</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={toggleTheme}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${isDarkMode ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-700'}`}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${isDarkMode ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-white/10'}`}
                                 >
                                     <span
                                         className={`${isDarkMode ? '-translate-x-6' : '-translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
@@ -448,14 +448,14 @@ export function TeacherSettingsPage() {
                             </div>
 
                             {/* Notifications */}
-                            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100/50 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 transition-colors">
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-[#1E1E1E] border border-slate-100/50 dark:border-white/10 hover:border-slate-200 dark:hover:border-white/20 transition-colors">
                                 <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-lg bg-blue-100/50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
                                         <Mail size={18} />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-charcoal dark:text-slate-200 text-sm">إشعارات البريد</p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">تلقي التنبيهات المهمة</p>
+                                        <p className="font-medium text-charcoal dark:text-white text-sm">إشعارات البريد</p>
+                                        <p className="text-xs text-slate-500 dark:text-gray-400">تلقي التنبيهات المهمة</p>
                                     </div>
                                 </div>
                                 <button
@@ -470,14 +470,14 @@ export function TeacherSettingsPage() {
                             </div>
 
                             {/* Language - Example for future extension */}
-                            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100/50 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 transition-colors">
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-[#1E1E1E] border border-slate-100/50 dark:border-white/10 hover:border-slate-200 dark:hover:border-white/20 transition-colors">
                                 <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-lg bg-emerald-100/50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                                         <Languages size={18} />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-charcoal dark:text-slate-200 text-sm">اللغة</p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">العربية (الافتراضية)</p>
+                                        <p className="font-medium text-charcoal dark:text-white text-sm">اللغة</p>
+                                        <p className="text-xs text-slate-500 dark:text-gray-400">العربية (الافتراضية)</p>
                                     </div>
                                 </div>
                             </div>
@@ -486,10 +486,10 @@ export function TeacherSettingsPage() {
 
                     <div className="bg-gradient-to-br from-shibl-crimson/5 to-transparent dark:from-shibl-crimson/10 rounded-2xl border border-shibl-crimson/10 p-6">
                         <h3 className="text-shibl-crimson font-bold mb-2">أمان الحساب</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
+                        <p className="text-sm text-slate-600 dark:text-gray-400 mb-4 leading-relaxed">
                             تأكد من استخدام كلمة مرور قوية تتكون من أحرف وأرقام ورموز. لا تشارك كلمة مرورك الخاصة مع أي شخص.
                         </p>
-                        <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+                        <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-gray-500">
                             <Lock size={12} />
                             <span>بياناتك مشفرة ومحمية</span>
                         </div>

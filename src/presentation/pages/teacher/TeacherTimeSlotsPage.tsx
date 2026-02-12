@@ -216,23 +216,23 @@ export function TeacherTimeSlotsPage() {
             {/* Header - Hidden in Print */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
                 <div>
-                    <h1 className="text-2xl font-bold text-charcoal flex items-center gap-3">
+                    <h1 className="text-2xl font-bold text-charcoal dark:text-white flex items-center gap-3">
                         <div className="p-2 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl text-white shadow-lg shadow-violet-500/25">
                             <Clock size={24} />
                         </div>
                         إدارة المواعيد والحصص
                     </h1>
-                    <p className="text-slate-500 mt-1">عرض المواعيد المتاحة وتقديم طلبات للحصص المباشرة</p>
+                    <p className="text-slate-500 dark:text-gray-400 mt-1">عرض المواعيد المتاحة وتقديم طلبات للحصص المباشرة</p>
                 </div>
             </div>
 
             {/* Tabs - Hidden in Print */}
-            <div className="flex items-center gap-2 bg-white rounded-2xl p-1.5 shadow-sm border border-slate-100 w-fit print:hidden">
+            <div className="flex items-center gap-2 bg-white dark:bg-[#1E1E1E] rounded-2xl p-1.5 shadow-sm border border-slate-100 dark:border-white/5 w-fit print:hidden">
                 <button
                     onClick={() => setActiveTab('available')}
                     className={`px-5 py-2.5 rounded-xl font-medium transition-all ${activeTab === 'available'
                         ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-md'
-                        : 'text-slate-600 hover:bg-slate-50'
+                        : 'text-slate-600 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-white/5'
                         }`}
                 >
                     المواعيد المتاحة
@@ -275,14 +275,14 @@ export function TeacherTimeSlotsPage() {
             {activeTab === 'available' && (
                 <div className="space-y-4 print:hidden">
                     {/* Filters */}
-                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                    <div className="bg-white dark:bg-[#1E1E1E] p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5 flex items-center gap-4">
                         <div className="flex items-center gap-2 flex-1 max-w-xs">
                             <CalendarIcon size={18} className="text-slate-400" />
                             <input
                                 type="date"
                                 value={dateFilter}
                                 onChange={(e) => setDateFilter(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition"
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#2A2A2A] text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition"
                             />
                         </div>
                         {dateFilter && (
@@ -310,7 +310,7 @@ export function TeacherTimeSlotsPage() {
                     )}
 
                     {/* Table */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-sm border border-slate-100 dark:border-white/5 overflow-hidden">
                         {loadingAvailable ? (
                             <div className="p-12 flex justify-center">
                                 <Loader2 size={32} className="animate-spin text-violet-600" />
@@ -322,17 +322,17 @@ export function TeacherTimeSlotsPage() {
                             </div>
                         ) : (
                             <table className="w-full">
-                                <thead className="bg-slate-50/50 border-b border-slate-100">
+                                <thead className="bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
                                     <tr>
-                                        <th className="text-right py-4 px-6 font-semibold text-slate-600 text-sm">التاريخ</th>
-                                        <th className="text-right py-4 px-6 font-semibold text-slate-600 text-sm">الوقت</th>
-                                        <th className="text-center py-4 px-6 font-semibold text-slate-600 text-sm">إجراء</th>
+                                        <th className="text-right py-4 px-6 font-semibold text-slate-600 dark:text-gray-400 text-sm">التاريخ</th>
+                                        <th className="text-right py-4 px-6 font-semibold text-slate-600 dark:text-gray-400 text-sm">الوقت</th>
+                                        <th className="text-center py-4 px-6 font-semibold text-slate-600 dark:text-gray-400 text-sm">إجراء</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {availableSlots.map(slot => (
-                                        <tr key={slot.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition">
-                                            <td className="py-4 px-6 font-medium text-slate-700">{formatDate(slot.start_time)}</td>
+                                        <tr key={slot.id} className="border-b border-slate-100 dark:border-white/5 last:border-0 hover:bg-slate-50/50 dark:hover:bg-white/5 transition">
+                                            <td className="py-4 px-6 font-medium text-slate-700 dark:text-gray-300">{formatDate(slot.start_time)}</td>
                                             <td className="py-4 px-6 font-medium text-violet-700">
                                                 {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
                                             </td>
@@ -358,7 +358,7 @@ export function TeacherTimeSlotsPage() {
 
             {/* My Requests Tab */}
             {activeTab === 'requests' && (
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden print:hidden">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-sm border border-slate-100 dark:border-white/5 overflow-hidden print:hidden">
                     {loadingRequests ? (
                         <div className="p-12 flex justify-center">
                             <Loader2 size={32} className="animate-spin text-blue-600" />
@@ -383,20 +383,20 @@ export function TeacherTimeSlotsPage() {
                                 {myRequests.map(slot => {
                                     const status = STATUS_CONFIG[slot.status] || STATUS_CONFIG.pending;
                                     return (
-                                        <tr key={slot.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition">
+                                        <tr key={slot.id} className="border-b border-slate-100 dark:border-white/5 last:border-0 hover:bg-slate-50/50 dark:hover:bg-white/5 transition">
                                             <td className="py-4 px-6">
-                                                <div className="font-medium text-slate-800">{formatDate(slot.start_time)}</div>
-                                                <div className="text-sm text-slate-500 mt-1">
+                                                <div className="font-medium text-slate-800 dark:text-white">{formatDate(slot.start_time)}</div>
+                                                <div className="text-sm text-slate-500 dark:text-gray-400 mt-1">
                                                     {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
                                                 </div>
                                             </td>
                                             <td className="py-4 px-6">
                                                 <div className="flex items-center gap-2">
-                                                    <BookOpen size={16} className="text-slate-400" />
-                                                    <span className="font-medium text-slate-700">{getLocalizedText(slot.lecture?.title)}</span>
+                                                    <BookOpen size={16} className="text-slate-400 dark:text-gray-500" />
+                                                    <span className="font-medium text-slate-700 dark:text-gray-300">{getLocalizedText(slot.lecture?.title)}</span>
                                                 </div>
                                                 {slot.lecture?.course && (
-                                                    <div className="text-xs text-slate-500 mt-1 mr-6">
+                                                    <div className="text-xs text-slate-500 dark:text-gray-500 mt-1 mr-6">
                                                         {getCourseName(slot.lecture.course.name)}
                                                     </div>
                                                 )}
@@ -582,13 +582,13 @@ export function TeacherTimeSlotsPage() {
             {/* Request Modal */}
             {requestModalOpen && selectedSlot && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 print:hidden">
-                    <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-                        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-                            <h3 className="text-lg font-bold text-charcoal">طلب حجز موعد</h3>
-                            <button onClick={closeRequestModal} className="p-2 hover:bg-slate-100 rounded-lg transition"><X size={20} /></button>
+                    <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/5">
+                        <div className="p-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-charcoal dark:text-white">طلب حجز موعد</h3>
+                            <button onClick={closeRequestModal} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition text-slate-500 dark:text-gray-400"><X size={20} /></button>
                         </div>
                         <div className="p-6 space-y-4">
-                            <div className="flex items-center gap-3 p-3 bg-violet-50 rounded-xl border border-violet-100 text-violet-800">
+                            <div className="flex items-center gap-3 p-3 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-100 dark:border-violet-500/20 text-violet-800 dark:text-violet-300">
                                 <Clock size={20} />
                                 <div>
                                     <p className="font-bold">{formatDate(selectedSlot.start_time)}</p>

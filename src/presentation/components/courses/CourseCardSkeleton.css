@@ -1,0 +1,85 @@
+/* Dark Mode Support for Course Card Skeleton */
+.dark .course-card--skeleton {
+    background-color: #1e293b;
+    /* slate-800 */
+    border-color: #334155;
+    /* slate-700 */
+}
+
+.dark .course-card__skeleton-pulse {
+    background-color: #334155;
+    /* slate-700 */
+    animation: pulse-dark 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-dark {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Fallback styles if original CSS is missing */
+.course-card--skeleton {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.course-card__skeleton-pulse {
+    background-color: #e2e8f0;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: .5;
+    }
+}
+
+.course-card__thumbnail.course-card__skeleton-pulse {
+    height: 180px;
+    width: 100%;
+}
+
+.course-card__content {
+    padding: 1rem;
+}
+
+.course-card__skeleton-line {
+    border-radius: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.course-card__skeleton-line--title {
+    height: 24px;
+    width: 80%;
+}
+
+.course-card__skeleton-line--teacher {
+    height: 16px;
+    width: 60%;
+}
+
+.course-card__skeleton-line--meta {
+    height: 16px;
+    width: 40%;
+}
+
+.course-card__skeleton-line--price {
+    height: 32px;
+    width: 30%;
+    margin-top: 1rem;
+}

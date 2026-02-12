@@ -24,6 +24,8 @@ import {
     ArrowRight,
     ArrowLeft,
     Eye,
+    BookOpen,
+    HelpCircle,
 } from 'lucide-react';
 import {
     quizService,
@@ -100,8 +102,8 @@ function QuestionNavigator({
                             : isGraded
                                 ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
                                 : isEssay
-                                    ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                                    ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20'
+                                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10'
                             }`}
                         title={`سؤال ${index + 1} — ${isEssay ? (isGraded ? 'مصحح' : 'بانتظار') : 'اختيارات'}`}
                     >
@@ -137,6 +139,22 @@ export function EssayGradingModal({
         () => allAnswers.filter(a => a.question_type === 'essay'),
         [allAnswers]
     );
+
+    // Calculate current overall grade percentage
+    const currentGrade = useMemo(() => {
+        if (!attempt.answers || attempt.answers.length === 0) return 0;
+        const totalPoints = attempt.answers.reduce((acc, a) => acc + a.points, 0);
+        if (totalPoints === 0) return 0;
+
+        const currentPoints = attempt.answers.reduce((acc, a) => {
+            const local = grading.get(a.id);
+            // Use local earned points if available, otherwise saved points, otherwise 0
+            const points = local ? local.earnedPoints : (a.earned_points || 0);
+            return acc + points;
+        }, 0);
+
+        return Math.round((currentPoints / totalPoints) * 100);
+    }, [attempt.answers, grading]);
 
     // Initialize grading state from existing data
     useEffect(() => {
@@ -247,11 +265,11 @@ export function EssayGradingModal({
             {/* Modal */}
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div
-                    className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden"
+                    className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-6 py-4">
+                    <div className="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-[#1E1E1E] dark:to-[#1E1E1E] dark:border-b dark:border-white/5 text-white px-6 py-4">
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
@@ -304,20 +322,20 @@ export function EssayGradingModal({
 
                     {/* Content */}
                     {currentAnswer && (
-                        <div className="flex-1 overflow-y-auto p-6 bg-white dark:bg-slate-900">
+                        <div className="flex-1 overflow-y-auto p-6 bg-white dark:bg-[#1E1E1E]">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 {/* Left: Question & Student Answer */}
                                 <div className="space-y-4">
                                     {/* Question */}
-                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
-                                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                                    <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-5 border border-slate-200 dark:border-white/10">
+                                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-gray-300 mb-3">
                                             <FileText size={16} className="text-shibl-crimson" />
                                             السؤال {currentIndex + 1}
-                                            <span className="mr-auto text-xs font-normal text-slate-500 dark:text-slate-400">
+                                            <span className="mr-auto text-xs font-normal text-slate-500 dark:text-gray-400">
                                                 ({currentAnswer.points} نقطة)
                                             </span>
                                         </div>
-                                        <p className="text-slate-900 dark:text-slate-100 text-sm leading-relaxed">
+                                        <p className="text-slate-900 dark:text-gray-100 text-sm leading-relaxed">
                                             {currentAnswer.question_text?.ar || currentAnswer.question_text?.en || 'نص السؤال'}
                                         </p>
                                         {currentAnswer.question_image_url && (
@@ -328,7 +346,7 @@ export function EssayGradingModal({
                                                 <img
                                                     src={currentAnswer.question_image_url}
                                                     alt="صورة السؤال"
-                                                    className="rounded-lg max-h-48 object-cover border border-slate-200 dark:border-slate-700"
+                                                    className="rounded-lg max-h-48 object-cover border border-slate-200 dark:border-white/10"
                                                 />
                                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
                                                     <Eye size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -338,17 +356,17 @@ export function EssayGradingModal({
                                     </div>
 
                                     {/* Student Answer */}
-                                    <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-5 border border-blue-200 dark:border-blue-900/30">
+                                    <div className="bg-blue-50 dark:bg-blue-500/10 rounded-xl p-5 border border-blue-200 dark:border-blue-500/20">
                                         <div className="flex items-center gap-2 text-sm font-semibold text-blue-700 dark:text-blue-300 mb-3">
                                             <MessageSquare size={16} />
                                             إجابة الطالب
                                         </div>
                                         {currentAnswer.user_answer ? (
-                                            <p className="text-slate-900 dark:text-slate-100 text-sm leading-relaxed whitespace-pre-wrap">
+                                            <p className="text-slate-900 dark:text-gray-100 text-sm leading-relaxed whitespace-pre-wrap">
                                                 {String(currentAnswer.user_answer)}
                                             </p>
                                         ) : (
-                                            <p className="text-slate-400 dark:text-slate-500 italic text-sm">لم يتم تقديم إجابة نصية</p>
+                                            <p className="text-slate-400 dark:text-gray-500 italic text-sm">لم يتم تقديم إجابة نصية</p>
                                         )}
                                         {currentAnswer.user_answer_image_url && (
                                             <button
@@ -358,7 +376,7 @@ export function EssayGradingModal({
                                                 <img
                                                     src={currentAnswer.user_answer_image_url}
                                                     alt="صورة إجابة الطالب"
-                                                    className="rounded-lg max-h-48 object-cover border border-blue-200 dark:border-blue-800"
+                                                    className="rounded-lg max-h-48 object-cover border border-blue-200 dark:border-blue-500/20"
                                                 />
                                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
                                                     <Eye size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -369,13 +387,13 @@ export function EssayGradingModal({
 
                                     {/* Model Answer (Reference) */}
                                     {(currentAnswer.model_answer?.ar || currentAnswer.model_answer?.en || currentAnswer.model_answer_image_url) && (
-                                        <div className="bg-emerald-50 dark:bg-emerald-900/10 rounded-xl p-5 border border-emerald-200 dark:border-emerald-900/30">
+                                        <div className="bg-emerald-50 dark:bg-emerald-500/10 rounded-xl p-5 border border-emerald-200 dark:border-emerald-500/20">
                                             <div className="flex items-center gap-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300 mb-3">
                                                 <CheckCircle2 size={16} />
                                                 الإجابة النموذجية (مرجع)
                                             </div>
                                             {(currentAnswer.model_answer?.ar || currentAnswer.model_answer?.en) && (
-                                                <p className="text-slate-900 dark:text-slate-100 text-sm leading-relaxed whitespace-pre-wrap">
+                                                <p className="text-slate-900 dark:text-gray-100 text-sm leading-relaxed whitespace-pre-wrap">
                                                     {currentAnswer.model_answer?.ar || currentAnswer.model_answer?.en}
                                                 </p>
                                             )}
@@ -387,7 +405,7 @@ export function EssayGradingModal({
                                                     <img
                                                         src={currentAnswer.model_answer_image_url}
                                                         alt="صورة الإجابة النموذجية"
-                                                        className="rounded-lg max-h-48 object-cover border border-emerald-200 dark:border-emerald-800"
+                                                        className="rounded-lg max-h-48 object-cover border border-emerald-200 dark:border-emerald-500/20"
                                                     />
                                                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
                                                         <Eye size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -399,160 +417,153 @@ export function EssayGradingModal({
                                 </div>
 
                                 {/* Right: Grading Form */}
-                                <div className="space-y-4">
-                                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 sticky top-4">
-                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                                            <Award size={16} className="text-shibl-crimson" />
-                                            التقييم والدرجة
-                                        </h4>
-
-                                        {/* Quick Grade Buttons */}
-                                        <div className="flex gap-3 mb-5">
-                                            <button
-                                                onClick={() => handleQuickGrade(true)}
-                                                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${currentGrading?.isCorrect === true
-                                                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                                                    : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800'
-                                                    }`}
-                                            >
-                                                <Check size={18} />
-                                                صحيح
-                                            </button>
-                                            <button
-                                                onClick={() => handleQuickGrade(false)}
-                                                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${currentGrading?.isCorrect === false
-                                                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
-                                                    : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800'
-                                                    }`}
-                                            >
-                                                <XCircle size={18} />
-                                                خطأ
-                                            </button>
-                                        </div>
-
-                                        {/* Points Slider */}
-                                        <div className="mb-5">
-                                            <label className="flex items-center justify-between text-sm mb-2">
-                                                <span className="font-medium text-slate-700 dark:text-slate-300">الدرجة المكتسبة</span>
-                                                <span className="font-bold text-shibl-crimson text-lg">
-                                                    {currentGrading?.earnedPoints ?? 0} / {currentAnswer?.points ?? 0}
-                                                </span>
-                                            </label>
-                                            <input
-                                                type="range"
-                                                min={0}
-                                                max={currentAnswer?.points ?? 0}
-                                                step={0.5}
-                                                value={currentGrading?.earnedPoints ?? 0}
-                                                onChange={(e) => {
-                                                    const pts = parseFloat(e.target.value);
-                                                    updateCurrentGrading({
-                                                        earnedPoints: pts,
-                                                        isCorrect: pts > 0,
-                                                    });
-                                                }}
-                                                className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer accent-shibl-crimson"
-                                            />
-                                            {/* Quick point buttons */}
-                                            <div className="flex gap-2 mt-2">
-                                                {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
-                                                    const pts = Math.round((currentAnswer?.points ?? 0) * ratio * 2) / 2;
-                                                    return (
-                                                        <button
-                                                            key={ratio}
-                                                            onClick={() => updateCurrentGrading({
-                                                                earnedPoints: pts,
-                                                                isCorrect: pts > 0,
-                                                            })}
-                                                            className={`flex-1 py-1 text-xs font-medium rounded-md transition-all ${currentGrading?.earnedPoints === pts
-                                                                ? 'bg-shibl-crimson text-white'
-                                                                : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
-                                                                }`}
-                                                        >
-                                                            {pts}
-                                                        </button>
-                                                    );
-                                                })}
+                                <div className="flex flex-col h-full">
+                                    <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl border border-slate-200 dark:border-white/10 p-6 shadow-sm flex-1">
+                                        <div className="flex items-center justify-between mb-6">
+                                            <h3 className="text-lg font-bold text-charcoal dark:text-white flex items-center gap-2">
+                                                <Award className="text-shibl-crimson" />
+                                                تقييم الإجابة
+                                            </h3>
+                                            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-gray-400">
+                                                <span>الدرجة القصوى:</span>
+                                                <span className="font-bold text-charcoal dark:text-white">{currentAnswer?.points ?? 0}</span>
                                             </div>
                                         </div>
 
-                                        {/* Teacher Feedback */}
-                                        <div className="mb-5">
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                                <MessageSquare size={14} className="inline ml-1" />
-                                                ملاحظات المعلم (اختياري)
-                                            </label>
-                                            <textarea
-                                                value={currentGrading?.feedback ?? ''}
-                                                onChange={(e) => updateCurrentGrading({ feedback: e.target.value })}
-                                                placeholder="اكتب ملاحظاتك هنا..."
-                                                rows={3}
-                                                className="w-full px-4 py-3 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson transition-colors resize-none"
-                                            />
-                                        </div>
+                                        <div className="space-y-6">
+                                            {/* Overall Grade Display */}
+                                            <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-4 flex items-center justify-between border border-slate-100 dark:border-white/5">
+                                                <span className="text-sm font-medium text-slate-600 dark:text-slate-300">نسبة الدرجة الحالية:</span>
+                                                <span className={`text-lg font-bold ${currentGrade >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                                                    {currentGrade}%
+                                                </span>
+                                            </div>
 
-                                        {/* Save Button */}
-                                        <button
-                                            onClick={handleSaveGrade}
-                                            disabled={saving || currentGrading?.isCorrect === null}
-                                            className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${saving || currentGrading?.isCorrect === null
-                                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
-                                                : 'bg-shibl-crimson text-white hover:bg-shibl-red-600 shadow-lg shadow-shibl-crimson/20 active:scale-[0.98]'
-                                                }`}
-                                        >
-                                            {saving ? (
-                                                <>
-                                                    <Loader2 size={16} className="animate-spin" />
-                                                    جاري الحفظ...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Save size={16} />
-                                                    حفظ التقييم
-                                                </>
-                                            )}
-                                        </button>
+                                            {/* Points Slider */}
+                                            <div>
+                                                <label className="flex items-center justify-between text-sm font-medium text-slate-700 dark:text-gray-300 mb-4">
+                                                    <span>الدرجة المستخدمة</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-2xl font-bold text-shibl-crimson">
+                                                            {currentGrading?.earnedPoints ?? 0}
+                                                        </span>
+                                                        <span className="text-sm text-slate-400">/ {currentAnswer?.points ?? 0}</span>
+                                                    </div>
+                                                </label>
+
+                                                <input
+                                                    type="range"
+                                                    min={0}
+                                                    max={currentAnswer?.points ?? 0}
+                                                    step={0.5}
+                                                    value={currentGrading?.earnedPoints ?? 0}
+                                                    onChange={(e) => {
+                                                        const pts = parseFloat(e.target.value);
+                                                        updateCurrentGrading({ earnedPoints: pts });
+                                                    }}
+                                                    className="w-full h-2 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-shibl-crimson"
+                                                />
+
+                                                <div className="flex justify-between mt-2">
+                                                    <button
+                                                        onClick={() => updateCurrentGrading({ earnedPoints: 0 })}
+                                                        className="text-xs px-2 py-1 rounded bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
+                                                    >
+                                                        صفر
+                                                    </button>
+                                                    <button
+                                                        onClick={() => updateCurrentGrading({ earnedPoints: currentAnswer?.points ?? 0 })}
+                                                        className="text-xs px-2 py-1 rounded bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors"
+                                                    >
+                                                        درجة كاملة
+                                                    </button>
+                                                </div>
+                                            </div>
+
+
+                                            {/* Feedback */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                                    <MessageSquare size={14} className="inline ml-1" />
+                                                    ملاحظات المعلم (اختياري)
+                                                </label>
+                                                <textarea
+                                                    value={currentGrading?.feedback ?? ''}
+                                                    onChange={(e) => updateCurrentGrading({ feedback: e.target.value })}
+                                                    placeholder="اكتب ملاحظاتك هنا..."
+                                                    rows={4}
+                                                    className="w-full px-4 py-3 text-sm border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-[#252525] text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson transition-colors resize-none placeholder:text-slate-400 dark:placeholder:text-gray-600"
+                                                />
+                                            </div>
+
+                                            {/* Save Button */}
+                                            <button
+                                                onClick={handleSaveGrade}
+                                                disabled={saving || currentGrading?.earnedPoints === undefined}
+                                                className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${saving || currentGrading?.earnedPoints === undefined
+                                                    ? 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-gray-500 cursor-not-allowed'
+                                                    : 'bg-shibl-crimson text-white hover:bg-shibl-red-600 shadow-lg shadow-shibl-crimson/20 active:scale-[0.98]'
+                                                    }`}
+                                            >
+                                                {saving ? (
+                                                    <>
+                                                        <Loader2 size={16} className="animate-spin" />
+                                                        جاري الحفظ...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Save size={16} />
+                                                        حفظ التقييم
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
                                     </div>
+
                                 </div>
+                            </div>
+
+                            {/* Footer Navigation */}
+                            <div className="mt-4 flex items-center justify-between">
+                                <button
+                                    onClick={goToPrev}
+                                    disabled={currentIndex === 0}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-white dark:bg-[#1E1E1E] rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5"
+                                >
+                                    <ArrowRight size={16} />
+                                    السابق
+                                </button>
+
+                                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                    سؤال {currentIndex + 1} من {essayAnswers.length}
+                                </span>
+
+                                <button
+                                    onClick={goToNext}
+                                    disabled={currentIndex === essayAnswers.length - 1}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-white dark:bg-[#1E1E1E] rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5"
+                                >
+                                    التالي
+                                    <ArrowLeft size={16} />
+                                </button>
                             </div>
                         </div>
                     )}
-
-                    {/* Footer Navigation */}
-                    <div className="border-t border-slate-200 dark:border-slate-800 px-6 py-3 bg-slate-50 dark:bg-slate-900 flex items-center justify-between">
-                        <button
-                            onClick={goToPrev}
-                            disabled={currentIndex === 0}
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                        >
-                            <ArrowRight size={16} />
-                            السابق
-                        </button>
-
-                        <span className="text-xs text-slate-500 dark:text-slate-400">
-                            سؤال {currentIndex + 1} من {essayAnswers.length}
-                        </span>
-
-                        <button
-                            onClick={goToNext}
-                            disabled={currentIndex === essayAnswers.length - 1}
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                        >
-                            التالي
-                            <ArrowLeft size={16} />
-                        </button>
-                    </div>
                 </div>
             </div>
 
+
+
             {/* Image Preview */}
-            {previewImage && (
-                <ImagePreviewModal
-                    src={previewImage}
-                    alt="معاينة الصورة"
-                    onClose={() => setPreviewImage(null)}
-                />
-            )}
+            {
+                previewImage && (
+                    <ImagePreviewModal
+                        src={previewImage}
+                        alt="معاينة الصورة"
+                        onClose={() => setPreviewImage(null)}
+                    />
+                )
+            }
         </>
     );
 }

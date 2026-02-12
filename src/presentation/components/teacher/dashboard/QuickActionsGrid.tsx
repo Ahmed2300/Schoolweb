@@ -24,14 +24,16 @@ export function QuickActionsGrid() {
     ];
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden relative group">
+        <div className="bg-white dark:bg-[#1E1E1E] rounded-3xl p-6 border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden relative group">
             {/* abstract shapes - subtle for light mode */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 dark:bg-slate-800 rounded-full -mr-16 -mt-16 pointer-events-none transition-transform group-hover:scale-110 duration-700" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 dark:bg-white/5 rounded-full -mr-16 -mt-16 pointer-events-none transition-transform group-hover:scale-110 duration-700" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-red-50/50 dark:bg-red-900/10 rounded-full -ml-10 -mb-10 pointer-events-none" />
 
             <div className="relative z-10">
-                <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-slate-800 dark:text-white">
-                    <Plus className="text-shibl-crimson" />
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-charcoal dark:text-white">
+                    <div className="p-1 rounded bg-shibl-crimson/10 dark:bg-shibl-crimson/20">
+                        <Plus className="text-shibl-crimson w-5 h-5" />
+                    </div>
                     الوصول السريع
                 </h2>
 
@@ -42,13 +44,13 @@ export function QuickActionsGrid() {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => navigate(action.path)}
-                            className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 hover:bg-white dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 hover:shadow-md transition-all group text-center"
+                            className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 dark:bg-[#2A2A2A] hover:bg-white dark:hover:bg-[#333333] border border-slate-100 dark:border-white/5 hover:border-slate-200 dark:hover:border-white/10 hover:shadow-md transition-all group text-center"
                         >
                             <div className={`w-10 h-10 rounded-xl bg-${action.color}-50 dark:bg-${action.color}-900/20 flex items-center justify-center mb-3 group-hover:bg-${action.color}-100 dark:group-hover:bg-${action.color}-900/40 transition-colors`}>
                                 <action.icon size={20} className={`text-${action.color}-600 dark:text-${action.color}-400`} />
                             </div>
-                            <span className="font-bold text-sm text-slate-700 dark:text-slate-200">{action.title}</span>
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">{action.desc}</span>
+                            <span className="font-bold text-sm text-charcoal dark:text-gray-200">{action.title}</span>
+                            <span className="text-[10px] text-slate-400 dark:text-gray-500 mt-1">{action.desc}</span>
                         </motion.button>
                     ))}
                 </div>

@@ -1,4 +1,5 @@
 // src/presentation/components/courses/CourseCardSkeleton.tsx
+import './CourseCardSkeleton.css';
 export function CourseCardSkeleton() {
     return (
         <div className="course-card course-card--skeleton">

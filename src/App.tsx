@@ -33,7 +33,6 @@ import {
 
   AdminContentApprovalsPage,
   AdminQuizzesPage,
-  AdminRecordingsPage,
   AdminScheduleConfigPage,
   AdminSlotRequestsPage,
   AdminClassSchedulesPage,
@@ -214,7 +213,6 @@ function App() {
               <Route path="client-reports" element={<AdminClientReportsPage />} />
 
               <Route path="content-approvals" element={<AdminContentApprovalsPage />} />
-              <Route path="recordings" element={<AdminRecordingsPage />} />
               <Route path="quizzes" element={<AdminQuizzesPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
               <Route path="schedule-config" element={<AdminScheduleConfigPage />} />

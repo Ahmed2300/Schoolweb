@@ -107,7 +107,7 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
     const canSubmit = quiz.status === 'draft';
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-[#1E1E1E] rounded-xl border border-slate-200 dark:border-white/10 p-4 hover:shadow-md transition-shadow">
             {/* Header */}
             <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex-1 min-w-0">
@@ -122,9 +122,9 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
                 <div className="relative">
                     <button
                         onClick={() => setShowMenu(!showMenu)}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
                     >
-                        <MoreVertical className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                        <MoreVertical className="w-4 h-4 text-slate-500 dark:text-gray-400" />
                     </button>
 
                     {showMenu && (
@@ -133,10 +133,10 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
                                 className="fixed inset-0 z-10"
                                 onClick={() => setShowMenu(false)}
                             />
-                            <div className="absolute left-0 top-full mt-1 w-40 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-1 z-20">
+                            <div className="absolute left-0 top-full mt-1 w-40 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-slate-200 dark:border-white/10 py-1 z-20">
                                 <button
                                     onClick={() => { onView(); setShowMenu(false); }}
-                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-white/5"
                                 >
                                     <Eye className="w-4 h-4" />
                                     عرض
@@ -144,7 +144,7 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
                                 {canEdit && (
                                     <button
                                         onClick={() => { onEdit(); setShowMenu(false); }}
-                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-white/5"
                                     >
                                         <Edit className="w-4 h-4" />
                                         تعديل
@@ -173,7 +173,7 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
             </div>
 
             {/* Stats */}
-            <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-gray-400">
                 <span className="flex items-center gap-1">
                     <FileQuestion className="w-4 h-4" />
                     {quiz.questions_count || 0} سؤال
@@ -195,21 +195,21 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
 
 function QuizCardSkeleton() {
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 animate-pulse">
+        <div className="bg-white dark:bg-[#1E1E1E] rounded-xl border border-slate-200 dark:border-white/5 p-4 animate-pulse">
             <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex-1">
-                    <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-2" />
+                    <div className="h-5 bg-slate-200 dark:bg-white/10 rounded w-3/4 mb-2" />
                     <div className="flex gap-2">
-                        <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-20" />
-                        <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-24" />
+                        <div className="h-5 bg-slate-200 dark:bg-white/10 rounded w-20" />
+                        <div className="h-5 bg-slate-200 dark:bg-white/10 rounded w-24" />
                     </div>
                 </div>
-                <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+                <div className="w-8 h-8 bg-slate-200 dark:bg-white/10 rounded-lg" />
             </div>
             <div className="flex gap-4">
-                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-16" />
-                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-16" />
-                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-20" />
+                <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-16" />
+                <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-16" />
+                <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-20" />
             </div>
         </div>
     );
@@ -219,10 +219,10 @@ function QuizCardSkeleton() {
 
 function EmptyState({ onCreateNew }: { onCreateNew: () => void }) {
     return (
-        <div className="flex flex-col items-center justify-center py-16 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
-            <FileQuestion className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-4" />
-            <h3 className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">لا توجد اختبارات</h3>
-            <p className="text-slate-500 dark:text-slate-400 mb-4 text-center max-w-sm">
+        <div className="flex flex-col items-center justify-center py-16 bg-slate-50 dark:bg-white/5 rounded-xl border border-dashed border-slate-300 dark:border-white/10">
+            <FileQuestion className="w-12 h-12 text-slate-300 dark:text-gray-500 mb-4" />
+            <h3 className="text-lg font-medium text-slate-700 dark:text-gray-300 mb-2">لا توجد اختبارات</h3>
+            <p className="text-slate-500 dark:text-gray-400 mb-4 text-center max-w-sm">
                 لم يتم إنشاء أي اختبارات لهذا الكورس بعد. ابدأ بإنشاء اختبارك الأول.
             </p>
             <button
@@ -397,7 +397,7 @@ export function CourseQuizzesTab({ courseId, courseName, units, teacherId }: Cou
         return (
             <div className="space-y-4">
                 <div className="flex justify-end">
-                    <div className="h-10 w-40 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse" />
+                    <div className="h-10 w-40 bg-slate-200 dark:bg-[#1E1E1E] rounded-lg animate-pulse" />
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                     <QuizCardSkeleton />

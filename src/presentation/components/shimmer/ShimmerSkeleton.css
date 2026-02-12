@@ -534,3 +534,70 @@
     background: radial-gradient(circle, rgba(59, 130, 246, 0.03) 0%, transparent 70%);
     animation: pulse-glow 4s ease-in-out infinite 1s;
 }
+
+/* Dark Mode Overrides */
+:is(.dark .course-skeleton) {
+    background: linear-gradient(180deg, #121212 0%, #1E1E1E 100%);
+}
+
+:is(.dark .course-skeleton__image-icon) {
+    background: rgba(30, 30, 30, 0.9);
+}
+
+:is(.dark .course-skeleton__image-icon svg) {
+    color: #525252;
+}
+
+:is(.dark .course-skeleton__card),
+:is(.dark .course-skeleton__section-content),
+:is(.dark .course-skeleton__lecture),
+:is(.dark .course-skeleton__teacher) {
+    background: #1E1E1E;
+    border-color: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+:is(.dark .course-skeleton__stat) {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+:is(.dark .course-skeleton__main) {
+    background: linear-gradient(180deg, transparent 0%, rgba(18, 18, 18, 0.5) 20%);
+    border-top-color: rgba(255, 255, 255, 0.05);
+}
+
+:is(.dark .course-skeleton__price-section) {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Dark Mode Shimmer Gradients - NEUTRAL */
+:is(.dark .shimmer) {
+    background: linear-gradient(90deg,
+            rgba(30, 30, 30, 0.9) 0%,
+            rgba(60, 60, 60, 0.5) 20%,
+            rgba(80, 80, 80, 0.7) 40%,
+            rgba(80, 80, 80, 0.7) 60%,
+            rgba(60, 60, 60, 0.5) 80%,
+            rgba(30, 30, 30, 0.9) 100%);
+    background-size: 200% 100%;
+}
+
+:is(.dark .shimmer--gradient) {
+    background: linear-gradient(90deg,
+            rgba(30, 30, 30, 0.9) 0%,
+            rgba(255, 255, 255, 0.05) 25%,
+            rgba(255, 255, 255, 0.08) 50%,
+            rgba(255, 255, 255, 0.05) 75%,
+            rgba(30, 30, 30, 0.9) 100%);
+    background-size: 200% 100%;
+}
+
+/* Decorative Elements Dark Mode */
+:is(.dark .course-skeleton__decorator--1) {
+    background: radial-gradient(circle, rgba(220, 38, 38, 0.05) 0%, transparent 70%);
+}
+
+:is(.dark .course-skeleton__decorator--2) {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
+}

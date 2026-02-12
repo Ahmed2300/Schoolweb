@@ -131,7 +131,7 @@ export function TeacherFirstLoginPopup() {
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
+                        className="relative bg-white dark:bg-[#1E1E1E] rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
                     >
                         {/* Progress Bar */}
                         <div className="h-1.5 bg-red-50 w-full">
@@ -150,7 +150,7 @@ export function TeacherFirstLoginPopup() {
                                 key={currentStep}
                                 initial={{ scale: 0.8, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
-                                className="w-20 h-20 bg-gradient-to-br from-red-50 to-rose-100 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm"
+                                className="w-20 h-20 bg-gradient-to-br from-red-50 to-rose-100 dark:from-white/10 dark:to-white/5 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm"
                             >
                                 <currentStepData.icon className="w-10 h-10 text-shibl-crimson" />
                             </motion.div>
@@ -165,10 +165,10 @@ export function TeacherFirstLoginPopup() {
                                 <p className="text-sm text-shibl-crimson font-semibold mb-2">
                                     {currentStepData.subtitle}
                                 </p>
-                                <h2 className="text-2xl font-bold text-slate-900 mb-3">
+                                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
                                     {currentStepData.title}
                                 </h2>
-                                <p className="text-slate-500 mb-8 max-w-sm mx-auto">
+                                <p className="text-slate-500 dark:text-gray-400 mb-8 max-w-sm mx-auto">
                                     {currentStepData.description}
                                 </p>
                             </motion.div>
@@ -184,12 +184,12 @@ export function TeacherFirstLoginPopup() {
                                 {currentStepData.features.map((feature, idx) => (
                                     <div
                                         key={idx}
-                                        className="flex items-center gap-3 bg-slate-50 rounded-xl p-3 text-right"
+                                        className="flex items-center gap-3 bg-slate-50 dark:bg-white/5 rounded-xl p-3 text-right"
                                     >
-                                        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                                        <div className="w-8 h-8 bg-white dark:bg-white/10 rounded-lg flex items-center justify-center shadow-sm">
                                             <feature.icon className="w-4 h-4 text-shibl-crimson" />
                                         </div>
-                                        <span className="text-slate-700 font-medium flex-1">
+                                        <span className="text-slate-700 dark:text-gray-300 font-medium flex-1">
                                             {feature.text}
                                         </span>
                                     </div>
@@ -212,14 +212,14 @@ export function TeacherFirstLoginPopup() {
                             <div className="flex items-center justify-center gap-4 text-sm">
                                 <button
                                     onClick={handleRemindLater}
-                                    className="text-slate-400 hover:text-slate-600 transition-colors"
+                                    className="text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 transition-colors"
                                 >
                                     ذكّرني لاحقاً
                                 </button>
-                                <span className="text-slate-200">|</span>
+                                <span className="text-slate-200 dark:text-white/10">|</span>
                                 <button
                                     onClick={handleDismiss}
-                                    className="text-slate-400 hover:text-slate-600 transition-colors"
+                                    className="text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 transition-colors"
                                 >
                                     لا تظهر مجدداً
                                 </button>
@@ -233,8 +233,8 @@ export function TeacherFirstLoginPopup() {
                                         className={`h-2 rounded-full transition-all ${idx === currentStep
                                             ? 'w-8 bg-shibl-crimson'
                                             : idx < currentStep
-                                                ? 'w-2 bg-rose-300'
-                                                : 'w-2 bg-slate-200'
+                                                ? 'w-2 bg-rose-300 dark:bg-rose-900'
+                                                : 'w-2 bg-slate-200 dark:bg-white/10'
                                             }`}
                                     />
                                 ))}

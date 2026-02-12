@@ -142,39 +142,39 @@ export function TeacherVideoUploader({
                         w-full h-40 rounded-xl border-2 border-dashed transition-all cursor-pointer
                         flex flex-col items-center justify-center gap-3
                         ${isDragging
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-slate-300 bg-slate-50/50 hover:border-blue-400 hover:bg-blue-50/50'
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                            : 'border-slate-300 dark:border-white/20 bg-slate-50/50 dark:bg-white/5 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10'
                         }
                         ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
                     `}
                 >
-                    <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${isDragging ? 'bg-blue-100' : 'bg-slate-100'}`}>
-                        <Upload size={28} className={isDragging ? 'text-blue-500' : 'text-slate-400'} />
+                    <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${isDragging ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-slate-100 dark:bg-white/10'}`}>
+                        <Upload size={28} className={isDragging ? 'text-blue-500' : 'text-slate-400 dark:text-gray-400'} />
                     </div>
                     <div className="text-center">
-                        <p className="text-sm font-medium text-slate-600">اسحب الفيديو هنا أو انقر للاختيار</p>
-                        <p className="text-xs text-slate-400 mt-1">MP4, AVI, MOV, MKV, WebM (الحد الأقصى 2GB)</p>
+                        <p className="text-sm font-medium text-slate-600 dark:text-gray-300">اسحب الفيديو هنا أو انقر للاختيار</p>
+                        <p className="text-xs text-slate-400 dark:text-gray-500 mt-1">MP4, AVI, MOV, MKV, WebM (الحد الأقصى 2GB)</p>
                     </div>
                 </div>
             )}
 
             {selectedFile && status !== 'complete' && (
-                <div className="bg-white rounded-xl border border-slate-200 p-4">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-xl border border-slate-200 dark:border-white/5 p-4">
                     <div className="flex items-start gap-4">
-                        <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                            <Video size={28} className="text-slate-400" />
+                        <div className="w-16 h-16 rounded-lg bg-slate-100 dark:bg-white/10 flex items-center justify-center shrink-0">
+                            <Video size={28} className="text-slate-400 dark:text-gray-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="font-medium text-charcoal truncate">{selectedFile.name}</p>
-                            <p className="text-sm text-slate-500">{formatFileSize(selectedFile.size)}</p>
+                            <p className="font-medium text-charcoal dark:text-white truncate">{selectedFile.name}</p>
+                            <p className="text-sm text-slate-500 dark:text-gray-400">{formatFileSize(selectedFile.size)}</p>
 
                             {status === 'uploading' && (
                                 <div className="mt-3">
                                     <div className="flex items-center justify-between text-xs mb-1">
-                                        <span className="text-slate-500">{statusMessage}</span>
+                                        <span className="text-slate-500 dark:text-gray-400">{statusMessage}</span>
                                         <span className="font-medium text-blue-600">{progress}%</span>
                                     </div>
-                                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="w-full h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
                                         <div
                                             className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-300"
                                             style={{ width: `${progress}%` }}
@@ -194,7 +194,7 @@ export function TeacherVideoUploader({
                         {status !== 'uploading' && (
                             <button
                                 onClick={handleRemove}
-                                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-red-100 text-slate-400 hover:text-red-500 flex items-center justify-center transition-colors"
+                                className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/10 hover:bg-red-100 dark:hover:bg-red-900/30 text-slate-400 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 flex items-center justify-center transition-colors"
                             >
                                 <X size={16} />
                             </button>
@@ -215,7 +215,7 @@ export function TeacherVideoUploader({
                     {status === 'uploading' && (
                         <button
                             disabled
-                            className="mt-4 w-full h-11 rounded-lg bg-slate-100 text-slate-400 font-medium flex items-center justify-center gap-2"
+                            className="mt-4 w-full h-11 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-400 dark:text-white/50 font-medium flex items-center justify-center gap-2"
                         >
                             <Loader2 size={18} className="animate-spin" />
                             جاري الرفع...
@@ -225,15 +225,15 @@ export function TeacherVideoUploader({
             )}
 
             {status === 'complete' && videoUrl && (
-                <div className="bg-white rounded-xl border border-green-200 overflow-hidden">
-                    <div className="bg-green-50 px-4 py-2 flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-green-700">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-xl border border-green-200 dark:border-green-800/30 overflow-hidden">
+                    <div className="bg-green-50 dark:bg-green-900/10 px-4 py-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
                             <CheckCircle2 size={16} />
                             <span className="text-sm font-medium">تم رفع الفيديو بنجاح</span>
                         </div>
                         <button
                             onClick={handleRemove}
-                            className="text-xs text-slate-500 hover:text-red-500 transition-colors"
+                            className="text-xs text-slate-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                         >
                             تغيير الفيديو
                         </button>

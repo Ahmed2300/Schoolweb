@@ -49,7 +49,7 @@ interface StatsCardProps {
 function StatsCard({ label, value, icon, type, isActive, onClick }: StatsCardProps) {
     const styles = {
         pending: {
-            bg: 'bg-gradient-to-br from-amber-50 via-white to-amber-50/50 dark:from-amber-900/20 dark:via-slate-900 dark:to-amber-900/10',
+            bg: 'bg-gradient-to-br from-amber-50 via-white to-amber-50/50 dark:from-amber-900/20 dark:via-[#1E1E1E] dark:to-amber-900/10',
             border: 'border-amber-100 dark:border-amber-900/50',
             checkedBorder: 'border-amber-400 dark:border-amber-500',
             text: 'text-amber-700 dark:text-amber-400',
@@ -58,7 +58,7 @@ function StatsCard({ label, value, icon, type, isActive, onClick }: StatsCardPro
             activeRing: 'ring-amber-200 dark:ring-amber-900/40'
         },
         approved: {
-            bg: 'bg-gradient-to-br from-emerald-50 via-white to-emerald-50/50 dark:from-emerald-900/20 dark:via-slate-900 dark:to-emerald-900/10',
+            bg: 'bg-gradient-to-br from-emerald-50 via-white to-emerald-50/50 dark:from-emerald-900/20 dark:via-[#1E1E1E] dark:to-emerald-900/10',
             border: 'border-emerald-100 dark:border-emerald-900/50',
             checkedBorder: 'border-emerald-400 dark:border-emerald-500',
             text: 'text-emerald-700 dark:text-emerald-400',
@@ -67,7 +67,7 @@ function StatsCard({ label, value, icon, type, isActive, onClick }: StatsCardPro
             activeRing: 'ring-emerald-200 dark:ring-emerald-900/40'
         },
         rejected: {
-            bg: 'bg-gradient-to-br from-rose-50 via-white to-rose-50/50 dark:from-rose-900/20 dark:via-slate-900 dark:to-rose-900/10',
+            bg: 'bg-gradient-to-br from-rose-50 via-white to-rose-50/50 dark:from-rose-900/20 dark:via-[#1E1E1E] dark:to-rose-900/10',
             border: 'border-rose-100 dark:border-rose-900/50',
             checkedBorder: 'border-rose-400 dark:border-rose-500',
             text: 'text-rose-700 dark:text-rose-400',
@@ -136,7 +136,7 @@ function RequestCard({ request, onCancel, isCanceling }: RequestCardProps) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-100/80 dark:border-slate-800 p-5 shadow-[0_2px_15px_-4px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-300"
+            className="group relative bg-white dark:bg-[#1E1E1E] rounded-2xl border border-slate-100/80 dark:border-white/5 p-5 shadow-[0_2px_15px_-4px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] hover:border-slate-200 dark:hover:border-white/10 transition-all duration-300"
         >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 {/* Info Section */}
@@ -155,7 +155,7 @@ function RequestCard({ request, onCancel, isCanceling }: RequestCardProps) {
                     {/* Details */}
                     <div>
                         <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <h3 className="text-base font-bold text-slate-800 dark:text-white">
+                            <h3 className="text-base font-bold text-charcoal dark:text-white">
                                 {isWeekly ? getDayName(request.day_of_week) : formatDate(request.specific_date || '')}
                             </h3>
                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${isWeekly
@@ -166,9 +166,9 @@ function RequestCard({ request, onCancel, isCanceling }: RequestCardProps) {
                             </span>
                         </div>
 
-                        <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-                            <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-lg">
-                                <Clock size={14} className="text-slate-400 dark:text-slate-500" />
+                        <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-gray-400">
+                            <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-[#2A2A2A] px-2 py-1 rounded-lg">
+                                <Clock size={14} className="text-slate-400 dark:text-gray-500" />
                                 <span className="dir-ltr font-medium font-numeric">
                                     {formatTime(request.start_time)} - {formatTime(request.end_time)}
                                 </span>
@@ -176,7 +176,7 @@ function RequestCard({ request, onCancel, isCanceling }: RequestCardProps) {
 
                             {request.grade && (
                                 <div className="hidden sm:flex items-center gap-1.5">
-                                    <span className="w-1 h-1 rounded-full bg-slate-300" />
+                                    <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-gray-600" />
                                     <span>{request.grade.name}</span>
                                 </div>
                             )}
@@ -185,16 +185,16 @@ function RequestCard({ request, onCancel, isCanceling }: RequestCardProps) {
                 </div>
 
                 {/* Status & Actions Section */}
-                <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 border-slate-50 dark:border-slate-800 md:border-none">
+                <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 border-slate-50 dark:border-white/5 md:border-none">
                     <div className="flex flex-col items-end gap-1">
                         <SlotRequestStatusBadge status={request.status} />
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-[10px] text-slate-400 dark:text-gray-500">
                             {formatDate(request.created_at)}
                         </span>
                     </div>
 
                     {request.can_cancel && (
-                        <div className="pr-4 border-r border-slate-100 dark:border-slate-800 mr-2">
+                        <div className="pr-4 border-r border-slate-100 dark:border-white/5 mr-2">
                             <button
                                 type="button"
                                 onClick={() => onCancel(request)}
@@ -211,8 +211,8 @@ function RequestCard({ request, onCancel, isCanceling }: RequestCardProps) {
 
             {/* Notes Section - Animated */}
             {request.notes && (
-                <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm text-slate-600 dark:text-slate-300 border border-slate-100/50 dark:border-slate-700/50 flex gap-2 items-start">
-                    <ArrowRight size={14} className="mt-1 text-slate-400 shrink-0 rotate-180" />
+                <div className="mt-4 p-3 bg-slate-50 dark:bg-[#2A2A2A] rounded-xl text-sm text-slate-600 dark:text-gray-300 border border-slate-100/50 dark:border-white/5 flex gap-2 items-start">
+                    <ArrowRight size={14} className="mt-1 text-slate-400 dark:text-gray-500 shrink-0 rotate-180" />
                     <span>{request.notes}</span>
                 </div>
             )}
@@ -296,7 +296,7 @@ export function TeacherSlotRequestsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-soft-cloud/30 dark:bg-slate-950 pb-20 p-6 md:p-8" style={{ direction: 'rtl' }}>
+        <div className="min-h-screen bg-soft-cloud/30 dark:bg-[#121212] pb-20 p-6 md:p-8" style={{ direction: 'rtl' }}>
             <div className="max-w-7xl mx-auto space-y-8">
 
                 {/* Header Section */}
@@ -364,8 +364,8 @@ export function TeacherSlotRequestsPage() {
                             exit={{ opacity: 0, height: 0 }}
                             className="flex items-center"
                         >
-                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full shadow-sm text-sm text-slate-600 dark:text-slate-300">
-                                <Filter size={14} className="text-slate-400" />
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/5 rounded-full shadow-sm text-sm text-slate-600 dark:text-gray-300">
+                                <Filter size={14} className="text-slate-400 dark:text-gray-500" />
                                 <span>تصفية حسب:</span>
                                 <span className="font-bold text-charcoal dark:text-white">
                                     {statusFilter === SLOT_REQUEST_STATUSES.PENDING && 'قيد الانتظار'}
@@ -374,7 +374,7 @@ export function TeacherSlotRequestsPage() {
                                 </span>
                                 <button
                                     onClick={() => setStatusFilter('all')}
-                                    className="mr-2 p-0.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-red-500 transition-colors"
+                                    className="mr-2 p-0.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400 hover:text-red-500 transition-colors"
                                 >
                                     <X size={14} />
                                 </button>
@@ -388,12 +388,12 @@ export function TeacherSlotRequestsPage() {
                     {/* Section Header */}
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold text-charcoal dark:text-white flex items-center gap-3">
-                            <span className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400">
+                            <span className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-gray-400">
                                 <Clock size={16} />
                             </span>
                             سجل الطلبات
                             {!isLoading && (
-                                <span className="px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-xs text-slate-500 dark:text-slate-400 font-numeric">
+                                <span className="px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 text-xs text-slate-500 dark:text-gray-400 font-numeric">
                                     {filteredRequests.length}
                                 </span>
                             )}
@@ -403,18 +403,18 @@ export function TeacherSlotRequestsPage() {
                     {isLoading ? (
                         <div className="grid gap-4">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className="h-32 bg-white rounded-2xl animate-pulse" />
+                                <div key={i} className="h-32 bg-white dark:bg-[#1E1E1E] rounded-2xl animate-pulse" />
                             ))}
                         </div>
                     ) : filteredRequests.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-20 px-4 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
-                            <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 shadow-sm">
-                                <Search size={32} className="text-slate-300 dark:text-slate-600" />
+                        <div className="flex flex-col items-center justify-center py-20 px-4 bg-white dark:bg-[#1E1E1E] rounded-3xl border border-dashed border-slate-200 dark:border-white/10">
+                            <div className="w-20 h-20 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center mb-6 shadow-sm">
+                                <Search size={32} className="text-slate-300 dark:text-gray-600" />
                             </div>
                             <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
                                 {statusFilter === 'all' ? 'لا توجد طلبات حالياً' : 'لا توجد نتائج مطابقة'}
                             </h3>
-                            <p className="text-slate-500 dark:text-slate-400 text-center max-w-sm mb-8 leading-relaxed">
+                            <p className="text-slate-500 dark:text-gray-400 text-center max-w-sm mb-8 leading-relaxed">
                                 {statusFilter === 'all'
                                     ? 'يمكنك البدء بتقديم طلب جديد لتحديد مواعيد حصصك الإضافية أو الأسبوعية.'
                                     : 'لم يتم العثور على طلبات بهذه الحالة. حاول تغيير خيارات التصفية.'
@@ -423,7 +423,7 @@ export function TeacherSlotRequestsPage() {
                             {statusFilter === 'all' && (
                                 <button
                                     onClick={() => setShowRequestDialog(true)}
-                                    className="px-6 py-2.5 bg-slate-900 dark:bg-slate-800 text-white rounded-xl shadow-lg shadow-slate-200 dark:shadow-none hover:shadow-xl hover:scale-105 transition-all text-sm font-bold"
+                                    className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl shadow-lg shadow-slate-200 dark:shadow-none hover:shadow-xl hover:scale-105 transition-all text-sm font-bold"
                                 >
                                     إنشاء طلب جديد
                                 </button>

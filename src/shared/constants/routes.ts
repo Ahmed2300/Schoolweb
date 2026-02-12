@@ -54,7 +54,6 @@ export const ROUTES = {
     ADMIN_COURSES: '/admin/courses',
     ADMIN_LECTURES: '/admin/lectures',
     ADMIN_SUBSCRIPTIONS: '/admin/subscriptions',
-    ADMIN_RECORDINGS: '/admin/recordings',
     ADMIN_REPORTS: '/admin/reports',
     ADMIN_SETTINGS: '/admin/settings',
     ADMIN_PACKAGES: '/admin/packages',

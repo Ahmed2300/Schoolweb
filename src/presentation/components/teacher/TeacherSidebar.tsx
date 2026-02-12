@@ -1,8 +1,9 @@
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../hooks';
 import { useAuthStore } from '../../store';
 import { teacherAuthService } from '../../../data/api/teacherAuthService';
+import { commonService } from '../../../data/api/commonService';
 import { ROUTES } from '../../../shared/constants';
 
 import {
@@ -76,7 +77,7 @@ const NavItem = memo(function NavItem({
                 transition-all duration-200 group
                 ${isActive
                     ? 'bg-shibl-crimson text-white shadow-md shadow-shibl-crimson/20'
-                    : 'text-[#636E72] dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#2D3436] dark:hover:text-slate-200'
+                    : 'text-[#636E72] dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-[#2D3436] dark:hover:text-white'
                 }
             `}
         >
@@ -102,6 +103,25 @@ export function TeacherSidebar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
     const { isRTL } = useLanguage();
     const navigate = useNavigate();
     const { user, logout: storeLogout } = useAuthStore();
+    const [platformName, setPlatformName] = useState('شِبْل');
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const data = await commonService.getSettings();
+                const settingsMap: any = {};
+                if (data && Array.isArray(data)) {
+                    data.forEach((s: any) => { settingsMap[s.key] = s.value; });
+                }
+                if (settingsMap.platform_name) {
+                    setPlatformName(settingsMap.platform_name);
+                }
+            } catch (error) {
+                console.error("Failed to fetch settings sidebar", error);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     const handleLogout = async () => {
         try {
@@ -115,23 +135,23 @@ export function TeacherSidebar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
     };
 
     const sidebarContent = (
-        <div className="flex flex-col h-full bg-white dark:bg-slate-900 border-r border-l border-slate-200 dark:border-slate-800 transition-colors duration-300">
+        <div className="flex flex-col h-full bg-white dark:bg-[#1E1E1E] border-r border-l border-slate-200 dark:border-white/10 transition-colors duration-300">
             {/* Header / Logo Area */}
             <div className={`
-                h-20 flex items-center px-6 border-b border-slate-100 dark:border-slate-800
+                h-20 flex items-center px-6 border-b border-slate-100 dark:border-white/5
                 ${isCollapsed ? 'justify-center' : 'justify-between'}
             `}>
                 {!isCollapsed && (
                     <div className="flex flex-col">
-                        <span className="text-xl font-bold text-[#2D3436] dark:text-slate-100">شِبْل</span>
-                        <span className="text-xs text-[#636E72] dark:text-slate-400">بوابة المعلم</span>
+                        <span className="text-xl font-bold text-[#2D3436] dark:text-white">{platformName}</span>
+                        <span className="text-xs text-[#636E72] dark:text-gray-400">بوابة المعلم</span>
                     </div>
                 )}
 
                 {/* Desktop Toggle */}
                 <button
                     onClick={onToggle}
-                    className="hidden lg:flex p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500 transition-colors"
+                    className="hidden lg:flex p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400 dark:text-gray-500 transition-colors"
                 >
                     {isRTL
                         ? (isCollapsed ? <ChevronLeft size={20} /> : <ChevronRight size={20} />)
@@ -142,7 +162,7 @@ export function TeacherSidebar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                 {/* Mobile Close Button */}
                 <button
                     onClick={onMobileClose}
-                    className="lg:hidden p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                    className="lg:hidden p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-gray-400"
                 >
                     <ChevronRight size={20} className={isRTL ? 'rotate-180' : ''} />
                 </button>
@@ -157,22 +177,22 @@ export function TeacherSidebar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
 
             {/* Teacher Profile - Compact */}
             {!isCollapsed && (
-                <div className="px-4 py-4 border-b border-slate-200 dark:border-slate-800 bg-[#F8F9FA] dark:bg-slate-950/50 transition-colors duration-300">
+                <div className="px-4 py-4 border-b border-slate-200 dark:border-white/5 bg-[#F8F9FA] dark:bg-white/5 transition-colors duration-300">
                     <div className="flex items-center gap-3">
                         <img
                             src={user?.image_path || teacherPlaceholder}
                             alt={user?.name || 'Teacher'}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 flex-shrink-0"
+                            className="w-10 h-10 rounded-full object-cover border-2 border-slate-200 dark:border-white/10 flex-shrink-0"
                             onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.src = teacherPlaceholder;
                             }}
                         />
                         <div className="flex-1 min-w-0">
-                            <p className="text-[#1F1F1F] dark:text-slate-200 font-medium text-sm truncate">
+                            <p className="text-[#1F1F1F] dark:text-white font-medium text-sm truncate">
                                 {user?.name || 'المعلم'}
                             </p>
-                            <p className="text-[#636E72] dark:text-slate-400 text-xs truncate">
+                            <p className="text-[#636E72] dark:text-gray-400 text-xs truncate">
                                 {user?.email || 'teacher@subol.edu'}
                             </p>
                         </div>
@@ -181,7 +201,7 @@ export function TeacherSidebar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
             )}
 
             {/* Navigation */}
-            <nav className="flex-1 py-4 overflow-y-auto bg-white dark:bg-slate-900 transition-colors duration-300">
+            <nav className="flex-1 py-4 overflow-y-auto bg-white dark:bg-[#1E1E1E] transition-colors duration-300">
                 <div className="space-y-1">
                     {navItems.map((item) => (
                         <NavItem
@@ -195,7 +215,7 @@ export function TeacherSidebar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
             </nav>
 
             {/* Logout Button */}
-            <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="p-4 border-t border-slate-100 dark:border-white/5">
                 <button
                     onClick={handleLogout}
                     className={`
@@ -230,8 +250,8 @@ export function TeacherSidebar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
             {/* Sidebar Container */}
             <aside
                 className={`
-                    fixed inset-y-0 z-[100] bg-white dark:bg-slate-900 shadow-xl lg:shadow-none transition-all duration-300 ease-in-out
-                    ${isRTL ? 'right-0 border-l dark:border-slate-800' : 'left-0 border-r dark:border-slate-800'}
+                    fixed inset-y-0 z-[100] bg-white dark:bg-[#1E1E1E] shadow-xl lg:shadow-none transition-all duration-300 ease-in-out
+                    ${isRTL ? 'right-0 border-l dark:border-white/10' : 'left-0 border-r dark:border-white/10'}
                     ${isMobileOpen ? 'translate-x-0' : (isRTL ? 'translate-x-full' : '-translate-x-full')}
                     lg:translate-x-0 lg:fixed lg:h-screen lg:shrink-0
                     ${isCollapsed ? 'lg:w-20' : 'lg:w-64'}

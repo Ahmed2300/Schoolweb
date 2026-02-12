@@ -27,13 +27,13 @@ export function DashboardHeader() {
                 transition={{ duration: 0.5 }}
                 className="flex-1"
             >
-                <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-sm mb-1">
+                <div className="flex items-center gap-2 text-slate-500 dark:text-gray-400 text-sm mb-1">
                     <span>{currentDate}</span>
                 </div>
-                <h1 className="text-xl md:text-3xl font-bold text-slate-900 dark:text-white leading-tight">
+                <h1 className="text-xl md:text-3xl font-bold text-charcoal dark:text-white leading-tight">
                     {getGreeting()}، <span className="bg-gradient-to-r from-shibl-crimson to-rose-500 bg-clip-text text-transparent block md:inline">{user?.name?.split(' ')[0] || 'المعلم'}</span> 👋
                 </h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm md:text-base">أتمنى لك يوماً إنتاجياً مليئاً بالإنجازات</p>
+                <p className="text-slate-500 dark:text-gray-400 mt-1 text-sm md:text-base">أتمنى لك يوماً إنتاجياً مليئاً بالإنجازات</p>
             </motion.div>
 
 

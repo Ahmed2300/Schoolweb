@@ -15,7 +15,7 @@ export function TeacherDashboardPage() {
     const { data: stats, isLoading, error, refetch, isFetching } = useTeacherDashboardStats();
 
     return (
-        <div className="min-h-screen bg-soft-cloud dark:bg-slate-950 -mx-4 -my-6 p-4 md:-m-6 md:p-6" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="min-h-screen bg-soft-cloud dark:bg-[#121212] -mx-4 -my-6 p-4 md:-m-6 md:p-6" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="max-w-7xl mx-auto space-y-8">
                 {/* 1. Header Section */}
                 <DashboardHeader />

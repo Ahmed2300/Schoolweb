@@ -7,7 +7,7 @@ import { authService } from '../../../data/api';
 import apiClient from '../../../data/api/ApiClient';
 import { endpoints } from '../../../data/api/endpoints';
 import { motion, AnimatePresence } from 'framer-motion';
-
+import { VideoModal } from '../../components/common/VideoModal';
 // Lucide Icons
 import {
     User,
@@ -31,7 +31,8 @@ import {
     MessageCircle,
     PhoneCall,
     Users,
-    FileText
+    FileText,
+    Play
 } from 'lucide-react';
 
 // Design Constants
@@ -121,6 +122,9 @@ export function SignupPage() {
         { id: 1, name: 'مسقط', country_id: 1 }, { id: 2, name: 'صلالة', country_id: 1 },
         { id: 3, name: 'صحار', country_id: 1 }, { id: 4, name: 'نزوى', country_id: 1 },
     ];
+
+    // Video Modal State
+    const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
     // Data Fetching
     useEffect(() => {
@@ -624,9 +628,33 @@ export function SignupPage() {
                                 </p>
                             </div>
                         </form>
+
+                        {/* Secondary Action: Watch Tutorial */}
+                        <div className="mt-8 pt-6 border-t border-slate-100 flex justify-center">
+                            <button
+                                type="button"
+                                onClick={() => setIsVideoModalOpen(true)}
+                                className="group flex items-center gap-3 px-4 py-2 rounded-full hover:bg-rose-50 transition-colors"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-rose-100 text-shibl-crimson flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <Play size={14} fill="currentColor" />
+                                </div>
+                                <div className="text-right">
+                                    <span className="block text-xs font-bold text-shibl-crimson">شاهد الشرح</span>
+                                    <span className="block text-[10px] text-slate-400 font-medium">خطوات التسجيل في دقيقة</span>
+                                </div>
+                            </button>
+                        </div>
                     </div>
                 </motion.div>
             </div>
+
+            <VideoModal
+                isOpen={isVideoModalOpen}
+                onClose={() => setIsVideoModalOpen(false)}
+                videoUrl="https://www.youtube.com/watch?v=ScMzIvxBSi4"
+                title="شرح خطوات التسجيل في منصة شبل"
+            />
         </div>
     );
 }

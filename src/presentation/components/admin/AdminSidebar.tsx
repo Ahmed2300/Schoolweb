@@ -24,7 +24,6 @@ import {
     Clock,
     CheckCircle,
     CircleHelp,
-    Video,
     MessageSquare,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -77,8 +76,6 @@ const navGroups: NavGroup[] = [
             { icon: <CircleHelp size={18} />, label: 'الاختبارات', path: '/admin/quizzes' },
 
             { icon: <CheckCircle size={18} />, label: 'طلبات التعديل', path: '/admin/content-approvals' },
-            { icon: <Video size={18} />, label: 'التسجيلات', path: '/admin/recordings' },
-
         ],
     },
     {

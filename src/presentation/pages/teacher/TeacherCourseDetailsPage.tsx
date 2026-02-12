@@ -90,7 +90,7 @@ import { LiveSessionEmbedModal } from '../../components/shared/LiveSessionEmbedM
 
 function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | number }) {
     return (
-        <div className="flex items-center gap-3 px-4 py-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-slate-800/60 transition-colors duration-300">
+        <div className="flex items-center gap-3 px-4 py-3 bg-white/60 dark:bg-[#1E1E1E]/60 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/5 transition-colors duration-300">
             <div className="p-2 bg-shibl-crimson/10 dark:bg-shibl-crimson/20 rounded-lg">
                 <Icon className="w-5 h-5 text-shibl-crimson dark:text-shibl-crimson/90" />
             </div>
@@ -365,11 +365,11 @@ function UnitCard({
     return (
         <div
             ref={setNodeRef}
-            className={`bg-white dark:bg-slate-900 rounded-xl border transition-all shadow-sm ${isOver ? 'border-shibl-crimson ring-2 ring-shibl-crimson/20 bg-red-50/10 dark:bg-red-900/10' : 'border-slate-200 dark:border-slate-800'} overflow-hidden`}
+            className={`bg-white dark:bg-[#1E1E1E] rounded-xl border transition-all shadow-sm ${isOver ? 'border-shibl-crimson ring-2 ring-shibl-crimson/20 bg-red-50/10 dark:bg-red-900/10' : 'border-slate-200 dark:border-white/5'} overflow-hidden`}
         >
             {/* Unit Header */}
             <div
-                className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${isExpanded ? 'bg-slate-50 dark:bg-slate-800/50' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
+                className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${isExpanded ? 'bg-slate-50 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
                 onClick={onToggle}
             >
                 <div className="flex items-center gap-3 flex-1">
@@ -418,7 +418,7 @@ function UnitCard({
 
             {/* Expanded Content */}
             {isExpanded && (
-                <div className="border-t border-slate-100 dark:border-slate-800 p-4 space-y-3 bg-slate-50/50 dark:bg-slate-950/30">
+                <div className="border-t border-slate-100 dark:border-white/5 p-4 space-y-3 bg-slate-50/50 dark:bg-[#121212]/50">
                     <DndContext
                         sensors={sensors}
                         collisionDetection={closestCenter}
@@ -429,7 +429,7 @@ function UnitCard({
                             strategy={verticalListSortingStrategy}
                         >
                             {items.length === 0 && (
-                                <div className="text-center py-8 text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900/50 rounded-lg border border-dashed border-slate-200 dark:border-slate-700">
+                                <div className="text-center py-8 text-slate-400 dark:text-slate-500 bg-white dark:bg-[#1E1E1E]/50 rounded-lg border border-dashed border-slate-200 dark:border-white/10">
                                     لا يوجد محتوى في هذه الوحدة
                                 </div>
                             )}
@@ -445,7 +445,7 @@ function UnitCard({
                                         if (item.sortType === 'lecture') {
                                             // Render Lecture
                                             return (
-                                                <div className="flex flex-col gap-2 p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 hover:shadow-sm transition-shadow">
+                                                <div className="flex flex-col gap-2 p-3 bg-white dark:bg-[#1E1E1E] rounded-lg border border-slate-200 dark:border-white/5 hover:shadow-sm transition-shadow">
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-3">
                                                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${contentItem.is_online ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'}`}>
@@ -581,7 +581,7 @@ function UnitCard({
 
                                                     {/* Nested Quizzes in Lecture */}
                                                     {quizzes?.filter(q => q.lecture_id === contentItem.id).map(quiz => (
-                                                        <div key={quiz.id} className="mr-8 mt-2 flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 border-r-4 border-r-amber-500">
+                                                        <div key={quiz.id} className="mr-8 mt-2 flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/5 border-r-4 border-r-amber-500">
                                                             <div className="flex items-center gap-3">
                                                                 <div className="w-6 h-6 rounded bg-amber-100 dark:bg-amber-900/20 text-amber-600 dark:text-amber-500 flex items-center justify-center">
                                                                     <HelpCircle size={14} />
@@ -628,7 +628,7 @@ function UnitCard({
                                         } else {
                                             // Render Quiz
                                             return (
-                                                <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 hover:shadow-sm transition-shadow border-l-4 border-l-amber-500">
+                                                <div className="flex items-center justify-between p-3 bg-white dark:bg-[#1E1E1E] rounded-lg border border-slate-200 dark:border-white/5 hover:shadow-sm transition-shadow border-l-4 border-l-amber-500">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-500 flex items-center justify-center">
                                                             <HelpCircle size={16} />
@@ -1414,7 +1414,7 @@ export function TeacherCourseDetailsPage() {
     return (
         <div className="container mx-auto px-4 py-8 pb-32">
             {/* Header */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm mb-8 relative overflow-hidden">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl p-6 border border-slate-200 dark:border-white/5 shadow-sm mb-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-shibl-crimson to-shibl-red-500"></div>
 
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
@@ -1446,7 +1446,7 @@ export function TeacherCourseDetailsPage() {
                         <button
                             onClick={handleStartTestSession}
                             disabled={startingTestSession}
-                            className={`px-4 py-2.5 bg-white dark:bg-slate-800 border border-shibl-crimson text-shibl-crimson hover:bg-shibl-crimson hover:text-white rounded-xl transition-all flex items-center gap-2 font-medium shadow-sm ${startingTestSession ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`px-4 py-2.5 bg-white dark:bg-[#1E1E1E] border border-shibl-crimson text-shibl-crimson hover:bg-shibl-crimson hover:text-white rounded-xl transition-all flex items-center gap-2 font-medium shadow-sm ${startingTestSession ? 'opacity-50 cursor-not-allowed' : ''}`}
                             title="جلسة تجريبية (30 دقيقة - لا تظهر للطلاب)"
                         >
                             {startingTestSession ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
@@ -1473,7 +1473,7 @@ export function TeacherCourseDetailsPage() {
                 </div>
 
                 {/* Tab Navigation */}
-                <div className="flex gap-1 overflow-x-auto pb-1 mt-8 border-b border-slate-200 dark:border-slate-800">
+                <div className="flex gap-1 overflow-x-auto pb-1 mt-8 border-b border-slate-200 dark:border-white/5">
                     <button
                         onClick={() => setActiveTab('content')}
                         className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeTab === 'content'
@@ -1523,11 +1523,11 @@ export function TeacherCourseDetailsPage() {
 
                         <div className="flex items-center gap-3 w-full sm:w-auto">
                             {/* Filter Tabs */}
-                            <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-lg flex items-center">
+                            <div className="bg-slate-100 dark:bg-white/5 p-1 rounded-lg flex items-center">
                                 <button
                                     onClick={() => setLectureFilter('all')}
                                     className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${lectureFilter === 'all'
-                                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                                        ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm'
                                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                                         }`}
                                 >
@@ -1536,7 +1536,7 @@ export function TeacherCourseDetailsPage() {
                                 <button
                                     onClick={() => setLectureFilter('real')}
                                     className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${lectureFilter === 'real'
-                                        ? 'bg-white dark:bg-slate-700 text-shibl-crimson shadow-sm'
+                                        ? 'bg-white dark:bg-white/10 text-shibl-crimson shadow-sm'
                                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                                         }`}
                                 >
@@ -1545,7 +1545,7 @@ export function TeacherCourseDetailsPage() {
                                 <button
                                     onClick={() => setLectureFilter('trial')}
                                     className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${lectureFilter === 'trial'
-                                        ? 'bg-white dark:bg-slate-700 text-amber-600 shadow-sm'
+                                        ? 'bg-white dark:bg-white/10 text-amber-600 shadow-sm'
                                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                                         }`}
                                 >
@@ -1619,7 +1619,7 @@ export function TeacherCourseDetailsPage() {
                                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
                                     <FileQuestion className="text-amber-500" />
                                     اختبارات غير مرتبطة بوحدة
-                                    <span className="text-xs font-normal text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">
+                                    <span className="text-xs font-normal text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-full">
                                         {allQuizzes.filter(q => !q.unit_id).length}
                                     </span>
                                 </h3>
@@ -1628,7 +1628,7 @@ export function TeacherCourseDetailsPage() {
                                         <DraggableUnassignedQuiz key={quiz.id} quiz={quiz}>
                                             <div className="flex items-center justify-between p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/20 cursor-grab active:cursor-grabbing hover:shadow-md transition-all">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-lg bg-white dark:bg-slate-800 text-amber-500 flex items-center justify-center shadow-sm">
+                                                    <div className="w-10 h-10 rounded-lg bg-white dark:bg-[#1E1E1E] text-amber-500 flex items-center justify-center shadow-sm">
                                                         <GripVertical size={20} className="text-slate-300 dark:text-slate-600" />
                                                     </div>
                                                     <div>
@@ -1743,7 +1743,7 @@ export function TeacherCourseDetailsPage() {
                     {loadingStudents ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {[1, 2, 3, 4, 5, 6].map((i) => (
-                                <div key={i} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 flex items-start gap-4">
+                                <div key={i} className="bg-white dark:bg-[#1E1E1E] rounded-xl border border-slate-200 dark:border-white/5 p-5 flex items-start gap-4">
                                     <Skeleton className="w-12 h-12 rounded-full flex-shrink-0 bg-slate-200 dark:bg-slate-800" />
                                     <div className="flex-1 min-w-0 space-y-2">
                                         <Skeleton className="h-5 w-3/4 bg-slate-200 dark:bg-slate-800" />
@@ -1756,8 +1756,8 @@ export function TeacherCourseDetailsPage() {
                     ) : students.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {students.map((student) => (
-                                <div key={student.id} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 flex items-start gap-4 hover:shadow-md transition-all">
-                                    <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 flex-shrink-0 flex items-center justify-center">
+                                <div key={student.id} className="bg-white dark:bg-[#1E1E1E] rounded-xl border border-slate-200 dark:border-white/5 p-5 flex items-start gap-4 hover:shadow-md transition-all">
+                                    <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100 dark:bg-white/5 flex-shrink-0 flex items-center justify-center">
                                         {student.avatar ? (
                                             <img src={student.avatar} alt={student.name} className="w-full h-full object-cover" />
                                         ) : (
@@ -1769,7 +1769,7 @@ export function TeacherCourseDetailsPage() {
                                         <div className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2 mb-2 truncate">
                                             <span className="truncate" dir="ltr">{student.email}</span>
                                         </div>
-                                        <div className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 w-fit px-2 py-1 rounded">
+                                        <div className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 bg-slate-50 dark:bg-white/5 w-fit px-2 py-1 rounded">
                                             <Clock size={12} />
                                             <span>تاريخ الانضمام: {new Date(student.subscribed_at).toLocaleDateString('ar-EG')}</span>
                                         </div>
@@ -1778,8 +1778,8 @@ export function TeacherCourseDetailsPage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-                            <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-full flex items-center justify-center mb-6">
+                        <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-[#1E1E1E] rounded-2xl border border-dashed border-slate-200 dark:border-white/5">
+                            <div className="w-20 h-20 bg-slate-50 dark:bg-white/5 text-slate-400 dark:text-slate-500 rounded-full flex items-center justify-center mb-6">
                                 <Users size={40} />
                             </div>
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">قائمة الطلاب المسجلين</h3>

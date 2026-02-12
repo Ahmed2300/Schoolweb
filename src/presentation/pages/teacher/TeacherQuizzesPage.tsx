@@ -75,7 +75,7 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
     const canSubmit = status === 'draft' || status === 'rejected';
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md dark:shadow-none hover:border-slate-200 dark:hover:border-slate-700 transition-all group">
+        <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl p-5 border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md dark:shadow-none hover:border-slate-200 dark:hover:border-white/10 transition-all group">
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
                 <div className="flex-1 min-w-0">
@@ -94,7 +94,7 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
                 <div className="relative">
                     <button
                         onClick={() => setMenuOpen(!menuOpen)}
-                        className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-[#636E72] dark:text-slate-400 transition-colors"
+                        className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-[#636E72] dark:text-gray-400 transition-colors"
                     >
                         <MoreVertical size={18} />
                     </button>
@@ -105,10 +105,10 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
                                 className="fixed inset-0 z-10"
                                 onClick={() => setMenuOpen(false)}
                             />
-                            <div className="absolute left-0 top-full mt-1 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 py-1 z-20 min-w-[160px]">
+                            <div className="absolute left-0 top-full mt-1 bg-white dark:bg-[#2A2A2A] rounded-xl shadow-lg border border-slate-100 dark:border-white/5 py-1 z-20 min-w-[160px]">
                                 <button
                                     onClick={() => { onView(quiz.id); setMenuOpen(false); }}
-                                    className="w-full px-4 py-2 text-right text-sm text-[#1F1F1F] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                                    className="w-full px-4 py-2 text-right text-sm text-[#1F1F1F] dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2"
                                 >
                                     <Eye size={16} />
                                     عرض التفاصيل
@@ -172,7 +172,7 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
             </div>
 
             {/* Stats */}
-            <div className="flex items-center gap-4 text-sm text-[#636E72] dark:text-slate-400">
+            <div className="flex items-center gap-4 text-sm text-[#636E72] dark:text-gray-400">
                 <div className="flex items-center gap-1.5">
                     <FileQuestion size={14} />
                     <span>{quiz.questions_count || 0} سؤال</span>
@@ -206,22 +206,22 @@ function QuizCard({ quiz, onView, onEdit, onDelete, onSubmit }: QuizCardProps) {
 // Quiz card skeleton
 export function QuizCardSkeleton() {
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 animate-pulse">
+        <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl p-5 border border-slate-100 dark:border-white/5 animate-pulse">
             <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                    <div className="h-5 w-40 bg-slate-200 dark:bg-slate-800 rounded mb-2" />
-                    <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+                    <div className="h-5 w-40 bg-slate-200 dark:bg-white/5 rounded mb-2" />
+                    <div className="h-4 w-24 bg-slate-200 dark:bg-white/5 rounded" />
                 </div>
-                <div className="h-8 w-8 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-8 w-8 bg-slate-200 dark:bg-white/5 rounded" />
             </div>
             <div className="flex gap-2 mb-4">
-                <div className="h-6 w-24 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                <div className="h-6 w-24 bg-slate-200 dark:bg-white/5 rounded-full" />
+                <div className="h-6 w-20 bg-slate-200 dark:bg-white/5 rounded-full" />
             </div>
             <div className="flex gap-4">
-                <div className="h-4 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
-                <div className="h-4 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
-                <div className="h-4 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-4 w-16 bg-slate-200 dark:bg-white/5 rounded" />
+                <div className="h-4 w-16 bg-slate-200 dark:bg-white/5 rounded" />
+                <div className="h-4 w-16 bg-slate-200 dark:bg-white/5 rounded" />
             </div>
         </div>
     );
@@ -230,14 +230,14 @@ export function QuizCardSkeleton() {
 // Empty state
 function EmptyState({ onCreateNew }: { onCreateNew: () => void }) {
     return (
-        <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
-            <div className="w-20 h-20 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-6">
-                <ClipboardList size={40} className="text-slate-400 dark:text-slate-500" />
+        <div className="text-center py-16 bg-white dark:bg-[#1E1E1E] rounded-2xl border border-slate-100 dark:border-white/5">
+            <div className="w-20 h-20 mx-auto rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-6">
+                <ClipboardList size={40} className="text-slate-400 dark:text-gray-500" />
             </div>
             <h3 className="text-xl font-semibold text-[#1F1F1F] dark:text-white mb-2">
                 لا توجد اختبارات بعد
             </h3>
-            <p className="text-[#636E72] dark:text-slate-400 mb-6 max-w-md mx-auto">
+            <p className="text-[#636E72] dark:text-gray-400 mb-6 max-w-md mx-auto">
                 ابدأ بإنشاء اختبارك الأول لتقييم طلابك. يمكنك إنشاء اختبارات اختيار من متعدد أو أسئلة مكتوبة.
             </p>
             <button
@@ -431,7 +431,7 @@ export function TeacherQuizzesPage() {
             </div>
 
             {/* Search & Filters */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl p-4 border border-slate-100 dark:border-white/5 shadow-sm">
                 <div className="flex flex-col lg:flex-row gap-4">
                     {/* Search */}
                     <div className="relative flex-1">
@@ -440,11 +440,11 @@ export function TeacherQuizzesPage() {
                             placeholder="ابحث عن اختبار..."
                             value={searchQuery}
                             onChange={(e) => handleSearch(e.target.value)}
-                            className="w-full h-11 px-4 pr-11 rounded-xl bg-[#F8F9FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm text-[#1F1F1F] dark:text-white placeholder:text-[#636E72] dark:placeholder:text-slate-500"
+                            className="w-full h-11 px-4 pr-11 rounded-xl bg-[#F8F9FA] dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/5 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm text-[#1F1F1F] dark:text-white placeholder:text-[#636E72] dark:placeholder:text-gray-500"
                         />
                         <Search
                             size={18}
-                            className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-[#636E72] dark:text-slate-500`}
+                            className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-[#636E72] dark:text-gray-500`}
                         />
                     </div>
 

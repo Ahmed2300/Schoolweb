@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Calendar as CalendarIcon,
     Search,
@@ -14,6 +14,7 @@ import { useClassSchedules } from '../../hooks/useClassSchedules';
 import { useGrades, useTeachers } from '../../hooks';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import adminService, { type SemesterData } from '../../../data/api/adminService';
 
 const DAY_NAMES_AR: Record<number, string> = {
     0: 'الأحد',
@@ -32,6 +33,8 @@ export function AdminClassSchedulesPage() {
     const [selectedTeacher, setSelectedTeacher] = useState<string>('');
     const [selectedDay, setSelectedDay] = useState<string>('');
     const [bookingStatus, setBookingStatus] = useState<'all' | 'booked' | 'not_booked'>('all');
+    const [selectedSemesters, setSelectedSemesters] = useState<Record<number, number | 'all'>>({});
+    const [semestersByGrade, setSemestersByGrade] = useState<Record<number, SemesterData[]>>({});
 
     // Queries
     const { data: groupedData, isLoading, error } = useClassSchedules({
@@ -42,6 +45,33 @@ export function AdminClassSchedulesPage() {
         grouped: true,
         booking_status: bookingStatus,
     });
+
+    // Fetch semesters for each grade in the response
+    useEffect(() => {
+        if (!groupedData?.data) return;
+        const gradeIds = groupedData.data.map((g: any) => g.id as number);
+        gradeIds.forEach((gradeId: number) => {
+            if (semestersByGrade[gradeId]) return; // already fetched
+            adminService.getSemestersByGrade(gradeId)
+                .then((sems) => {
+                    setSemestersByGrade((prev) => ({ ...prev, [gradeId]: sems }));
+                })
+                .catch(() => { /* silently ignore */ });
+        });
+    }, [groupedData?.data]);
+
+    const handleSemesterChange = useCallback((gradeId: number, value: string) => {
+        setSelectedSemesters((prev) => ({
+            ...prev,
+            [gradeId]: value === 'all' ? 'all' : Number(value),
+        }));
+    }, []);
+
+    const getFilteredSlots = useCallback((gradeId: number, slots: any[]) => {
+        const selected = selectedSemesters[gradeId];
+        if (!selected || selected === 'all') return slots;
+        return slots.filter((s: any) => s.semester_id === selected);
+    }, [selectedSemesters]);
 
     const { data: grades } = useGrades();
     const { data: teachers } = useTeachers();
@@ -180,111 +210,140 @@ export function AdminClassSchedulesPage() {
                     {/* Iterate over Grades */}
                     {groupedData.data.map((group: any) => (
                         <div key={group.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                            <div className="bg-slate-50/50 px-6 py-4 border-b border-slate-200 flex items-center gap-3">
-                                <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
-                                    <GraduationCap size={20} />
-                                </div>
-                                <div>
-                                    <h2 className="text-lg font-bold text-slate-800">{group.name}</h2>
-                                    <p className="text-sm text-slate-500">
-                                        {group.slots.length} حصة مجدولة
-                                        {bookingStatus === 'all' && group.slots.length > 0 && (
-                                            <span className="text-slate-400 mr-1">
-                                                ({group.slots.filter((s: any) => s.is_booked).length} محجوزة)
-                                            </span>
-                                        )}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {group.slots.length > 0 ? (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full">
-                                        <thead>
-                                            <tr className="border-b border-slate-100 bg-slate-50/30 text-right text-xs uppercase tracking-wider text-slate-500">
-                                                <th className="px-6 py-3 font-semibold">المعلم</th>
-
-                                                <th className="px-6 py-3 font-semibold">العنوان (المحاضرة)</th>
-                                                <th className="px-6 py-3 font-semibold">اليوم</th>
-                                                <th className="px-6 py-3 font-semibold">التاريخ</th>
-                                                <th className="px-6 py-3 font-semibold">التوقيت</th>
-                                                <th className="px-6 py-3 font-semibold">الحالة</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-100">
-                                            {group.slots.map((slot: any) => (
-                                                <tr
-                                                    key={slot.id}
-                                                    className={`transition-colors ${slot.is_booked
-                                                            ? 'hover:bg-slate-50/80'
-                                                            : 'bg-slate-50/40 border-r-2 border-r-dashed border-r-slate-300 hover:bg-slate-100/60'
-                                                        }`}
-                                                >
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${slot.is_booked
-                                                                    ? 'bg-slate-100 text-slate-500'
-                                                                    : 'bg-slate-200/60 text-slate-400'
-                                                                }`}>
-                                                                <User size={14} />
-                                                            </div>
-                                                            <span className={`font-medium ${slot.is_booked ? 'text-slate-700' : 'text-slate-400 italic'
-                                                                }`}>
-                                                                {slot.is_booked ? slot.teacher_name : 'شاغر'}
+                            {(() => {
+                                const filteredSlots = getFilteredSlots(group.id, group.slots);
+                                const gradeSemesters = semestersByGrade[group.id] || [];
+                                const currentSemester = selectedSemesters[group.id] ?? 'all';
+                                return (
+                                    <>
+                                        <div className="bg-slate-50/50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
+                                                    <GraduationCap size={20} />
+                                                </div>
+                                                <div>
+                                                    <h2 className="text-lg font-bold text-slate-800">{group.name}</h2>
+                                                    <p className="text-sm text-slate-500">
+                                                        {filteredSlots.length} حصة مجدولة
+                                                        {bookingStatus === 'all' && filteredSlots.length > 0 && (
+                                                            <span className="text-slate-400 mr-1">
+                                                                ({filteredSlots.filter((s: any) => s.is_booked).length} محجوزة)
                                                             </span>
-                                                        </div>
-                                                    </td>
-
-                                                    <td className="px-6 py-4">
-                                                        <div className={`flex items-center gap-2 ${slot.is_booked ? 'text-slate-600' : 'text-slate-400'
-                                                            }`}>
-                                                            {slot.is_booked ? (
-                                                                slot.type === 'Lecture' ? (
-                                                                    <Video size={16} className="text-blue-500" />
-                                                                ) : (
-                                                                    <Clock size={16} className="text-orange-500" />
-                                                                )
-                                                            ) : (
-                                                                <Clock size={16} className="text-slate-300" />
-                                                            )}
-                                                            <span className="truncate max-w-[200px]" title={slot.lecture_title}>
-                                                                {slot.is_booked ? (slot.lecture_title || 'حجز موعد') : '—'}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-slate-600">
-                                                        <div className="flex flex-col gap-1">
-                                                            <span>{DAY_NAMES_AR[slot.day_of_week as number] ?? '—'}</span>
-                                                            {slot.type === 'Recurring' && (
-                                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-50 text-purple-600 border border-purple-100 w-fit">
-                                                                    أسبوعي
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-slate-600 font-numeric">
-                                                        {slot.date ? format(new Date(slot.date), 'dd MMMM yyyy', { locale: ar }) : (
-                                                            <span className="text-slate-400">—</span>
                                                         )}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-medium font-numeric">
-                                                            {slot.start_time} - {slot.end_time}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <StatusBadge status={slot.status} />
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="p-8 text-center text-slate-500 text-sm italic">
-                                    لا توجد حصص مجدولة لهذا الصف
-                                </div>
-                            )}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {/* Semester Filter per Grade Card */}
+                                            {gradeSemesters.length > 0 && (
+                                                <select
+                                                    value={String(currentSemester)}
+                                                    onChange={(e) => handleSemesterChange(group.id, e.target.value)}
+                                                    className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson transition-all min-w-[140px]"
+                                                >
+                                                    <option value="all">كل الفصول</option>
+                                                    {gradeSemesters.map((sem) => (
+                                                        <option key={sem.id} value={sem.id}>
+                                                            {typeof sem.name === 'object' ? (sem.name.ar || sem.name.en || '') : sem.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                        </div>
+
+                                        {filteredSlots.length > 0 ? (
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full">
+                                                    <thead>
+                                                        <tr className="border-b border-slate-100 bg-slate-50/30 text-right text-xs uppercase tracking-wider text-slate-500">
+                                                            <th className="px-6 py-3 font-semibold">المعلم</th>
+                                                            <th className="px-6 py-3 font-semibold">العنوان (المحاضرة)</th>
+                                                            <th className="px-6 py-3 font-semibold">الفصل الدراسي</th>
+                                                            <th className="px-6 py-3 font-semibold">اليوم</th>
+                                                            <th className="px-6 py-3 font-semibold">التاريخ</th>
+                                                            <th className="px-6 py-3 font-semibold">التوقيت</th>
+                                                            <th className="px-6 py-3 font-semibold">الحالة</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-100">
+                                                        {filteredSlots.map((slot: any) => (
+                                                            <tr
+                                                                key={slot.id}
+                                                                className={`transition-colors ${slot.is_booked
+                                                                    ? 'hover:bg-slate-50/80'
+                                                                    : 'bg-slate-50/40 border-r-2 border-r-dashed border-r-slate-300 hover:bg-slate-100/60'
+                                                                    }`}
+                                                            >
+                                                                <td className="px-6 py-4">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${slot.is_booked
+                                                                            ? 'bg-slate-100 text-slate-500'
+                                                                            : 'bg-slate-200/60 text-slate-400'
+                                                                            }`}>
+                                                                            <User size={14} />
+                                                                        </div>
+                                                                        <span className={`font-medium ${slot.is_booked ? 'text-slate-700' : 'text-slate-400 italic'
+                                                                            }`}>
+                                                                            {slot.is_booked ? slot.teacher_name : 'شاغر'}
+                                                                        </span>
+                                                                    </div>
+                                                                </td>
+
+                                                                <td className="px-6 py-4">
+                                                                    <div className={`flex items-center gap-2 ${slot.is_booked ? 'text-slate-600' : 'text-slate-400'
+                                                                        }`}>
+                                                                        {slot.is_booked ? (
+                                                                            slot.type === 'Lecture' ? (
+                                                                                <Video size={16} className="text-blue-500" />
+                                                                            ) : (
+                                                                                <Clock size={16} className="text-orange-500" />
+                                                                            )
+                                                                        ) : (
+                                                                            <Clock size={16} className="text-slate-300" />
+                                                                        )}
+                                                                        <span className="truncate max-w-[200px]" title={slot.lecture_title}>
+                                                                            {slot.is_booked ? (slot.lecture_title || 'حجز موعد') : '—'}
+                                                                        </span>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-slate-600 text-sm">
+                                                                    {slot.semester_name || <span className="text-slate-400">—</span>}
+                                                                </td>
+                                                                <td className="px-6 py-4 text-slate-600">
+                                                                    <div className="flex flex-col gap-1">
+                                                                        <span>{DAY_NAMES_AR[slot.day_of_week as number] ?? '—'}</span>
+                                                                        {slot.type === 'Recurring' && (
+                                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-50 text-purple-600 border border-purple-100 w-fit">
+                                                                                أسبوعي
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-slate-600 font-numeric">
+                                                                    {slot.date ? format(new Date(slot.date), 'dd MMMM yyyy', { locale: ar }) : (
+                                                                        <span className="text-slate-400">—</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <div className="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-medium font-numeric">
+                                                                        {slot.start_time} - {slot.end_time}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <StatusBadge status={slot.status} />
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : (
+                                            <div className="p-8 text-center text-slate-500 text-sm italic">
+                                                لا توجد حصص مجدولة لهذا الفصل
+                                            </div>
+                                        )}
+                                    </>
+                                );
+                            })()}
                         </div>
                     ))}
                 </div>
