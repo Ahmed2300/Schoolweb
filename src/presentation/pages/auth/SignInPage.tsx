@@ -19,8 +19,10 @@ import {
     CheckCircle,
     TrendingUp,
     ArrowLeft,
-    School
+    School,
+    PlayCircle
 } from 'lucide-react';
+import { VideoModal } from '../../components/common/VideoModal';
 
 type UserType = 'student' | 'parent' | 'teacher';
 
@@ -33,6 +35,7 @@ export function SignInPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [showVideoModal, setShowVideoModal] = useState(false);
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
 
@@ -336,6 +339,16 @@ export function SignInPage() {
                             ليس لديك حساب؟{' '}
                             <Link to={ROUTES.REGISTER} className="text-shibl-crimson font-bold hover:underline">أنشئ حساباً الآن</Link>
                         </p>
+
+                        <button
+                            onClick={() => setShowVideoModal(true)}
+                            className="w-full mt-6 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all group"
+                        >
+                            <span className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-shibl-crimson group-hover:scale-110 transition-transform">
+                                <PlayCircle size={18} fill="currentColor" className="opacity-90" />
+                            </span>
+                            <span>شاهد كيف تعمل المنصة</span>
+                        </button>
                     </div>
                 </div>
 
@@ -389,6 +402,14 @@ export function SignInPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Video Modal */}
+            <VideoModal
+                isOpen={showVideoModal}
+                onClose={() => setShowVideoModal(false)}
+                videoUrl="https://www.youtube.com/watch?v=dQw4w9WgXcQ" // TODO: Replace with actual platform tutorial video URL
+                title="جولة تعريفية في منصة سُبُل"
+            />
         </div>
     );
 }

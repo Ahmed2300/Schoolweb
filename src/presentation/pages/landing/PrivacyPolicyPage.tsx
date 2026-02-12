@@ -8,7 +8,7 @@ export const PrivacyPolicyPage = () => {
 
     return (
         <div className="min-h-screen bg-soft-cloud" dir="rtl">
-            {/* Simple Header */}
+            {/* Header */}
             <header className="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-[100]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
                     <div
@@ -30,24 +30,31 @@ export const PrivacyPolicyPage = () => {
                 <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-slate-100">
                     <div className="text-center mb-10">
                         <h1 className="text-3xl sm:text-4xl font-extrabold text-charcoal mb-4">سياسة الخصوصية لمنصة سُبُل</h1>
-                        <p className="text-slate-500 bg-slate-100 inline-block px-4 py-1.5 rounded-full text-sm font-medium">آخر تحديث: يناير 2025</p>
+                        <p className="text-slate-500 bg-slate-100 inline-block px-4 py-1.5 rounded-full text-sm font-medium">آخر تحديث: فبراير 2026</p>
                     </div>
 
                     <div className="space-y-12 text-slate-600 leading-relaxed text-justify">
+                        {/* المقدمة */}
                         <section>
                             <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">المقدمة</h2>
                             <p className="mb-4">
                                 مرحباً بكم في منصة سُبُل التعليمية. نحن نلتزم بحماية خصوصيتكم ونسعى جاهدين لضمان شفافية كاملة حول كيفية جمع واستخدام وحماية بياناتكم الشخصية. توضح سياسة الخصوصية هذه الممارسات المتبعة في جمع المعلومات واستخدامها وحمايتها عند استخدامكم لمنصتنا التعليمية المتكاملة.
                             </p>
-                            <p>
+                            <p className="mb-4">
                                 باستخدامكم لمنصة سُبُل، فإنكم توافقون على جمع واستخدام معلوماتكم وفقاً لهذه السياسة. نحثكم على قراءة هذه الوثيقة بعناية لفهم حقوقكم والتزاماتكم.
+                            </p>
+                            <p className="text-sm">
+                                تُعد سياسة الخصوصية هذه جزءاً لا يتجزأ من{' '}
+                                <Link to="/terms-and-conditions" className="text-shibl-crimson font-bold hover:underline">الشروط والأحكام</Link>{' '}
+                                الخاصة بالمنصة.
                             </p>
                         </section>
 
+                        {/* 1. معلومات عنا */}
                         <section>
                             <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">1. معلومات عنا</h2>
                             <p className="mb-4">
-                                منصة سُبُل هي منصة تعليمية متكاملة تجمع بين الفصول التفاعلية والمتابعة الدقيقة لضمان أفضل تجربة تعليمية. نسعى لتقديم بيئة تعليمية متميزة تساعد الطلاب على تحقيق أهدافهم الأكاديمية من خلال محتوى تعليمي عالي الجودة ومتابعة مستمرة لتقدمهم العلمي.
+                                منصة سُبُل هي منصة تعليمية متكاملة تجمع بين الفصول التفاعلية المباشرة والتسجيلات المرئية والمتابعة الدقيقة لضمان أفضل تجربة تعليمية. تخدم المنصة أربع فئات من المستخدمين: الطلاب، أولياء الأمور، المعلمين، والمسؤولين. نسعى لتقديم بيئة تعليمية متميزة تساعد الطلاب على تحقيق أهدافهم الأكاديمية من خلال محتوى تعليمي عالي الجودة ومتابعة مستمرة لتقدمهم العلمي.
                             </p>
                             <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-3">
                                 <h3 className="font-bold text-charcoal mb-2">يمكنكم التواصل معنا عبر:</h3>
@@ -76,6 +83,7 @@ export const PrivacyPolicyPage = () => {
                             </div>
                         </section>
 
+                        {/* 2. المعلومات التي نجمعها */}
                         <section>
                             <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-6 border-b pb-2 border-slate-100">2. المعلومات التي نجمعها</h2>
                             <div className="space-y-8">
@@ -84,13 +92,14 @@ export const PrivacyPolicyPage = () => {
                                         <span className="w-1.5 h-1.5 rounded-full bg-shibl-crimson"></span>
                                         2.1 المعلومات الشخصية
                                     </h3>
-                                    <p className="mb-2 text-sm text-slate-500">عند تسجيلكم في منصة سُبُل، قد نقوم بجمع المعلومات الشخصية التالية:</p>
+                                    <p className="mb-2 text-sm text-slate-500">عند تسجيلكم في منصة سُبُل، نقوم بجمع المعلومات الشخصية التالية حسب نوع الحساب:</p>
                                     <ul className="grid sm:grid-cols-2 gap-3">
-                                        <li className="bg-white p-3 rounded-xl border border-slate-100 text-sm"><strong className="block text-charcoal mb-1">الاسم الكامل:</strong> يُستخدم للتعريف بحسابكم الشخصي وإصدار الشهادات.</li>
-                                        <li className="bg-white p-3 rounded-xl border border-slate-100 text-sm"><strong className="block text-charcoal mb-1">البريد الإلكتروني:</strong> يُستخدم لتسجيل الدخول والتواصل وإرسال التحديثات.</li>
-                                        <li className="bg-white p-3 rounded-xl border border-slate-100 text-sm"><strong className="block text-charcoal mb-1">رقم الهاتف:</strong> يُستخدم للتواصل والمصادقة على الحساب.</li>
-                                        <li className="bg-white p-3 rounded-xl border border-slate-100 text-sm"><strong className="block text-charcoal mb-1">تاريخ الميلاد:</strong> يُستخدم لتخصيص المحتوى التعليمي المناسب.</li>
-                                        <li className="bg-white p-3 rounded-xl border border-slate-100 text-sm"><strong className="block text-charcoal mb-1">الجنس:</strong> يُستخدم لأغراض إحصائية وتخصيص المحتوى.</li>
+                                        <li className="bg-white p-3 rounded-xl border border-slate-100 text-sm"><strong className="block text-charcoal mb-1">الاسم الكامل:</strong>يُستخدم للتعريف بحسابكم الشخصي وعرض اسمكم في الفصول المباشرة.</li>
+                                        <li className="bg-white p-3 rounded-xl border border-slate-100 text-sm"><strong className="block text-charcoal mb-1">البريد الإلكتروني:</strong>يُستخدم لتسجيل الدخول والتحقق من الحساب والتواصل.</li>
+                                        <li className="bg-white p-3 rounded-xl border border-slate-100 text-sm"><strong className="block text-charcoal mb-1">رقم الهاتف:</strong>يُستخدم للتواصل والمصادقة على الحساب.</li>
+                                        <li className="bg-white p-3 rounded-xl border border-slate-100 text-sm"><strong className="block text-charcoal mb-1">تاريخ الميلاد:</strong>يُستخدم لتحديد الصف الدراسي المناسب.</li>
+                                        <li className="bg-white p-3 rounded-xl border border-slate-100 text-sm"><strong className="block text-charcoal mb-1">الجنس:</strong>يُستخدم لأغراض إحصائية وتخصيص المحتوى.</li>
+                                        <li className="bg-white p-3 rounded-xl border border-slate-100 text-sm"><strong className="block text-charcoal mb-1">الدولة والمدينة:</strong>لتحديد الموقع الجغرافي والمنطقة الزمنية.</li>
                                     </ul>
                                 </div>
 
@@ -100,19 +109,35 @@ export const PrivacyPolicyPage = () => {
                                         2.2 المعلومات التعليمية
                                     </h3>
                                     <ul className="list-disc list-inside space-y-1 mr-2 text-sm sm:text-base marker:text-slate-400">
-                                        <li><strong>المرحلة الدراسية:</strong> لتحديد المحتوى التعليمي المناسب.</li>
+                                        <li><strong>الصف والفصل الدراسي (السمستر):</strong> لتحديد المقررات المناسبة.</li>
                                         <li><strong>المقررات المسجلة:</strong> لتتبع تقدمكم في الدورات.</li>
-                                        <li><strong>نتائج الاختبارات والتقييمات:</strong> لقياس مستوى التقدم والأداء.</li>
-                                        <li><strong>سجل الحضور والمشاركة:</strong> في الفصول التفاعلية.</li>
-                                        <li><strong>الواجبات المنزلية والمشاريع:</strong> المقدمة من قبل الطلاب.</li>
-                                        <li><strong>ملاحظات المعلمين:</strong> والملاحظات التعليمية.</li>
+                                        <li><strong>نتائج الاختبارات والتقييمات:</strong> بما في ذلك الاختيار المتعدد والصح/الخطأ والمقالي.</li>
+                                        <li><strong>سجل الحضور والمشاركة:</strong> في الفصول التفاعلية المباشرة.</li>
+                                        <li><strong>حالة الحصص:</strong> (مكتمل، فائت، قادم) لتتبع الالتزام.</li>
+                                        <li><strong>الواجبات:</strong> المقدمة من قبل الطلاب مع التقييمات.</li>
+                                        <li><strong>ملاحظات المعلمين:</strong> والملاحظات التعليمية على الاختبارات المقالية.</li>
+                                        <li><strong>سجل مشاهدة التسجيلات:</strong> للفصول المباشرة المسجلة.</li>
                                     </ul>
                                 </div>
 
                                 <div>
                                     <h3 className="text-lg font-bold text-charcoal mb-3 flex items-center gap-2">
                                         <span className="w-1.5 h-1.5 rounded-full bg-shibl-crimson"></span>
-                                        2.3 معلومات الاستخدام
+                                        2.3 بيانات أولياء الأمور
+                                    </h3>
+                                    <p className="mb-2 text-sm">عند ربط حساب ولي الأمر بحسابات الأبناء، نجمع:</p>
+                                    <ul className="list-disc list-inside space-y-1 mr-2 text-sm sm:text-base marker:text-slate-400">
+                                        <li>بيانات ولي الأمر الشخصية (الاسم، البريد الإلكتروني، الهاتف).</li>
+                                        <li>معلومات الربط بحسابات الطلاب (الأبناء).</li>
+                                        <li>سجل متابعة الأبناء والوصول لتقارير الأداء.</li>
+                                        <li>سجل المشتريات والاشتراكات عبر المتجر.</li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <h3 className="text-lg font-bold text-charcoal mb-3 flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-shibl-crimson"></span>
+                                        2.4 معلومات الاستخدام
                                     </h3>
                                     <p className="mb-2">نقوم تلقائياً بجمع معلومات حول كيفية استخدامكم للمنصة:</p>
                                     <ul className="list-disc list-inside space-y-1 mr-2 text-sm sm:text-base marker:text-slate-400">
@@ -127,7 +152,7 @@ export const PrivacyPolicyPage = () => {
                                 <div>
                                     <h3 className="text-lg font-bold text-charcoal mb-3 flex items-center gap-2">
                                         <span className="w-1.5 h-1.5 rounded-full bg-shibl-crimson"></span>
-                                        2.4 ملفات تعريف الارتباط (Cookies)
+                                        2.5 ملفات تعريف الارتباط (Cookies)
                                     </h3>
                                     <p className="mb-2">
                                         نستخدم ملفات تعريف الارتباط والتقنيات المماثلة لتحسين تجربة الاستخدام وتقديم محتوى مخصص. تشمل أنواع الكوكيز المستخدمة:
@@ -136,12 +161,22 @@ export const PrivacyPolicyPage = () => {
                                         <span className="px-3 py-1 bg-slate-100 rounded-lg text-slate-700">كوكيز ضرورية</span>
                                         <span className="px-3 py-1 bg-slate-100 rounded-lg text-slate-700">كوكيز الأداء</span>
                                         <span className="px-3 py-1 bg-slate-100 rounded-lg text-slate-700">كوكيز الوظائف</span>
-                                        <span className="px-3 py-1 bg-slate-100 rounded-lg text-slate-700">كوكيز الاستهداف</span>
                                     </div>
+                                </div>
+
+                                <div>
+                                    <h3 className="text-lg font-bold text-charcoal mb-3 flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-shibl-crimson"></span>
+                                        2.6 بيانات المعاملات المالية
+                                    </h3>
+                                    <p className="text-sm">
+                                        عند شراء مقررات أو باقات تعليمية عبر المتجر، نجمع بيانات المعاملة (تفاصيل الطلب، المبلغ، تاريخ الدفع). <strong className="text-charcoal">لا نخزن بيانات البطاقات البنكية</strong>، وتتم معالجة الدفع عبر مزودي خدمة دفع معتمدين.
+                                    </p>
                                 </div>
                             </div>
                         </section>
 
+                        {/* 3. كيف نستخدم المعلومات */}
                         <section>
                             <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-6 border-b pb-2 border-slate-100">3. كيف نستخدم معلوماتكم</h2>
                             <div className="grid sm:grid-cols-2 gap-6">
@@ -149,9 +184,10 @@ export const PrivacyPolicyPage = () => {
                                     <h3 className="font-bold text-charcoal mb-2">3.1 تقديم الخدمات التعليمية</h3>
                                     <ul className="list-disc list-inside space-y-1 mr-2 text-sm text-slate-600 marker:text-slate-400">
                                         <li>إنشاء وإدارة حسابكم الشخصي.</li>
-                                        <li>توفير الوصول للمحتوى والفصول التفاعلية.</li>
-                                        <li>تتبع التقدم وإصدار التقارير والشهادات.</li>
-                                        <li>إدارة الاختبارات والتقييمات.</li>
+                                        <li>توفير الوصول للمقررات والفصول التفاعلية.</li>
+                                        <li>تشغيل الفصول المباشرة وتوفير التسجيلات.</li>
+                                        <li>تتبع التقدم الأكاديمي وتقارير الأداء.</li>
+                                        <li>إدارة الاختبارات والواجبات والتقييمات.</li>
                                     </ul>
                                 </div>
                                 <div>
@@ -160,6 +196,7 @@ export const PrivacyPolicyPage = () => {
                                         <li>تحليل أنماط الاستخدام لتحسين المنصة.</li>
                                         <li>تطوير محتوى تعليمي وتقني جديد.</li>
                                         <li>تحسين واجهة المستخدم وتجربة التصفح.</li>
+                                        <li>تحسين جودة الفصول المباشرة والتسجيلات.</li>
                                         <li>معالجة المشاكل التقنية.</li>
                                     </ul>
                                 </div>
@@ -167,6 +204,7 @@ export const PrivacyPolicyPage = () => {
                                     <h3 className="font-bold text-charcoal mb-2">3.3 التواصل معكم</h3>
                                     <ul className="list-disc list-inside space-y-1 mr-2 text-sm text-slate-600 marker:text-slate-400">
                                         <li>إرسال التحديثات والإشعارات المهمة.</li>
+                                        <li>تذكيرات مواعيد الحصص والاختبارات.</li>
                                         <li>الرد على الاستفسارات وطلبات الدعم.</li>
                                         <li>إرسال النشرات البريدية (بموافقتكم).</li>
                                     </ul>
@@ -176,27 +214,29 @@ export const PrivacyPolicyPage = () => {
                                     <ul className="list-disc list-inside space-y-1 mr-2 text-sm text-slate-600 marker:text-slate-400">
                                         <li>حماية الحساب من الوصول غير المصرح به.</li>
                                         <li>اكتشاف ومنع الاحتيال.</li>
+                                        <li>التحقق من هوية المستخدمين عبر OTP.</li>
                                         <li>الامتثال للمتطلبات القانونية.</li>
                                     </ul>
                                 </div>
                             </div>
                         </section>
 
+                        {/* 4. مشاركة المعلومات */}
                         <section>
                             <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">4. مشاركة المعلومات</h2>
                             <p className="mb-4">نحن نحترم خصوصيتكم ولا نبيع بياناتكم الشخصية. قد نشارك معلوماتكم في الحالات التالية فقط:</p>
                             <ul className="space-y-4">
                                 <li className="bg-slate-50 p-4 rounded-xl">
-                                    <strong className="block text-charcoal mb-1">4.1 مع أولياء الأمور (للطلاب القصر):</strong>
-                                    <span className="text-sm">نقدم لولي الأمر إمكانية الوصول إلى تقارير التقدم، سجل الحضور، ونتائج الاختبارات.</span>
+                                    <strong className="block text-charcoal mb-1">4.1 مع أولياء الأمور المربوطين:</strong>
+                                    <span className="text-sm">عند ربط حساب ولي الأمر بحساب الطالب عبر نظام الطلبات، يحصل ولي الأمر على: تقارير التقدم الأكاديمي، سجل الحضور والمشاركة في الفصول، ونتائج الاختبارات والواجبات.</span>
                                 </li>
                                 <li className="bg-slate-50 p-4 rounded-xl">
-                                    <strong className="block text-charcoal mb-1">4.2 مع المعلمين والجهات التعليمية:</strong>
-                                    <span className="text-sm">مشاركة المعلومات الضرورية لتقديم الدعم التعاوني والتعليمي.</span>
+                                    <strong className="block text-charcoal mb-1">4.2 مع المعلمين المسؤولين:</strong>
+                                    <span className="text-sm">يحصل المعلم المسؤول عن المقرر على بيانات الطلاب المسجلين: الاسم، الحضور، نتائج الاختبارات، والواجبات لأغراض التقييم والمتابعة التعليمية فقط.</span>
                                 </li>
                                 <li className="bg-slate-50 p-4 rounded-xl">
                                     <strong className="block text-charcoal mb-1">4.3 مقدمو الخدمات:</strong>
-                                    <span className="text-sm">نستعين بمقدمي خدمات (استضافة، تحليل، دفع، بريد) بموجب تعهدات سرية صارمة.</span>
+                                    <span className="text-sm">نستعين بمقدمي خدمات خارجيين (استضافة، فصول افتراضية، دفع إلكتروني، بريد إلكتروني) بموجب تعهدات سرية صارمة. يشمل ذلك خدمة الفصول الافتراضية المباشرة (BigBlueButton).</span>
                                 </li>
                                 <li className="bg-slate-50 p-4 rounded-xl">
                                     <strong className="block text-charcoal mb-1">4.4 المتطلبات القانونية:</strong>
@@ -205,98 +245,145 @@ export const PrivacyPolicyPage = () => {
                             </ul>
                         </section>
 
+                        {/* 5. تسجيلات الفصول المباشرة */}
                         <section>
-                            <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">5. أمن البيانات</h2>
+                            <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">5. خصوصية الفصول المباشرة والتسجيلات</h2>
+                            <div className="space-y-4">
+                                <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl text-sm">
+                                    <strong className="block text-blue-800 mb-2">5.1 التسجيل التلقائي:</strong>
+                                    <span className="text-blue-700">
+                                        تُسجل جميع الفصول المباشرة تلقائياً. بحضوركم الفصل، فإنكم توافقون على تسجيل الحصة بما في ذلك الصوت والصورة والمحادثة النصية. تُتاح هذه التسجيلات للطلاب المسجلين في المقرر فقط.
+                                    </span>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-charcoal mb-2">5.2 استخدام التسجيلات</h3>
+                                    <ul className="list-disc list-inside space-y-1 mr-2 text-sm marker:text-slate-400">
+                                        <li>التسجيلات متاحة لأغراض المراجعة التعليمية فقط.</li>
+                                        <li>لا يُسمح بتحميل أو مشاركة التسجيلات خارج المنصة.</li>
+                                        <li>يمكن للمعلم والمسؤولين الوصول إلى تسجيلات الفصول.</li>
+                                        <li>تُحذف التسجيلات وفقاً لسياسات الاحتفاظ بالبيانات.</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-charcoal mb-2">5.3 البيانات المجمعة أثناء الفصول</h3>
+                                    <ul className="list-disc list-inside space-y-1 mr-2 text-sm marker:text-slate-400">
+                                        <li>وقت الانضمام والخروج من الفصل.</li>
+                                        <li>مدة المشاركة والحضور الفعلي.</li>
+                                        <li>تفاعلات المحادثة النصية داخل الفصل.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* 6. أمن البيانات */}
+                        <section>
+                            <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">6. أمن البيانات</h2>
                             <p className="mb-4">نتخذ إجراءات أمنية قوية لحماية معلوماتكم الشخصية:</p>
                             <div className="grid sm:grid-cols-2 gap-4">
                                 <div className="border border-slate-100 rounded-xl p-4">
-                                    <h3 className="font-bold text-charcoal mb-2">5.1 التدابير التقنية</h3>
-                                    <ul className="list-disc list-inside text-sm space-y-1">
-                                        <li>تشفير البيانات (SSL/TLS).</li>
+                                    <h3 className="font-bold text-charcoal mb-2">6.1 التدابير التقنية</h3>
+                                    <ul className="list-disc list-inside text-sm space-y-1 marker:text-slate-400">
+                                        <li>تشفير البيانات أثناء النقل (SSL/TLS).</li>
                                         <li>جدران حماية وأنظمة كشف الاختراق.</li>
                                         <li>نسخ احتياطية وتحديثات منتظمة.</li>
+                                        <li>تشفير كلمات المرور بتقنيات حديثة.</li>
+                                        <li>التحقق بالبريد الإلكتروني (OTP).</li>
                                     </ul>
                                 </div>
                                 <div className="border border-slate-100 rounded-xl p-4">
-                                    <h3 className="font-bold text-charcoal mb-2">5.2 التدابير الإدارية</h3>
-                                    <ul className="list-disc list-inside text-sm space-y-1">
+                                    <h3 className="font-bold text-charcoal mb-2">6.2 التدابير الإدارية</h3>
+                                    <ul className="list-disc list-inside text-sm space-y-1 marker:text-slate-400">
+                                        <li>نظام صلاحيات متعدد المستويات.</li>
                                         <li>تقييد الوصول للموظفين المصرح لهم.</li>
                                         <li>عقود سرية وتدريب للموظفين.</li>
                                         <li>مراجعات أمنية دورية.</li>
+                                        <li>نظام موافقات على المحتوى قبل النشر.</li>
                                     </ul>
                                 </div>
                             </div>
                             <div className="mt-4 bg-orange-50 border border-orange-100 p-4 rounded-xl text-sm text-orange-800">
-                                <strong>5.3 مسؤولية المستخدم:</strong> نوصي باستخدام كلمات مرور قوية، عدم مشاركة البيانات، وتسجيل الخروج بعد الاستخدام.
+                                <strong>6.3 مسؤولية المستخدم:</strong> نوصي باستخدام كلمات مرور قوية، عدم مشاركة بيانات تسجيل الدخول، وتسجيل الخروج بعد الاستخدام. أنتم مسؤولون عن جميع الأنشطة التي تتم عبر حسابكم.
                             </div>
                         </section>
 
+                        {/* 7. حقوقكم */}
                         <section>
-                            <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">6. حقوقكم المتعلقة ببياناتكم</h2>
+                            <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">7. حقوقكم المتعلقة ببياناتكم</h2>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
                                 <div className="p-3 bg-slate-50 rounded-lg text-center"><strong className="block mb-1 text-charcoal">حق الوصول</strong>طلب نسخة من بياناتكم</div>
                                 <div className="p-3 bg-slate-50 rounded-lg text-center"><strong className="block mb-1 text-charcoal">حق التصحيح</strong>تعديل بيانات غير دقيقة</div>
                                 <div className="p-3 bg-slate-50 rounded-lg text-center"><strong className="block mb-1 text-charcoal">حق الحذف</strong>مع مراعاة المتطلبات القانونية</div>
                                 <div className="p-3 bg-slate-50 rounded-lg text-center"><strong className="block mb-1 text-charcoal">تقييد المعالجة</strong>في ظروف معينة</div>
                                 <div className="p-3 bg-slate-50 rounded-lg text-center"><strong className="block mb-1 text-charcoal">نقل البيانات</strong>بصيغة مقروءة آلياً</div>
-                                <div className="p-3 bg-slate-50 rounded-lg text-center"><strong className="block mb-1 text-charcoal">الاعتراض</strong>على المعالجة لأغراض معينة</div>
+                                <div className="p-3 bg-slate-50 rounded-lg text-center"><strong className="block mb-1 text-charcoal">سحب الموافقة</strong>في أي وقت</div>
                             </div>
                             <p className="mt-4 text-sm text-center">لممارسة أي من هذه الحقوق، يرجى التواصل معنا عبر قنوات الاتصال المحددة.</p>
                         </section>
 
+                        {/* 8. الاحتفاظ بالبيانات */}
                         <section>
-                            <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">7. الاحتفاظ بالبيانات</h2>
+                            <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">8. الاحتفاظ بالبيانات</h2>
                             <ul className="space-y-2 mb-4">
                                 <li><strong>البيانات الأساسية:</strong> تُحذف خلال 90 يوماً من إغلاق الحساب.</li>
                                 <li><strong>السجلات الأكاديمية:</strong> قد نحتفظ بها لمدة تصل إلى 7 سنوات.</li>
+                                <li><strong>تسجيلات الفصول:</strong> تُحتفظ بها طوال فترة نشاط المقرر.</li>
+                                <li><strong>بيانات المعاملات المالية:</strong> وفقاً للمتطلبات المحاسبية والقانونية.</li>
                                 <li><strong>سجلات الامتثال:</strong> وفقاً للمتطلبات القانونية.</li>
                             </ul>
-                            <p className="text-sm bg-slate-50 p-3 rounded-lg border border-slate-200 inline-block">تُحذف البيانات تلقائياً عند طلب الحذف، عدم النشاط لفترة محددة، أو انتهاء الغراض.</p>
+                            <p className="text-sm bg-slate-50 p-3 rounded-lg border border-slate-200 inline-block">تُحذف البيانات تلقائياً عند طلب الحذف، عدم النشاط لفترة محددة، أو انتهاء الغرض.</p>
                         </section>
 
+                        {/* 9. خصوصية الأطفال */}
                         <section>
-                            <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">8. خصوصية الأطفال</h2>
+                            <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">9. خصوصية الأطفال</h2>
                             <p className="mb-4">
-                                نلتزم بحماية خصوصية الأطفال. بالنسبة للمستخدمين دون سن 18 عاماً، يجب الحصول على موافقة ولي الأمر.
-                                يحق لولي الأمر مراجعة بيانات ابنه، ونحن لا نجمع معلومات زائدة ولا نشارك بيانات الأطفال للإعلانات.
+                                تستهدف منصة سُبُل الطلاب من مختلف الأعمار والصفوف الدراسية. نلتزم بحماية خصوصية الأطفال. بالنسبة للمستخدمين دون سن 18 عاماً:
                             </p>
+                            <ul className="list-disc list-inside space-y-1 mr-2 text-sm sm:text-base marker:text-slate-400">
+                                <li>يجب التسجيل من خلال ولي الأمر أو بموافقته.</li>
+                                <li>يحق لولي الأمر ربط حسابه بحساب الطالب عبر نظام الطلبات.</li>
+                                <li>يمكن لولي الأمر مراجعة تقارير أداء الطالب والوصول لبياناته التعليمية.</li>
+                                <li>لا نجمع معلومات زائدة عن الحاجة من الأطفال.</li>
+                                <li>لا نشارك بيانات الأطفال مع أطراف ثالثة للإعلانات.</li>
+                            </ul>
                         </section>
 
+                        {/* 10. الروابط الخارجية */}
                         <section>
-                            <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">9. الروابط لمواقع خارجية</h2>
+                            <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">10. الروابط لمواقع خارجية</h2>
                             <p>
-                                قد تحتوي منصتنا على روابط خارجية. نحن لسنا مسؤولين عن ممارسات الخصوصية لتلك المواقع، وننصحكم بمراجعة سياساتها.
+                                قد تحتوي منصتنا على روابط خارجية، بما في ذلك روابط الفصول الافتراضية. نحن لسنا مسؤولين عن ممارسات الخصوصية لتلك المواقع، وننصحكم بمراجعة سياساتها.
                             </p>
                         </section>
 
+                        {/* 11. التحديثات */}
                         <section>
-                            <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">10. التحديثات على السياسة</h2>
+                            <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">11. التحديثات على السياسة</h2>
                             <p>
                                 قد نقوم بتحديث السياسة من وقت لآخر. سنخطركم بالتغييرات الجوهرية عبر البريد أو إشعار في المنصة. استمرار الاستخدام يعني الموافقة على السياسة المحدثة.
                             </p>
                         </section>
 
-                        <section>
-                            <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">11. ملفات تعريف الارتباط والإعلانات</h2>
-                            <p className="mb-2">
-                                نستخدم الكوكيز الأساسية، التحليلية، والوظيفية. يمكنكم إدارتها من خلال إعدادات المتصفح أو حسابكم.
-                            </p>
-                        </section>
-
+                        {/* 12. الشكاوى */}
                         <section>
                             <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">12. الاعتراضات والشكاوى</h2>
                             <p>
-                                نلتزم بالرد على الشكاوى خلال 30 يوماً. إذا لم نتمكن من حل الشكوى، يحق لكم اللجوء للسلطات المختصة.
+                                نلتزم بالرد على الشكاوى المتعلقة بالخصوصية خلال 30 يوماً. إذا لم نتمكن من حل الشكوى، يحق لكم اللجوء للسلطات المختصة في سلطنة عُمان.
                             </p>
                         </section>
 
+                        {/* 13. أحكام عامة */}
                         <section>
                             <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-4 border-b pb-2 border-slate-100">13. أحكام عامة</h2>
-                            <p>
-                                تخضع هذه السياسة لقوانين سلطنة عمان. في حال وجود اختلاف في الترجمة، النص العربي هو المعتمد.
-                            </p>
+                            <div className="space-y-3 text-sm">
+                                <p>تخضع هذه السياسة لقوانين سلطنة عُمان. في حال وجود اختلاف في الترجمة، النص العربي هو المعتمد.</p>
+                                <p>
+                                    تُشكل هذه السياسة و<Link to="/terms-and-conditions" className="text-shibl-crimson hover:underline">الشروط والأحكام</Link> الاتفاقية الكاملة بين المستخدم والمنصة فيما يتعلق بالخصوصية.
+                                </p>
+                            </div>
                         </section>
 
+                        {/* 14. التواصل */}
                         <section id="contact" className="bg-shibl-light-crimson/5 border border-shibl-crimson/10 rounded-2xl p-6 sm:p-8">
                             <h2 className="text-xl sm:text-2xl font-bold text-shibl-crimson mb-6 text-center">14. كيفية التواصل معنا</h2>
                             <div className="grid sm:grid-cols-2 gap-8">
@@ -335,7 +422,7 @@ export const PrivacyPolicyPage = () => {
                                 </div>
                             </div>
                             <div className="mt-8 text-center border-t border-shibl-crimson/10 pt-4 text-slate-500 text-sm">
-                                <p>© 2025 منصة سُبُل - جميع الحقوق محفوظة</p>
+                                <p>© 2026 منصة سُبُل - جميع الحقوق محفوظة</p>
                                 <p className="font-amiri mt-1 text-shibl-crimson font-bold">علم يوصل للمستقبل</p>
                             </div>
                         </section>

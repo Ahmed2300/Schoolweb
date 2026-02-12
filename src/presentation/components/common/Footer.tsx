@@ -56,6 +56,7 @@ export const Footer = () => {
                         <a href="/#stages" className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">المراحل الدراسية</a>
                         <a href="/#features" className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">المميزات</a>
                         <Link to="/privacy-policy" className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">سياسة الخصوصية</Link>
+                        <Link to="/terms-and-conditions" className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">الشروط والأحكام</Link>
                         <button
                             onClick={() => setShowReportModal(true)}
                             className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base text-right"

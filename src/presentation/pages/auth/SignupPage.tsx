@@ -594,7 +594,7 @@ export function SignupPage() {
                                     <CheckCircle size={14} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
                                 </div>
                                 <label htmlFor="terms" className="text-sm text-slate-500 cursor-pointer select-none">
-                                    أوافق على <Link to="#" className="text-shibl-crimson font-bold hover:underline">الشروط والأحكام</Link> وسياسة الخصوصية
+                                    أوافق على <Link to="/terms-and-conditions" className="text-shibl-crimson font-bold hover:underline" target="_blank" rel="noopener noreferrer">الشروط والأحكام</Link> وسياسة الخصوصية
                                 </label>
                             </div>
 

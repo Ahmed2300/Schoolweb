@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import {
   LandingPage,
   PrivacyPolicyPage,
+  TermsAndConditionsPage,
   SignInPage,
   SignupPage,
   VerifyEmailPage,
@@ -107,6 +108,7 @@ function App() {
             <Route path={ROUTES.HOME} element={<LandingPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
             <Route path={ROUTES.LOGIN} element={<SignInPage />} />
             <Route path={ROUTES.REGISTER} element={<SignupPage />} />
             <Route path={ROUTES.VERIFY_EMAIL} element={<VerifyEmailPage />} />
