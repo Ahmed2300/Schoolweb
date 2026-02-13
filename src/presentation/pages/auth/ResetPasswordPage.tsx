@@ -9,6 +9,66 @@ import { motion, AnimatePresence } from 'framer-motion';
 // Lucide Icons
 import { KeyRound, Lock, Eye, EyeOff, ArrowLeft, CheckCircle2, RefreshCw, AlertCircle, ShieldCheck } from 'lucide-react';
 
+/**
+ * Maps known English API error messages to user-friendly Arabic descriptions.
+ */
+const ERROR_MESSAGE_MAP: Record<string, string> = {
+    'Invalid OTP or OTP expired.': 'رمز التحقق غير صحيح أو منتهي الصلاحية. يرجى طلب رمز جديد.',
+    'Invalid OTP or OTP expired': 'رمز التحقق غير صحيح أو منتهي الصلاحية. يرجى طلب رمز جديد.',
+    'The selected email is invalid.': 'البريد الإلكتروني غير مسجل في النظام.',
+    'The selected email is invalid': 'البريد الإلكتروني غير مسجل في النظام.',
+    'The email field is required.': 'يرجى إدخال البريد الإلكتروني.',
+    'The otp field is required.': 'يرجى إدخال رمز التحقق.',
+    'The password field is required.': 'يرجى إدخال كلمة المرور.',
+    'The password must be at least 8 characters.': 'كلمة المرور يجب أن تكون 8 أحرف على الأقل.',
+    'The password confirmation does not match.': 'كلمتا المرور غير متطابقتين.',
+    'The password field confirmation does not match.': 'كلمتا المرور غير متطابقتين.',
+    'Too many attempts. Please try again later.': 'محاولات كثيرة. يرجى المحاولة لاحقاً.',
+    'Too Many Attempts.': 'محاولات كثيرة جداً. يرجى الانتظار قليلاً والمحاولة مرة أخرى.',
+    'Unauthenticated.': 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.',
+    'The given data was invalid.': 'البيانات المدخلة غير صحيحة. يرجى المراجعة والمحاولة مرة أخرى.',
+};
+
+const getArabicErrorMessage = (err: any): string => {
+    const defaultMessage = 'حدث خطأ. يرجى التحقق من صحة البيانات والمحاولة مرة أخرى.';
+
+    // Network / no response
+    if (!err.response) {
+        return 'تعذر الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.';
+    }
+
+    const data = err.response?.data;
+    const status = err.response?.status;
+
+    // Check for Arabic message from backend first
+    if (data?.message_ar) return data.message_ar;
+
+    // Check for validation errors (Laravel-style { errors: { field: ["msg"] } })
+    if (data?.errors && typeof data.errors === 'object') {
+        const firstField = Object.keys(data.errors)[0];
+        const firstError = data.errors[firstField]?.[0];
+        if (firstError) {
+            const mapped = ERROR_MESSAGE_MAP[firstError];
+            if (mapped) return mapped;
+        }
+    }
+
+    // Check main message
+    if (data?.message) {
+        const mapped = ERROR_MESSAGE_MAP[data.message];
+        if (mapped) return mapped;
+    }
+
+    // Fallback by HTTP status code
+    if (status === 422) return 'البيانات المدخلة غير صحيحة. يرجى المراجعة والمحاولة مرة أخرى.';
+    if (status === 429) return 'محاولات كثيرة جداً. يرجى الانتظار قليلاً والمحاولة مرة أخرى.';
+    if (status === 401) return 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.';
+    if (status === 500) return 'حدث خطأ في الخادم. يرجى المحاولة لاحقاً.';
+    if (status === 400) return 'طلب غير صالح. يرجى التحقق من البيانات والمحاولة مرة أخرى.';
+
+    return defaultMessage;
+};
+
 type UserType = 'student' | 'parent' | 'teacher';
 
 export function ResetPasswordPage() {
@@ -100,7 +160,7 @@ export function ResetPasswordPage() {
             setCountdown(60);
             setTimeout(() => setResendSuccess(''), 3000);
         } catch (err: any) {
-            setError(err.message || 'فشل إعادة إرسال الرمز');
+            setError(getArabicErrorMessage(err));
         } finally {
             setIsResending(false);
         }
@@ -147,7 +207,7 @@ export function ResetPasswordPage() {
 
             setSuccess(true);
         } catch (err: any) {
-            setError(err.message || 'حدث خطأ. يرجى التحقق من صحة الرمز والمحاولة مرة أخرى');
+            setError(getArabicErrorMessage(err));
         } finally {
             setIsLoading(false);
         }

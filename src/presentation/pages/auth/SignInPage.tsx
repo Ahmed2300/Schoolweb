@@ -340,15 +340,21 @@ export function SignInPage() {
                             <Link to={ROUTES.REGISTER} className="text-shibl-crimson font-bold hover:underline">أنشئ حساباً الآن</Link>
                         </p>
 
-                        <button
-                            onClick={() => setShowVideoModal(true)}
-                            className="w-full mt-6 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all group"
-                        >
-                            <span className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-shibl-crimson group-hover:scale-110 transition-transform">
-                                <PlayCircle size={18} fill="currentColor" className="opacity-90" />
-                            </span>
-                            <span>شاهد كيف تعمل المنصة</span>
-                        </button>
+                        <div className="mt-8 pt-6 border-t border-slate-100 flex justify-center">
+                            <button
+                                type="button"
+                                onClick={() => setShowVideoModal(true)}
+                                className="group flex items-center gap-3 px-4 py-2 rounded-full hover:bg-rose-50 transition-colors"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-rose-100 text-shibl-crimson flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <PlayCircle size={14} fill="currentColor" />
+                                </div>
+                                <div className="text-right">
+                                    <span className="block text-xs font-bold text-shibl-crimson">كيف تسجل الدخول</span>
+                                    <span className="block text-[10px] text-slate-400 font-medium">شاهد الشرح في دقيقة</span>
+                                </div>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -407,8 +413,8 @@ export function SignInPage() {
             <VideoModal
                 isOpen={showVideoModal}
                 onClose={() => setShowVideoModal(false)}
-                videoUrl="https://www.youtube.com/watch?v=dQw4w9WgXcQ" // TODO: Replace with actual platform tutorial video URL
-                title="جولة تعريفية في منصة سُبُل"
+                videoUrl="https://youtu.be/8ux9wCb0iQs"
+                title="كيف تسجل الدخول في منصة سُبُل"
             />
         </div>
     );

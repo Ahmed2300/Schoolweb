@@ -652,7 +652,7 @@ export function SignupPage() {
             <VideoModal
                 isOpen={isVideoModalOpen}
                 onClose={() => setIsVideoModalOpen(false)}
-                videoUrl="https://www.youtube.com/watch?v=ScMzIvxBSi4"
+                videoUrl="https://youtu.be/xDY-eLt9NKQ"
                 title="شرح خطوات التسجيل في منصة شبل"
             />
         </div>
