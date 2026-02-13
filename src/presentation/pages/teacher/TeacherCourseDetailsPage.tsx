@@ -84,6 +84,7 @@ import { useMutation } from '@tanstack/react-query';
 import { CourseDetailsSkeleton } from '../../components/ui/skeletons/CourseDetailsSkeleton';
 import { formatTime, formatShortDate } from '../../../utils/timeUtils';
 import { LiveSessionEmbedModal } from '../../components/shared/LiveSessionEmbedModal';
+import { VideoModal } from '../../components/common/VideoModal';
 
 
 // ==================== HELPER COMPONENTS ====================
@@ -734,6 +735,7 @@ export function TeacherCourseDetailsPage() {
     // Live Session Modal States
     const [liveSessionEmbedUrl, setLiveSessionEmbedUrl] = useState<string | null>(null);
     const [isLiveSessionModalOpen, setIsLiveSessionModalOpen] = useState(false);
+    const [showTutorialModal, setShowTutorialModal] = useState(false);
 
     // Student State
     const [students, setStudents] = useState<TeacherCourseStudent[]>([]);
@@ -1441,7 +1443,13 @@ export function TeacherCourseDetailsPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-
+                        <button
+                            onClick={() => setShowTutorialModal(true)}
+                            className="hidden lg:flex px-3 py-2.5 bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:text-shibl-crimson hover:border-shibl-crimson/30 hover:bg-red-50/10 rounded-xl transition-all items-center gap-2 font-medium shadow-sm text-sm"
+                        >
+                            <PlayCircle className="w-4 h-4 text-shibl-crimson" />
+                            <span>كيف تبدأ جلستك التجريبية الأولى؟</span>
+                        </button>
 
                         <button
                             onClick={handleStartTestSession}
@@ -1913,6 +1921,14 @@ export function TeacherCourseDetailsPage() {
                 onClose={handleCloseLiveSession}
                 embedUrl={liveSessionEmbedUrl}
                 title="جلستك المباشرة"
+            />
+
+            {/* Tutorial Video Modal */}
+            <VideoModal
+                isOpen={showTutorialModal}
+                onClose={() => setShowTutorialModal(false)}
+                videoUrl="https://youtu.be/YHLgHVoinYQ"
+                title="كيف تبدأ جلستك التجريبية الأولى؟"
             />
         </div>
     );
