@@ -2345,48 +2345,6 @@ export const adminService = {
     },
 
 
-    // ==================== COUNTRIES ====================
-
-    getCountries: async (params: { per_page?: number; page?: number } = {}): Promise<any> => {
-        const response = await apiClient.get(endpoints.admin.countries.list, { params });
-        return response.data;
-    },
-
-    createCountry: async (data: { name: string; code: string }): Promise<any> => {
-        const response = await apiClient.post(endpoints.admin.countries.create, data);
-        return response.data;
-    },
-
-    updateCountry: async (id: number, data: { name?: string; code?: string }): Promise<any> => {
-        const response = await apiClient.put(endpoints.admin.countries.update(id), data);
-        return response.data;
-    },
-
-    deleteCountry: async (id: number): Promise<void> => {
-        await apiClient.delete(endpoints.admin.countries.delete(id));
-    },
-
-    // ==================== CITIES ====================
-
-    getCities: async (params: { country_id?: number; per_page?: number; page?: number } = {}): Promise<any> => {
-        const response = await apiClient.get(endpoints.admin.cities.list, { params });
-        return response.data;
-    },
-
-    createCity: async (data: { name: string; country_id: number }): Promise<any> => {
-        const response = await apiClient.post(endpoints.admin.cities.create, data);
-        return response.data;
-    },
-
-    updateCity: async (id: number, data: { name?: string; country_id?: number }): Promise<any> => {
-        const response = await apiClient.put(endpoints.admin.cities.update(id), data);
-        return response.data;
-    },
-
-    deleteCity: async (id: number): Promise<void> => {
-        await apiClient.delete(endpoints.admin.cities.delete(id));
-    },
-
     // ==================== SETTINGS ====================
 
     getAllSettings: async (): Promise<any> => {
