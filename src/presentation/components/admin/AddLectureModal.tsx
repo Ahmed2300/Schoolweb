@@ -161,8 +161,8 @@ export function AddLectureModal({
                 course_id: parseInt(formData.courseId),
                 unit_id: formData.unitId ? parseInt(formData.unitId) : undefined,
                 teacher_id: parseInt(formData.teacherId),
-                start_time: formData.startTime || undefined,
-                end_time: formData.endTime || undefined,
+                start_time: formData.startTime ? new Date(formData.startTime).toISOString() : undefined,
+                end_time: formData.endTime ? new Date(formData.endTime).toISOString() : undefined,
                 is_online: formData.isOnline,
             };
 

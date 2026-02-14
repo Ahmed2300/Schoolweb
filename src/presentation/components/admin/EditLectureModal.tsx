@@ -106,8 +106,8 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
                 courseId: lecture.course_id.toString(),
                 unitId: lecture.unit_id ? lecture.unit_id.toString() : '',
                 teacherId: lecture.teacher_id.toString(),
-                startTime: lecture.start_time ? new Date(lecture.start_time).toISOString().slice(0, 16) : '',
-                endTime: lecture.end_time ? new Date(lecture.end_time).toISOString().slice(0, 16) : '',
+                startTime: lecture.start_time ? new Date(lecture.start_time).toLocaleTimeString('sv').slice(0, 16).replace(' ', 'T') : '',
+                endTime: lecture.end_time ? new Date(lecture.end_time).toLocaleTimeString('sv').slice(0, 16).replace(' ', 'T') : '',
                 isOnline: lecture.is_online,
             });
             setNewVideoPath(null); // Reset new video path when opening for new lecture
@@ -184,8 +184,8 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
                 course_id: parseInt(formData.courseId),
                 unit_id: formData.unitId ? parseInt(formData.unitId) : undefined,
                 teacher_id: parseInt(formData.teacherId),
-                start_time: formData.startTime || undefined,
-                end_time: formData.endTime || undefined,
+                start_time: formData.startTime ? new Date(formData.startTime).toISOString() : undefined,
+                end_time: formData.endTime ? new Date(formData.endTime).toISOString() : undefined,
                 is_online: formData.isOnline,
             };
 
