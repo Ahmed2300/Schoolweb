@@ -8,6 +8,7 @@
 
 import apiClient, { setTokens, clearTokens } from './ApiClient';
 import { endpoints } from './endpoints';
+import { oneSignalService } from './onesignal';
 
 // ==================== TYPES ====================
 
@@ -85,6 +86,7 @@ export const teacherAuthService = {
         // Backend returns: { success, message, data: { teacher, token, requires_verification } }
         if (response.data.data?.token) {
             setTokens(response.data.data.token, '');
+            oneSignalService.registerDevice();
         }
 
         return {
@@ -267,6 +269,7 @@ export const teacherAuthService = {
      * Logout current session (revoke current token)
      */
     logout: async (): Promise<void> => {
+        await oneSignalService.unregisterDevice();
         await apiClient.post(endpoints.teacherAuth.logout);
         clearTokens();
     },
