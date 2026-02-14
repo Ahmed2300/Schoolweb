@@ -16,6 +16,7 @@ import {
 import { teacherLectureService } from '../../../data/api/teacherLectureService';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { LiveSessionEmbedModal } from '../../components/shared/LiveSessionEmbedModal';
 
 interface Recording {
     id: number;
@@ -50,6 +51,8 @@ export default function TeacherRecordingsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [deleteModalId, setDeleteModalId] = useState<number | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isLiveSessionModalOpen, setIsLiveSessionModalOpen] = useState(false);
+    const [liveSessionEmbedUrl, setLiveSessionEmbedUrl] = useState<string | null>(null);
 
     useEffect(() => {
         loadData();
@@ -100,7 +103,8 @@ export default function TeacherRecordingsPage() {
         const url = recording.recording_url || recording.video_path;
         if (url) {
             teacherLectureService.trackRecordingView(recording.id);
-            window.open(url, '_blank');
+            setLiveSessionEmbedUrl(url);
+            setIsLiveSessionModalOpen(true);
         }
     };
 
@@ -348,6 +352,15 @@ export default function TeacherRecordingsPage() {
                                 )}
                                 حذف
                             </button>
+                            {/* Live Session Embed Modal */}
+                            <LiveSessionEmbedModal
+                                isOpen={isLiveSessionModalOpen}
+                                onClose={() => {
+                                    setIsLiveSessionModalOpen(false);
+                                    setLiveSessionEmbedUrl(null);
+                                }}
+                                embedUrl={liveSessionEmbedUrl}
+                            />
                         </div>
                     </div>
                 </div>

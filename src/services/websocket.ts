@@ -65,6 +65,7 @@ export function initializeEcho(authToken: string): Echo<'reverb'> | null {
         auth: {
             headers: {
                 Authorization: `Bearer ${authToken}`,
+                Accept: 'application/json',
             },
         },
     });
@@ -95,6 +96,7 @@ export function initializeStudentEcho(authToken: string): Echo<'reverb'> {
         auth: {
             headers: {
                 Authorization: `Bearer ${authToken}`,
+                Accept: 'application/json',
             },
         },
     });
@@ -124,6 +126,7 @@ export function initializeParentEcho(authToken: string): Echo<'reverb'> {
         auth: {
             headers: {
                 Authorization: `Bearer ${authToken}`,
+                Accept: 'application/json',
             },
         },
     });
@@ -377,6 +380,7 @@ export function initializeTeacherEcho(authToken: string): Echo<'reverb'> {
         auth: {
             headers: {
                 Authorization: `Bearer ${authToken}`,
+                Accept: 'application/json',
             },
         },
     });

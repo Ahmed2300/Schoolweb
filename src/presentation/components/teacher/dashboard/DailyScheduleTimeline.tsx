@@ -318,7 +318,12 @@ export function DailyScheduleTimeline() {
                                                 )}
                                                 {cls.status === 'completed' && cls.has_recording && (
                                                     <button
-                                                        onClick={() => cls.recording_url && window.open(cls.recording_url, '_blank')}
+                                                        onClick={() => {
+                                                            if (cls.recording_url) {
+                                                                setLiveSessionEmbedUrl(cls.recording_url);
+                                                                setIsLiveSessionModalOpen(true);
+                                                            }
+                                                        }}
                                                         className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-l from-emerald-500 to-green-600 text-white text-xs font-bold rounded-lg hover:shadow-lg hover:shadow-green-200/50 transition-all"
                                                     >
                                                         <Eye size={12} />

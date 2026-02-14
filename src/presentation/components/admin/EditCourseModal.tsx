@@ -97,6 +97,7 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
     // Image upload
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [removeImage, setRemoveImage] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Helper to extract name from translatable object
@@ -200,9 +201,7 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                         }
                     }
 
-                    // DEBUG: Log raw API response for name and description
-                    console.log('Raw API fullCourse.name:', fullCourse.name);
-                    console.log('Raw API fullCourse.description:', fullCourse.description);
+
 
                     const newFormData = {
                         name_ar: getBilingualValue(fullCourse.name, 'ar'),
@@ -225,17 +224,11 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                         subject_id: fullCourse.subject_id || fullCourse.subject?.id || null,
                         teacher_id: fullCourse.teacher_id || fullCourse.teacher?.id || null,
                     };
-                    console.log('Setting form data:', newFormData);
-                    console.log('Dropdown IDs:', {
-                        grade_id: newFormData.grade_id,
-                        semester_id: newFormData.semester_id,
-                        subject_id: newFormData.subject_id,
-                        teacher_id: newFormData.teacher_id
-                    });
                     setFormData(newFormData);
                     setError(null);
                     setFieldErrors({});
                     setImageFile(null);
+                    setRemoveImage(false);
                     setImagePreview(fullCourse.image_path || null);
                 } catch (err) {
                     console.error('Error fetching course details:', err);
@@ -447,6 +440,7 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
             }
             setImageFile(file);
             setImagePreview(URL.createObjectURL(file));
+            setRemoveImage(false);
             setFieldErrors(prev => {
                 const newErrors = { ...prev };
                 delete newErrors.image;
@@ -458,6 +452,7 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
     const handleRemoveImage = () => {
         setImageFile(null);
         setImagePreview(null);
+        setRemoveImage(true);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -533,7 +528,11 @@ export function EditCourseModal({ isOpen, course, onClose, onSuccess }: EditCour
                 if (formData.subject_id) submitData.append('subject_id', String(formData.subject_id));
             }
             submitData.append('teacher_id', String(formData.teacher_id));
-            if (imageFile) submitData.append('image', imageFile);
+            if (imageFile) {
+                submitData.append('image', imageFile);
+            } else if (removeImage) {
+                submitData.append('remove_image', '1');
+            }
 
             await adminService.updateCourseWithImage(course.id, submitData);
             onSuccess();

@@ -298,15 +298,18 @@ export function LiveSessionContent({ lecture, onJoin }: LiveSessionContentProps)
                         {lecture.recording_url ? (
                             <>
                                 <p className="text-slate-500 font-medium mb-6">يمكنك مشاهدة التسجيل</p>
-                                <a
-                                    href={lecture.recording_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <button
+                                    onClick={() => {
+                                        if (lecture.recording_url) {
+                                            setEmbedUrl(lecture.recording_url);
+                                            setIsModalOpen(true);
+                                        }
+                                    }}
                                     className="inline-flex items-center gap-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-lg transition-all shadow-lg shadow-blue-200"
                                 >
                                     <Video size={24} />
                                     شاهد التسجيل
-                                </a>
+                                </button>
                             </>
                         ) : isRecordingProcessing ? (
                             <>
