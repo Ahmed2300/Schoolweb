@@ -1,5 +1,6 @@
 import apiClient, { setTokens, clearTokens } from './ApiClient';
 import { endpoints } from './endpoints';
+import { oneSignalService } from './onesignal';
 
 // Types
 export interface AdminLoginRequest {
@@ -762,6 +763,11 @@ export const adminService = {
         // Store token on successful login
         if (response.data.token) {
             setTokens(response.data.token, '');
+            try {
+                await oneSignalService.registerDevice();
+            } catch (error) {
+                console.error('OneSignal: Failed to register device', error);
+            }
         }
 
         return response.data;
@@ -771,8 +777,14 @@ export const adminService = {
      * Admin Logout
      * Clears stored tokens
      */
-    logout: () => {
-        clearTokens();
+    logout: async () => {
+        try {
+            await oneSignalService.unregisterDevice();
+        } catch (error) {
+            console.error('OneSignal: Failed to unregister device', error);
+        } finally {
+            clearTokens();
+        }
     },
 
     // ==================== STUDENTS ====================

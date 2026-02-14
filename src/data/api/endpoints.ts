@@ -515,4 +515,10 @@ export const endpoints = {
         markAllAsRead: '/api/user/notifications/mark-all-as-read',
         delete: (id: string) => `/api/user/notifications/${id}`,
     },
+
+    // OneSignal Device Tokens
+    deviceTokens: {
+        store: '/api/device-tokens',
+        delete: '/api/device-tokens',
+    },
 } as const;

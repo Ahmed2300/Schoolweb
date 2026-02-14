@@ -1,5 +1,6 @@
 import apiClient, { setTokens, clearTokens, API_BASE_URL } from './ApiClient';
 import { endpoints } from './endpoints';
+import { oneSignalService } from './onesignal';
 
 // Helper to fix avatar URLs
 const transformUser = (user: UserData): UserData => {
@@ -97,6 +98,7 @@ export const authService = {
         const response = await apiClient.post(endpoints.studentAuth.login, data);
         if (response.data.data?.token) {
             setTokens(response.data.data.token, '');
+            oneSignalService.registerDevice();
         }
         return response.data;
     },
@@ -146,6 +148,7 @@ export const authService = {
         const backendData = response.data;
         if (backendData.token) {
             setTokens(backendData.token, '');
+            oneSignalService.registerDevice();
         }
         return {
             success: true,
@@ -257,6 +260,8 @@ export const authService = {
         const endpoint = userType === 'student'
             ? endpoints.studentAuth.logout
             : endpoints.parentAuth.logout;
+
+        await oneSignalService.unregisterDevice();
         await apiClient.post(endpoint);
         clearTokens();
     },
