@@ -297,6 +297,7 @@ export const TermsAndConditionsPage = () => {
                                     <strong className="block text-red-800 mb-2">يُمنع على المستخدم:</strong>
                                     <ul className="space-y-1 text-red-700">
                                         <li>• نسخ أو تسجيل الفصول المباشرة أو تسجيلاتها.</li>
+                                        <li>• استخدام برامج تصوير الشاشة (Screen Recording) أو محاولة تجاوز العلامة المائية الأمنية.</li>
                                         <li>• توزيع أو نشر المحتوى دون إذن مسبق.</li>
                                         <li>• مشاركة المحتوى مع غير المسجلين.</li>
                                         <li>• استخدام المحتوى في منصات أخرى.</li>
@@ -358,6 +359,10 @@ export const TermsAndConditionsPage = () => {
                                 <li className="bg-slate-50 p-4 rounded-xl text-sm">
                                     <strong className="block text-charcoal mb-1">استخدام التسجيلات:</strong>
                                     التسجيلات متاحة للمشاهدة الشخصية فقط. يُمنع تحميل أو مشاركة أو إعادة نشر التسجيلات.
+                                </li>
+                                <li className="bg-slate-50 p-4 rounded-xl text-sm">
+                                    <strong className="block text-charcoal mb-1">الحماية الأمنية:</strong>
+                                    جميع التسجيلات محمية بعلامة مائية رقمية ديناميكية تحمل بيانات المستخدم. أي محاولة لتصوير الشاشة أو تسريب المحتوى ستؤدي إلى الحظر النهائي للحساب والملاحقة القانونية.
                                 </li>
                             </ul>
                         </section>

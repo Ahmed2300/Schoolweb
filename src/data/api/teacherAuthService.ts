@@ -15,6 +15,8 @@ export interface TeacherLoginRequest {
     email: string;
     password: string;
     remember_me?: boolean;
+    force_login?: boolean;
+    otp?: string;
 }
 
 export interface TeacherRegisterRequest {

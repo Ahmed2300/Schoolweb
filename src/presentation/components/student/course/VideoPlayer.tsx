@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { SecurityWatermark } from '../../shared/SecurityWatermark';
 
 interface VideoPlayerProps {
     src: string;
@@ -37,6 +38,9 @@ export function VideoPlayer({ src, onComplete, onProgress, poster }: VideoPlayer
 
     return (
         <div className="relative w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-xl border border-slate-900/10">
+            {/* Watermark Overlay */}
+            <SecurityWatermark />
+
             <video
                 ref={videoRef}
                 className="w-full h-full object-cover"

@@ -1,6 +1,8 @@
 import { X, Maximize2, Minimize2, Loader2 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useAuthStore } from '../../store';
+import { SecurityWatermark } from './SecurityWatermark';
 
 interface LiveSessionEmbedModalProps {
     isOpen: boolean;
@@ -24,6 +26,7 @@ export function LiveSessionEmbedModal({
     embedUrl,
     title = 'الجلسة المباشرة'
 }: LiveSessionEmbedModalProps) {
+    const { user } = useAuthStore();
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState(false);
@@ -189,6 +192,10 @@ export function LiveSessionEmbedModal({
                     onLoad={() => setIsLoading(false)}
                     onError={handleIframeError}
                 />
+
+                {/* Floating Watermark */}
+                <SecurityWatermark />
+
             </div>
         </div>,
         document.body

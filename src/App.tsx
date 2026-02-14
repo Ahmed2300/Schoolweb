@@ -88,10 +88,18 @@ const queryClient = new QueryClient({
 // Classroom
 import LiveClassroomPage from './presentation/pages/classroom/LiveClassroomPage';
 
+import { useSessionEnforcement } from './hooks/useSessionEnforcement';
+
+function SessionEnforcer() {
+  useSessionEnforcement();
+  return null;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <SessionEnforcer />
         <Toaster
           position="top-center"
           toastOptions={{

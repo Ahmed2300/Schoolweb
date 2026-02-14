@@ -255,7 +255,8 @@ function UnitCard({
     loadingQuizId,
     currentTime,
     isOverlay,
-    lectureFilter = 'all'
+    lectureFilter = 'all',
+    onWatchRecording
 }: {
     unit: Unit;
     isExpanded: boolean;
@@ -277,6 +278,7 @@ function UnitCard({
     currentTime?: Date;
     isOverlay?: boolean;
     lectureFilter?: 'all' | 'real' | 'trial';
+    onWatchRecording?: (url: string) => void;
 }) {
     const { isRTL } = useLanguage();
 
@@ -521,10 +523,14 @@ function UnitCard({
                                                                                     <button
                                                                                         onClick={() => {
                                                                                             const url = contentItem.recording_url || contentItem.video_path;
-                                                                                            if (url) window.open(url, '_blank');
+                                                                                            if (url && onWatchRecording) {
+                                                                                                onWatchRecording(url);
+                                                                                            } else if (url) {
+                                                                                                window.open(url, '_blank');
+                                                                                            }
                                                                                         }}
                                                                                         className="px-2 py-1.5 text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors flex items-center gap-1 mr-1"
-                                                                                        title="مشاهدة التسجيل"
+                                                                                        title="مشاهدة التسجيل (مع العلامة المائية)"
                                                                                     >
                                                                                         <PlayCircle size={14} />
                                                                                         <span>مشاهدة التسجيل</span>
@@ -1342,7 +1348,9 @@ export function TeacherCourseDetailsPage() {
             if (response.success && response.join_url) {
                 toast.dismiss('test-session-toast');
                 toast.success('تم بدء الجلسة بنجاح');
-                window.open(response.join_url, '_blank');
+                // Open in secure embed modal
+                setLiveSessionEmbedUrl(response.join_url);
+                setIsLiveSessionModalOpen(true);
             }
         } catch (error: any) {
             toast.dismiss('test-session-toast');
@@ -1351,6 +1359,11 @@ export function TeacherCourseDetailsPage() {
         } finally {
             setStartingTestSession(false);
         }
+    };
+
+    const handleWatchRecording = (url: string) => {
+        setLiveSessionEmbedUrl(url);
+        setIsLiveSessionModalOpen(true);
     };
 
     // Filter State
@@ -1616,6 +1629,7 @@ export function TeacherCourseDetailsPage() {
                                         quizzes={allQuizzes} // Pass all quizzes for filtering inside UnitCard
                                         loadingQuizId={loadingQuizId}
                                         lectureFilter={lectureFilter}
+                                        onWatchRecording={handleWatchRecording}
                                     />
                                 ))}
                             </div>

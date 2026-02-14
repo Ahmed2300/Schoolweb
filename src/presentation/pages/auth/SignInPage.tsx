@@ -23,6 +23,8 @@ import {
     PlayCircle
 } from 'lucide-react';
 import { VideoModal } from '../../components/common/VideoModal';
+import { SessionConflictModal } from '../../components/auth/SessionConflictModal';
+import { OtpVerificationModal } from '../../components/auth/OtpVerificationModal';
 
 type UserType = 'student' | 'parent' | 'teacher';
 
@@ -36,6 +38,11 @@ export function SignInPage() {
     const [rememberMe, setRememberMe] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [showVideoModal, setShowVideoModal] = useState(false);
+    const [showConflictModal, setShowConflictModal] = useState(false);
+    const [showOtpModal, setShowOtpModal] = useState(false);
+    const [otpError, setOtpError] = useState('');
+    const [isForceLoginLoading, setIsForceLoginLoading] = useState(false);
+    const [isOtpLoading, setIsOtpLoading] = useState(false);
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
 
@@ -44,47 +51,37 @@ export function SignInPage() {
         password: '',
     });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        // Custom validation
-        const errors: { email?: string; password?: string } = {};
-
-        if (!formData.email) {
-            errors.email = 'البريد الإلكتروني مطلوب';
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            errors.email = 'يرجى إدخال بريد إلكتروني صحيح';
+    const handleLogin = async (forceLogin = false, otp?: string) => {
+        if (otp) {
+            setIsOtpLoading(true);
+            setOtpError('');
+        } else if (forceLogin) {
+            setIsForceLoginLoading(true);
+        } else {
+            setIsLoading(true);
         }
 
-        if (!formData.password) {
-            errors.password = 'كلمة المرور مطلوبة';
+        // Don't clear main error if we are in OTP modal context, unless it's a fresh login attempt
+        if (!otp) {
+            setError('');
         }
-
-        if (Object.keys(errors).length > 0) {
-            setFieldErrors(errors);
-            return;
-        }
-
-        setIsLoading(true);
-        setError('');
 
         try {
             let response;
+            const loginData = {
+                email: formData.email,
+                password: formData.password,
+                force_login: forceLogin,
+                otp: otp
+            };
 
             if (userType === 'student') {
-                response = await authService.studentLogin({
-                    email: formData.email,
-                    password: formData.password,
-                });
+                response = await authService.studentLogin(loginData);
             } else if (userType === 'parent') {
-                response = await authService.parentLogin({
-                    email: formData.email,
-                    password: formData.password,
-                });
+                response = await authService.parentLogin(loginData);
             } else {
                 response = await teacherAuthService.login({
-                    email: formData.email,
-                    password: formData.password,
+                    ...loginData,
                     remember_me: rememberMe,
                 });
             }
@@ -150,6 +147,19 @@ export function SignInPage() {
             const arabicMessage = apiResponse?.message_ar;
             const errorCode = apiResponse?.error_code;
 
+            if (errorCode === 'active_session_exists') {
+                setShowConflictModal(true);
+                return; // Stop further error handling
+            }
+
+            if (errorCode === 'otp_required') {
+                setShowConflictModal(false);
+                setShowOtpModal(true);
+                // Clear any previous OTP errors when showing modal for the first time
+                if (!otp) setOtpError('');
+                return;
+            }
+
             if (errorCode === 'email_not_verified') {
                 if (userType === 'teacher') {
                     navigate(ROUTES.TEACHER_VERIFY_EMAIL, {
@@ -172,18 +182,65 @@ export function SignInPage() {
                 setError('يرجى التحقق من بريدك الإلكتروني أولاً');
             } else if (err.message?.includes('Invalid credentials')) {
                 setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
-            } else {
+            } else if (!showOtpModal) {
+                // Only show main form error if OTP modal is not open
                 setError(err.response?.data?.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
             }
+
+            // Handle OTP specific errors (including resend errors)
+            if (otp || showOtpModal) {
+                setOtpError(arabicMessage || err.response?.data?.message || 'رمز التحقق غير صحيح');
+            }
+
         } finally {
             setIsLoading(false);
+            setIsForceLoginLoading(false);
+            setIsOtpLoading(false);
         }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        // Custom validation
+        const errors: { email?: string; password?: string } = {};
+
+        if (!formData.email) {
+            errors.email = 'البريد الإلكتروني مطلوب';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            errors.email = 'يرجى إدخال بريد إلكتروني صحيح';
+        }
+
+        if (!formData.password) {
+            errors.password = 'كلمة المرور مطلوبة';
+        }
+
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
+            return;
+        }
+
+        await handleLogin(false);
     };
 
     const handleChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         setError('');
         setFieldErrors(prev => ({ ...prev, [field]: undefined }));
+    };
+
+    const handleForceLogin = async () => {
+        await handleLogin(true);
+        // Modal closing is handled in handleLogin based on response (e.g. if success or otp_required)
+    };
+
+    const handleOtpSubmit = async (otp: string) => {
+        await handleLogin(true, otp);
+    };
+
+    const handleOtpResend = async () => {
+        // Resend is essentially trying to force login again without OTP, which triggers generation
+        await handleLogin(true);
     };
 
     return (
@@ -415,6 +472,24 @@ export function SignInPage() {
                 onClose={() => setShowVideoModal(false)}
                 videoUrl="https://youtu.be/8ux9wCb0iQs"
                 title="كيف تسجل الدخول في منصة سُبُل"
+            />
+            {/* Session Conflict Modal */}
+            <SessionConflictModal
+                isOpen={showConflictModal}
+                onClose={() => setShowConflictModal(false)}
+                onForceLogin={handleForceLogin}
+                isLoading={isForceLoginLoading}
+            />
+
+            {/* OTP Verification Modal */}
+            <OtpVerificationModal
+                isOpen={showOtpModal}
+                onClose={() => setShowOtpModal(false)}
+                onSubmit={handleOtpSubmit}
+                isLoading={isOtpLoading}
+                onResend={handleOtpResend}
+                error={otpError}
+                email={formData.email}
             />
         </div>
     );

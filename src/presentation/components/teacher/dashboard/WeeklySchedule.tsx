@@ -305,7 +305,12 @@ export function WeeklySchedule() {
                                                             )}
                                                             {item.status === 'completed' && item.has_recording && (
                                                                 <button
-                                                                    onClick={() => item.recording_url && window.open(item.recording_url, '_blank')}
+                                                                    onClick={() => {
+                                                                        if (item.recording_url) {
+                                                                            setLiveSessionEmbedUrl(item.recording_url);
+                                                                            setIsLiveSessionModalOpen(true);
+                                                                        }
+                                                                    }}
                                                                     className="flex items-center gap-2 px-4 py-2 bg-gradient-to-l from-emerald-500 to-green-600 text-white text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-green-200/50 dark:hover:shadow-none transition-all duration-300"
                                                                 >
                                                                     <Eye size={16} />

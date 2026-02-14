@@ -16,6 +16,8 @@ const transformUser = (user: UserData): UserData => {
 export interface LoginRequest {
     email: string;
     password: string;
+    force_login?: boolean;
+    otp?: string;
 }
 
 export interface StudentRegisterRequest {
