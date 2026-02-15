@@ -177,7 +177,8 @@ export function SignInPage() {
                     }, 2000);
                 }
             } else if (errorCode === 'invalid_credentials') {
-                setError(arabicMessage || 'البريد الإلكتروني أو كلمة المرور غير صحيحة');
+                const debugMsg = apiResponse?.debug_error ? ` (${apiResponse.debug_error})` : '';
+                setError((arabicMessage || 'البريد الإلكتروني أو كلمة المرور غير صحيحة') + debugMsg);
             } else if (arabicMessage) {
                 setError(arabicMessage);
             } else if (err.message?.includes('verify your email')) {
