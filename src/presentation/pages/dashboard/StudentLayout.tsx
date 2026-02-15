@@ -118,33 +118,41 @@ export function StudentLayout() {
             {/* Sidebar */}
             <aside
                 className={`
-                    fixed top-0 right-0 h-screen bg-white border-l border-slate-200
-                    transition-all duration-300 z-50 flex flex-col
+                    fixed top-0 transition-all duration-300 z-50 flex flex-col h-screen bg-white border-l border-slate-200 shadow-xl lg:shadow-none
+                    ${isRTL ? 'right-0 border-l' : 'left-0 border-r'}
                     ${isCollapsed ? 'w-20' : 'w-64'}
                 `}
             >
                 {/* Logo */}
-                <div className="h-20 flex items-center justify-center border-b border-slate-100 px-4">
-                    {!isCollapsed ? (
-                        <div className="flex items-center gap-2">
-                            <img src="/images/subol-red.png" alt="سُبُل" className="w-8 h-8" />
-                            <span className="text-2xl font-extrabold text-shibl-crimson">سُبُل</span>
-                        </div>
-                    ) : (
+                <div className={`
+                    h-20 flex items-center border-b border-slate-100 transition-all duration-300
+                    ${isCollapsed ? 'pl-[24px] pr-0' : 'px-4 justify-between'}
+                `}>
+                    <div className={`flex items-center gap-2 overflow-hidden transition-all duration-500 ease-in-out ${isCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>
                         <img src="/images/subol-red.png" alt="سُبُل" className="w-8 h-8" />
-                    )}
+                        <span className="text-2xl font-extrabold text-shibl-crimson whitespace-nowrap">سُبُل</span>
+                    </div>
+                    <div className={`${isCollapsed ? 'block opacity-100' : 'hidden opacity-0'} transition-all duration-500`}>
+                        <img src="/images/subol-red.png" alt="سُبُل" className="w-8 h-8" />
+                    </div>
                 </div>
 
                 {/* Collapse Toggle Button */}
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="absolute top-6 -left-3 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-shibl-crimson hover:border-shibl-crimson transition-colors shadow-sm"
+                    className={`
+                        absolute top-6 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-shibl-crimson hover:border-shibl-crimson transition-colors shadow-sm z-50
+                        ${isRTL ? '-left-3' : '-right-3'}
+                    `}
                 >
-                    {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+                    {isRTL
+                        ? (isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />)
+                        : (isCollapsed ? <ChevronLeft size={14} /> : <ChevronRight size={14} />)
+                    }
                 </button>
 
                 {/* Navigation */}
-                <nav className="flex-1 py-6 px-3 overflow-y-auto">
+                <nav className="flex-1 py-6 px-3 overflow-y-auto custom-scrollbar overflow-x-hidden">
                     <ul className="space-y-2">
                         {navItems.map(item => {
                             const IconComponent = item.icon;
@@ -155,34 +163,38 @@ export function StudentLayout() {
                                     <Link
                                         to={item.path}
                                         className={`
-                                            flex items-center gap-3 px-4 py-3 rounded-[12px]
-                                            transition-all duration-200 group
+                                            flex items-center px-4 py-3 rounded-[12px]
+                                            transition-all duration-300 group relative overflow-hidden
                                             ${active
                                                 ? 'bg-shibl-crimson text-white shadow-crimson'
                                                 : 'text-slate-500 hover:bg-slate-50 hover:text-shibl-crimson'
                                             }
-                                            ${isCollapsed ? 'justify-center' : ''}
+                                            ${isCollapsed ? 'pl-[30px]' : 'px-4'}
                                         `}
                                         title={isCollapsed ? item.label : undefined}
                                     >
                                         <IconComponent
                                             size={20}
-                                            className={active ? 'text-white' : 'text-slate-400 group-hover:text-shibl-crimson'}
+                                            className={`shrink-0 transition-colors ${active ? 'text-white' : 'text-slate-400 group-hover:text-shibl-crimson'}`}
                                         />
-                                        {!isCollapsed && (
-                                            <span className="font-semibold text-sm flex-1">{item.label}</span>
-                                        )}
+
+                                        <div className={`overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${isCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}`}>
+                                            <span className="font-semibold text-sm block">
+                                                {item.label}
+                                            </span>
+                                        </div>
 
                                         {/* Badge */}
-                                        {!isCollapsed && (item as any).badge && (
-                                            <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
-                                                {(item as any).badge}
+                                        {(item as any).badge && (
+                                            <span
+                                                className={`
+                                                    bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center transition-all duration-300
+                                                    ${isCollapsed ? 'fixed w-2.5 h-2.5 p-0 min-w-0 right-14 top-auto ml-0' : 'ml-auto'}
+                                                `}
+                                                style={isCollapsed ? { right: 'unset', left: isRTL ? 'unset' : '50%', transform: 'translateX(10px)' } : {}}
+                                            >
+                                                {isCollapsed ? '' : (item as any).badge}
                                             </span>
-                                        )}
-
-                                        {/* Collapsed Badge Dot */}
-                                        {isCollapsed && (item as any).badge && (
-                                            <div className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></div>
                                         )}
                                     </Link>
                                 </li>
@@ -196,14 +208,18 @@ export function StudentLayout() {
                     <button
                         onClick={() => setShowLogoutModal(true)}
                         className={`
-                            flex items-center gap-3 px-4 py-3 rounded-xl w-full
-                            text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200
-                            ${isCollapsed ? 'justify-center' : ''}
+                            flex items-center px-4 py-3 rounded-xl w-full
+                            text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200 overflow-hidden
+                            ${isCollapsed ? 'pl-[30px]' : 'px-4'}
                         `}
                         title={isCollapsed ? 'تسجيل الخروج' : undefined}
                     >
-                        <LogOut size={20} />
-                        {!isCollapsed && <span className="font-medium text-sm">تسجيل الخروج</span>}
+                        <LogOut size={20} className="shrink-0" />
+                        <div className={`overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${isCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}`}>
+                            <span className="font-medium text-sm block">
+                                تسجيل الخروج
+                            </span>
+                        </div>
                     </button>
                 </div>
             </aside>
@@ -212,13 +228,15 @@ export function StudentLayout() {
             <main
                 className={`
                     flex-1 transition-all duration-300 flex flex-col min-h-screen
-                    ${isCollapsed ? 'mr-20' : 'mr-64'}
+                    ${isRTL
+                        ? (isCollapsed ? 'mr-20' : 'mr-64')
+                        : (isCollapsed ? 'ml-20' : 'ml-64')
+                    }
                 `}
             >
                 {/* Header */}
                 <header className="h-16 bg-white/80 backdrop-blur-sm flex items-center justify-between px-6 sticky top-0 z-40">
                     {/* Search Left Aligned (or right depending on direction, but kept consistent) */}
-                    {/* Search - Removed as per requirements */}
                     <div className="flex-1"></div>
 
                     {/* Notifications & User Profile */}
@@ -236,7 +254,6 @@ export function StudentLayout() {
                     </div>
                 </header>
 
-                {/* Page Content */}
                 {/* Page Content */}
                 <div className="flex-1">
                     <Outlet />

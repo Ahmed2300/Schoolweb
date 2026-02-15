@@ -1,4 +1,3 @@
-
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play } from 'lucide-react';
 import { useEffect } from 'react';
@@ -8,9 +7,10 @@ interface VideoModalProps {
     onClose: () => void;
     videoUrl: string; // YouTube or Vimeo URL
     title?: string;
+    layoutId?: string; // For shared element transition
 }
 
-export function VideoModal({ isOpen, onClose, videoUrl, title = 'شرح توضيحي' }: VideoModalProps) {
+export function VideoModal({ isOpen, onClose, videoUrl, title = 'شرح توضيحي', layoutId }: VideoModalProps) {
 
     // Close on Escape key
     useEffect(() => {
@@ -52,15 +52,21 @@ export function VideoModal({ isOpen, onClose, videoUrl, title = 'شرح توضي
                     />
 
                     {/* Modal Content */}
+                    {/* If layoutId is provided, use it for shared transition. Otherwise fall back to scale animation */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                        transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
-                        className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-white/20"
+                        layoutId={layoutId} // Shared element transition
+                        initial={layoutId ? undefined : { opacity: 0, scale: 0.95, y: 10 }}
+                        animate={layoutId ? undefined : { opacity: 1, scale: 1, y: 0 }}
+                        exit={layoutId ? undefined : { opacity: 0, scale: 0.95, y: 10 }}
+                        transition={{
+                            type: "spring",
+                            duration: 0.6,
+                            bounce: 0.2
+                        }}
+                        className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-white/20 z-10"
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white sticky top-0 z-20">
                             <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                                 <span className="w-8 h-8 rounded-full bg-red-50 text-shibl-crimson flex items-center justify-center">
                                     <Play size={16} fill="currentColor" />

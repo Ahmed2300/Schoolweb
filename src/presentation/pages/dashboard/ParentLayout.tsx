@@ -105,42 +105,53 @@ export function ParentLayout() {
             {/* Sidebar */}
             <aside
                 className={`
-                    fixed top-0 right-0 h-screen bg-white border-l border-slate-200
-                    transition-all duration-300 z-50 flex flex-col
+                    fixed top-0 transition-all duration-300 z-50 flex flex-col h-screen bg-white border-l border-slate-200 shadow-xl lg:shadow-none
+                    ${isRTL ? 'right-0 border-l' : 'left-0 border-r'}
                     ${isCollapsed ? 'md:w-20' : 'md:w-64'}
                     w-64 
-                    ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-full md:translate-x-0 shadow-none'}
+                    ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : (isRTL ? 'translate-x-full md:translate-x-0 shadow-none' : '-translate-x-full md:translate-x-0 shadow-none')}
                 `}
             >
                 {/* Logo (Desktop) / Close (Mobile) */}
-                <div className="h-20 flex items-center justify-center border-b border-slate-100 px-4 relative">
+                <div className={`
+                    h-20 flex items-center border-b border-slate-100 transition-all duration-300 relative
+                    ${isCollapsed ? 'md:pl-[24px] md:pr-0 px-4' : 'px-4 justify-between'}
+                `}>
                     <button
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="md:hidden absolute left-4 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-red-500"
+                        className={`
+                            md:hidden absolute top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-red-500
+                            ${isRTL ? 'left-4' : 'right-4'}
+                        `}
                     >
                         <X size={20} />
                     </button>
 
-                    {!isCollapsed ? (
-                        <div className="flex items-center gap-2">
-                            <img src="/images/subol-red.png" alt="سُبُل" className="w-8 h-8" />
-                            <span className="text-2xl font-extrabold text-shibl-crimson">سُبُل</span>
-                        </div>
-                    ) : (
+                    <div className={`flex items-center gap-2 overflow-hidden transition-all duration-500 ease-in-out ${isCollapsed ? 'md:max-w-0 md:opacity-0 max-w-[200px] opacity-100' : 'max-w-[200px] opacity-100'}`}>
                         <img src="/images/subol-red.png" alt="سُبُل" className="w-8 h-8" />
-                    )}
+                        <span className="text-xl font-extrabold text-shibl-crimson whitespace-nowrap">سُبُل</span>
+                    </div>
+                    <div className={`${isCollapsed ? 'md:block opacity-100 hidden' : 'hidden opacity-0'} transition-all duration-500`}>
+                        <img src="/images/subol-red.png" alt="سُبُل" className="w-8 h-8" />
+                    </div>
                 </div>
 
                 {/* Desktop Collapse Toggle */}
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="hidden md:flex absolute top-6 -left-3 w-6 h-6 bg-white border border-slate-200 rounded-full items-center justify-center text-slate-400 hover:text-shibl-crimson hover:border-shibl-crimson transition-colors shadow-sm"
+                    className={`
+                        hidden md:flex absolute top-6 w-6 h-6 bg-white border border-slate-200 rounded-full items-center justify-center text-slate-400 hover:text-shibl-crimson hover:border-shibl-crimson transition-colors shadow-sm z-50
+                        ${isRTL ? '-left-3' : '-right-3'}
+                    `}
                 >
-                    {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+                    {isRTL
+                        ? (isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />)
+                        : (isCollapsed ? <ChevronLeft size={14} /> : <ChevronRight size={14} />)
+                    }
                 </button>
 
                 {/* Navigation */}
-                <nav className="flex-1 py-6 px-3 overflow-y-auto">
+                <nav className="flex-1 py-6 px-3 overflow-y-auto overflow-x-hidden">
                     <ul className="space-y-2">
                         {navItems.map(item => {
                             const IconComponent = item.icon;
@@ -151,21 +162,25 @@ export function ParentLayout() {
                                     <Link
                                         to={item.path}
                                         className={`
-                                            flex items-center gap-3 px-4 py-3 rounded-[12px]
-                                            transition-all duration-200 group
+                                            flex items-center px-4 py-3 rounded-[12px]
+                                            transition-all duration-300 group relative overflow-hidden
                                             ${active
                                                 ? 'bg-shibl-crimson text-white shadow-crimson'
                                                 : 'text-slate-500 hover:bg-slate-50 hover:text-shibl-crimson'
                                             }
-                                            ${isCollapsed ? 'md:justify-center' : ''}
+                                            ${isCollapsed ? 'md:pl-[30px] md:pr-0' : 'px-4'}
                                         `}
                                         title={isCollapsed ? item.label : undefined}
                                     >
                                         <IconComponent
                                             size={20}
-                                            className={active ? 'text-white' : 'text-slate-400 group-hover:text-shibl-crimson'}
+                                            className={`shrink-0 transition-colors ${active ? 'text-white' : 'text-slate-400 group-hover:text-shibl-crimson'}`}
                                         />
-                                        <span className={`font-semibold text-sm ${isCollapsed ? 'md:hidden' : ''}`}>{item.label}</span>
+                                        <div className={`overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${isCollapsed ? 'md:max-w-0 md:opacity-0 max-w-[200px] opacity-100 ml-3' : 'max-w-[200px] opacity-100 ml-3'}`}>
+                                            <span className="font-semibold text-sm block">
+                                                {item.label}
+                                            </span>
+                                        </div>
                                     </Link>
                                 </li>
                             );
@@ -178,14 +193,18 @@ export function ParentLayout() {
                     <button
                         onClick={() => setShowLogoutModal(true)}
                         className={`
-                            flex items-center gap-3 px-4 py-3 rounded-xl w-full
-                            text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200
-                            ${isCollapsed ? 'md:justify-center' : ''}
+                            flex items-center px-4 py-3 rounded-xl w-full
+                            text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200 overflow-hidden
+                            ${isCollapsed ? 'md:pl-[30px] md:pr-0' : 'px-4'}
                         `}
                         title={isCollapsed ? 'تسجيل الخروج' : undefined}
                     >
-                        <LogOut size={20} />
-                        <span className={`font-medium text-sm ${isCollapsed ? 'md:hidden' : ''}`}>تسجيل الخروج</span>
+                        <LogOut size={20} className="shrink-0" />
+                        <div className={`overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${isCollapsed ? 'md:max-w-0 md:opacity-0 max-w-[200px] opacity-100 ml-3' : 'max-w-[200px] opacity-100 ml-3'}`}>
+                            <span className="font-medium text-sm block">
+                                تسجيل الخروج
+                            </span>
+                        </div>
                     </button>
                 </div>
             </aside>
@@ -194,7 +213,10 @@ export function ParentLayout() {
             <main
                 className={`
                     flex-1 transition-all duration-300 min-h-screen flex flex-col
-                    ${isCollapsed ? 'md:mr-20' : 'md:mr-64'}
+                    ${isRTL
+                        ? (isCollapsed ? 'md:mr-20' : 'md:mr-64')
+                        : (isCollapsed ? 'md:ml-20' : 'md:ml-64')
+                    }
                 `}
             >
                 {/* Desktop Header */}

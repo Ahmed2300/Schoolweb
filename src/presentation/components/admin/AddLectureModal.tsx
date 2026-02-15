@@ -3,6 +3,7 @@ import { X, ChevronLeft, ChevronRight, Check, Video, FileText, Calendar, Loader2
 import { lectureService } from '../../../data/api/lectureService';
 import { adminService } from '../../../data/api/adminService';
 import { VideoUploader } from './VideoUploader';
+import { ApprovedSlotSelector, DatedSlot } from '../teacher/timeslots/ApprovedSlotSelector';
 
 interface CourseOption {
     id: number;
@@ -75,7 +76,12 @@ export function AddLectureModal({
     const [uploadedVideoPath, setUploadedVideoPath] = useState<string | null>(null);
     const [units, setUnits] = useState<UnitOption[]>([]);
     const [loadingUnits, setLoadingUnits] = useState(false);
+
     const [courseDates, setCourseDates] = useState<{ start: string; end: string } | null>(null);
+    const [gradeId, setGradeId] = useState<number | undefined>();
+    const [semesterId, setSemesterId] = useState<number | undefined>();
+    const [selectedSlot, setSelectedSlot] = useState<DatedSlot | null>(null);
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
     // Helper to extract unit name
     const getUnitName = (unit: UnitOption): string => {
@@ -100,6 +106,8 @@ export function AddLectureModal({
                 // Fetch course details for dates and teacher
                 const courseDetails = await adminService.getCourse(parseInt(formData.courseId));
                 if (courseDetails) {
+                    setGradeId(courseDetails.grade_id);
+                    setSemesterId(courseDetails.semester_id);
                     const startDate = courseDetails.start_date ? courseDetails.start_date.split('T')[0] + 'T09:00' : '';
                     const endDate = courseDetails.end_date ? courseDetails.end_date.split('T')[0] + 'T10:00' : '';
                     setCourseDates({ start: startDate, end: endDate });
@@ -147,7 +155,11 @@ export function AddLectureModal({
             return;
         }
 
-        setStep(2);
+        if (formData.isOnline) {
+            await handleFinalSubmit();
+        } else {
+            setStep(2);
+        }
     };
 
     const handleFinalSubmit = async () => {
@@ -311,42 +323,85 @@ export function AddLectureModal({
                                     />
                                 </div>
 
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal flex items-center gap-2">
-                                        وقت البدء
-                                        {!formData.isOnline && courseDates && (
-                                            <span className="text-xs text-slate-400">(من الكورس)</span>
+                                {formData.isOnline ? (
+                                    <div className="col-span-full space-y-2 mt-2">
+                                        <label className="text-sm font-medium text-charcoal block">
+                                            الموعد (اختر من المواعيد المتاحة للمدرس)
+                                        </label>
+                                        <div className="bg-slate-50 rounded-xl border border-slate-200 p-4">
+                                            {formData.teacherId ? (
+                                                <ApprovedSlotSelector
+                                                    onSelect={(slot) => {
+                                                        setSelectedSlot(slot);
+                                                        setSelectedDate(slot?.dateString || null);
+                                                        if (slot) {
+                                                            const start = `${slot.dateString}T${slot.start_time.substring(0, 5)}`;
+                                                            const end = `${slot.dateString}T${slot.end_time.substring(0, 5)}`;
+                                                            setFormData(prev => ({ ...prev, startTime: start, endTime: end }));
+                                                        } else {
+                                                            setFormData(prev => ({ ...prev, startTime: '', endTime: '' }));
+                                                        }
+                                                    }}
+                                                    selectedSlotId={selectedSlot?.id || null}
+                                                    selectedDate={selectedDate}
+                                                    gradeId={gradeId}
+                                                    semesterId={semesterId}
+                                                    teacherId={parseInt(formData.teacherId)}
+                                                    onRequestNewSlot={() => { }}
+                                                />
+                                            ) : (
+                                                <div className="text-center py-8 text-slate-500 bg-white rounded-lg border border-slate-200 border-dashed">
+                                                    <Calendar className="mx-auto mb-2 text-slate-300" size={24} />
+                                                    <p>يرجى اختيار المدرس أولاً لعرض المواعيد المتاحة</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {/* Hidden inputs to maintain form data compatibility if needed, or just relying on state */}
+                                        {formData.startTime && (
+                                            <div className="text-xs text-slate-500 mt-1 flex gap-4">
+                                                <span>البدء: {new Date(formData.startTime).toLocaleString('ar-SA')}</span>
+                                                <span>الانتهاء: {new Date(formData.endTime).toLocaleString('ar-SA')}</span>
+                                            </div>
                                         )}
-                                    </label>
-                                    <div className="relative">
-                                        <Calendar size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                                        <input
-                                            type="datetime-local"
-                                            value={formData.startTime}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                                            disabled={!formData.isOnline}
-                                            className={`w-full h-10 pr-10 pl-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm ${!formData.isOnline ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
-                                        />
                                     </div>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal flex items-center gap-2">
-                                        وقت الانتهاء
-                                        {!formData.isOnline && courseDates && (
-                                            <span className="text-xs text-slate-400">(من الكورس)</span>
-                                        )}
-                                    </label>
-                                    <div className="relative">
-                                        <Calendar size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                                        <input
-                                            type="datetime-local"
-                                            value={formData.endTime}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-                                            disabled={!formData.isOnline}
-                                            className={`w-full h-10 pr-10 pl-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm ${!formData.isOnline ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
-                                        />
-                                    </div>
-                                </div>
+                                ) : (
+                                    <>
+                                        <div className="space-y-1.5">
+                                            <label className="text-sm font-medium text-charcoal flex items-center gap-2">
+                                                وقت البدء
+                                                {courseDates && (
+                                                    <span className="text-xs text-slate-400">(من الكورس)</span>
+                                                )}
+                                            </label>
+                                            <div className="relative">
+                                                <Calendar size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                                <input
+                                                    type="datetime-local"
+                                                    value={formData.startTime}
+                                                    onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+                                                    className="w-full h-10 pr-10 pl-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-sm font-medium text-charcoal flex items-center gap-2">
+                                                وقت الانتهاء
+                                                {courseDates && (
+                                                    <span className="text-xs text-slate-400">(من الكورس)</span>
+                                                )}
+                                            </label>
+                                            <div className="relative">
+                                                <Calendar size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                                <input
+                                                    type="datetime-local"
+                                                    value={formData.endTime}
+                                                    onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+                                                    className="w-full h-10 pr-10 pl-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
 
                                 <div className="col-span-full pt-2">
                                     <label className="flex items-center gap-2 cursor-pointer">
@@ -398,10 +453,25 @@ export function AddLectureModal({
                             <button
                                 type="submit"
                                 form="detailsForm"
-                                className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all flex items-center gap-2"
+                                disabled={loading}
+                                className={`px-5 py-2.5 rounded-xl text-white font-medium transition-all flex items-center gap-2 ${formData.isOnline
+                                        ? 'bg-green-600 hover:bg-green-700'
+                                        : 'bg-blue-600 hover:bg-blue-700'
+                                    }`}
                             >
-                                التالي
-                                <ChevronLeft size={18} />
+                                {loading && formData.isOnline ? (
+                                    'جاري الحفظ...'
+                                ) : formData.isOnline ? (
+                                    <>
+                                        حفظ المحاضرة
+                                        <Check size={18} />
+                                    </>
+                                ) : (
+                                    <>
+                                        التالي
+                                        <ChevronLeft size={18} />
+                                    </>
+                                )}
                             </button>
                         </>
                     ) : (

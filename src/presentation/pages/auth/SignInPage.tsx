@@ -28,6 +28,8 @@ import { OtpVerificationModal } from '../../components/auth/OtpVerificationModal
 
 type UserType = 'student' | 'parent' | 'teacher';
 
+import { TutorialThumbnail } from '../../components/common/TutorialThumbnail';
+
 export function SignInPage() {
     const { isRTL } = useLanguage();
     const navigate = useNavigate();
@@ -317,12 +319,13 @@ export function SignInPage() {
                                     <input
                                         type="email"
                                         placeholder="name@example.com"
-                                        className={`input-pro pr-12 ${fieldErrors.email ? 'input-pro-error' : ''}`}
+                                        className={`input-pro peer pr-12 ${fieldErrors.email ? 'input-pro-error' : ''}`}
                                         value={formData.email}
                                         onChange={(e) => handleChange('email', e.target.value)}
                                         dir="rtl"
+                                        autoComplete="email"
                                     />
-                                    <Mail size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.email ? 'text-red-400' : 'text-slate-400'}`} />
+                                    <Mail size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 transition-all duration-300 ${fieldErrors.email ? 'text-red-400' : 'text-slate-400 peer-focus:text-shibl-crimson peer-focus:scale-110'}`} />
                                 </div>
                                 {fieldErrors.email && (
                                     <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
@@ -341,12 +344,13 @@ export function SignInPage() {
                                     <input
                                         type={showPassword ? 'text' : 'password'}
                                         placeholder="••••••••"
-                                        className={`input-pro pr-12 pl-12 ${fieldErrors.password ? 'input-pro-error' : ''}`}
+                                        className={`input-pro peer pr-12 pl-12 ${fieldErrors.password ? 'input-pro-error' : ''}`}
                                         value={formData.password}
                                         onChange={(e) => handleChange('password', e.target.value)}
                                         dir="rtl"
+                                        autoComplete="current-password"
                                     />
-                                    <Lock size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.password ? 'text-red-400' : 'text-slate-400'}`} />
+                                    <Lock size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 transition-all duration-300 ${fieldErrors.password ? 'text-red-400' : 'text-slate-400 peer-focus:text-shibl-crimson peer-focus:scale-110'}`} />
                                     <button
                                         type="button"
                                         className="absolute left-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-shibl-crimson"
@@ -398,19 +402,11 @@ export function SignInPage() {
                         </p>
 
                         <div className="mt-8 pt-6 border-t border-slate-100 flex justify-center">
-                            <button
-                                type="button"
+                            <TutorialThumbnail
+                                videoUrl="https://youtu.be/8ux9wCb0iQs"
                                 onClick={() => setShowVideoModal(true)}
-                                className="group flex items-center gap-3 px-4 py-2 rounded-full hover:bg-rose-50 transition-colors"
-                            >
-                                <div className="w-8 h-8 rounded-full bg-rose-100 text-shibl-crimson flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <PlayCircle size={14} fill="currentColor" />
-                                </div>
-                                <div className="text-right">
-                                    <span className="block text-xs font-bold text-shibl-crimson">كيف تسجل الدخول</span>
-                                    <span className="block text-[10px] text-slate-400 font-medium">شاهد الشرح في دقيقة</span>
-                                </div>
-                            </button>
+                                layoutId="tutorial-video-card"
+                            />
                         </div>
                     </div>
                 </div>
@@ -472,6 +468,7 @@ export function SignInPage() {
                 onClose={() => setShowVideoModal(false)}
                 videoUrl="https://youtu.be/8ux9wCb0iQs"
                 title="كيف تسجل الدخول في منصة سُبُل"
+                layoutId="tutorial-video-card"
             />
             {/* Session Conflict Modal */}
             <SessionConflictModal

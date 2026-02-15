@@ -85,6 +85,7 @@ import { CourseDetailsSkeleton } from '../../components/ui/skeletons/CourseDetai
 import { formatTime, formatShortDate } from '../../../utils/timeUtils';
 import { LiveSessionEmbedModal } from '../../components/shared/LiveSessionEmbedModal';
 import { VideoModal } from '../../components/common/VideoModal';
+import { TutorialThumbnail } from '../../components/common/TutorialThumbnail';
 
 
 // ==================== HELPER COMPONENTS ====================
@@ -1456,13 +1457,12 @@ export function TeacherCourseDetailsPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <button
+                        <TutorialThumbnail
+                            videoUrl="https://youtu.be/YHLgHVoinYQ"
                             onClick={() => setShowTutorialModal(true)}
-                            className="hidden lg:flex px-3 py-2.5 bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:text-shibl-crimson hover:border-shibl-crimson/30 hover:bg-red-50/10 rounded-xl transition-all items-center gap-2 font-medium shadow-sm text-sm"
-                        >
-                            <PlayCircle className="w-4 h-4 text-shibl-crimson" />
-                            <span>كيف تبدأ جلستك التجريبية الأولى؟</span>
-                        </button>
+                            layoutId="tutorial-video-teacher"
+                            title="كيف تبدأ جلستك التجريبية الأولى؟"
+                        />
 
                         <button
                             onClick={handleStartTestSession}
@@ -1490,7 +1490,7 @@ export function TeacherCourseDetailsPage() {
                     <StatCard icon={Users} label="الطلاب" value={course.students_count || 0} />
                     <StatCard icon={Video} label="محاضرات فعلية" value={course.real_lectures_count || 0} />
                     <StatCard icon={PlayCircle} label="محاضرات تجريبية" value={course.trial_lectures_count || 0} />
-                    <StatCard icon={Clock} label="الساعات" value={0} />
+
                 </div>
 
                 {/* Tab Navigation */}
@@ -1943,7 +1943,9 @@ export function TeacherCourseDetailsPage() {
                 onClose={() => setShowTutorialModal(false)}
                 videoUrl="https://youtu.be/YHLgHVoinYQ"
                 title="كيف تبدأ جلستك التجريبية الأولى؟"
+                layoutId="tutorial-video-teacher"
             />
+
         </div>
     );
 }

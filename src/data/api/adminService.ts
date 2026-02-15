@@ -2297,6 +2297,8 @@ export const adminService = {
         return response.data;
     },
 
+
+
     /**
      * Reject a teacher's slot request with reason
      */
@@ -2356,6 +2358,34 @@ export const adminService = {
         return response.data;
     },
 
+
+
+    // ==================== TEACHER SCHEDULE (ADMIN) ====================
+
+    getTeacherRecurringSchedule: async (teacherId: number, semesterId?: number): Promise<{
+        success: boolean;
+        data: {
+            id: number;
+            grade_id: number;
+            semester_id: number;
+            day_of_week: string;
+            start_time: string;
+            end_time: string;
+            status: 'pending' | 'approved' | 'rejected';
+            grade?: { id: number; name: string };
+            semester?: { id: number; name: string };
+            lecture?: { id: number; title: string };
+        }[];
+    }> => {
+        const params = semesterId ? { semester_id: semesterId } : {};
+        const response = await apiClient.get(endpoints.admin.teachers.recurringSchedule(teacherId), { params });
+        return response.data;
+    },
+
+    getTeacherApprovedOneTimeSlots: async (teacherId: number): Promise<import('../../types/slotRequest').SlotRequestsResponse> => {
+        const response = await apiClient.get(endpoints.admin.teachers.approvedOneTimeSlots(teacherId));
+        return response.data;
+    },
 
     // ==================== SETTINGS ====================
 

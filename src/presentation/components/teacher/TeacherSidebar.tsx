@@ -73,12 +73,13 @@ const NavItem = memo(function NavItem({
             end={isDashboard}
             onClick={onClick}
             className={({ isActive }) => `
-                relative flex items-center gap-3 px-4 py-3 mx-2 rounded-xl
+                relative flex items-center px-4 py-3 mx-2 rounded-xl
                 transition-all duration-200 group
                 ${isActive
                     ? 'bg-shibl-crimson text-white shadow-md shadow-shibl-crimson/20'
                     : 'text-[#636E72] dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-[#2D3436] dark:hover:text-white'
                 }
+                ${isCollapsed ? 'pl-[21px]' : 'px-4'}
             `}
         >
             <item.icon
@@ -87,14 +88,11 @@ const NavItem = memo(function NavItem({
                 className={`shrink-0 transition-colors duration-200`}
             />
 
-            {!isCollapsed && (
-                <div className={`
-                    font-medium text-sm
-                    transition-all duration-200 whitespace-nowrap z-50
-                `}>
+            <div className={`overflow-hidden whitespace-nowrap z-50 transition-all duration-500 ease-in-out ${isCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}`}>
+                <span className="font-medium text-sm block">
                     {item.label}
-                </div>
-            )}
+                </span>
+            </div>
         </NavLink>
     );
 });
@@ -138,20 +136,18 @@ export function TeacherSidebar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
         <div className="flex flex-col h-full bg-white dark:bg-[#1E1E1E] border-r border-l border-slate-200 dark:border-white/10 transition-colors duration-300">
             {/* Header / Logo Area */}
             <div className={`
-                h-20 flex items-center px-6 border-b border-slate-100 dark:border-white/5
-                ${isCollapsed ? 'justify-center' : 'justify-between'}
+                h-20 flex items-center px-6 border-b border-slate-100 dark:border-white/5 relative
+                transition-all duration-300
             `}>
-                {!isCollapsed && (
-                    <div className="flex flex-col">
-                        <span className="text-xl font-bold text-[#2D3436] dark:text-white">{platformName}</span>
-                        <span className="text-xs text-[#636E72] dark:text-gray-400">بوابة المعلم</span>
-                    </div>
-                )}
+                <div className={`flex flex-col overflow-hidden transition-all duration-500 ease-in-out ${isCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>
+                    <span className="text-xl font-bold text-[#2D3436] dark:text-white whitespace-nowrap">{platformName}</span>
+                    <span className="text-xs text-[#636E72] dark:text-gray-400 whitespace-nowrap">بوابة المعلم</span>
+                </div>
 
                 {/* Desktop Toggle */}
                 <button
                     onClick={onToggle}
-                    className="hidden lg:flex p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400 dark:text-gray-500 transition-colors"
+                    className={`hidden lg:flex p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400 dark:text-gray-500 transition-colors ${isCollapsed ? 'absolute left-1/2 -translate-x-1/2' : 'ml-auto'}`}
                 >
                     {isRTL
                         ? (isCollapsed ? <ChevronLeft size={20} /> : <ChevronRight size={20} />)
@@ -168,37 +164,39 @@ export function TeacherSidebar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                 </button>
 
                 <div className={`
-                    w-10 h-10 bg-shibl-crimson rounded-xl flex items-center justify-center shadow-lg shadow-shibl-crimson/20
-                    ${isCollapsed ? 'block' : 'hidden'}
+                    absolute left-1/2 -translate-x-1/2 w-10 h-10 bg-shibl-crimson rounded-xl flex items-center justify-center shadow-lg shadow-shibl-crimson/20
+                    transition-all duration-300 pointer-events-none
+                    ${isCollapsed ? 'opacity-100 scale-100' : 'opacity-0 scale-0'}
                 `}>
                     <GraduationCap className="text-white" size={24} />
                 </div>
             </div>
 
             {/* Teacher Profile - Compact */}
-            {!isCollapsed && (
-                <div className="px-4 py-4 border-b border-slate-200 dark:border-white/5 bg-[#F8F9FA] dark:bg-white/5 transition-colors duration-300">
-                    <div className="flex items-center gap-3">
-                        <img
-                            src={user?.image_path || teacherPlaceholder}
-                            alt={user?.name || 'Teacher'}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-slate-200 dark:border-white/10 flex-shrink-0"
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = teacherPlaceholder;
-                            }}
-                        />
-                        <div className="flex-1 min-w-0">
-                            <p className="text-[#1F1F1F] dark:text-white font-medium text-sm truncate">
-                                {user?.name || 'المعلم'}
-                            </p>
-                            <p className="text-[#636E72] dark:text-gray-400 text-xs truncate">
-                                {user?.email || 'teacher@subol.edu'}
-                            </p>
-                        </div>
+            <div className={`
+                border-b border-slate-200 dark:border-white/5 bg-[#F8F9FA] dark:bg-white/5 transition-all duration-300 overflow-hidden
+                ${isCollapsed ? 'max-h-0 opacity-0 py-0' : 'max-h-24 opacity-100 py-4'}
+            `}>
+                <div className="px-4 flex items-center gap-3">
+                    <img
+                        src={user?.image_path || teacherPlaceholder}
+                        alt={user?.name || 'Teacher'}
+                        className="w-10 h-10 rounded-full object-cover border-2 border-slate-200 dark:border-white/10 flex-shrink-0"
+                        onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = teacherPlaceholder;
+                        }}
+                    />
+                    <div className="flex-1 min-w-0">
+                        <p className="text-[#1F1F1F] dark:text-white font-medium text-sm truncate">
+                            {user?.name || 'المعلم'}
+                        </p>
+                        <p className="text-[#636E72] dark:text-gray-400 text-xs truncate">
+                            {user?.email || 'teacher@subol.edu'}
+                        </p>
                     </div>
                 </div>
-            )}
+            </div>
 
             {/* Navigation */}
             <nav className="flex-1 py-4 overflow-y-auto bg-white dark:bg-[#1E1E1E] transition-colors duration-300">
@@ -219,9 +217,9 @@ export function TeacherSidebar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                 <button
                     onClick={handleLogout}
                     className={`
-                            w-full flex items-center gap-3 px-4 py-3 rounded-xl
+                            w-full flex items-center px-4 py-3 rounded-xl
                             text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all duration-200 group
-                            ${isCollapsed ? 'justify-center' : ''}
+                            ${isCollapsed ? 'pl-[21px]' : 'px-4'}
                         `}
                 >
                     <LogOut
@@ -229,9 +227,9 @@ export function TeacherSidebar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                         strokeWidth={1.5}
                         className="shrink-0 transition-transform group-hover:-translate-x-1"
                     />
-                    {!isCollapsed && (
+                    <div className={`overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out ${isCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}`}>
                         <span className="font-medium text-sm">تسجيل الخروج</span>
-                    )}
+                    </div>
                 </button>
             </div>
         </div>

@@ -8,6 +8,7 @@ import apiClient from '../../../data/api/ApiClient';
 import { endpoints } from '../../../data/api/endpoints';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VideoModal } from '../../components/common/VideoModal';
+import { TutorialThumbnail } from '../../components/common/TutorialThumbnail';
 // Lucide Icons
 import {
     User,
@@ -37,7 +38,7 @@ import {
 
 // Design Constants
 const VISUAL_BG_GRADIENT = "bg-gradient-to-br from-shibl-crimson/5 via-rose-50 to-orange-50";
-const INPUT_BASE_CLASSES = "w-full h-12 rounded-xl border-2 border-slate-100 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 transition-all duration-300 outline-none";
+const INPUT_BASE_CLASSES = "w-full h-14 rounded-2xl border-2 border-slate-100 bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/5 transition-all duration-300 outline-none hover:border-slate-300 peer";
 const INPUT_ERROR_CLASSES = "border-red-200 bg-red-50/50 text-red-900 placeholder:text-red-300 focus:border-red-500 focus:ring-red-500/10";
 
 // How did you know us options
@@ -102,6 +103,7 @@ export function SignupPage() {
         email: '',
         phone: '',
         countryCode: '+968',
+        parentCountryCode: '+968',
         countryId: 0,
         cityId: 0,
         password: '',
@@ -112,6 +114,32 @@ export function SignupPage() {
         howDidYouKnowUs: '',
         howDidYouKnowUsOther: '',
     });
+
+    // Country Codes
+    const COUNTRY_CODES = [
+        { code: '+968', country: 'OM', flag: '🇴🇲' },
+        { code: '+966', country: 'SA', flag: '🇸🇦' },
+        { code: '+971', country: 'AE', flag: '🇦🇪' },
+        { code: '+965', country: 'KW', flag: '🇰🇼' },
+        { code: '+973', country: 'BH', flag: '🇧🇭' },
+        { code: '+974', country: 'QA', flag: '🇶🇦' },
+        { code: '+962', country: 'JO', flag: '🇯🇴' },
+        { code: '+970', country: 'PS', flag: '🇵🇸' },
+        { code: '+961', country: 'LB', flag: '🇱🇧' },
+        { code: '+963', country: 'SY', flag: '🇸🇾' },
+        { code: '+964', country: 'IQ', flag: '🇮🇶' },
+        { code: '+967', country: 'YE', flag: '🇾🇪' },
+        { code: '+20', country: 'EG', flag: '🇪🇬' },
+        { code: '+249', country: 'SD', flag: '🇸🇩' },
+        { code: '+218', country: 'LY', flag: '🇱🇾' },
+        { code: '+216', country: 'TN', flag: '🇹🇳' },
+        { code: '+213', country: 'DZ', flag: '🇩🇿' },
+        { code: '+212', country: 'MA', flag: '🇲🇦' },
+        { code: '+222', country: 'MR', flag: '🇲🇷' },
+        { code: '+252', country: 'SO', flag: '🇸🇴' },
+        { code: '+253', country: 'DJ', flag: '🇩🇯' },
+        { code: '+269', country: 'KM', flag: '🇰🇲' },
+    ];
 
     // Fallback Data
     const FALLBACK_COUNTRIES: Country[] = [
@@ -221,7 +249,8 @@ export function SignupPage() {
                 password_confirmation: formData.confirmPassword,
                 country_id: formData.countryId,
                 city_id: formData.cityId,
-                parent_phone: formData.parentPhone,
+                phone: `${formData.countryCode}${formData.phone}`,
+                parent_phone: `${formData.parentCountryCode}${formData.parentPhone}`,
                 parent_name: formData.parentName,
                 parent_email: formData.parentEmail,
                 how_do_you_know_us: formData.howDidYouKnowUs === 'other' ? formData.howDidYouKnowUsOther : formData.howDidYouKnowUs || undefined,
@@ -352,6 +381,7 @@ export function SignupPage() {
                                     onChange={(v) => handleChange('name', v)}
                                     error={fieldErrors.name}
                                     placeholder="الاسم الثلاثي"
+                                    autoComplete="name"
                                 />
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -365,6 +395,7 @@ export function SignupPage() {
                                         error={fieldErrors.email}
                                         placeholder="name@example.com"
                                         dir="ltr"
+                                        autoComplete="email"
                                     />
 
                                     <div className="space-y-1.5" id="phone">
@@ -377,11 +408,22 @@ export function SignupPage() {
                                                 value={formData.phone}
                                                 onChange={(e) => handleChange('phone', e.target.value)}
                                                 dir="ltr"
+                                                autoComplete="tel"
                                             />
                                             <Phone size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.phone ? 'text-red-500' : 'text-slate-400'}`} />
                                             <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-md text-slate-600 font-bold text-xs">
-                                                <span>+968</span>
-                                                <Flag size={12} />
+                                                <select
+                                                    value={formData.countryCode}
+                                                    onChange={(e) => handleChange('countryCode', e.target.value)}
+                                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                                    dir="ltr"
+                                                >
+                                                    {COUNTRY_CODES.map(code => (
+                                                        <option key={code.code} value={code.code}>{code.flag} {code.code}</option>
+                                                    ))}
+                                                </select>
+                                                <span dir="ltr">{formData.countryCode}</span>
+                                                <span className="text-lg leading-none">{COUNTRY_CODES.find(c => c.code === formData.countryCode)?.flag}</span>
                                             </div>
                                         </div>
                                         {fieldErrors.phone && <ErrorMessage msg={fieldErrors.phone} />}
@@ -458,6 +500,7 @@ export function SignupPage() {
                                     onChange={(v) => handleChange('parentName', v)}
                                     error={fieldErrors.parentName}
                                     bg="bg-white"
+                                    autoComplete="name"
                                 />
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -472,6 +515,7 @@ export function SignupPage() {
                                         placeholder="parent@example.com"
                                         dir="ltr"
                                         bg="bg-white"
+                                        autoComplete="email"
                                     />
 
                                     <div className="space-y-1.5" id="parentPhone">
@@ -484,11 +528,22 @@ export function SignupPage() {
                                                 value={formData.parentPhone}
                                                 onChange={(e) => handleChange('parentPhone', e.target.value)}
                                                 dir="ltr"
+                                                autoComplete="tel"
                                             />
                                             <Phone size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.parentPhone ? 'text-red-500' : 'text-slate-400'}`} />
                                             <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-md text-slate-600 font-bold text-xs">
-                                                <span>+968</span>
-                                                <Flag size={12} />
+                                                <select
+                                                    value={formData.parentCountryCode}
+                                                    onChange={(e) => handleChange('parentCountryCode', e.target.value)}
+                                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                                    dir="ltr"
+                                                >
+                                                    {COUNTRY_CODES.map(code => (
+                                                        <option key={code.code} value={code.code}>{code.flag} {code.code}</option>
+                                                    ))}
+                                                </select>
+                                                <span dir="ltr">{formData.parentCountryCode}</span>
+                                                <span className="text-lg leading-none">{COUNTRY_CODES.find(c => c.code === formData.parentCountryCode)?.flag}</span>
                                             </div>
                                         </div>
                                         {fieldErrors.parentPhone && <ErrorMessage msg={fieldErrors.parentPhone} />}
@@ -507,6 +562,7 @@ export function SignupPage() {
                                         show={showPassword}
                                         onToggle={() => setShowPassword(!showPassword)}
                                         error={fieldErrors.password}
+                                        autoComplete="new-password"
                                     />
                                     <PasswordInput
                                         id="confirmPassword"
@@ -516,6 +572,7 @@ export function SignupPage() {
                                         show={showConfirmPassword}
                                         onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
                                         error={fieldErrors.confirmPassword}
+                                        autoComplete="new-password"
                                     />
                                 </div>
                             </div>
@@ -631,19 +688,11 @@ export function SignupPage() {
 
                         {/* Secondary Action: Watch Tutorial */}
                         <div className="mt-8 pt-6 border-t border-slate-100 flex justify-center">
-                            <button
-                                type="button"
+                            <TutorialThumbnail
+                                videoUrl="https://youtu.be/xDY-eLt9NKQ"
                                 onClick={() => setIsVideoModalOpen(true)}
-                                className="group flex items-center gap-3 px-4 py-2 rounded-full hover:bg-rose-50 transition-colors"
-                            >
-                                <div className="w-8 h-8 rounded-full bg-rose-100 text-shibl-crimson flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <Play size={14} fill="currentColor" />
-                                </div>
-                                <div className="text-right">
-                                    <span className="block text-xs font-bold text-shibl-crimson">شاهد الشرح</span>
-                                    <span className="block text-[10px] text-slate-400 font-medium">خطوات التسجيل في دقيقة</span>
-                                </div>
-                            </button>
+                                layoutId="tutorial-video-signup"
+                            />
                         </div>
                     </div>
                 </motion.div>
@@ -654,6 +703,7 @@ export function SignupPage() {
                 onClose={() => setIsVideoModalOpen(false)}
                 videoUrl="https://youtu.be/xDY-eLt9NKQ"
                 title="شرح خطوات التسجيل في منصة شبل"
+                layoutId="tutorial-video-signup"
             />
         </div>
     );
@@ -683,21 +733,23 @@ interface InputGroupProps {
     placeholder?: string;
     dir?: string;
     bg?: string;
+    autoComplete?: string;
 }
 
-const InputGroup = ({ id, label, icon: Icon, value, onChange, error, type = 'text', placeholder, dir = 'rtl', bg }: InputGroupProps) => (
+const InputGroup = ({ id, label, icon: Icon, value, onChange, error, type = 'text', placeholder, dir = 'rtl', bg, ...rest }: InputGroupProps) => (
     <div className="space-y-1.5" id={id}>
         <Label text={label} error={!!error} />
         <div className="relative">
             <input
                 type={type}
-                className={`${INPUT_BASE_CLASSES} ${bg || ''} ${error ? INPUT_ERROR_CLASSES : ''} pr-12`}
+                className={`${INPUT_BASE_CLASSES} ${bg || ''} ${error ? INPUT_ERROR_CLASSES : ''} pr-12 pl-4`}
                 placeholder={placeholder}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 dir={dir}
+                autoComplete={rest.autoComplete}
             />
-            <Icon size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${error ? 'text-red-500' : 'text-slate-400'}`} />
+            <Icon size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 transition-all duration-300 ${error ? 'text-red-500' : 'text-slate-400 peer-focus:text-shibl-crimson peer-focus:scale-110'}`} />
         </div>
         {error && <ErrorMessage msg={error} />}
     </div>
@@ -711,9 +763,10 @@ interface PasswordInputProps {
     show: boolean;
     onToggle: () => void;
     error?: string;
+    autoComplete?: string;
 }
 
-const PasswordInput = ({ id, label, value, onChange, show, onToggle, error }: PasswordInputProps) => (
+const PasswordInput = ({ id, label, value, onChange, show, onToggle, error, ...rest }: PasswordInputProps) => (
     <div className="space-y-1.5" id={id}>
         <Label text={label} error={!!error} />
         <div className="relative">
@@ -724,8 +777,9 @@ const PasswordInput = ({ id, label, value, onChange, show, onToggle, error }: Pa
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 dir="ltr"
+                autoComplete={rest.autoComplete || 'new-password'}
             />
-            <Lock size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${error ? 'text-red-500' : 'text-slate-400'}`} />
+            <Lock size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 transition-all duration-300 ${error ? 'text-red-500' : 'text-slate-400 peer-focus:text-shibl-crimson peer-focus:scale-110'}`} />
             <button
                 type="button"
                 onClick={onToggle}

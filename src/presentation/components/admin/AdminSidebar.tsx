@@ -178,80 +178,71 @@ export function AdminSidebar({ isCollapsed, onToggle, className = '' }: AdminSid
                 {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
             </button>
 
-            <nav className="flex-1 py-4 px-3 overflow-y-auto scrollbar-hide">
-                <div className="space-y-1">
+            <nav className="flex-1 py-4 px-3 overflow-y-auto scrollbar-hide overflow-x-hidden">
+                <div className="space-y-2">
                     {navGroups.map((group) => {
-                        const isExpanded = expandedGroups.has(group.id);
+                        const isGroupOpen = expandedGroups.has(group.id);
                         const hasActiveItem = isGroupActive(group);
 
-                        if (isCollapsed) {
-                            return (
-                                <div key={group.id} className="space-y-1">
-                                    {group.items.map((item) => {
-                                        const isActive = isItemActive(item.path);
-                                        return (
-                                            <Link
-                                                key={item.path}
-                                                to={item.path}
-                                                className={`
-                                                    flex items-center justify-center p-3 rounded-xl
-                                                    transition-all duration-200
-                                                    ${isActive
-                                                        ? 'bg-shibl-crimson text-white shadow-lg'
-                                                        : 'text-slate-500 hover:bg-slate-100 hover:text-shibl-crimson'
-                                                    }
-                                                `}
-                                                title={item.label}
-                                            >
-                                                {item.icon}
-                                            </Link>
-                                        );
-                                    })}
-                                    {group.id !== 'system' && (
-                                        <div className="my-2 border-b border-slate-100" />
-                                    )}
-                                </div>
-                            );
-                        }
+                        // When collapsed, we hide the group header but show items (flattened look)
+                        // When expanded, we show group header and respect expansion state
+                        const showItems = isCollapsed || isGroupOpen;
 
                         return (
-                            <div key={group.id} className="mb-2">
-                                <button
-                                    onClick={() => toggleGroup(group.id)}
-                                    className={`
-                                        w-full flex items-center justify-between px-3 py-2.5 rounded-xl
-                                        transition-all duration-200 group
-                                        ${hasActiveItem
-                                            ? 'bg-shibl-crimson/5 text-shibl-crimson'
-                                            : 'text-slate-500 hover:bg-slate-50'
-                                        }
-                                    `}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <span className={hasActiveItem ? 'text-shibl-crimson' : 'text-slate-400 group-hover:text-slate-600'}>
-                                            {group.icon}
-                                        </span>
-                                        <span className="font-semibold text-xs uppercase tracking-wide">
-                                            {group.label}
-                                        </span>
-                                    </div>
-                                    <ChevronDown
-                                        size={16}
-                                        className={`
-                                            transition-transform duration-200
-                                            ${isExpanded ? 'rotate-180' : ''}
-                                            ${hasActiveItem ? 'text-shibl-crimson' : 'text-slate-400'}
-                                        `}
-                                    />
-                                </button>
-
+                            <div key={group.id} className="relative transition-all duration-300 ease-in-out">
+                                {/* Group Header - Hidden when collapsed */}
                                 <div
                                     className={`
-                                        overflow-hidden transition-all duration-200 ease-out
-                                        ${isExpanded ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'}
+                                        overflow-hidden transition-all duration-300 ease-in-out
+                                        ${isCollapsed ? 'max-h-0 opacity-0' : 'max-h-12 opacity-100'}
                                     `}
                                 >
-                                    <div className="pr-2 space-y-0.5">
+                                    <button
+                                        onClick={() => toggleGroup(group.id)}
+                                        className={`
+                                            w-full flex items-center justify-between px-3 py-2.5 rounded-xl
+                                            transition-all duration-200 group mb-1
+                                            ${hasActiveItem
+                                                ? 'bg-shibl-crimson/5 text-shibl-crimson'
+                                                : 'text-slate-500 hover:bg-slate-50'
+                                            }
+                                        `}
+                                    >
+                                        <div className="flex items-center gap-2 overflow-hidden">
+                                            <span className={`shrink-0 ${hasActiveItem ? 'text-shibl-crimson' : 'text-slate-400 group-hover:text-slate-600'}`}>
+                                                {group.icon}
+                                            </span>
+                                            <span className="font-semibold text-xs uppercase tracking-wide whitespace-nowrap opacity-100 transition-opacity duration-300">
+                                                {group.label}
+                                            </span>
+                                        </div>
+                                        <ChevronDown
+                                            size={16}
+                                            className={`
+                                                transition-transform duration-200 shrink-0
+                                                ${isGroupOpen ? 'rotate-180' : ''}
+                                                ${hasActiveItem ? 'text-shibl-crimson' : 'text-slate-400'}
+                                            `}
+                                        />
+                                    </button>
+                                </div>
+
+                                {/* Divider when collapsed for visual separation */}
+                                <div
+                                    className={`
+                                        border-b border-slate-50 mx-2 transition-all duration-300
+                                        ${isCollapsed && group.id !== 'main' ? 'my-2 opacity-100' : 'my-0 h-0 opacity-0 border-none'}
+                                    `}
+                                />
+
+                                {/* Items Container */}
+                                <div
+                                    className={`
+                                        overflow-hidden transition-all duration-300 ease-in-out
+                                        ${showItems ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}
+                                    `}
+                                >
+                                    <div className={`space-y-1 ${isCollapsed ? '' : 'pr-2'}`}>
                                         {group.items.map((item) => {
                                             const isActive = isItemActive(item.path);
                                             return (
@@ -259,20 +250,36 @@ export function AdminSidebar({ isCollapsed, onToggle, className = '' }: AdminSid
                                                     key={item.path}
                                                     to={item.path}
                                                     className={`
-                                                        flex items-center gap-3 px-4 py-2.5 rounded-xl
-                                                        transition-all duration-200 group/item
+                                                        flex items-center px-3 py-2.5 rounded-xl
+                                                        transition-all duration-300 group/item relative overflow-hidden
                                                         ${isActive
-                                                            ? 'bg-shibl-crimson text-white shadow-md'
-                                                            : 'text-slate-600 hover:bg-slate-100 hover:text-shibl-crimson'
+                                                            ? 'bg-shibl-crimson text-white shadow-sm'
+                                                            : 'text-slate-600 hover:bg-slate-50 hover:text-shibl-crimson'
                                                         }
+                                                        ${isCollapsed ? 'pl-[19px]' : 'px-3'}
                                                     `}
+                                                    title={isCollapsed ? item.label : undefined}
                                                 >
                                                     <span className={`
+                                                        shrink-0 transition-all duration-300
                                                         ${isActive ? 'text-white' : 'text-slate-400 group-hover/item:text-shibl-crimson'}
                                                     `}>
                                                         {item.icon}
                                                     </span>
-                                                    <span className="font-medium text-sm">{item.label}</span>
+
+                                                    <div
+                                                        className={`
+                                                            overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                                                            ${isCollapsed
+                                                                ? 'max-w-0 opacity-0 ml-0'
+                                                                : 'max-w-[200px] opacity-100 ml-3'
+                                                            }
+                                                        `}
+                                                    >
+                                                        <span className="font-medium text-sm block">
+                                                            {item.label}
+                                                        </span>
+                                                    </div>
                                                 </Link>
                                             );
                                         })}
@@ -288,14 +295,24 @@ export function AdminSidebar({ isCollapsed, onToggle, className = '' }: AdminSid
                 <button
                     onClick={handleLogout}
                     className={`
-                        flex items-center gap-3 px-4 py-3 rounded-xl w-full
+                        flex items-center px-4 py-3 rounded-xl w-full
                         text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200
-                        ${isCollapsed ? 'justify-center' : ''}
+                        ${isCollapsed ? 'pl-[19px]' : 'px-4'}
                     `}
                     title={isCollapsed ? 'تسجيل الخروج' : undefined}
                 >
                     <LogOut size={18} />
-                    {!isCollapsed && <span className="font-medium text-sm">تسجيل الخروج</span>}
+                    <div
+                        className={`
+                            overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out
+                            ${isCollapsed
+                                ? 'max-w-0 opacity-0 ml-0'
+                                : 'max-w-[200px] opacity-100 ml-3'
+                            }
+                        `}
+                    >
+                        <span className="font-medium text-sm block">تسجيل الخروج</span>
+                    </div>
                 </button>
             </div>
         </aside>

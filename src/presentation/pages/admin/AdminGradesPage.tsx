@@ -9,6 +9,7 @@ import {
     X,
     Loader2,
     Check,
+    Layers,
 } from 'lucide-react';
 import { adminService } from '../../../data/api/adminService';
 
@@ -190,152 +191,187 @@ export function AdminGradesPage(): React.ReactElement {
         });
     }, [grades, searchQuery]);
 
+    // Calculate stats
+    const stats = useMemo(() => [
+        { icon: <GraduationCap size={22} className="text-purple-600" />, label: 'مجموع الصفوف', value: grades.length.toString(), bgColor: 'bg-purple-50' },
+        { icon: <Layers size={22} className="text-blue-600" />, label: 'متوسط الطلاب', value: '24', bgColor: 'bg-blue-50' }, // Mock data
+        { icon: <Check size={22} className="text-emerald-600" />, label: 'صفوف مكتملة', value: grades.filter(g => g.is_active !== false).length.toString(), bgColor: 'bg-emerald-50' },
+        { icon: <AlertCircle size={22} className="text-amber-600" />, label: 'تنبيهات', value: '2', bgColor: 'bg-amber-50' }, // Mock data
+    ], [grades]);
+
     return (
-        <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
-                        <GraduationCap className="text-white" size={24} />
+        <div className="p-6 space-y-6">
+            {/* Stats Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {stats.map((stat, index) => (
+                    <div key={index} className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 group">
+                        <div className="flex justify-between items-start mb-4">
+                            <div className={`w-12 h-12 rounded-2xl ${stat.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                                {stat.icon}
+                            </div>
+                            <span className="flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                                +5% <Check size={12} />
+                            </span>
+                        </div>
+                        <div>
+                            <p className="text-slate-500 text-sm font-medium mb-1">{stat.label}</p>
+                            <h3 className="text-3xl font-extrabold text-slate-800">{stat.value}</h3>
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="text-2xl font-bold text-charcoal">إدارة الصفوف الدراسية</h1>
-                        <p className="text-sm text-slate-500">إضافة وتعديل وحذف الصفوف الدراسية</p>
-                    </div>
-                </div>
-                <button
-                    onClick={openAddModal}
-                    className="h-11 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
-                >
-                    <Plus size={18} />
-                    <span>إضافة صف جديد</span>
-                </button>
+                ))}
             </div>
 
-            <div className="mb-6">
-                <div className="relative max-w-md">
-                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input
-                        type="text"
-                        placeholder="البحث في الصفوف الدراسية..."
-                        value={searchQuery}
-                        onChange={(e) => handleSearch(e.target.value)}
-                        className="w-full h-11 pr-12 pl-4 rounded-xl bg-white border border-slate-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none text-sm"
-                        dir="rtl"
-                    />
+            {/* Header & Controls */}
+            <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-100">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div>
+                        <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600 mb-2">
+                            إدارة الصفوف الدراسية
+                        </h1>
+                        <p className="text-slate-500 text-sm">إدارة وهيكلة الصفوف الدراسية والمناهج</p>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <div className="relative group">
+                            <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={20} />
+                            <input
+                                type="text"
+                                placeholder="بحث..."
+                                value={searchQuery}
+                                onChange={(e) => handleSearch(e.target.value)}
+                                className="w-full md:w-72 h-12 pr-12 pl-4 rounded-[16px] bg-slate-50 border-2 border-slate-100 focus:border-purple-500 focus:bg-white transition-all duration-300 outline-none text-sm font-medium placeholder:text-slate-400"
+                                dir="rtl"
+                            />
+                        </div>
+                        <button
+                            onClick={openAddModal}
+                            className="h-12 px-8 rounded-[16px] bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-sm shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:-translate-y-1 transition-all duration-300 flex items-center gap-2"
+                        >
+                            <Plus size={20} />
+                            <span>إضافة صف</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3">
+                <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
                     <AlertCircle size={20} />
                     <span>{error}</span>
-                    <button onClick={fetchGrades} className="mr-auto text-sm underline hover:no-underline">
+                    <button onClick={fetchGrades} className="mr-auto text-sm font-bold underline hover:no-underline">
                         إعادة المحاولة
                     </button>
                 </div>
             )}
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                <table className="w-full">
-                    <thead className="bg-slate-50 border-b border-slate-100">
-                        <tr>
-                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                الرقم
-                            </th>
-                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                اسم الصف
-                            </th>
-                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                الوصف
-                            </th>
-                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                الإجراءات
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {loading ? (
-                            Array.from({ length: 5 }).map((_, i) => <ShimmerRow key={i} />)
-                        ) : filteredGrades.length === 0 ? (
-                            <tr>
-                                <td colSpan={4} className="py-12 text-center text-slate-500">
-                                    <GraduationCap size={48} className="mx-auto mb-3 text-slate-300" />
-                                    <p>لا توجد صفوف دراسية</p>
-                                </td>
+            {/* Grades Table */}
+            <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="bg-slate-50/50 border-b border-slate-100">
+                                <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الرقم</th>
+                                <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">اسم الصف</th>
+                                <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الوصف</th>
+                                <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الإجراءات</th>
                             </tr>
-                        ) : (
-                            filteredGrades.map((grade) => (
-                                <tr key={grade.id} className="hover:bg-slate-50 transition-colors">
-                                    <td className="py-4 px-6 text-sm text-slate-600">
-                                        #{grade.id}
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <span className="font-semibold text-charcoal">
-                                            {extractName(grade.name)}
-                                        </span>
-                                    </td>
-                                    <td className="py-4 px-6 text-sm text-slate-500">
-                                        {extractName(grade.description) || '—'}
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => openEditModal(grade)}
-                                                className="w-8 h-8 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-600 flex items-center justify-center transition-colors"
-                                                title="تعديل"
-                                            >
-                                                <Edit2 size={16} />
-                                            </button>
-                                            {deleteConfirmId === grade.id ? (
-                                                <div className="flex items-center gap-1">
-                                                    <button
-                                                        onClick={() => handleDelete(grade.id)}
-                                                        disabled={deleteLoading}
-                                                        className="w-8 h-8 rounded-lg bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-colors disabled:opacity-50"
-                                                    >
-                                                        {deleteLoading ? <Loader2 size={14} className="animate-spin" /> : <Check size={16} />}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setDeleteConfirmId(null)}
-                                                        className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
-                                                    >
-                                                        <X size={16} />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <button
-                                                    onClick={() => setDeleteConfirmId(grade.id)}
-                                                    className="w-8 h-8 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 flex items-center justify-center transition-colors"
-                                                    title="حذف"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            )}
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                            {loading ? (
+                                Array.from({ length: 5 }).map((_, i) => <ShimmerRow key={i} />)
+                            ) : filteredGrades.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="py-16 text-center text-slate-500">
+                                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <GraduationCap size={40} className="text-slate-300" />
                                         </div>
+                                        <p className="font-medium text-lg text-slate-600">لا توجد صفوف دراسية</p>
+                                        <p className="text-sm text-slate-400 mt-1">ابدأ بإضافة صفوف دراسية جديدة</p>
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ) : (
+                                filteredGrades.map((grade) => (
+                                    <tr key={grade.id} className="hover:bg-slate-50/80 transition-colors group">
+                                        <td className="px-6 py-4">
+                                            <span className="font-mono text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">
+                                                #{grade.id}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 font-bold text-lg">
+                                                    {extractName(grade.name).charAt(0)}
+                                                </div>
+                                                <span className="font-bold text-slate-700 text-base">
+                                                    {extractName(grade.name)}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-sm text-slate-500 line-clamp-1 max-w-[300px]">
+                                                {extractName(grade.description) || '—'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+                                                <button
+                                                    onClick={() => openEditModal(grade)}
+                                                    className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-all duration-300 shadow-sm"
+                                                    title="تعديل"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                {deleteConfirmId === grade.id ? (
+                                                    <div className="flex items-center gap-1 animate-in slide-in-from-right-2">
+                                                        <button
+                                                            onClick={() => handleDelete(grade.id)}
+                                                            disabled={deleteLoading}
+                                                            className="w-9 h-9 rounded-xl bg-red-600 text-white hover:bg-red-700 flex items-center justify-center transition-all shadow-md"
+                                                        >
+                                                            {deleteLoading ? <Loader2 size={14} className="animate-spin" /> : <Check size={16} />}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setDeleteConfirmId(null)}
+                                                            className="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-all"
+                                                        >
+                                                            <X size={16} />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => setDeleteConfirmId(grade.id)}
+                                                        className="w-9 h-9 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white flex items-center justify-center transition-all duration-300 shadow-sm"
+                                                        title="حذف"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
                 {!loading && meta.last_page > 1 && (
-                    <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">
-                        <p className="text-sm text-slate-500">
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/30">
+                        <p className="text-sm font-medium text-slate-500">
                             عرض {((meta.current_page - 1) * meta.per_page) + 1} - {Math.min(meta.current_page * meta.per_page, meta.total)} من {meta.total}
                         </p>
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                             >
                                 السابق
                             </button>
                             <button
                                 onClick={() => setCurrentPage(p => Math.min(meta.last_page, p + 1))}
                                 disabled={currentPage === meta.last_page}
-                                className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-4 py-2 rounded-xl bg-purple-600 text-white hover:bg-purple-700 text-sm font-bold shadow-md shadow-purple-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 التالي
                             </button>

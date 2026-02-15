@@ -10,7 +10,8 @@ import {
     Trash2,
     ChevronLeft,
     ChevronRight,
-    Loader2
+    Loader2,
+    ShieldCheck
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { adminService, UserData, UserRole, UserStatus } from '../../../data/api/adminService';
@@ -34,16 +35,46 @@ const filterTabs: { key: FilterTab; label: string }[] = [
     { key: 'parents', label: 'أولياء الأمور' },
 ];
 
-const roleConfig: Record<UserRole, { label: string; bgColor: string; textColor: string }> = {
-    student: { label: 'طالب', bgColor: 'bg-blue-100', textColor: 'text-blue-700' },
-    parent: { label: 'ولي أمر', bgColor: 'bg-green-100', textColor: 'text-green-700' },
-    teacher: { label: 'مدرس', bgColor: 'bg-purple-100', textColor: 'text-purple-700' },
+const roleConfig: Record<UserRole, { label: string; bgColor: string; textColor: string; borderColor: string }> = {
+    student: {
+        label: 'طالب',
+        bgColor: 'bg-blue-50',
+        textColor: 'text-blue-700',
+        borderColor: 'border-blue-200'
+    },
+    parent: {
+        label: 'ولي أمر',
+        bgColor: 'bg-green-50',
+        textColor: 'text-green-700',
+        borderColor: 'border-green-200'
+    },
+    teacher: {
+        label: 'مدرس',
+        bgColor: 'bg-purple-50',
+        textColor: 'text-purple-700',
+        borderColor: 'border-purple-200'
+    },
 };
 
-const statusConfig: Record<UserStatus, { label: string; bgColor: string; textColor: string }> = {
-    active: { label: 'نشط', bgColor: 'bg-green-100', textColor: 'text-green-700' },
-    inactive: { label: 'غير نشط', bgColor: 'bg-slate-100', textColor: 'text-slate-500' },
-    'on-leave': { label: 'في إجازة', bgColor: 'bg-amber-100', textColor: 'text-amber-700' },
+const statusConfig: Record<UserStatus, { label: string; bgColor: string; textColor: string; icon: any }> = {
+    active: {
+        label: 'نشط',
+        bgColor: 'bg-green-100/50',
+        textColor: 'text-green-700',
+        icon: UserCheck
+    },
+    inactive: {
+        label: 'غير نشط',
+        bgColor: 'bg-slate-100',
+        textColor: 'text-slate-500',
+        icon: Clock
+    },
+    'on-leave': {
+        label: 'في إجازة',
+        bgColor: 'bg-amber-100/50',
+        textColor: 'text-amber-700',
+        icon: Clock
+    },
 };
 
 // Format date to Arabic
@@ -104,9 +135,9 @@ export function AdminUsersPage() {
                 const response = await adminService.getStudents(params);
                 return {
                     users: response.data,
-                    stats: { // Keep logic consistent, though we might want to fetch stats separately eventually
+                    stats: {
                         totalStudents: response.meta.total,
-                        totalParents: 0, // Not available in single call, handled by derived state or separate query if needed
+                        totalParents: 0,
                         total: response.meta.total
                     },
                     meta: response.meta
@@ -137,7 +168,6 @@ export function AdminUsersPage() {
     };
 
     // Handle meta for pagination
-    // The combined endpoint returns 'stats', paginated returns 'meta'.
     const pagination = usersData && 'meta' in usersData ? (usersData as any).meta : {
         currentPage: 1, lastPage: 1, total: stats.totalUsers
     };
@@ -146,71 +176,38 @@ export function AdminUsersPage() {
     const lastPage = pagination.last_page || pagination.lastPage || 1;
     const currentP = pagination.current_page || pagination.currentPage || 1;
 
-
     // Loading and error states
-    // Show skeleton only on INITIAL load, not on refetch (smart loading)
     const showSkeleton = isUsersLoading;
 
     const [deleting, setDeleting] = useState<number | null>(null);
 
-    // Delete dialog state
+    // Dialog & Modal states
     const [deleteDialog, setDeleteDialog] = useState<{
         isOpen: boolean;
         user: UserData | null;
     }>({ isOpen: false, user: null });
 
-    // Edit modal state
     const [editModal, setEditModal] = useState<{
         isOpen: boolean;
         user: UserData | null;
     }>({ isOpen: false, user: null });
 
-    // View modal state
     const [viewModal, setViewModal] = useState<{
         isOpen: boolean;
         user: UserData | null;
     }>({ isOpen: false, user: null });
 
-    // Add user modal states
     const [showAddStudentModal, setShowAddStudentModal] = useState(false);
 
+    // Handlers
+    const openDeleteDialog = (user: UserData) => setDeleteDialog({ isOpen: true, user });
+    const closeDeleteDialog = () => setDeleteDialog({ isOpen: false, user: null });
+    const openEditModal = (user: UserData) => setEditModal({ isOpen: true, user });
+    const closeEditModal = () => setEditModal({ isOpen: false, user: null });
+    const handleEditSuccess = () => refetchUsers();
+    const openViewModal = (user: UserData) => setViewModal({ isOpen: true, user });
+    const closeViewModal = () => setViewModal({ isOpen: false, user: null });
 
-    // Open delete confirmation dialog
-    const openDeleteDialog = (user: UserData) => {
-        setDeleteDialog({ isOpen: true, user });
-    };
-
-    // Close delete confirmation dialog
-    const closeDeleteDialog = () => {
-        setDeleteDialog({ isOpen: false, user: null });
-    };
-
-    // Open edit modal
-    const openEditModal = (user: UserData) => {
-        setEditModal({ isOpen: true, user });
-    };
-
-    // Close edit modal
-    const closeEditModal = () => {
-        setEditModal({ isOpen: false, user: null });
-    };
-
-    // Handle successful edit
-    const handleEditSuccess = () => {
-        refetchUsers(); // Refresh the list
-    };
-
-    // Open view modal
-    const openViewModal = (user: UserData) => {
-        setViewModal({ isOpen: true, user });
-    };
-
-    // Close view modal
-    const closeViewModal = () => {
-        setViewModal({ isOpen: false, user: null });
-    };
-
-    // Handle delete user
     const handleConfirmDelete = async () => {
         const user = deleteDialog.user;
         if (!user) return;
@@ -218,18 +215,15 @@ export function AdminUsersPage() {
         setDeleting(user.id);
         try {
             await adminService.deleteUser(user.role, user.id);
-            // Refresh the list
             refetchUsers();
             closeDeleteDialog();
         } catch (err: any) {
             console.error('Error deleting user:', err);
-            // Error handling typically via toast
         } finally {
             setDeleting(null);
         }
     };
 
-    // Generate page numbers for pagination
     const getPageNumbers = () => {
         const pages: number[] = [];
         const maxPages = 5;
@@ -246,208 +240,232 @@ export function AdminUsersPage() {
         return pages;
     };
 
-    // Stats display data
+    // Enhanced Stats Display
     const statsDisplay = [
-        { icon: <Users size={22} className="text-shibl-crimson" />, label: 'إجمالي المستخدمين', value: stats.totalUsers.toLocaleString('ar-EG'), bgColor: 'bg-red-50' },
-        { icon: <UserCheck size={22} className="text-blue-600" />, label: 'الطلاب', value: stats.totalStudents.toLocaleString('ar-EG'), bgColor: 'bg-blue-50' },
-        { icon: <Clock size={22} className="text-green-600" />, label: 'أولياء الأمور', value: stats.totalParents.toLocaleString('ar-EG'), bgColor: 'bg-green-50' },
+        {
+            icon: Users,
+            label: 'إجمالي المستخدمين',
+            value: stats.totalUsers.toLocaleString('ar-EG'),
+            gradient: 'from-[#AF0C15] to-[#E11D48]', // Shibl Crimson -> Rose
+            iconColor: 'text-white',
+            bgOpacity: 'bg-opacity-100'
+        },
+        {
+            icon: UserCheck,
+            label: 'الطلاب',
+            value: stats.totalStudents.toLocaleString('ar-EG'),
+            gradient: 'from-blue-500 to-blue-600',
+            iconColor: 'text-white',
+            bgOpacity: 'bg-opacity-100'
+        },
+        {
+            icon: ShieldCheck,
+            label: 'أولياء الأمور',
+            value: stats.totalParents.toLocaleString('ar-EG'),
+            gradient: 'from-emerald-500 to-emerald-600',
+            iconColor: 'text-white',
+            bgOpacity: 'bg-opacity-100'
+        },
     ];
 
     return (
-        <>
+        <div className="space-y-6">
             {/* Page Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-                <h1 className="text-2xl font-extrabold text-charcoal">إدارة المستخدمين</h1>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-l from-shibl-crimson to-rose-600">
+                        إدارة المستخدمين
+                    </h1>
+                    <p className="text-slate-grey text-sm mt-1">إدارة حسابات الطلاب وأولياء الأمور والمشرفين</p>
+                </div>
 
                 <div className="flex items-center gap-3">
-                    {/* Search */}
-                    <div className="relative flex-1 lg:w-72">
-                        <input
-                            type="text"
-                            placeholder="بحث في المستخدمين..."
-                            className="w-full h-11 pl-4 pr-11 rounded-[12px] bg-white border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        <Search size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                    </div>
-
-                    {/* Filter Button */}
-                    <button className="h-11 px-4 rounded-[12px] bg-white border border-slate-200 hover:border-shibl-crimson text-slate-600 hover:text-shibl-crimson transition-all flex items-center gap-2">
-                        <Filter size={18} />
-                    </button>
-
-                    {/* Add Student + Parent Button */}
                     <button
                         onClick={() => setShowAddStudentModal(true)}
-                        className="h-11 px-5 rounded-pill bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
+                        className="h-11 px-6 rounded-full bg-gradient-to-r from-shibl-crimson to-[#8B0A11] hover:shadow-lg hover:shadow-shibl-crimson/30 text-white font-bold text-sm transition-all duration-300 transform hover:-translate-y-0.5 flex items-center gap-2"
                     >
                         <UserCheck size={18} />
-                        <span>إضافة طالب وولي أمر</span>
+                        <span>إضافة مستخدم جديد</span>
                     </button>
                 </div>
             </div>
 
-            {/* Filter Tabs */}
-            <div className="flex gap-2 mb-6">
-                {filterTabs.map(tab => (
-                    <button
-                        key={tab.key}
-                        onClick={() => setActiveTab(tab.key)}
-                        className={`px-5 py-2.5 rounded-[12px] font-semibold text-sm transition-all duration-200 ${activeTab === tab.key
-                            ? 'bg-shibl-crimson text-white shadow-crimson'
-                            : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
-                            }`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
-
-            {/* Stats Mini Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {statsDisplay.map((stat, index) => (
-                    <div key={index} className="bg-white rounded-[16px] p-4 shadow-card flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-[12px] flex items-center justify-center ${stat.bgColor}`}>
-                            {stat.icon}
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-grey font-medium">{stat.label}</p>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xl font-extrabold text-charcoal">{stat.value}</span>
+                    <div key={index} className="relative overflow-hidden bg-white rounded-[20px] p-6 shadow-sm border border-slate-100 group hover:shadow-md transition-all duration-300">
+                        <div className="flex items-center justify-between relative z-10">
+                            <div>
+                                <p className="text-slate-500 text-sm font-medium mb-1">{stat.label}</p>
+                                <h3 className="text-3xl font-bold text-charcoal">{stat.value}</h3>
+                            </div>
+                            <div className={`w-12 h-12 rounded-[14px] bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg shadow-gray-200 transform group-hover:scale-110 transition-transform duration-300`}>
+                                <stat.icon className="text-white" size={24} />
                             </div>
                         </div>
+                        {/* Decorative background blob */}
+                        <div className={`absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br ${stat.gradient} opacity-5 rounded-full blur-2xl group-hover:opacity-10 transition-opacity`} />
                     </div>
                 ))}
             </div>
 
+            {/* Controls Bar */}
+            <div className="bg-white rounded-[16px] p-4 shadow-sm border border-slate-100 flex flex-col lg:flex-row gap-4 items-center justify-between">
+
+                {/* Search */}
+                <div className="relative w-full lg:w-96 group">
+                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                        <Search size={18} className="text-slate-400 group-focus-within:text-shibl-crimson transition-colors" />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="بحث بالاسم أو البريد الإلكتروني..."
+                        className="w-full h-11 pr-10 pl-4 bg-slate-50 border-transparent focus:bg-white border focus:border-shibl-crimson/20 rounded-[12px] text-sm text-charcoal shadow-sm transition-all outline-none focus:ring-4 focus:ring-shibl-crimson/5 placeholder:text-slate-400"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+
+                {/* Filter Tabs */}
+                <div className="flex bg-slate-50 p-1.5 rounded-[14px] w-full lg:w-auto">
+                    {filterTabs.map(tab => (
+                        <button
+                            key={tab.key}
+                            onClick={() => setActiveTab(tab.key)}
+                            className={`flex-1 lg:flex-initial px-6 py-2 rounded-[10px] text-sm font-bold transition-all duration-200 ${activeTab === tab.key
+                                ? 'bg-white text-shibl-crimson shadow-sm ring-1 ring-black/5'
+                                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                                }`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                    <button className="px-3 text-slate-400 hover:text-slate-600 border-r border-slate-200 mr-2 pr-2">
+                        <Filter size={18} />
+                    </button>
+                </div>
+            </div>
+
             {/* Error Message */}
             {isUsersError && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-[12px] mb-6">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-[12px] flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-red-500" />
                     {usersError instanceof Error ? usersError.message : 'حدث خطأ أثناء تحميل البيانات'}
                 </div>
             )}
 
             {/* Users Table */}
-            <div className="bg-white rounded-[16px] shadow-card overflow-hidden">
+            <div className="bg-white rounded-[20px] shadow-sm border border-slate-100 overflow-hidden">
                 {showSkeleton ? (
                     /* Shimmer Skeleton Loading */
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-slate-50 border-b border-slate-100">
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الاسم</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">البريد الإلكتروني</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الدور</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الحالة</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">تاريخ الانضمام</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الإجراءات</th>
+                                <tr className="bg-slate-50/50 border-b border-slate-100">
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الاسم</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">البريد الإلكتروني</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الدور</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الحالة</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">تاريخ الانضمام</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الإجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-50">
                                 {[...Array(6)].map((_, index) => (
                                     <tr key={index}>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" />
-                                                <div className="h-4 w-28 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100}ms` }} />
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="h-4 w-40 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 50}ms` }} />
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="h-6 w-14 rounded-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 100}ms` }} />
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="h-6 w-14 rounded-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 150}ms` }} />
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="h-4 w-28 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 200}ms` }} />
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 250}ms` }} />
-                                                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 300}ms` }} />
-                                                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 350}ms` }} />
-                                            </div>
-                                        </td>
+                                        <td className="px-6 py-4"><div className="w-40 h-5 bg-slate-100 rounded animate-pulse" /></td>
+                                        <td className="px-6 py-4"><div className="w-32 h-4 bg-slate-100 rounded animate-pulse" /></td>
+                                        <td className="px-6 py-4"><div className="w-16 h-6 bg-slate-100 rounded-full animate-pulse" /></td>
+                                        <td className="px-6 py-4"><div className="w-16 h-6 bg-slate-100 rounded-full animate-pulse" /></td>
+                                        <td className="px-6 py-4"><div className="w-24 h-4 bg-slate-100 rounded animate-pulse" /></td>
+                                        <td className="px-6 py-4"><div className="w-20 h-8 bg-slate-100 rounded animate-pulse" /></td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
                 ) : users.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-slate-500">
-                        <Users size={48} className="mb-4 text-slate-300" />
-                        <p className="text-lg font-medium">لا يوجد مستخدمين</p>
-                        <p className="text-sm">لم يتم العثور على أي مستخدمين مطابقين</p>
+                    <div className="flex flex-col items-center justify-center py-24 text-slate-500">
+                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                            <Users size={32} className="text-slate-300" />
+                        </div>
+                        <p className="text-lg font-bold text-charcoal">لا يوجد مستخدمين</p>
+                        <p className="text-sm text-slate-400 mt-1">لم يتم العثور على أي مستخدمين مطابقين لبحثك</p>
                     </div>
                 ) : (
                     <div className={`overflow-x-auto transition-opacity duration-200 ${isUsersFetching && !isUsersLoading ? 'opacity-50' : 'opacity-100'}`}>
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-slate-50 border-b border-slate-100">
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الاسم</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">البريد الإلكتروني</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الدور</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الحالة</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">تاريخ الانضمام</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الإجراءات</th>
+                                <tr className="bg-slate-50/80 border-b border-slate-100">
+                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey uppercase tracking-wider">الاسم</th>
+                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey uppercase tracking-wider">البريد الإلكتروني</th>
+                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey uppercase tracking-wider">الدور</th>
+                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey uppercase tracking-wider">الحالة</th>
+                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey uppercase tracking-wider">تاريخ الانضمام</th>
+                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey uppercase tracking-wider">الإجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-100 bg-white">
                                 {users.map((user) => (
-                                    <tr key={`${user.role}-${user.id}`} className="hover:bg-slate-50/50 transition-colors">
+                                    <tr
+                                        key={`${user.role}-${user.id}`}
+                                        className="hover:bg-soft-cloud transition-colors duration-200 group"
+                                    >
                                         {/* Name with Avatar */}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-shibl-crimson to-red-700 flex items-center justify-center text-white font-bold text-sm">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-white shadow-sm flex items-center justify-center text-slate-600 font-bold text-sm ring-2 ring-transparent group-hover:ring-shibl-crimson/10 transition-all">
                                                     {user.name.charAt(0)}
                                                 </div>
-                                                <span className="font-semibold text-charcoal">{user.name}</span>
+                                                <span className="font-bold text-charcoal group-hover:text-shibl-crimson transition-colors">{user.name}</span>
                                             </div>
                                         </td>
 
                                         {/* Email */}
-                                        <td className="px-6 py-4 text-sm text-slate-grey">{user.email}</td>
+                                        <td className="px-6 py-4 text-sm font-medium text-slate-grey">{user.email}</td>
 
                                         {/* Role Badge */}
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${roleConfig[user.role].bgColor} ${roleConfig[user.role].textColor}`}>
+                                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold border ${roleConfig[user.role].bgColor} ${roleConfig[user.role].textColor} ${roleConfig[user.role].borderColor}`}>
                                                 {roleConfig[user.role].label}
                                             </span>
                                         </td>
 
                                         {/* Status Badge */}
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${statusConfig[user.status].bgColor} ${statusConfig[user.status].textColor}`}>
-                                                {statusConfig[user.status].label}
-                                            </span>
+                                            <div className="flex items-center gap-1.5">
+                                                <div className={`w-2 h-2 rounded-full ${user.status === 'active' ? 'bg-green-500' : 'bg-slate-300'}`} />
+                                                <span className={`text-xs font-bold ${statusConfig[user.status].textColor}`}>
+                                                    {statusConfig[user.status].label}
+                                                </span>
+                                            </div>
                                         </td>
 
                                         {/* Date */}
-                                        <td className="px-6 py-4 text-sm text-slate-grey">{formatDate(user.created_at)}</td>
+                                        <td className="px-6 py-4 text-sm font-medium text-slate-grey">{formatDate(user.created_at)}</td>
 
                                         {/* Actions */}
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                                                 <button
                                                     onClick={() => openViewModal(user)}
-                                                    className="w-8 h-8 rounded-[8px] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
+                                                    className="w-8 h-8 rounded-[8px] bg-slate-50 hover:bg-white hover:shadow-md border border-slate-100 hover:border-slate-200 flex items-center justify-center text-slate-500 hover:text-shibl-crimson transition-all"
+                                                    title="عرض"
                                                 >
                                                     <Eye size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => openEditModal(user)}
-                                                    className="w-8 h-8 rounded-[8px] bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 transition-colors"
+                                                    className="w-8 h-8 rounded-[8px] bg-blue-50 hover:bg-blue-600 hover:shadow-md hover:shadow-blue-200 border border-blue-100 hover:border-blue-600 flex items-center justify-center text-blue-600 hover:text-white transition-all"
+                                                    title="تعديل"
                                                 >
                                                     <Edit2 size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => openDeleteDialog(user)}
                                                     disabled={deleting === user.id}
-                                                    className="w-8 h-8 rounded-[8px] bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 transition-colors disabled:opacity-50"
+                                                    className="w-8 h-8 rounded-[8px] bg-red-50 hover:bg-red-600 hover:shadow-md hover:shadow-red-200 border border-red-100 hover:border-red-600 flex items-center justify-center text-red-600 hover:text-white transition-all disabled:opacity-50"
+                                                    title="حذف"
                                                 >
                                                     {deleting === user.id ? (
                                                         <Loader2 size={16} className="animate-spin" />
@@ -466,15 +484,15 @@ export function AdminUsersPage() {
 
                 {/* Pagination */}
                 {!showSkeleton && users.length > 0 && (
-                    <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-                        <p className="text-sm text-slate-grey">
+                    <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-white">
+                        <p className="text-sm font-medium text-slate-grey">
                             عرض {users.length} من {pagination.total}
                         </p>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="w-9 h-9 rounded-[8px] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors disabled:opacity-50"
+                                className="w-9 h-9 rounded-[10px] bg-white border border-slate-200 hover:border-shibl-crimson/50 hover:text-shibl-crimson flex items-center justify-center text-slate-500 transition-all disabled:opacity-50 disabled:hover:border-slate-200 disabled:hover:text-slate-500"
                             >
                                 <ChevronRight size={18} />
                             </button>
@@ -482,9 +500,9 @@ export function AdminUsersPage() {
                                 <button
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
-                                    className={`w-9 h-9 rounded-[8px] font-semibold text-sm transition-colors ${currentPage === page
-                                        ? 'bg-shibl-crimson text-white'
-                                        : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                                    className={`w-9 h-9 rounded-[10px] font-bold text-sm transition-all shadow-sm ${currentPage === page
+                                        ? 'bg-gradient-to-br from-shibl-crimson to-[#8B0A11] text-white shadow-shibl-crimson/20'
+                                        : 'bg-white border border-slate-200 text-slate-600 hover:border-shibl-crimson/50 hover:text-shibl-crimson'
                                         }`}
                                 >
                                     {page}
@@ -493,7 +511,7 @@ export function AdminUsersPage() {
                             <button
                                 onClick={() => setCurrentPage(p => Math.min(lastPage, p + 1))}
                                 disabled={currentPage === lastPage}
-                                className="w-9 h-9 rounded-[8px] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors disabled:opacity-50"
+                                className="w-9 h-9 rounded-[10px] bg-white border border-slate-200 hover:border-shibl-crimson/50 hover:text-shibl-crimson flex items-center justify-center text-slate-500 transition-all disabled:opacity-50 disabled:hover:border-slate-200 disabled:hover:text-slate-500"
                             >
                                 <ChevronLeft size={18} />
                             </button>
@@ -543,8 +561,6 @@ export function AdminUsersPage() {
                     refetchUsers(); // Changed from fetchUsers to refetchUsers
                 }}
             />
-
-
-        </>
+        </div>
     );
 }

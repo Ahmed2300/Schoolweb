@@ -210,6 +210,8 @@ export const endpoints = {
             show: (id: number) => `/api/v1/admin/teachers/${id}`,
             update: (id: number) => `/api/v1/admin/teachers/${id}`,
             delete: (id: number) => `/api/v1/admin/teachers/${id}`,
+            recurringSchedule: (id: number) => `/api/v1/admin/teachers/${id}/recurring-schedule`,
+            approvedOneTimeSlots: (id: number) => `/api/v1/admin/teachers/${id}/approved-one-time-slots`,
         },
         // Admins
         admins: {
@@ -394,6 +396,7 @@ export const endpoints = {
         classSchedules: {
             list: '/api/v1/admin/class-schedules',
         },
+
     },
 
     // Grades (authenticated)

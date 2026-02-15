@@ -29,7 +29,7 @@ import type { SlotRequest } from '../../../../types/slotRequest';
 
 // ==================== Types ====================
 
-interface TeacherRecurringSlot {
+export interface TeacherRecurringSlot {
     id: number;
     teacher_id: number;
     grade_id: number;
@@ -45,7 +45,7 @@ interface TeacherRecurringSlot {
 }
 
 // Extended slot with specific date for the selected week
-interface DatedSlot extends TeacherRecurringSlot {
+export interface DatedSlot extends TeacherRecurringSlot {
     date: Date;
     dateString: string; // "YYYY-MM-DD"
     isBooked: boolean;
@@ -203,6 +203,8 @@ interface ApprovedSlotSelectorProps {
     onRequestNewSlot?: () => void;
     /** Array of already booked date strings (lectures that exist) */
     bookedDates?: string[];
+    /** Optional: Filter slots for a specific teacher (Admin context) */
+    teacherId?: number;
 }
 
 // ==================== Main Component ====================
@@ -215,9 +217,10 @@ export function ApprovedSlotSelector({
     semesterId,
     onRequestNewSlot,
     bookedDates = [],
+    teacherId,
 }: ApprovedSlotSelectorProps) {
-    const recurringQuery = useMyRecurringSchedule();
-    const oneTimeQuery = useApprovedOneTimeSlots();
+    const recurringQuery = useMyRecurringSchedule(teacherId);
+    const oneTimeQuery = useApprovedOneTimeSlots(teacherId);
 
     const allSlots = recurringQuery.data || [];
     const oneTimeSlots = oneTimeQuery.data || [];
@@ -676,4 +679,4 @@ export function ApprovedSlotSelector({
 }
 
 export default ApprovedSlotSelector;
-export type { DatedSlot, TeacherRecurringSlot };
+

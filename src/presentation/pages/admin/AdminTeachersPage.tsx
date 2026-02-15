@@ -26,7 +26,7 @@ import teacherPlaceholder from '../../../assets/images/teacher-placeholder.png';
 
 // Types
 type MainTab = 'teachers' | 'instructors';
-type StaffStatus = 'active' | 'pending' | 'inactive';
+type StaffStatus = 'active' | 'pending' | 'inactive' | 'on-leave';
 
 interface Teacher {
     id: number;
@@ -87,6 +87,7 @@ const statusConfig: Record<StaffStatus, { label: string; bgColor: string; textCo
     active: { label: 'نشط', bgColor: 'bg-green-100', textColor: 'text-green-700' },
     pending: { label: 'قيد المراجعة', bgColor: 'bg-amber-100', textColor: 'text-amber-700' },
     inactive: { label: 'غير نشط', bgColor: 'bg-slate-100', textColor: 'text-slate-500' },
+    'on-leave': { label: 'في إجازة', bgColor: 'bg-amber-100', textColor: 'text-amber-700' },
 };
 
 const subjectColors: Record<string, string> = {
@@ -186,283 +187,321 @@ export function AdminTeachersPage() {
 
     return (
         <>
-            {/* Page Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-                <h1 className="text-2xl font-extrabold text-charcoal">إدارة المدرسين والمدربين</h1>
-
-                <div className="flex items-center gap-3">
-                    {/* Search */}
-                    <div className="relative flex-1 lg:w-72">
-                        <input
-                            type="text"
-                            placeholder="بحث باسم المدرس أو البريد الإلكتروني..."
-                            className="w-full h-12 pl-4 pr-11 rounded-xl bg-white border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm shadow-sm"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        <Search size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            {/* Stats Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 group">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform duration-300">
+                            <GraduationCap size={24} />
+                        </div>
+                        <span className="flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                            +12% <ChevronUp size={12} />
+                        </span>
                     </div>
+                    <div>
+                        <p className="text-slate-500 text-sm font-medium mb-1">مجموع المدرسين</p>
+                        <h3 className="text-3xl font-extrabold text-slate-800">{stats.totalTeachers}</h3>
+                    </div>
+                </div>
 
-                    {/* Add Button */}
-                    <button
-                        onClick={() => setShowAddTeacherModal(true)}
-                        className="h-11 px-6 rounded-pill bg-shibl-crimson hover:bg-shibl-crimson-dark text-white font-bold text-sm shadow-crimson transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
-                    >
-                        <GraduationCap size={18} />
-                        <span>إضافة مدرس/مدرب</span>
-                    </button>
+                <div className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 group">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform duration-300">
+                            <Lightbulb size={24} />
+                        </div>
+                        <span className="flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                            +5% <ChevronUp size={12} />
+                        </span>
+                    </div>
+                    <div>
+                        <p className="text-slate-500 text-sm font-medium mb-1">مجموع المدربين</p>
+                        <h3 className="text-3xl font-extrabold text-slate-800">{stats.totalInstructors}</h3>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 group">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform duration-300">
+                            <BookOpen size={24} />
+                        </div>
+                        <span className="flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                            +8% <ChevronUp size={12} />
+                        </span>
+                    </div>
+                    <div>
+                        <p className="text-slate-500 text-sm font-medium mb-1">الدروس النشطة</p>
+                        <h3 className="text-3xl font-extrabold text-slate-800">{stats.activeLessons}</h3>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 group">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform duration-300">
+                            <AlertCircle size={24} />
+                        </div>
+                        <span className="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                            {stats.pendingRequests} طلب
+                        </span>
+                    </div>
+                    <div>
+                        <p className="text-slate-500 text-sm font-medium mb-1">طلبات قيد الانتظار</p>
+                        <h3 className="text-3xl font-extrabold text-slate-800">{stats.pendingRequests}</h3>
+                    </div>
                 </div>
             </div>
 
-            {/* Main Tabs - Teachers vs Instructors */}
-            <div className="flex gap-3 mb-6">
-                <button
-                    onClick={() => setActiveTab('teachers')}
-                    className={`flex items-center gap-3 px-6 py-3.5 rounded-[16px] font-bold text-sm transition-all duration-300 ${activeTab === 'teachers'
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
-                        : 'bg-white text-slate-600 hover:bg-blue-50 border border-slate-200'
-                        }`}
-                >
-                    <GraduationCap size={20} />
-                    <span>المدرسون</span>
-                </button>
-                <button
-                    onClick={() => setActiveTab('instructors')}
-                    className={`flex items-center gap-3 px-6 py-3.5 rounded-[16px] font-bold text-sm transition-all duration-300 ${activeTab === 'instructors'
-                        ? 'bg-green-600 text-white shadow-lg shadow-green-600/25'
-                        : 'bg-white text-slate-600 hover:bg-green-50 border border-slate-200'
-                        }`}
-                >
-                    <Lightbulb size={20} />
-                    <span>المدربون</span>
-                </button>
-            </div>
-
-            {/* Stats Mini Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                {statsDisplay.map((stat, index) => (
-                    <div key={index} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center gap-4 hover:shadow-md transition-shadow duration-300">
-                        <div className={`w-14 h-14 rounded-full flex items-center justify-center ${stat.bgColor}`}>
-                            {stat.icon}
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-500 font-medium mb-1">{stat.label}</p>
-                            <span className="text-3xl font-bold text-slate-800">{stat.value}</span>
-                        </div>
+            {/* Header & Controls */}
+            <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 mb-8">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div>
+                        <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-800 to-slate-600 mb-2">
+                            إدارة المدرسين والمدربين
+                        </h1>
+                        <p className="text-slate-500 text-sm">إدارة كافة أعضاء الهيئة التدريسية ومتابعة أدائهم</p>
                     </div>
-                ))}
+
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                        {/* Tabs */}
+                        <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100 w-full sm:w-auto">
+                            <button
+                                onClick={() => setActiveTab('teachers')}
+                                className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'teachers'
+                                    ? 'bg-white text-shibl-crimson shadow-sm'
+                                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                                    }`}
+                            >
+                                <GraduationCap size={18} />
+                                <span>المدرسون</span>
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('instructors')}
+                                className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'instructors'
+                                    ? 'bg-white text-green-600 shadow-sm'
+                                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                                    }`}
+                            >
+                                <Lightbulb size={18} />
+                                <span>المدربون</span>
+                            </button>
+                        </div>
+
+                        {/* Search */}
+                        <div className="relative w-full sm:w-64">
+                            <input
+                                type="text"
+                                placeholder="بحث..."
+                                className="w-full h-11 pl-4 pr-11 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-shibl-crimson/10 text-sm transition-all"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            <Search size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                        </div>
+
+                        {/* Add Button */}
+                        <button
+                            onClick={() => setShowAddTeacherModal(true)}
+                            className="h-11 px-6 rounded-xl bg-gradient-to-r from-shibl-crimson to-rose-600 text-white font-bold text-sm shadow-lg shadow-rose-200 hover:shadow-xl hover:shadow-rose-300 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 w-full sm:w-auto"
+                        >
+                            <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+                                <Users size={12} />
+                            </div>
+                            <span>إضافة عضو</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* Teachers Tab Content */}
             {activeTab === 'teachers' && (
-                <>
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
-                        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-                            <GraduationCap size={20} className="text-blue-600" />
-                            <h2 className="font-bold text-charcoal">المدرسون</h2>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="bg-slate-50 border-b border-slate-100">
-                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">المعلم</th>
-                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">المواد الدراسية</th>
-                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الصفوف الدراسية</th>
-                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الدورات</th>
-                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الحالة</th>
-                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">إجراءات</th>
+                <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden mb-6 animate-in fade-in duration-500">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="bg-slate-50/50 border-b border-slate-100">
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">المعلم</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">التخصصات</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الصفوف</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الأداء</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الحالة</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {loading ? (
+                                    /* Shimmer Skeleton Loading */
+                                    [...Array(5)].map((_, index) => (
+                                        <tr key={index}>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-slate-100 animate-pulse" />
+                                                    <div className="space-y-2">
+                                                        <div className="h-4 w-28 rounded-md bg-slate-100 animate-pulse" />
+                                                        <div className="h-3 w-36 rounded-md bg-slate-100 animate-pulse" />
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4"><div className="h-4 w-20 rounded-md bg-slate-100 animate-pulse" /></td>
+                                            <td className="px-6 py-4"><div className="h-4 w-16 rounded-md bg-slate-100 animate-pulse" /></td>
+                                            <td className="px-6 py-4"><div className="h-4 w-10 rounded-md bg-slate-100 animate-pulse" /></td>
+                                            <td className="px-6 py-4"><div className="h-6 w-14 rounded-full bg-slate-100 animate-pulse" /></td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-8 h-8 rounded-lg bg-slate-100 animate-pulse" />
+                                                    <div className="w-8 h-8 rounded-lg bg-slate-100 animate-pulse" />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : error ? (
+                                    <tr>
+                                        <td colSpan={6} className="px-6 py-16 text-center">
+                                            <div className="flex flex-col items-center gap-4">
+                                                <AlertCircle size={40} className="text-red-500" />
+                                                <p className="text-red-600 font-medium">{error}</p>
+                                                <button
+                                                    onClick={fetchTeachers}
+                                                    className="px-6 py-2 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-colors"
+                                                >
+                                                    إعادة المحاولة
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {loading ? (
-                                        /* Shimmer Skeleton Loading */
-                                        [...Array(5)].map((_, index) => (
-                                            <tr key={index}>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" />
-                                                        <div className="space-y-2">
-                                                            <div className="h-4 w-28 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100}ms` }} />
-                                                            <div className="h-3 w-36 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 50}ms` }} />
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="h-4 w-20 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 100}ms` }} />
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="h-4 w-16 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 150}ms` }} />
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="h-4 w-10 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 200}ms` }} />
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="h-6 w-14 rounded-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 250}ms` }} />
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 300}ms` }} />
-                                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 350}ms` }} />
-                                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 400}ms` }} />
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : error ? (
-                                        <tr>
-                                            <td colSpan={6} className="px-6 py-16 text-center">
-                                                <div className="flex flex-col items-center gap-4">
-                                                    <AlertCircle size={40} className="text-red-500" />
-                                                    <p className="text-red-600">{error}</p>
+                                ) : filteredTeachers.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="px-6 py-16 text-center">
+                                            <div className="flex flex-col items-center gap-4">
+                                                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center">
+                                                    <Users size={32} className="text-slate-300" />
+                                                </div>
+                                                <p className="text-slate-500 font-medium">
+                                                    {searchQuery ? 'لا توجد نتائج مطابقة للبحث' : 'ل م يتم إضافة مدرسين بعد'}
+                                                </p>
+                                                {!searchQuery && (
                                                     <button
-                                                        onClick={fetchTeachers}
-                                                        className="px-6 py-2 bg-shibl-crimson text-white rounded-pill font-semibold hover:bg-shibl-crimson-dark transition-colors"
+                                                        onClick={() => setShowAddTeacherModal(true)}
+                                                        className="px-6 py-2 bg-shibl-crimson text-white rounded-xl font-bold hover:bg-shibl-crimson-dark transition-colors shadow-lg shadow-rose-200"
                                                     >
-                                                        إعادة المحاولة
+                                                        إضافة مدرس جديد
                                                     </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : filteredTeachers.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={6} className="px-6 py-16 text-center">
-                                                <div className="flex flex-col items-center gap-4">
-                                                    <GraduationCap size={40} className="text-slate-400" />
-                                                    <p className="text-slate-600">
-                                                        {searchQuery ? 'لا توجد نتائج للبحث' : 'لا يوجد مدرسون بعد'}
-                                                    </p>
-                                                    {!searchQuery && (
-                                                        <button
-                                                            onClick={() => setShowAddTeacherModal(true)}
-                                                            className="px-6 py-2 bg-shibl-crimson text-white rounded-pill font-semibold hover:bg-shibl-crimson-dark transition-colors"
-                                                        >
-                                                            إضافة أول مدرس
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        filteredTeachers.map((teacher) => (
-                                            <tr key={teacher.id} className="hover:bg-slate-50/80 transition-colors group">
-                                                <td className="px-6 py-5">
-                                                    <div className="flex items-center gap-4">
-                                                        {/* Profile Image or Placeholder */}
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filteredTeachers.map((teacher) => (
+                                        <tr key={teacher.id} className="hover:bg-slate-50/80 transition-colors group">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="relative">
                                                         {teacher.image_path && !teacher.image_path.includes('default.jpg') ? (
                                                             <img
                                                                 src={teacher.image_path}
                                                                 alt={teacher.name}
-                                                                className="w-10 h-10 rounded-full object-cover border-2 border-slate-200"
+                                                                className="w-11 h-11 rounded-full object-cover border-2 border-white shadow-sm"
                                                             />
                                                         ) : (
                                                             <img
                                                                 src={teacherPlaceholder}
                                                                 alt={teacher.name}
-                                                                className="w-10 h-10 rounded-full object-cover border-2 border-slate-200"
+                                                                className="w-11 h-11 rounded-full object-cover border-2 border-white shadow-sm"
                                                             />
                                                         )}
-                                                        <div className="flex flex-col">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="font-bold text-slate-800 text-base">{teacher.name}</span>
-                                                            </div>
-                                                            <span className="text-xs text-slate-400 mt-0.5">{teacher.email}</span>
-                                                        </div>
+                                                        <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${teacher.status === 'active' ? 'bg-green-500' : 'bg-slate-300'}`}></span>
                                                     </div>
-                                                </td>
-                                                <td className="px-6 py-5">
-                                                    {/* Subjects from backend */}
-                                                    {teacher.subjects && teacher.subjects.length > 0 ? (
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {teacher.subjects.slice(0, 2).map((subject: string, idx: number) => (
-                                                                <span
-                                                                    key={idx}
-                                                                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${subjectColors[subject] || 'bg-slate-100 text-slate-600'
-                                                                        }`}
-                                                                >
-                                                                    {subject}
-                                                                </span>
-                                                            ))}
-                                                            {teacher.subjects.length > 2 && (
-                                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500">
-                                                                    +{teacher.subjects.length - 2}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-sm text-slate-300 font-light">-</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-5">
-                                                    {/* Grades from backend */}
-                                                    {teacher.grades && teacher.grades.length > 0 ? (
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {teacher.grades.slice(0, 2).map((grade: string, idx: number) => (
-                                                                <span key={idx} className="text-xs text-slate-600 bg-slate-50 px-2 py-0.5 rounded">
-                                                                    {grade}
-                                                                </span>
-                                                            ))}
-                                                            {teacher.grades.length > 2 && (
-                                                                <span className="text-xs text-slate-400">+{teacher.grades.length - 2}</span>
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-sm text-slate-300 font-light">-</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-5">
-                                                    {/* Courses count from backend */}
-                                                    <div className="flex items-center gap-2">
-                                                        <BookOpen size={16} className="text-slate-400" />
-                                                        <span className="font-semibold text-charcoal">
-                                                            {teacher.courses_count ?? teacher.courses?.length ?? 0}
-                                                        </span>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-slate-800 text-sm group-hover:text-shibl-crimson transition-colors">{teacher.name}</span>
+                                                        <span className="text-xs text-slate-400 font-medium font-mono mt-0.5">{teacher.email}</span>
                                                     </div>
-                                                </td>
-                                                <td className="px-6 py-5">
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${teacher.status === 'active'
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : teacher.status === 'on-leave'
-                                                            ? 'bg-amber-100 text-amber-700'
-                                                            : 'bg-slate-100 text-slate-500'
-                                                        }`}>
-                                                        {teacher.status === 'active' ? 'نشط' : teacher.status === 'on-leave' ? 'في إجازة' : 'غير نشط'}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {teacher.subjects && teacher.subjects.length > 0 ? (
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {teacher.subjects.slice(0, 2).map((subject: string, idx: number) => (
+                                                            <span
+                                                                key={idx}
+                                                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold ${subjectColors[subject] || 'bg-slate-100 text-slate-600'}`}
+                                                            >
+                                                                {subject}
+                                                            </span>
+                                                        ))}
+                                                        {teacher.subjects.length > 2 && (
+                                                            <span className="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-500">
+                                                                +{teacher.subjects.length - 2}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-slate-300">-</span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {teacher.grades && teacher.grades.length > 0 ? (
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {teacher.grades.slice(0, 2).map((grade: string, idx: number) => (
+                                                            <span key={idx} className="text-[11px] font-medium text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded shadow-sm">
+                                                                {grade}
+                                                            </span>
+                                                        ))}
+                                                        {teacher.grades.length > 2 && (
+                                                            <span className="text-[10px] text-slate-400 px-1">+{teacher.grades.length - 2}</span>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-slate-300">-</span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
+                                                        <BookOpen size={14} />
+                                                    </div>
+                                                    <span className="font-bold text-slate-700 text-sm">
+                                                        {teacher.courses_count ?? teacher.courses?.length ?? 0}
                                                     </span>
-                                                </td>
-                                                <td className="px-6 py-5">
-                                                    <div className="flex items-center gap-3">
-                                                        <button
-                                                            className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
-                                                            title="عرض الملف"
-                                                        >
-                                                            <Eye size={18} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                setSelectedTeacher(teacher);
-                                                                setShowEditTeacherModal(true);
-                                                            }}
-                                                            className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 flex items-center justify-center transition-all duration-200"
-                                                            title="تعديل"
-                                                        >
-                                                            <Edit2 size={18} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => openDeleteModal(teacher)}
-                                                            className="w-9 h-9 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition-all duration-200"
-                                                            title="حذف"
-                                                        >
-                                                            <Trash2 size={18} />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                                    <span className="text-xs text-slate-400">دورة</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${teacher.status === 'active'
+                                                    ? 'bg-green-50 text-green-700 border-green-100'
+                                                    : teacher.status === 'on-leave'
+                                                        ? 'bg-amber-50 text-amber-700 border-amber-100'
+                                                        : 'bg-slate-50 text-slate-600 border-slate-100'
+                                                    }`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${teacher.status === 'active' ? 'bg-green-500' : teacher.status === 'on-leave' ? 'bg-amber-500' : 'bg-slate-400'}`}></span>
+                                                    {statusConfig[teacher.status]?.label || 'غير معرف'}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedTeacher(teacher);
+                                                            setShowEditTeacherModal(true);
+                                                        }}
+                                                        className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 flex items-center justify-center transition-all duration-200 shadow-sm"
+                                                        title="تعديل البيانات"
+                                                    >
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => openDeleteModal(teacher)}
+                                                        className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 flex items-center justify-center transition-all duration-200 shadow-sm"
+                                                        title="حذف"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                </>
+                </div>
             )}
 
             {/* Instructors Tab Content */}
@@ -577,22 +616,19 @@ export function AdminTeachersPage() {
                                             </div>
 
                                             <div className="flex gap-2">
-                                                <button className="flex-1 py-2.5 rounded-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-sm transition-colors flex items-center justify-center gap-1">
-                                                    <Eye size={16} />
-                                                    عرض الملف
-                                                </button>
                                                 <button
                                                     onClick={() => {
                                                         setSelectedTeacher(instructor);
                                                         setShowEditTeacherModal(true);
                                                     }}
-                                                    className="py-2.5 px-4 rounded-[10px] bg-blue-100 hover:bg-blue-200 text-blue-600 transition-colors"
+                                                    className="flex-1 py-2.5 px-4 rounded-[10px] bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold transition-colors flex items-center justify-center gap-2"
                                                 >
                                                     <Edit2 size={16} />
+                                                    تعديل
                                                 </button>
                                                 <button
                                                     onClick={() => openDeleteModal(instructor)}
-                                                    className="py-2.5 px-4 rounded-[10px] bg-red-100 hover:bg-red-200 text-red-600 transition-colors"
+                                                    className="py-2.5 px-4 rounded-[10px] bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>

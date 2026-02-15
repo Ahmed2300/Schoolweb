@@ -5,6 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import teacherService from '../../data/api/teacherService';
+import adminService from '../../data/api/adminService';
 import type { TimeSlot } from '../../types/timeSlot';
 
 // Query keys for cache management
@@ -16,6 +17,8 @@ export const teacherTimeSlotKeys = {
     myRecurringSchedule: () => [...teacherTimeSlotKeys.all, 'myRecurringSchedule'] as const,
     approvedOneTime: () => [...teacherTimeSlotKeys.all, 'approvedOneTime'] as const,
     detail: (id: number) => [...teacherTimeSlotKeys.all, 'detail', id] as const,
+    teacherRecurringSchedule: (teacherId: number) => [...teacherTimeSlotKeys.all, 'recurringSchedule', teacherId] as const,
+    teacherApprovedOneTime: (teacherId: number) => [...teacherTimeSlotKeys.all, 'approvedOneTime', teacherId] as const,
 };
 
 /**
@@ -54,10 +57,10 @@ export function useMyRequests() {
 /**
  * Hook to fetch approved one-time slots (exception slots).
  */
-export function useApprovedOneTimeSlots() {
+export function useApprovedOneTimeSlots(teacherId?: number) {
     return useQuery({
-        queryKey: teacherTimeSlotKeys.approvedOneTime(),
-        queryFn: () => teacherService.getApprovedOneTimeSlots(),
+        queryKey: teacherId ? teacherTimeSlotKeys.teacherApprovedOneTime(teacherId) : teacherTimeSlotKeys.approvedOneTime(),
+        queryFn: () => teacherId ? adminService.getTeacherApprovedOneTimeSlots(teacherId) : teacherService.getApprovedOneTimeSlots(),
         select: (response) => response.data,
     });
 }
@@ -66,10 +69,10 @@ export function useApprovedOneTimeSlots() {
  * Hook to fetch teacher's recurring schedule (for ApprovedSlotSelector).
  * Returns the recurring slots used for lecture scheduling.
  */
-export function useMyRecurringSchedule() {
+export function useMyRecurringSchedule(teacherId?: number) {
     return useQuery({
-        queryKey: teacherTimeSlotKeys.myRecurringSchedule(),
-        queryFn: () => teacherService.getMyRecurringSchedule(),
+        queryKey: teacherId ? teacherTimeSlotKeys.teacherRecurringSchedule(teacherId) : teacherTimeSlotKeys.myRecurringSchedule(),
+        queryFn: () => teacherId ? adminService.getTeacherRecurringSchedule(teacherId) : teacherService.getMyRecurringSchedule(),
         select: (response) => response.data,
     });
 }

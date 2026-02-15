@@ -28,6 +28,7 @@ export interface StudentRegisterRequest {
     password_confirmation: string;
     country_id: number;
     city_id: number;
+    phone?: string;
     parent_phone?: string;
     how_do_you_know_us?: string;
     parent_name?: string;
