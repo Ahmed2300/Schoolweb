@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { packageService, Package as PackageType, PackageSubscription } from '../../../data/api';
 import studentService, { getLocalizedName } from '../../../data/api/studentService';
+import { PackageCardSkeleton } from '../../components/ui/skeletons/PackageCardSkeleton';
 
 // Status badge component
 const StatusBadge = ({ status }: { status: string }) => {
@@ -287,9 +288,25 @@ export function StudentPackagesPage() {
 
                 {/* Loading State */}
                 {isLoading && (
-                    <div className="flex items-center justify-center py-20">
-                        <Loader2 className="animate-spin text-shibl-crimson" size={40} />
-                    </div>
+                    view === 'subscriptions' ? (
+                        <div className="space-y-4">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="bg-white rounded-2xl border border-slate-100 p-4 h-24 flex items-center gap-4 animate-pulse">
+                                    <div className="w-16 h-16 bg-slate-200 rounded-xl" />
+                                    <div className="flex-1 space-y-2">
+                                        <div className="h-4 w-1/4 bg-slate-200 rounded" />
+                                        <div className="h-3 w-1/3 bg-slate-200 rounded" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {Array.from({ length: 6 }).map((_, index) => (
+                                <PackageCardSkeleton key={index} />
+                            ))}
+                        </div>
+                    )
                 )}
 
                 {/* Browse View */}

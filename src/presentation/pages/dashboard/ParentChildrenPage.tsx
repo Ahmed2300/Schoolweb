@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ParentChildrenSkeleton } from '../../components/ui/skeletons/ParentChildrenSkeleton';
 import { ROUTES, generatePath } from '../../../shared/constants';
 import {
     GraduationCap,
@@ -402,6 +403,10 @@ export function ParentChildrenPage() {
 
     const selectedChild = childrenData.find(c => c.id === selectedChildId) || childrenData[0];
 
+    if (isLoading) {
+        return <ParentChildrenSkeleton />;
+    }
+
     return (
         <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* 1. New Header & Student Selector Tabs (UX FIX + Responsive) */}
@@ -411,54 +416,47 @@ export function ParentChildrenPage() {
                     <p className="text-slate-500 mt-1">تابع تقدم أبنائك الأكاديمي والمالي</p>
                 </div>
 
-                {isLoading ? (
-                    <div className="flex items-center gap-2 text-slate-400">
-                        <Loader2 size={20} className="animate-spin" />
-                        <span>جاري التحميل...</span>
-                    </div>
-                ) : (
-                    <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                        {childrenData.map(child => (
-                            <button
-                                key={child.id}
-                                onClick={() => setSelectedChildId(child.id)}
-                                className={`
-                                    flex items-center gap-3 pl-4 pr-2 py-2 rounded-full transition-all min-w-max border
-                                    ${selectedChildId === child.id
-                                        ? 'bg-shibl-crimson text-white border-shibl-crimson shadow-lg shadow-shibl-crimson/20'
-                                        : 'bg-white text-slate-500 border-slate-200 hover:border-shibl-crimson/30 hover:bg-slate-50'
-                                    }
-                                `}
-                            >
-                                <div className={`
-                                    w-10 h-10 rounded-full border-2 flex items-center justify-center overflow-hidden
-                                    ${selectedChildId === child.id ? 'border-white/30' : 'border-slate-100'}
-                                `}>
-                                    {child.avatar ? (
-                                        <img src={child.avatar} alt={child.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <Users size={20} className={selectedChildId === child.id ? 'text-white' : 'text-slate-400'} />
-                                    )}
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-bold text-sm leading-tight">{child.name}</p>
-                                    <p className={`text-[10px] ${selectedChildId === child.id ? 'text-white/80' : 'text-slate-400'}`}>
-                                        {child.grade}
-                                    </p>
-                                </div>
-                            </button>
-                        ))}
+                <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                    {childrenData.map(child => (
                         <button
-                            onClick={() => setIsLinkModalOpen(true)}
-                            className="flex items-center gap-2 px-6 py-4 text-slate-400 hover:text-shibl-crimson transition-colors min-w-max"
-                            title="إضافة ابن جديد"
+                            key={child.id}
+                            onClick={() => setSelectedChildId(child.id)}
+                            className={`
+                                flex items-center gap-3 pl-4 pr-2 py-2 rounded-full transition-all min-w-max border
+                                ${selectedChildId === child.id
+                                    ? 'bg-shibl-crimson text-white border-shibl-crimson shadow-lg shadow-shibl-crimson/20'
+                                    : 'bg-white text-slate-500 border-slate-200 hover:border-shibl-crimson/30 hover:bg-slate-50'
+                                }
+                            `}
                         >
-                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                                <Plus size={18} />
+                            <div className={`
+                                w-10 h-10 rounded-full border-2 flex items-center justify-center overflow-hidden
+                                ${selectedChildId === child.id ? 'border-white/30' : 'border-slate-100'}
+                            `}>
+                                {child.avatar ? (
+                                    <img src={child.avatar} alt={child.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <Users size={20} className={selectedChildId === child.id ? 'text-white' : 'text-slate-400'} />
+                                )}
+                            </div>
+                            <div className="text-right">
+                                <p className="font-bold text-sm leading-tight">{child.name}</p>
+                                <p className={`text-[10px] ${selectedChildId === child.id ? 'text-white/80' : 'text-slate-400'}`}>
+                                    {child.grade}
+                                </p>
                             </div>
                         </button>
-                    </div>
-                )}
+                    ))}
+                    <button
+                        onClick={() => setIsLinkModalOpen(true)}
+                        className="flex items-center gap-2 px-6 py-4 text-slate-400 hover:text-shibl-crimson transition-colors min-w-max"
+                        title="إضافة ابن جديد"
+                    >
+                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                            <Plus size={18} />
+                        </div>
+                    </button>
+                </div>
             </div>
 
             {!isLoading && childrenData.length === 0 && (
@@ -603,15 +601,7 @@ export function ParentChildrenPage() {
                                 <ArrowRight size={18} className="text-slate-300 group-hover:text-shibl-crimson transition-colors rtl:rotate-180" />
                             </button>
 
-                            <button className="w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-shibl-crimson/30 hover:shadow-sm transition-all group">
-                                <span className="flex items-center gap-3 font-bold text-charcoal text-sm md:text-base">
-                                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                                        <FileText size={16} />
-                                    </div>
-                                    التقرير الفصلي
-                                </span>
-                                <ArrowRight size={18} className="text-slate-300 group-hover:text-shibl-crimson transition-colors rtl:rotate-180" />
-                            </button>
+
 
                         </div>
                     </div>
