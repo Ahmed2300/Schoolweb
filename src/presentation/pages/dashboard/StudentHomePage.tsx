@@ -1,19 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '../../store';
-import { studentService, Course, getLocalizedName } from '../../../data/api/studentService';
+import { studentService, Course } from '../../../data/api/studentService';
 import { StudentAcademicBrowsePage } from './StudentAcademicBrowsePage';
 import { StudentCourseDetailsPage } from './StudentCourseDetailsPage';
 import {
     GraduationCap,
     TrendingUp,
     Clock,
-    CheckCircle2,
-    Loader2,
-    AlertCircle,
-    RefreshCw,
-    BookOpen,
-    Rocket
+    Rocket,
+    PlayCircle
 } from 'lucide-react';
+import { TutorialThumbnail } from '../../components/common/TutorialThumbnail';
+import { VideoModal } from '../../components/common/VideoModal';
 
 export function StudentHomePage() {
     const { user } = useAuthStore();
@@ -22,6 +20,7 @@ export function StudentHomePage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showVideoModal, setShowVideoModal] = useState(false);
 
     // Fetch non-academic/skills courses for the skills tab
     const fetchSkillsCourses = useCallback(async () => {
@@ -93,26 +92,7 @@ export function StudentHomePage() {
         upcomingSessions: dashboardStats.upcomingSessions,
     };
 
-    // Filter courses by category
-    // TODO: Backend needs course_type field to properly distinguish academic vs skills
-    // For now, we show all courses in the academic tab
-    const filteredCourses = courses.filter(c => c.is_active);
-
     const displayName = user?.name?.split(' ')[0] || 'طالب';
-
-    // Loading skeleton for courses
-    const CourseCardSkeleton = () => (
-        <div className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm flex animate-pulse">
-            <div className="w-32 h-32 flex-shrink-0 bg-slate-200"></div>
-            <div className="flex-1 p-4 flex flex-col justify-between">
-                <div className="space-y-2">
-                    <div className="h-4 bg-slate-200 rounded w-3/4"></div>
-                    <div className="h-3 bg-slate-100 rounded w-1/2"></div>
-                </div>
-                <div className="h-2 bg-slate-100 rounded-full"></div>
-            </div>
-        </div>
-    );
 
     return (
         <div className="p-6">
@@ -158,6 +138,15 @@ export function StudentHomePage() {
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <div className="hidden lg:block relative z-10 w-72">
+                        <TutorialThumbnail
+                            videoUrl="https://youtu.be/jn4WSHLKKQc"
+                            onClick={() => setShowVideoModal(true)}
+                            layoutId="student-tutorial-video"
+                            title="كيف تستخدم حسابك وتستفيد من المنصة؟"
+                        />
                     </div>
                 </div>
 
@@ -224,6 +213,14 @@ export function StudentHomePage() {
                     )}
                 </>
             )}
+
+            <VideoModal
+                isOpen={showVideoModal}
+                onClose={() => setShowVideoModal(false)}
+                videoUrl="https://youtu.be/jn4WSHLKKQc"
+                title="شرح استخدام حساب الطالب"
+                layoutId="student-tutorial-video"
+            />
         </div>
     );
 }

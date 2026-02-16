@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { FileQuestion, Clock, CheckCircle2, AlertCircle, Loader2, HourglassIcon, RefreshCw } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { QuizPlayer } from '../../components/student/quiz/QuizPlayer';
+import { QuizSkeleton } from '../../components/ui/skeletons/QuizSkeleton';
 import { studentQuizService, QuizAttemptSummary } from '../../../data/api/studentQuizService';
 import { getLocalizedName } from '../../../data/api/studentService';
 
@@ -88,9 +89,10 @@ export function StudentQuizzesPage() {
 
     if (loading) {
         return (
-            <div className="min-h-[400px] flex flex-col items-center justify-center gap-4">
-                <Loader2 className="w-10 h-10 text-shibl-crimson animate-spin" />
-                <p className="text-slate-500 font-medium">جاري تحميل سجل الاختبارات...</p>
+            <div className="grid gap-5">
+                {Array.from({ length: 3 }).map((_, i) => (
+                    <QuizSkeleton key={i} />
+                ))}
             </div>
         );
     }
