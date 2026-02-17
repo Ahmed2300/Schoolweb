@@ -60,7 +60,7 @@ interface Child {
     id: number;
     name: string;
     grade: string;
-    avatar: string;
+    avatar: string | null;
     school: string;
     gpa: number;
     attendance?: number;
