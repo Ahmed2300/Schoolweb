@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { TutorialThumbnail } from '../../components/common/TutorialThumbnail';
 import { VideoModal } from '../../components/common/VideoModal';
+import { MissedTasksWidget } from '../../components/student/dashboard/MissedTasksWidget';
 
 export function StudentHomePage() {
     const { user } = useAuthStore();
@@ -97,50 +98,73 @@ export function StudentHomePage() {
     return (
         <div className="p-6">
             {/* Welcome Card */}
-            <div className="bg-gradient-to-l from-shibl-crimson via-shibl-crimson to-[#8B0A12] rounded-[28px] p-6 text-white mb-6 relative overflow-hidden">
-                <div className="flex items-center gap-6">
-                    <div className="flex-1">
-                        <h1 className="text-2xl font-extrabold mb-1">مرحباً، {displayName}! 👋</h1>
-                        <p className="text-white/70 text-sm mb-6">تابع تقدمك واستكشف فرصك التعليمية.</p>
+            <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#A31D24] to-[#7A151B] p-8 text-white shadow-xl shadow-shibl-crimson/20 mb-8">
+                {/* Background Pattern */}
+                <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none">
+                    <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <pattern id="grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
+                                <path d="M0 40L40 0H20L0 20M40 40V20L20 40" stroke="white" strokeWidth="2" fill="none" />
+                            </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#grid-pattern)" />
+                    </svg>
+                </div>
 
-                        <div className="flex gap-3 flex-wrap">
-                            <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-3 flex items-center gap-2">
-                                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                                    <GraduationCap size={16} />
+                <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
+                    <div className="flex-1 w-full lg:w-auto">
+                        <div className="mb-8">
+                            <h1 className="text-3xl lg:text-4xl font-black mb-2 tracking-tight">
+                                مرحباً، {displayName}! 👋
+                            </h1>
+                            <p className="text-white/80 text-lg font-medium max-w-lg leading-relaxed">
+                                تابع تقدمك الدراسي واستكشف فرصك التعليمية الجديدة اليوم.
+                            </p>
+                        </div>
+
+                        <div className="flex flex-wrap gap-4">
+                            {/* Stats Cards with Glassmorphism */}
+                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex items-center gap-4 min-w-[160px] transition-transform hover:scale-105 duration-300">
+                                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white shadow-inner">
+                                    <GraduationCap size={24} />
                                 </div>
                                 <div>
                                     {loading ? (
-                                        <div className="h-5 w-6 bg-white/30 rounded animate-pulse"></div>
+                                        <div className="h-7 w-12 bg-white/30 rounded animate-pulse mb-1"></div>
                                     ) : (
-                                        <p className="text-lg font-extrabold">{stats.activeCourses}</p>
+                                        <p className="text-2xl font-black">{stats.activeCourses}</p>
                                     )}
-                                    <p className="text-[10px] text-white/70">دورات نشطة</p>
+                                    <p className="text-xs font-bold text-white/70">دورات نشطة</p>
                                 </div>
                             </div>
 
-                            <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-3 flex items-center gap-2">
-                                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                                    <TrendingUp size={16} />
+                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex items-center gap-4 min-w-[160px] transition-transform hover:scale-105 duration-300">
+                                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white shadow-inner">
+                                    <TrendingUp size={24} />
                                 </div>
                                 <div>
-                                    <p className="text-lg font-extrabold">{stats.overallProgress}%</p>
-                                    <p className="text-[10px] text-white/70">التقدم</p>
+                                    <div className="flex items-baseline gap-1">
+                                        <p className="text-2xl font-black">{stats.overallProgress}</p>
+                                        <span className="text-sm font-bold opacity-60">%</span>
+                                    </div>
+                                    <p className="text-xs font-bold text-white/70">مستوى التقدم</p>
                                 </div>
                             </div>
 
-                            <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-3 flex items-center gap-2">
-                                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                                    <Clock size={16} />
+                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex items-center gap-4 min-w-[160px] transition-transform hover:scale-105 duration-300">
+                                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white shadow-inner">
+                                    <Clock size={24} />
                                 </div>
                                 <div>
-                                    <p className="text-lg font-extrabold">{stats.upcomingSessions}</p>
-                                    <p className="text-[10px] text-white/70">حصص قادمة</p>
+                                    <p className="text-2xl font-black">{stats.upcomingSessions}</p>
+                                    <p className="text-xs font-bold text-white/70">حصص قادمة</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="hidden lg:block relative z-10 w-72">
+                    <div className="hidden lg:block relative w-80 transform hover:scale-105 transition-transform duration-500">
+                        <div className="absolute -inset-4 bg-white/20 blur-2xl rounded-full opacity-0 lg:group-hover:opacity-50 transition-opacity duration-500"></div>
                         <TutorialThumbnail
                             videoUrl="https://youtu.be/jn4WSHLKKQc"
                             onClick={() => setShowVideoModal(true)}
@@ -150,32 +174,50 @@ export function StudentHomePage() {
                     </div>
                 </div>
 
-                {/* Decor */}
-                <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-white/5 rounded-full"></div>
-                <div className="absolute left-20 -bottom-16 w-24 h-24 bg-white/5 rounded-full"></div>
+                {/* Decor Orbs */}
+                <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                <div className="absolute top-10 right-10 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
             </div>
 
-            {/* Tabs */}
-            <div className="flex items-center gap-0 mb-6 bg-slate-100 p-1 rounded-2xl w-fit">
-                <button
-                    onClick={() => setActiveTab('academic')}
-                    className={`px-8 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === 'academic'
-                        ? 'bg-shibl-crimson text-white shadow-lg'
-                        : 'text-slate-500 hover:text-charcoal'
-                        }`}
-                >
-                    الأكاديمي
-                </button>
-                <button
-                    onClick={() => setActiveTab('skills')}
-                    className={`px-8 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === 'skills'
-                        ? 'bg-shibl-crimson text-white shadow-lg'
-                        : 'text-slate-500 hover:text-charcoal'
-                        }`}
-                    title="قريباً - يتطلب تحديث من الخادم"
-                >
-                    المهارات
-                </button>
+            {/* Missed Tasks Widget */}
+            <div className="mb-8">
+                <MissedTasksWidget
+                    days={7}
+                    maxVisible={3}
+                    onLectureClick={(lectureId, courseId) => {
+                        setSelectedCourseId(courseId);
+                    }}
+                    onQuizClick={(quizId, courseId) => {
+                        setSelectedCourseId(courseId);
+                    }}
+                />
+            </div>
+
+            {/* Modern Tabs */}
+            <div className="flex items-center justify-center mb-8">
+                <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100 inline-flex">
+                    <button
+                        onClick={() => setActiveTab('academic')}
+                        className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${activeTab === 'academic'
+                            ? 'bg-shibl-crimson text-white shadow-md shadow-shibl-crimson/20'
+                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                            }`}
+                    >
+                        <GraduationCap size={18} />
+                        المسار الأكاديمي
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('skills')}
+                        className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${activeTab === 'skills'
+                            ? 'bg-shibl-crimson text-white shadow-md shadow-shibl-crimson/20'
+                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                            }`}
+                        title="قريباً"
+                    >
+                        <Rocket size={18} />
+                        تنمية المهارات
+                    </button>
+                </div>
             </div>
 
             {/* Course Details View */}

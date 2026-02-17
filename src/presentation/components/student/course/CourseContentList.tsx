@@ -104,6 +104,7 @@ function UnitAccordion({ unit, index, courseId, isSubscribed }: { unit: Unit; in
                                         key={`quiz-${item.id}`}
                                         quiz={item}
                                         isSubscribed={isSubscribed}
+                                        isUnitQuiz={true}
                                     />
                                 )
                             ))
