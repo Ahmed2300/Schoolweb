@@ -11,8 +11,6 @@ export const initOneSignal = async () => {
                 appId: import.meta.env.VITE_ONESIGNAL_APP_ID,
                 allowLocalhostAsSecureOrigin: true,
             });
-            // console.log('OneSignal Initialized');
-            // console.log('OneSignal Initialized');
         } catch (error) {
             console.error('OneSignal Initialization Error:', error);
         }

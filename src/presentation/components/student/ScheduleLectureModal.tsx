@@ -530,8 +530,9 @@ export function ScheduleLectureModal({
     };
 
     const handleClose = () => {
-        if (step === 'success') {
-            onSuccess?.();
+        if (step === 'success' && onSuccess) {
+            onSuccess();
+            return;
         }
         onClose();
     };

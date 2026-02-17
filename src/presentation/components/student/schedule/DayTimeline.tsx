@@ -7,7 +7,7 @@
 
 import { useMemo } from 'react';
 import { Clock, PlayCircle, CheckCircle, Trash2, Loader2, Calendar, Radio, Lock } from 'lucide-react';
-import { format, parseISO, getHours, getMinutes, isBefore, addMinutes } from 'date-fns';
+import { format, parseISO, getHours, getMinutes, isBefore, addMinutes, differenceInMinutes } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { getLocalizedName } from '@/data/api/studentService';
 
@@ -79,7 +79,6 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
         : '';
     const scheduledTime = format(parseISO(schedule.scheduled_at), 'h:mm a', { locale: ar });
 
-    const isDisabled = isCompleting || isDeleting;
     const isExpired = schedule.is_accessible === false;
 
     // Calculate Missed Status
@@ -88,6 +87,16 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
     const durationMins = schedule.lecture?.duration_minutes || 60;
     const endTime = addMinutes(startTime, durationMins);
     const isMissed = !schedule.is_completed && !isExpired && now > endTime;
+
+    // Calculate session types
+    const lectureStartTime = schedule.lecture?.start_time ? parseISO(schedule.lecture.start_time) : null;
+    const isLiveSession = !!(schedule.lecture?.is_online && lectureStartTime && Math.abs(differenceInMinutes(startTime, lectureStartTime)) < 15);
+    const isReviewSession = !!(schedule.lecture?.is_online && !isLiveSession);
+
+    // Actions Logic: Disable if it's a Live Session and time has NOT start yet (is upcoming)
+    // User wants control "until them missed or attended or there time came" => enable AFTER start
+    const isLiveStarted = isLiveSession && now >= startTime;
+    const disableActions = isCompleting || isDeleting || (isLiveSession && !isLiveStarted);
 
     return (
         <div
@@ -157,10 +166,16 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
                                 مكتمل
                             </span>
                         )}
-                        {!isExpired && schedule.lecture?.is_online && (
+                        {!isExpired && isLiveSession && (
                             <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 animate-pulse">
                                 <Radio size={10} />
                                 مباشر
+                            </span>
+                        )}
+                        {!isExpired && isReviewSession && (
+                            <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+                                <PlayCircle size={10} />
+                                مسجل
                             </span>
                         )}
                     </div>
@@ -181,11 +196,11 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
 
                 {/* Actions - hidden for expired subscriptions */}
                 {!isExpired && (
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className={`flex items-center gap-1 ${disableActions ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
                         {!schedule.is_completed && (
                             <button
                                 onClick={() => onComplete(schedule.id)}
-                                disabled={isDisabled}
+                                disabled={disableActions}
                                 className="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors disabled:opacity-50"
                                 title="تم المشاهدة"
                                 aria-label="تم المشاهدة"
@@ -195,7 +210,7 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
                         )}
                         <button
                             onClick={() => onDelete(schedule.id)}
-                            disabled={isDisabled}
+                            disabled={disableActions}
                             className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
                             title="حذف"
                             aria-label="حذف"

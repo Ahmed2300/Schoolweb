@@ -95,6 +95,17 @@ apiClient.interceptors.response.use(
 
         // Handle 401 - try to refresh token (but NOT for public auth endpoints)
         if (error.response?.status === 401 && !originalRequest._retry && !isPublicAuthEndpoint) {
+            // Defense in depth: If the 401 is from a non-matching guard
+            // (e.g., student token hitting auth:teacher route), don't logout.
+            // The response message from Laravel's guard mismatch is typically "Unauthenticated."
+            // but the token itself may still be valid. Check if we have a token first.
+            const currentToken = localStorage.getItem(TOKEN_KEY);
+            if (!currentToken) {
+                // No token at all — genuine unauthenticated state
+                window.location.href = '/login';
+                return Promise.reject(error);
+            }
+
             originalRequest._retry = true;
 
             try {

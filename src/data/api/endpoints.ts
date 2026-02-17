@@ -28,6 +28,14 @@ export const endpoints = {
             show: (id: number) => `/api/v1/students/parent-requests/${id}`,
             updateStatus: (id: number) => `/api/v1/students/parent-requests/${id}/status`,
         },
+        // Student-scoped lecture listing (guarded by auth:student)
+        lectures: {
+            list: '/api/v1/students/lectures',
+        },
+        // Dashboard
+        dashboard: {
+            missedTasks: '/api/v1/students/dashboard/missed-tasks',
+        },
     },
 
     // Parent Auth

@@ -18,11 +18,14 @@ interface LiveSessionContentProps {
     lecture: Lecture;
     onJoin?: () => void;
     onSessionEnd?: () => void;
+    onComplete?: () => void;
+    isCompleting?: boolean;
+    isCompleted?: boolean;
 }
 
 type SessionState = 'not_scheduled' | 'pending' | 'upcoming' | 'starting_soon' | 'live' | 'ended' | 'error';
 
-export function LiveSessionContent({ lecture, onJoin, onSessionEnd }: LiveSessionContentProps) {
+export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, isCompleting = false, isCompleted = false }: LiveSessionContentProps) {
     const [embedUrl, setEmbedUrl] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [errorState, setErrorState] = useState<{ code: LiveSessionErrorCode | null; message: string | null }>({ code: null, message: null });
@@ -323,7 +326,29 @@ export function LiveSessionContent({ lecture, onJoin, onSessionEnd }: LiveSessio
                                 </p>
                             </>
                         ) : (
-                            <p className="text-slate-400 font-medium">لا يوجد تسجيل متاح لهذه الجلسة</p>
+                            <>
+                                <p className="text-slate-400 font-medium mb-6">لا يوجد تسجيل متاح لهذه الجلسة</p>
+                                {!isCompleted && onComplete && (
+                                    <button
+                                        onClick={onComplete}
+                                        disabled={isCompleting}
+                                        className={`inline-flex items-center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-lg transition-all shadow-lg shadow-emerald-200 disabled:opacity-60 disabled:cursor-wait`}
+                                    >
+                                        {isCompleting ? (
+                                            <Loader2 size={22} className="animate-spin" />
+                                        ) : (
+                                            <CheckCircle2 size={22} />
+                                        )}
+                                        {isCompleting ? 'جاري التحديد...' : 'تحديد كمكتمل والمتابعة'}
+                                    </button>
+                                )}
+                                {isCompleted && (
+                                    <div className="flex items-center gap-2 text-emerald-600 font-bold mt-2">
+                                        <CheckCircle2 size={20} />
+                                        <span>تم إكمال هذا الدرس</span>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 );
