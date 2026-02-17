@@ -46,11 +46,6 @@ export function LecturePlayerPage() {
     }) || [];
 
     // Find current index
-    // Note: currentLecture is only for LECTURE type. If we are on a quiz page, this component might strictly expect lectureId.
-    // If we want this page to also handle QUIZZES, we need to adapt it. 
-    // BUT typically Quizzes have their own page. 
-    // The "Next" button on this page just needs to know where to go.
-
     const currentIndex = allItems.findIndex(item => item.id === Number(lectureId) && item.item_type === 'lecture');
 
     const nextItem = currentIndex !== -1 && currentIndex < allItems.length - 1
@@ -113,6 +108,10 @@ export function LecturePlayerPage() {
 
     const handleComplete = async () => {
         if (!currentLecture || isCompleting) return;
+
+        // Capture completion state BEFORE marking — only redirect on first completion
+        const wasAlreadyCompleted = currentLecture.is_completed;
+
         setIsCompleting(true);
         try {
             // Snapshot: which units were already complete BEFORE this action?
@@ -131,7 +130,16 @@ export function LecturePlayerPage() {
 
             toast.success('تم تحديد الدرس كمكتمل بنجاح!', { icon: '✓' });
 
-            // Milestone detection: compare before vs after
+            // Auto-redirect to attached quiz only on FIRST completion (Manar Branch Logic)
+            if (!wasAlreadyCompleted) {
+                const firstQuiz = currentLecture.quizzes?.[0];
+                if (firstQuiz && !firstQuiz.is_completed) {
+                    toast('يتم توجيهك للاختبار...', { icon: '📝', duration: 2000 });
+                    setTimeout(() => navigate(`/dashboard/quizzes/${firstQuiz.id}`), 1500);
+                }
+            }
+
+            // Milestone detection: compare before vs after (AzamEgoO Branch Logic)
             if (result?.content) {
                 // Check entire course completion first
                 const allUnitsNowComplete = result.content.every(u =>
@@ -174,12 +182,24 @@ export function LecturePlayerPage() {
             }
         } catch (err: any) {
             console.error('Failed to mark complete', err);
-            const errorMessage = err?.response?.data?.message || 'حدث خطأ أثناء تحديد الدرس كمكتمل';
+            const errorMessage = (err as Record<string, unknown> & { response?: { data?: { message?: string } } })?.response?.data?.message || 'حدث خطأ أثناء تحديد الدرس كمكتمل';
             toast.error(errorMessage);
         } finally {
             setIsCompleting(false);
         }
     };
+
+    // Auto-redirect to quiz when a live session ends (first time only)
+    const handleLiveSessionEnd = useCallback(() => {
+        // Skip redirect if lecture was already completed before this session
+        if (currentLecture?.is_completed) return;
+
+        const firstQuiz = currentLecture?.quizzes?.[0];
+        if (firstQuiz && !firstQuiz.is_completed) {
+            toast('انتهت الجلسة! يتم توجيهك للاختبار...', { icon: '📝', duration: 2000 });
+            setTimeout(() => navigate(`/dashboard/quizzes/${firstQuiz.id}`), 1500);
+        }
+    }, [currentLecture, navigate]);
 
     if (isLoading) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin text-[#AF0C15]" size={50} /></div>;
     if (error || !currentLecture) return <div className="p-10 text-center text-slate-500">حدث خطأ أثناء تحميل المحتوى</div>;
@@ -237,10 +257,12 @@ export function LecturePlayerPage() {
                             {currentLecture.is_online ? (
                                 <LiveSessionContent
                                     lecture={currentLecture}
+                                    onSessionEnd={handleLiveSessionEnd}
                                     onComplete={handleComplete}
                                     isCompleting={isCompleting}
                                     isCompleted={currentLecture.is_completed}
                                 />
+
                             ) : currentLecture.video_path ? (
                                 <VideoPlayer
                                     src={currentLecture.video_path}

@@ -17,6 +17,7 @@ import { parseLocalDate, formatSessionTime, getCountdownText } from '../../../..
 interface LiveSessionContentProps {
     lecture: Lecture;
     onJoin?: () => void;
+    onSessionEnd?: () => void;
     onComplete?: () => void;
     isCompleting?: boolean;
     isCompleted?: boolean;
@@ -24,7 +25,7 @@ interface LiveSessionContentProps {
 
 type SessionState = 'not_scheduled' | 'pending' | 'upcoming' | 'starting_soon' | 'live' | 'ended' | 'error';
 
-export function LiveSessionContent({ lecture, onJoin, onComplete, isCompleting = false, isCompleted = false }: LiveSessionContentProps) {
+export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, isCompleting = false, isCompleted = false }: LiveSessionContentProps) {
     const [embedUrl, setEmbedUrl] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [errorState, setErrorState] = useState<{ code: LiveSessionErrorCode | null; message: string | null }>({ code: null, message: null });
@@ -368,6 +369,7 @@ export function LiveSessionContent({ lecture, onJoin, onComplete, isCompleting =
                 onSessionEnded={() => {
                     setIsModalOpen(false);
                     setErrorState({ code: 'SESSION_ENDED' as const, message: 'انتهت الجلسة المباشرة' });
+                    onSessionEnd?.();
                 }}
             />
         </>
