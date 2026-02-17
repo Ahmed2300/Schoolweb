@@ -113,6 +113,31 @@ export interface DashboardStats {
     averageProgress: number;
 }
 
+export interface MissedLectureItem {
+    id: number;
+    title: string;
+    course: string;
+    course_id: number;
+    time: string | null;
+    is_live: boolean;
+    has_recording: boolean;
+}
+
+export interface MissedQuizItem {
+    id: number;
+    name: string;
+    course: string;
+    course_id: number;
+    lecture_id: number | null;
+}
+
+export interface MissedTasksResponse {
+    missed_lectures: MissedLectureItem[];
+    missed_quizzes: MissedQuizItem[];
+    total_missed: number;
+    period_days: number;
+}
+
 export interface PaginatedResponse<T> {
     data: T[];
     meta?: {
@@ -341,7 +366,7 @@ export const studentService = {
         per_page?: number;
         course_id?: number;
     }): Promise<PaginatedResponse<Lecture>> => {
-        const response = await apiClient.get(endpoints.lectures.list, { params });
+        const response = await apiClient.get(endpoints.student.lectures.list, { params });
         return {
             data: response.data.data || [],
             meta: response.data.meta,
@@ -673,6 +698,31 @@ export const studentService = {
     getQuizAttempts: async (): Promise<QuizAttempt[]> => {
         const response = await apiClient.get('/api/v1/student/attempts');
         return response.data.data || [];
+    },
+
+    // ============================================================
+    // Missed Tasks
+    // ============================================================
+
+    /**
+     * Get missed lectures and quizzes for the authenticated student.
+     * @param days Number of days to look back (1-30, default 7)
+     */
+    getMissedTasks: async (days: number = 7): Promise<MissedTasksResponse> => {
+        try {
+            const response = await apiClient.get(endpoints.student.dashboard.missedTasks, {
+                params: { days },
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching missed tasks:', error);
+            return {
+                missed_lectures: [],
+                missed_quizzes: [],
+                total_missed: 0,
+                period_days: days,
+            };
+        }
     },
 };
 
