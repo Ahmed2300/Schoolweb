@@ -218,10 +218,12 @@ export const authService = {
         };
     },
 
-    parentUpdateProfile: async (data: { name?: string; phone?: string; address?: string; avatar?: File | null }): Promise<AuthResponse> => {
+    parentUpdateProfile: async (data: { name?: string; phone?: string; address?: string; country_id?: number; city_id?: number; avatar?: File | null }): Promise<AuthResponse> => {
         const formData = new FormData();
         if (data.name) formData.append('name', data.name);
         if (data.address) formData.append('address', data.address);
+        if (data.country_id) formData.append('country_id', data.country_id.toString());
+        if (data.city_id) formData.append('city_id', data.city_id.toString());
         // Phone is read-only, but if passed we could ignore it or not append it.
         // Backend ignores it anyway.
         if (data.avatar) {

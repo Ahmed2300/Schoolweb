@@ -9,6 +9,8 @@ export interface User {
   image_path?: string | null; // From backend teacher profile
   address?: string | null;
   phoneNumber?: string;
+  country_id?: number;
+  city_id?: number;
   gradeId?: number;
   teacher_id?: number; // When user is a teacher, this is their teacher record ID
   updatedAt: Date;

@@ -9,6 +9,7 @@ import { LogoutModal } from '../../components/ui';
 import { StudentNotificationBell } from '@/components/notifications/StudentNotificationBell';
 import { StudentNotificationToast } from '@/components/notifications/StudentNotificationToast';
 import { Footer } from '../../components/common/Footer';
+import { FloatingSupportButton } from '../../components/common/FloatingSupportButton';
 
 // Lucide Icons
 import {
@@ -263,6 +264,8 @@ export function StudentLayout() {
 
             {/* Student Notification Toast */}
             <StudentNotificationToast />
+
+            <FloatingSupportButton />
         </div>
     );
 }
