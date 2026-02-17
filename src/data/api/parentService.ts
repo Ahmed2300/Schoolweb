@@ -98,6 +98,10 @@ export interface LinkedStudent {
     package_subscriptions?: Array<{
         id: number;
         package_id: number;
+        package_name: string; // Added
+        package_image?: string; // Added
+        original_price: number; // Added
+        price: number; // Added
         status: 'pending' | 'active' | 'rejected' | 'expired' | 'cancelled';
         status_label: string;
         start_date?: string;

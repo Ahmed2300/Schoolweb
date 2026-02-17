@@ -75,6 +75,18 @@ interface Child {
 
     subjects: Subject[];
     quizzes: QuizResult[];
+    package_subscriptions?: Array<{
+        id: number;
+        package_id: number;
+        package_name: string;
+        package_image?: string;
+        original_price: number;
+        price: number;
+        status: 'pending' | 'active' | 'rejected' | 'expired' | 'cancelled';
+        status_label: string;
+        start_date?: string;
+        end_date?: string;
+    }>;
 }
 
 // --- Custom Components (No external libs) ---
@@ -253,10 +265,11 @@ const TrendChart = ({ data }: { data: MonthlyStats[] }) => {
 
 export function ParentChildrenPage() {
     // --- State ---
-    const [childrenData, setChildrenData] = useState<any[]>([]); // Using any[] for now to match strict UI props until backend catches up
+    const [childrenData, setChildrenData] = useState<Child[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedChildId, setSelectedChildId] = useState<number | null>(null);
+    const [activeTab, setActiveTab] = useState<'subjects' | 'packages'>('subjects');
     const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
     const { user } = useAuthStore();
 
@@ -308,7 +321,7 @@ export function ParentChildrenPage() {
                 return {
                     id: student.id,
                     name: student.name,
-                    grade: student.grade || 'غير محدد',
+                    grade: typeof student.grade === 'object' ? student.grade?.name : (student.grade || 'غير محدد'),
                     school: 'مدرسة سُبُل',
                     avatar: student.image_path || student.avatar || null,
                     uid: student.uid,
@@ -327,6 +340,8 @@ export function ParentChildrenPage() {
                         status: q.status,
                         completed_at: q.completed_at
                     })),
+                    // Map package subscriptions
+                    package_subscriptions: student.package_subscriptions || [],
                 };
             });
 
@@ -694,8 +709,32 @@ export function ParentChildrenPage() {
                             </div>
                         )}
 
-                        {/* 2. Subject Cards Grid - Split by Academic/Non-Academic */}
-                        {(() => {
+                        {/* 2. Content Tabs & Grid */}
+                        <div className="flex items-center gap-4 mb-6 border-b border-slate-100 pb-1">
+                            <button
+                                onClick={() => setActiveTab('subjects')}
+                                className={`pb-3 text-sm md:text-base font-bold transition-all relative ${activeTab === 'subjects' ? 'text-shibl-crimson' : 'text-slate-400 hover:text-slate-600'
+                                    }`}
+                            >
+                                المواد الدراسية
+                                {activeTab === 'subjects' && (
+                                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-shibl-crimson rounded-t-full"></span>
+                                )}
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('packages')}
+                                className={`pb-3 text-sm md:text-base font-bold transition-all relative ${activeTab === 'packages' ? 'text-shibl-crimson' : 'text-slate-400 hover:text-slate-600'
+                                    }`}
+                            >
+                                الباقات المشتركة
+                                {activeTab === 'packages' && (
+                                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-shibl-crimson rounded-t-full"></span>
+                                )}
+                            </button>
+                        </div>
+
+                        {/* Content Area */}
+                        {activeTab === 'subjects' ? (() => {
                             const academicCourses = selectedChild.subjects.filter((s: any) => s.isAcademic !== false);
                             const nonAcademicCourses = selectedChild.subjects.filter((s: any) => s.isAcademic === false);
 
@@ -851,7 +890,85 @@ export function ParentChildrenPage() {
                                     )}
                                 </>
                             );
-                        })()}
+                        })() : (
+                            /* Packages Tab Content */
+                            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                {selectedChild.package_subscriptions && selectedChild.package_subscriptions.length > 0 ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {selectedChild.package_subscriptions.map((sub) => (
+                                            <div key={sub.id} className="bg-white rounded-[24px] border border-slate-100 overflow-hidden hover:border-shibl-crimson/20 hover:shadow-xl transition-all duration-300 group flex flex-col">
+                                                {/* Package Image Header */}
+                                                <div className="h-40 bg-gradient-to-br from-slate-50 to-slate-100 relative overflow-hidden">
+                                                    {sub.package_image ? (
+                                                        <img
+                                                            src={sub.package_image}
+                                                            alt={sub.package_name}
+                                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center">
+                                                            <ShoppingBag size={40} className="text-slate-300" />
+                                                        </div>
+                                                    )}
+
+                                                    {/* Status Badge */}
+                                                    <div className={`absolute top-4 left-4 px-3 py-1.5 rounded-xl text-[10px] font-bold shadow-sm backdrop-blur-md border border-white/20 ${sub.status === 'active' ? 'bg-emerald-500/90 text-white' :
+                                                        sub.status === 'pending' ? 'bg-amber-500/90 text-white' :
+                                                            sub.status === 'rejected' ? 'bg-red-500/90 text-white' :
+                                                                'bg-slate-500/90 text-white'
+                                                        }`}>
+                                                        {sub.status_label}
+                                                    </div>
+                                                </div>
+
+                                                {/* Content */}
+                                                <div className="p-6 flex flex-col flex-1">
+                                                    <h4 className="font-extrabold text-lg text-charcoal mb-2 leading-tight group-hover:text-shibl-crimson transition-colors">
+                                                        {sub.package_name}
+                                                    </h4>
+
+                                                    <div className="space-y-3 mt-auto pt-4">
+                                                        <div className="flex items-center justify-between text-xs font-bold text-slate-500 bg-slate-50 p-3 rounded-xl">
+                                                            <span>تاريخ الاشتراك:</span>
+                                                            <span dir="ltr">{sub.start_date || 'غير محدد'}</span>
+                                                        </div>
+
+                                                        {sub.end_date && (
+                                                            <div className="flex items-center justify-between text-xs font-bold text-slate-500 bg-slate-50 p-3 rounded-xl">
+                                                                <span>تاريخ الانتهاء:</span>
+                                                                <span dir="ltr">{sub.end_date}</span>
+                                                            </div>
+                                                        )}
+
+                                                        <div className="pt-2 flex items-center justify-between">
+                                                            <div className="flex items-end gap-1">
+                                                                <span className="text-lg font-black text-shibl-crimson">{sub.price}</span>
+                                                                <span className="text-xs font-bold text-slate-400 mb-1">د.أ</span>
+                                                            </div>
+
+                                                            {/* We could add a 'View Details' button if there was a package detail page for parents */}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="bg-white rounded-[24px] p-12 border border-slate-200 text-center">
+                                        <ShoppingBag size={48} className="text-slate-200 mx-auto mb-4" />
+                                        <h3 className="text-lg font-bold text-charcoal mb-2">لا توجد باقات مشتركة</h3>
+                                        <p className="text-slate-400 text-sm mb-6">لم يشترك الطالب في أي باقات تعليمية بعد</p>
+                                        <button
+                                            onClick={() => navigate(generatePath(ROUTES.PARENT_STORE, { childId: selectedChild.id.toString() }))}
+                                            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-shibl-crimson text-white rounded-xl font-bold hover:bg-rose-700 transition-colors"
+                                        >
+                                            <ShoppingBag size={18} />
+                                            تصفح الباقات
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                     </div>
                 </div>

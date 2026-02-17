@@ -6,6 +6,7 @@ import { useAuthStore } from '../../store';
 import { teacherAuthService } from '../../../data/api/teacherAuthService';
 import { ROUTES } from '../../../shared/constants';
 import { Footer } from '../common/Footer';
+import { FloatingSupportButton } from '../common/FloatingSupportButton';
 
 // Icons
 import { Search } from 'lucide-react';
@@ -168,6 +169,8 @@ export function TeacherLayout({
                 </main>
                 <Footer />
             </div>
+
+            <FloatingSupportButton />
         </div>
     );
 }

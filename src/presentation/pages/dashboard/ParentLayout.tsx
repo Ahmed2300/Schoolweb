@@ -6,6 +6,7 @@ import { authService } from '../../../data/api/authService';
 import { ROUTES } from '../../../shared/constants';
 import { LogoutModal } from '../../components/ui';
 import { Footer } from '../../components/common/Footer';
+import { FloatingSupportButton } from '../../components/common/FloatingSupportButton';
 
 // Lucide Icons
 import {
@@ -238,6 +239,9 @@ export function ParentLayout() {
                 </div>
                 <Footer />
             </main>
+
+            <FloatingSupportButton />
         </div>
     );
 }
+

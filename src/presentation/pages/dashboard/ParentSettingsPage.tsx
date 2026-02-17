@@ -26,6 +26,8 @@ export function ParentSettingsPage() {
         email: string;
         phone: string;
         address: string;
+        country_id: number;
+        city_id: number;
         avatar: string | null;
         avatarFile: File | null;
     }>({
@@ -33,6 +35,8 @@ export function ParentSettingsPage() {
         email: user?.email || '',
         phone: (user as { phone?: string })?.phone || '',
         address: (user as { address?: string })?.address || '',
+        country_id: user?.country_id || 0,
+        city_id: user?.city_id || 0,
         avatar: user?.avatar || null,
         avatarFile: null,
     });
@@ -42,31 +46,44 @@ export function ParentSettingsPage() {
     const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
 
     // Location State
+    const [countries, setCountries] = useState<{ id: number; name: string }[]>([]);
     const [states, setStates] = useState<{ id: number; name: string }[]>([]);
     const [isLoadingLocations, setIsLoadingLocations] = useState(false);
 
     useEffect(() => {
-        const fetchLocations = async () => {
+        const fetchCountries = async () => {
             setIsLoadingLocations(true);
             try {
-                // 1. Fetch Countries to find Oman
-                const countries = await commonService.getCountries();
-                const oman = countries.find(c => c.name.includes('Oman') || c.name.includes('عمان'));
-
-                if (oman) {
-                    // 2. Fetch Cities/States for Oman
-                    const cities = await commonService.getCities(oman.id);
-                    setStates(cities);
-                }
+                const allCountries = await commonService.getCountries();
+                setCountries(allCountries);
             } catch (error) {
-                console.error('Failed to fetch locations', error);
+                console.error('Failed to fetch countries', error);
             } finally {
                 setIsLoadingLocations(false);
             }
         };
 
-        fetchLocations();
+        fetchCountries();
     }, []);
+
+    // Fetch cities when country changes
+    useEffect(() => {
+        const fetchCities = async () => {
+            if (!profile.country_id) {
+                setStates([]);
+                return;
+            }
+
+            try {
+                const cities = await commonService.getCities(profile.country_id);
+                setStates(cities);
+            } catch (error) {
+                console.error('Failed to fetch cities', error);
+            }
+        };
+
+        fetchCities();
+    }, [profile.country_id]);
 
     // Password State
     const [passwordForm, setPasswordForm] = useState({
@@ -98,6 +115,8 @@ export function ParentSettingsPage() {
             const response = await authService.parentUpdateProfile({
                 name: profile.name,
                 address: profile.address,
+                country_id: profile.country_id,
+                city_id: profile.city_id,
                 avatar: profile.avatarFile,
             });
 
@@ -106,20 +125,24 @@ export function ParentSettingsPage() {
                 if (response.data?.parent) {
                     setProfile(prev => ({
                         ...prev,
-                        ...prev,
                         name: response.data!.parent!.name || prev.name,
                         address: (response.data!.parent as any)?.address || prev.address,
                         avatar: response.data!.parent!.avatar || prev.avatar,
                         avatarFile: null, // Reset file input
+                        country_id: response.data!.parent!.country_id || prev.country_id,
+                        city_id: response.data!.parent!.city_id || prev.city_id,
                     }));
                     // Update global store
-                    setUser({
-                        ...user!,
-                        name: response.data!.parent!.name,
-                        avatar: response.data!.parent!.avatar,
-                        // @ts-ignore
-                        address: response.data!.parent!.address
-                    });
+                    if (user) {
+                        setUser({
+                            ...user,
+                            name: response.data!.parent!.name,
+                            avatar: response.data!.parent!.avatar,
+                            address: response.data!.parent!.address,
+                            country_id: response.data!.parent!.country_id,
+                            city_id: response.data!.parent!.city_id
+                        });
+                    }
                 }
                 setProfileSuccess('تم تحديث الملف الشخصي بنجاح');
             }
@@ -280,38 +303,64 @@ export function ParentSettingsPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500">العنوان</label>
+                                    <label className="text-xs font-bold text-slate-500">الدولة والمدينة</label>
                                     <div className="flex gap-2">
+                                        {/* Country Select */}
                                         <div className="relative w-1/3">
                                             <select
-                                                disabled
-                                                className="w-full h-11 pl-4 pr-10 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 outline-none text-sm font-bold appearance-none"
+                                                value={profile.country_id}
+                                                onChange={(e) => {
+                                                    const countryId = parseInt(e.target.value);
+                                                    setProfile({ ...profile, country_id: countryId, city_id: 0 }); // Reset city when country changes
+                                                }}
+                                                className="w-full h-11 pl-4 pr-10 rounded-xl bg-slate-50 border border-slate-200 text-charcoal outline-none text-sm font-bold appearance-none focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 transition-all"
                                             >
-                                                <option>سلطنة عمان</option>
-                                            </select>
-                                            <MapPin size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                        </div>
-                                        <div className="relative w-2/3">
-                                            <select
-                                                value={profile.address}
-                                                onChange={(e) => setProfile({ ...profile, address: e.target.value })}
-                                                className="w-full h-11 pl-4 pr-10 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm font-bold text-charcoal appearance-none"
-                                            >
-                                                <option value="">اختر الولاية/المحافظة</option>
-                                                {isLoadingLocations ? (
-                                                    <option>جاري التحميل...</option>
-                                                ) : (
-                                                    states.map((state) => (
-                                                        <option key={state.id} value={state.name}>
-                                                            {state.name}
-                                                        </option>
-                                                    ))
-                                                )}
+                                                <option value={0}>اختر الدولة</option>
+                                                {countries.map((country) => (
+                                                    <option key={country.id} value={country.id}>
+                                                        {country.name}
+                                                    </option>
+                                                ))}
                                             </select>
                                             <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
                                             </div>
                                         </div>
+
+                                        {/* City Select */}
+                                        <div className="relative w-2/3">
+                                            <select
+                                                value={profile.city_id}
+                                                onChange={(e) => setProfile({ ...profile, city_id: parseInt(e.target.value) })}
+                                                className="w-full h-11 pl-4 pr-10 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm font-bold text-charcoal appearance-none"
+                                                disabled={!profile.country_id}
+                                            >
+                                                <option value={0}>اختر المدينة/المحافظة</option>
+                                                {states.map((state) => (
+                                                    <option key={state.id} value={state.id}>
+                                                        {state.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Detailed Address Input */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-500">العنوان التفصيلي</label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={profile.address}
+                                            onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+                                            className="w-full h-11 pl-4 pr-10 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm font-bold text-charcoal"
+                                            placeholder="اسم الشارع، رقم المنزل، الخ..."
+                                        />
+                                        <MapPin size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                     </div>
                                 </div>
                             </div>
