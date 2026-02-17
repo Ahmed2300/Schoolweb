@@ -38,6 +38,18 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
 
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+    // Refs to track latest state for async/event handlers
+    const quizStateRef = useRef(quizState);
+    const hasStartedRef = useRef(hasStarted);
+    const answersRef = useRef(answers);
+    const answerImagesRef = useRef(answerImages);
+    const hasAutoSubmittedRef = useRef(false);
+
+    useEffect(() => { quizStateRef.current = quizState; }, [quizState]);
+    useEffect(() => { hasStartedRef.current = hasStarted; }, [hasStarted]);
+    useEffect(() => { answersRef.current = answers; }, [answers]);
+    useEffect(() => { answerImagesRef.current = answerImages; }, [answerImages]);
+
     useEffect(() => {
         fetchQuiz();
         return () => {
@@ -68,7 +80,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
             setQuizState({ status: 'loading' });
             const response = await studentQuizService.getQuiz(quizId);
 
-            // Check if quiz is already completed
+            // Check if quiz is already completed (or expired)
             if (response.already_completed && response.attempt) {
                 setQuizState({
                     status: 'completed',
@@ -77,14 +89,37 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                     nextItem: response.next_item || null
                 });
             } else {
-                // New quiz - ready to start
+                // New or resumed quiz - ready to start
                 const quizData = response.data as QuizDetails;
+
+                // Calculate remaining time from server started_at
+                let remaining = quizData.duration_minutes * 60;
+                let isResuming = false;
+                if (response.started_at) {
+                    const startedAt = new Date(response.started_at).getTime();
+                    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+                    remaining = Math.max(0, quizData.duration_minutes * 60 - elapsed);
+                    isResuming = elapsed > 5; // Consider it a resume if >5s have passed
+                }
+
                 setQuizState({
                     status: 'ready',
                     quiz: quizData,
                     attemptId: response.attempt_id || 0
                 });
-                setTimeLeft(quizData.duration_minutes * 60);
+                setTimeLeft(remaining);
+
+                // Auto-start if resuming an existing attempt
+                if (isResuming) {
+                    setHasStarted(true);
+                }
+
+                // If time already expired, auto-submit immediately
+                if (remaining <= 0) {
+                    setHasStarted(true);
+                    // Delay slightly to allow state to settle
+                    setTimeout(() => handleAutoSubmit(), 100);
+                }
             }
         } catch (err) {
             setQuizState({ status: 'error', message: 'فشل في تحميل الاختبار' });
@@ -126,6 +161,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
             const res = await studentQuizService.submitQuiz(quizId, payload);
             if (res.success) {
                 if (timerRef.current) clearInterval(timerRef.current);
+                hasAutoSubmittedRef.current = true; // Prevent unmount auto-submit
                 setQuizState({ status: 'submitted', result: res.data });
             }
         } catch (err: any) {
@@ -158,6 +194,77 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
     const handleAutoSubmit = () => {
         handleSubmit();
     };
+
+    // Build submission payload from current answers (for fire-and-forget submit)
+    const buildPayload = (): QuizSubmission => {
+        const currentAnswers = answersRef.current;
+        const currentImages = answerImagesRef.current;
+        const state = quizStateRef.current;
+        const questions = state.status === 'ready' ? state.quiz.questions : [];
+
+        return {
+            answers: Object.entries(currentAnswers).map(([qId, val]) => {
+                const question = questions?.find(q => q.id === Number(qId));
+                if (question?.question_type === 'mcq') {
+                    return { question_id: Number(qId), selected_option_id: val as number };
+                } else {
+                    return {
+                        question_id: Number(qId),
+                        essay_answer: val as string,
+                        answer_image: currentImages[Number(qId)] || undefined
+                    };
+                }
+            })
+        };
+    };
+
+    // Auto-submit on component unmount (user navigates away within the app)
+    useEffect(() => {
+        return () => {
+            if (
+                quizStateRef.current.status === 'ready' &&
+                hasStartedRef.current &&
+                !hasAutoSubmittedRef.current
+            ) {
+                hasAutoSubmittedRef.current = true;
+                const payload = buildPayload();
+                // Fire-and-forget: submit whatever answers exist
+                studentQuizService.submitQuiz(quizId, payload).catch(() => { });
+            }
+        };
+    }, [quizId]);
+
+    // Auto-submit on browser close / tab close / refresh
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            if (
+                quizStateRef.current.status === 'ready' &&
+                hasStartedRef.current &&
+                !hasAutoSubmittedRef.current
+            ) {
+                hasAutoSubmittedRef.current = true;
+                const payload = buildPayload();
+                // Use fetch with keepalive for reliable fire-and-forget with auth headers
+                const token = localStorage.getItem('auth_token');
+                const hostname = window.location.hostname;
+                const protocol = window.location.protocol;
+                const baseUrl = import.meta.env.VITE_API_URL || `${protocol}//${hostname}:8000`;
+                fetch(`${baseUrl}/api/v1/student/quizzes/${quizId}/submit`, {
+                    method: 'POST',
+                    keepalive: true,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+                    },
+                    body: JSON.stringify({ answers: payload.answers }),
+                }).catch(() => { });
+            }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [quizId]);
+
 
     // ================= LOADING STATE =================
     if (quizState.status === 'loading') {

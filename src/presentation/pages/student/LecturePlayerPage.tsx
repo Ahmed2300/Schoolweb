@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { studentCourseService, Lecture } from '../../../data/api/studentCourseService';
@@ -64,20 +64,45 @@ export function LecturePlayerPage() {
 
     const handleComplete = async () => {
         if (!currentLecture || isCompleting) return;
+
+        // Capture completion state BEFORE marking — only redirect on first completion
+        const wasAlreadyCompleted = currentLecture.is_completed;
+
         setIsCompleting(true);
         try {
             await studentCourseService.markLectureComplete(currentLecture.id, currentLecture.duration_minutes * 60);
             // Force refetch to update is_completed status everywhere
             await queryClient.refetchQueries({ queryKey: ['student-course', courseId] });
             toast.success('تم تحديد الدرس كمكتمل بنجاح!', { icon: '✓' });
-        } catch (err: any) {
+
+            // Auto-redirect to attached quiz only on FIRST completion
+            if (!wasAlreadyCompleted) {
+                const firstQuiz = currentLecture.quizzes?.[0];
+                if (firstQuiz && !firstQuiz.is_completed) {
+                    toast('يتم توجيهك للاختبار...', { icon: '📝', duration: 2000 });
+                    setTimeout(() => navigate(`/dashboard/quizzes/${firstQuiz.id}`), 1500);
+                }
+            }
+        } catch (err: unknown) {
             console.error('Failed to mark complete', err);
-            const errorMessage = err?.response?.data?.message || 'حدث خطأ أثناء تحديد الدرس كمكتمل';
+            const errorMessage = (err as Record<string, unknown> & { response?: { data?: { message?: string } } })?.response?.data?.message || 'حدث خطأ أثناء تحديد الدرس كمكتمل';
             toast.error(errorMessage);
         } finally {
             setIsCompleting(false);
         }
     };
+
+    // Auto-redirect to quiz when a live session ends (first time only)
+    const handleLiveSessionEnd = useCallback(() => {
+        // Skip redirect if lecture was already completed before this session
+        if (currentLecture?.is_completed) return;
+
+        const firstQuiz = currentLecture?.quizzes?.[0];
+        if (firstQuiz && !firstQuiz.is_completed) {
+            toast('انتهت الجلسة! يتم توجيهك للاختبار...', { icon: '📝', duration: 2000 });
+            setTimeout(() => navigate(`/dashboard/quizzes/${firstQuiz.id}`), 1500);
+        }
+    }, [currentLecture, navigate]);
 
     if (isLoading) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin text-[#AF0C15]" size={50} /></div>;
     if (error || !currentLecture) return <div className="p-10 text-center text-slate-500">حدث خطأ أثناء تحميل المحتوى</div>;
@@ -133,7 +158,7 @@ export function LecturePlayerPage() {
                         {/* Video / Live / Content Viewer */}
                         <div className="bg-black rounded-[2rem] overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] ring-1 ring-white/10 relative z-10">
                             {currentLecture.is_online ? (
-                                <LiveSessionContent lecture={currentLecture} />
+                                <LiveSessionContent lecture={currentLecture} onSessionEnd={handleLiveSessionEnd} />
                             ) : currentLecture.video_path ? (
                                 <VideoPlayer
                                     src={currentLecture.video_path}
