@@ -2376,6 +2376,7 @@ export const adminService = {
             semester?: { id: number; name: string };
             lecture?: { id: number; title: string };
         }[];
+        server_time?: string;
     }> => {
         const params = semesterId ? { semester_id: semesterId } : {};
         const response = await apiClient.get(endpoints.admin.teachers.recurringSchedule(teacherId), { params });

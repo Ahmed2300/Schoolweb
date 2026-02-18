@@ -167,7 +167,7 @@ export function TeacherVerifyEmailPage() {
         setError('');
 
         try {
-            await teacherAuthService.forgotPassword(email);
+            await teacherAuthService.resendOtp(email);
             setSuccess('تم إرسال رمز تحقق جديد إلى بريدك الإلكتروني');
             setCountdown(OTP_EXPIRY_TIME);
             setCanResend(false);

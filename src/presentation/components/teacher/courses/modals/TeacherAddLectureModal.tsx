@@ -167,8 +167,9 @@ export function TeacherAddLectureModal({
                 video_path: uploadedVideoPath || undefined,
                 is_published: true,
                 // If it's a recurring slot (from ApprovedSlotSelector), send it as such
-                teacher_recurring_slot_id: selectedSlot?.id || undefined,
+                teacher_recurring_slot_id: selectedSlot?.type === 'recurring' ? selectedSlot.id : undefined,
                 // Only send time_slot_id if it's a legacy one-off slot request (not used here currently)
+                // Note: For 'one_time' slots (exceptions), the ID is from SlotRequest. The backend will match by time.
                 time_slot_id: undefined,
             };
 

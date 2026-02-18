@@ -35,7 +35,7 @@ export const Footer = () => {
                 onClose={() => setShowReportModal(false)}
             />
             <div className="max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-10 md:gap-12 mb-8 sm:mb-12 md:mb-16 border-b border-slate-700 pb-8 sm:pb-12 md:pb-16 items-start text-center sm:text-right">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 md:gap-8 mb-8 sm:mb-12 md:mb-16 border-b border-slate-700 pb-8 sm:pb-12 md:pb-16 items-start text-center sm:text-right">
                     <div className="sm:col-span-2 md:col-span-1">
                         <div className="flex items-center gap-2 sm:gap-3 justify-center sm:justify-start mb-4 sm:mb-6">
                             {settings.logo_path ? (
@@ -51,12 +51,16 @@ export const Footer = () => {
                     </div>
 
                     <div className="flex flex-col gap-3 sm:gap-4">
-                        <h4 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2">روابط سريعة</h4>
+                        <h4 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2">عن سُبُل</h4>
                         <Link to={ROUTES.HOME} className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">الرئيسية</Link>
                         <a href="/#stages" className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">المراحل الدراسية</a>
-                        <a href="/#features" className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">المميزات</a>
+                        <Link to={ROUTES.FEATURES} className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">المميزات</Link>
                         <Link to="/privacy-policy" className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">سياسة الخصوصية</Link>
                         <Link to="/terms-and-conditions" className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">الشروط والأحكام</Link>
+                    </div>
+
+                    <div className="flex flex-col gap-3 sm:gap-4">
+                        <h4 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2">الدعم</h4>
                         <button
                             onClick={() => setShowReportModal(true)}
                             className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base text-right"
@@ -64,6 +68,7 @@ export const Footer = () => {
                             الإبلاغ عن مشكلة
                         </button>
                         <Link to="/contact" className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">تواصل معنا</Link>
+                        <Link to={ROUTES.TECH_SUPPORT} className="text-slate-400 hover:text-shibl-crimson transition-colors text-sm sm:text-base">الدعم الفني</Link>
                     </div>
 
                     <div className="flex flex-col gap-4 sm:gap-6">

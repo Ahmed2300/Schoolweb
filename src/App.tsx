@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import {
   LandingPage,
+  FeaturesPage,
   PrivacyPolicyPage,
   TermsAndConditionsPage,
   SignInPage,
@@ -63,7 +64,8 @@ import {
   NotFoundPage,
   LecturePlayerPage,
   ParentCourseProgressPage,
-  ContactPage
+  ContactPage,
+  TechSupportPage
 } from './presentation/pages';
 import { AdminLayout } from './presentation/components/admin';
 import { TeacherLayout } from './presentation/components/teacher';
@@ -114,7 +116,9 @@ function App() {
           <Routes>
             {/* Public routes */}
             <Route path={ROUTES.HOME} element={<LandingPage />} />
-            <Route path="/contact" element={<ContactPage />} />
+            <Route path={ROUTES.FEATURES} element={<FeaturesPage />} />
+            <Route path={ROUTES.CONTACT} element={<ContactPage />} />
+            <Route path={ROUTES.TECH_SUPPORT} element={<TechSupportPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
             <Route path={ROUTES.LOGIN} element={<SignInPage />} />

@@ -12,8 +12,10 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { getTeacherEcho } from '../../../services/websocket';
 import { X, Calendar, Clock, Loader2, Plus, CalendarDays, BookOpen, GraduationCap, Check, AlertCircle, User } from 'lucide-react';
-import { useSlotRequests, useAvailableSlotsQuery } from '../../../hooks/useSlotRequests';
+import { useSlotRequests, useAvailableSlotsQuery, slotRequestKeys } from '../../../hooks/useSlotRequests';
 import { useAssignedGrades } from '../../../hooks/useRecurringSchedule';
 import { useTeacherCourses } from '../../hooks/useTeacherContent';
 import { getCourseName } from '../../../data/api/teacherService';
@@ -115,6 +117,7 @@ function SlotCard({ slot, isSelected, onSelect, disabled }: SlotCardProps) {
 // ==================== MAIN COMPONENT ====================
 
 export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialogProps) {
+    const queryClient = useQueryClient();
     const { createRequest, isCreating } = useSlotRequests();
     const { data: myCourses = [], isLoading: isLoadingCourses } = useTeacherCourses();
     const { data: gradesData, isLoading: isLoadingGrades } = useAssignedGrades();
@@ -171,6 +174,36 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
             setApiError(null);
         }
     }, [open]);
+
+    // WebSocket for real-time updates
+    useEffect(() => {
+        if (!gradeId) return;
+
+        const echo = getTeacherEcho();
+        if (!echo) {
+            console.warn('⚠️ SlotRequestDialog: Echo not initialized');
+            return;
+        }
+
+        const channelName = `grade.${gradeId}.schedule`;
+        const channel = echo.private(channelName);
+
+        // Debug log
+        console.log(`🔌 SlotRequestDialog: Subscribing to ${channelName}`);
+
+        channel.listen('.slot.status.changed', (e: any) => {
+            console.log('🔔 SlotRequestDialog: Slot status changed', e);
+
+            // Invalidate queries to refetch data
+            queryClient.invalidateQueries({ queryKey: slotRequestKeys.availableSlots(gradeId, selectedDate) });
+            queryClient.invalidateQueries({ queryKey: slotRequestKeys.list({}) });
+        });
+
+        return () => {
+            console.log(`🔌 SlotRequestDialog: Unsubscribing from ${channelName}`);
+            channel.stopListening('.slot.status.changed');
+        };
+    }, [gradeId, selectedDate, queryClient]);
 
     // Clear slot selection when date changes
     useEffect(() => {

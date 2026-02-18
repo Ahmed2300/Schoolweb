@@ -9,7 +9,7 @@
  * - Slots are filtered by grade AND semester
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
     ChevronLeft,
     ChevronRight,
@@ -24,7 +24,9 @@ import {
     Ban,
     AlertCircle
 } from 'lucide-react';
-import { useMyRecurringSchedule, useApprovedOneTimeSlots } from '../../../hooks/useTeacherTimeSlots';
+import { useMyRecurringSchedule, useApprovedOneTimeSlots, teacherTimeSlotKeys } from '../../../hooks/useTeacherTimeSlots';
+import { getTeacherEcho } from '../../../../services/websocket';
+import { useQueryClient } from '@tanstack/react-query';
 import type { SlotRequest } from '../../../../types/slotRequest';
 
 // ==================== Types ====================
@@ -50,6 +52,8 @@ export interface DatedSlot extends TeacherRecurringSlot {
     dateString: string; // "YYYY-MM-DD"
     isBooked: boolean;
     isException?: boolean;
+    isPast?: boolean;
+    type: 'recurring' | 'one_time';
 }
 
 // ==================== Constants ====================
@@ -222,7 +226,10 @@ export function ApprovedSlotSelector({
     const recurringQuery = useMyRecurringSchedule(teacherId);
     const oneTimeQuery = useApprovedOneTimeSlots(teacherId);
 
-    const allSlots = recurringQuery.data || [];
+    const { data: recurringData } = recurringQuery;
+    const allSlots = recurringData?.slots || [];
+    const serverTime = recurringData?.serverTime;
+
     const oneTimeSlots = oneTimeQuery.data || [];
 
     const isLoading = recurringQuery.isLoading || oneTimeQuery.isLoading;
@@ -232,13 +239,77 @@ export function ApprovedSlotSelector({
     const [weekOffset, setWeekOffset] = useState(0);
     const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
+    // Current time state for auto-refreshing past slots
+    const [now, setNow] = useState(new Date());
+    const [serverOffset, setServerOffset] = useState(0);
+
+    // Sync with server time when available
+    useEffect(() => {
+        if (serverTime) {
+            const serverDate = new Date(serverTime);
+            const offset = serverDate.getTime() - Date.now();
+            setServerOffset(offset);
+            console.log('🕒 Time synced with server. Offset:', offset, 'ms');
+        }
+    }, [serverTime]);
+
+    useEffect(() => {
+        const timer = setInterval(() => setNow(new Date()), 60000); // Update every minute
+        return () => clearInterval(timer);
+    }, []);
+
+    const queryClient = useQueryClient();
+
+    // Listen for real-time slot updates
+    useEffect(() => {
+        if (!gradeId) {
+            console.warn('⚠️ ApprovedSlotSelector: Missing gradeId for socket subscription');
+            return;
+        }
+
+        const echo = getTeacherEcho();
+        if (!echo) {
+            console.warn('⚠️ ApprovedSlotSelector: Echo instance not initialized');
+            return;
+        }
+
+        const channelName = `grade.${gradeId}.schedule`;
+        const channel = echo.private(channelName);
+
+        console.log(`🔌 Subscribing to ${channelName} for slot updates...`);
+
+        channel.listen('.slot.status.changed', (e: any) => {
+            console.log('🔔 LIVE UPDATE: Slot status changed event received:', e);
+            console.log('🔄 Invalidating query keys:', teacherTimeSlotKeys.all);
+
+            // Invalidate to refresh UI immediately
+            queryClient.invalidateQueries({ queryKey: teacherTimeSlotKeys.all });
+
+            // Force refetch to be sure
+            queryClient.refetchQueries({ queryKey: teacherTimeSlotKeys.all });
+        });
+
+        // Error handling for subscription
+        (channel as any).error((err: any) => {
+            console.error('❌ Socket Subscription Error:', err);
+        });
+
+        return () => {
+            console.log(`🔌 Unsubscribing from ${channelName}`);
+            channel.stopListening('.slot.status.changed');
+            echo.leave(channelName);
+        };
+    }, [gradeId, queryClient]);
+
+    const effectiveNow = useMemo(() => new Date(now.getTime() + serverOffset), [now, serverOffset]);
+
     // Calculate current week's Saturday
     const currentWeekStart = useMemo(() => {
-        const today = new Date();
+        const today = new Date(effectiveNow);
         const thisWeekStart = getWeekStart(today);
         thisWeekStart.setDate(thisWeekStart.getDate() + (weekOffset * 7));
         return thisWeekStart;
-    }, [weekOffset]);
+    }, [weekOffset, effectiveNow]);
 
     // Get all 7 dates for current week
     const weekDates = useMemo(() => getWeekDates(currentWeekStart), [currentWeekStart]);
@@ -251,18 +322,18 @@ export function ApprovedSlotSelector({
             // Must not be linked to a lecture already (recurring slot level)
             if (slot.lecture_id !== null) return false;
             // Must match grade if specified
-            if (gradeId && slot.grade_id !== gradeId) return false;
+            if (slot.grade_id !== gradeId && gradeId) return false;
             // Must match semester if specified
-            if (semesterId && slot.semester_id !== semesterId) return false;
+            if (slot.semester_id !== semesterId && semesterId) return false;
             return true;
         });
 
         // Add one-time slots that match criteria
         const exceptionSlots = (oneTimeSlots as unknown as SlotRequest[]).filter(slot => {
-            // Must match grade if specified
-            if (gradeId && slot.grade?.id !== gradeId) return false;
-            // Must match semester if specified
-            if (semesterId && slot.semester?.id !== semesterId) return false;
+            // Must match grade if specified (but allow if slot has no grade)
+            if (gradeId && slot.grade?.id && slot.grade.id !== gradeId) return false;
+            // Must match semester if specified (but allow if slot has no semester)
+            if (semesterId && slot.semester?.id && slot.semester.id !== semesterId) return false;
             return true;
         });
 
@@ -309,6 +380,14 @@ export function ApprovedSlotSelector({
             const dateString = toDateString(date);
             const isBooked = bookedDates.includes(dateString);
 
+            // Helper to check if a slot is in the past
+            const checkIsPast = (endTime: string) => {
+                const [hours, minutes] = endTime.split(':').map(Number);
+                const slotEndDate = new Date(date);
+                slotEndDate.setHours(hours, minutes, 0, 0);
+                return slotEndDate < effectiveNow;
+            };
+
             // 1. Add matching recurring slots
             const recurringForDay = filteredSlots.recurringSlots.filter(
                 s => s.day_of_week.toLowerCase() === dayName
@@ -320,6 +399,8 @@ export function ApprovedSlotSelector({
                     date,
                     dateString,
                     isBooked,
+                    isPast: checkIsPast(slot.end_time),
+                    type: 'recurring',
                 });
             });
 
@@ -346,15 +427,16 @@ export function ApprovedSlotSelector({
                     dateString,
                     isBooked,
                     isException: true,
+                    isPast: checkIsPast(slot.end_time),
                     grade: slot.grade, // Pass grade info
                     semester: slot.semester, // Pass semester info
+                    type: 'one_time',
                 } as any);
             });
         });
 
-
         return result;
-    }, [weekDates, filteredSlots, bookedDates]);
+    }, [weekDates, filteredSlots, bookedDates, effectiveNow]);
 
     // Slots for the selected day
     const slotsForSelectedDay = useMemo(() => {
@@ -584,10 +666,10 @@ export function ApprovedSlotSelector({
                                     key={`${slot.id}-${slot.dateString}`}
                                     type="button"
                                     onClick={() => handleSlotSelect(slot)}
-                                    disabled={slot.isBooked}
+                                    disabled={slot.isBooked || slot.isPast}
                                     className={`
                                         relative flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-right w-full
-                                        ${slot.isBooked
+                                        ${slot.isBooked || slot.isPast
                                             ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed'
                                             : isThisSelected
                                                 ? `${colors.bg} ${colors.border} ring-2 ring-offset-1 ring-purple-300`
@@ -599,7 +681,7 @@ export function ApprovedSlotSelector({
                                     <div
                                         className={`
                                             w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
-                                            ${slot.isBooked
+                                            ${slot.isBooked || slot.isPast
                                                 ? 'border-slate-300 bg-slate-100'
                                                 : isThisSelected
                                                     ? 'bg-purple-600 border-purple-600 text-white'
@@ -609,6 +691,8 @@ export function ApprovedSlotSelector({
                                     >
                                         {slot.isBooked ? (
                                             <Ban size={10} />
+                                        ) : slot.isPast ? (
+                                            <Clock size={10} />
                                         ) : isThisSelected ? (
                                             <CheckCircle2 size={12} />
                                         ) : null}
@@ -618,6 +702,7 @@ export function ApprovedSlotSelector({
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 text-slate-800 font-bold dir-ltr justify-end">
                                             <span className="text-sm">{formatTimeOnly(slot.start_time)}</span>
+                                            <span className="text-slate-400">—</span>
                                             <span className="text-slate-400">—</span>
                                             <span className="text-sm">{formatTimeOnly(slot.end_time)}</span>
                                             <Clock size={14} className="text-slate-400" />
@@ -679,4 +764,3 @@ export function ApprovedSlotSelector({
 }
 
 export default ApprovedSlotSelector;
-
