@@ -571,7 +571,7 @@ export function ScheduleLectureModal({
 
                     <button
                         onClick={handleClose}
-                        className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors backdrop-blur-sm"
+                        className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors backdrop-blur-sm z-10"
                         aria-label="إغلاق"
                     >
                         <X size={20} className="text-white" />

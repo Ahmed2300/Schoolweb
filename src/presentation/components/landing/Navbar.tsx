@@ -4,12 +4,33 @@ import { useLanguage } from '../../hooks';
 import { ROUTES } from '../../../shared/constants';
 import { Menu, X, LogIn, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
 
 export function Navbar() {
     const navigate = useNavigate();
     const location = useLocation();
     const { isRTL } = useLanguage();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [logoPath, setLogoPath] = useState<string>('');
+    const [platformName, setPlatformName] = useState<string>('سُبُل');
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const { commonService } = await import('../../../data/api/commonService');
+                const data = await commonService.getSettings();
+                if (data && Array.isArray(data)) {
+                    const settingsMap: any = {};
+                    data.forEach((s: any) => { settingsMap[s.key] = s.value; });
+                    if (settingsMap.logo_path) setLogoPath(settingsMap.logo_path);
+                    if (settingsMap.platform_name) setPlatformName(settingsMap.platform_name);
+                }
+            } catch (error) {
+                console.error("Failed to fetch settings navbar", error);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
     const closeMobileMenu = () => setIsMobileMenuOpen(false);
@@ -19,8 +40,8 @@ export function Navbar() {
     const navLinks = [
         { name: 'الرئيسية', href: ROUTES.HOME },
         { name: 'المراحل الدراسية', href: isHome ? '#stages' : '/#stages' },
-        { name: 'المميزات', href: isHome ? '#features' : '/#features' },
-        { name: 'تواصل معنا', href: '/contact', active: location.pathname === '/contact' },
+        { name: 'المميزات', href: ROUTES.FEATURES, active: location.pathname === ROUTES.FEATURES },
+        { name: 'تواصل معنا', href: ROUTES.CONTACT, active: location.pathname === ROUTES.CONTACT },
     ];
 
     return (
@@ -32,8 +53,12 @@ export function Navbar() {
                     onDoubleClick={() => navigate(ROUTES.ADMIN_LOGIN)}
                     onClick={() => navigate(ROUTES.HOME)}
                 >
-                    <img src="/images/subol-logo.png" alt="سُبُل" className="w-[85px] h-[85px] sm:w-[50px] sm:h-[50px]" />
-                    <span className="text-xl sm:text-2xl font-extrabold text-charcoal hidden sm:block">سُبُل</span>
+                    {logoPath ? (
+                        <img src={logoPath} alt={platformName} className="w-[85px] h-[85px] sm:w-[50px] sm:h-[50px] object-contain" />
+                    ) : (
+                        <img src="/images/subol-red.png" alt="سُبُل" className="w-[85px] h-[85px] sm:w-[50px] sm:h-[50px] object-contain" />
+                    )}
+                    <span className="text-xl sm:text-2xl font-extrabold text-charcoal hidden sm:block">{platformName}</span>
                 </div>
 
                 {/* Desktop Menu */}

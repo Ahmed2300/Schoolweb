@@ -73,7 +73,10 @@ export function useMyRecurringSchedule(teacherId?: number) {
     return useQuery({
         queryKey: teacherId ? teacherTimeSlotKeys.teacherRecurringSchedule(teacherId) : teacherTimeSlotKeys.myRecurringSchedule(),
         queryFn: () => teacherId ? adminService.getTeacherRecurringSchedule(teacherId) : teacherService.getMyRecurringSchedule(),
-        select: (response) => response.data,
+        select: (response) => ({
+            slots: response.data,
+            serverTime: response.server_time
+        }),
     });
 }
 
