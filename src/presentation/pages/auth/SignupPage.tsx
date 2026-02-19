@@ -9,6 +9,9 @@ import { endpoints } from '../../../data/api/endpoints';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VideoModal } from '../../components/common/VideoModal';
 import { TutorialThumbnail } from '../../components/common/TutorialThumbnail';
+import { PasswordStrengthMeter } from '../../components/auth/PasswordStrengthMeter';
+import { signupSchema, step1Schema, step2Schema, step3Schema } from './schemas/signupSchema';
+import { CountryCodeSelect } from '../../components/ui/CountryCodeSelect';
 // Lucide Icons
 import {
     User,
@@ -98,6 +101,54 @@ export function SignupPage() {
     const [loadingCities, setLoadingCities] = useState(false);
     const [isHowDidYouKnowUsOpen, setIsHowDidYouKnowUsOpen] = useState(false);
 
+    const [currentStep, setCurrentStep] = useState(1);
+    const TOTAL_STEPS = 3;
+
+    // Helper to get step schema
+    const getStepSchema = (step: number) => {
+        switch (step) {
+            case 1: return step1Schema;
+            case 2: return step2Schema;
+            case 3: return step3Schema;
+            default: return step1Schema;
+        }
+    };
+
+    const validateStep = (step: number) => {
+        const schema = getStepSchema(step);
+        const result = schema.safeParse(formData);
+        if (!result.success) {
+            const errors: Record<string, string> = {};
+            result.error.issues.forEach((issue) => {
+                const path = issue.path[0] as string;
+                if (!errors[path]) {
+                    errors[path] = issue.message;
+                }
+            });
+            setFieldErrors(errors);
+
+            // Focus first error
+            const firstErrorField = result.error.issues[0].path[0] as string;
+            const element = document.getElementById(firstErrorField);
+            element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+        }
+        setFieldErrors({});
+        return true;
+    };
+
+    const handleNext = () => {
+        if (validateStep(currentStep)) {
+            setCurrentStep(prev => Math.min(prev + 1, TOTAL_STEPS));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    const handleBack = () => {
+        setCurrentStep(prev => Math.max(prev - 1, 1));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -115,31 +166,7 @@ export function SignupPage() {
         howDidYouKnowUsOther: '',
     });
 
-    // Country Codes
-    const COUNTRY_CODES = [
-        { code: '+968', country: 'OM', flag: '🇴🇲' },
-        { code: '+966', country: 'SA', flag: '🇸🇦' },
-        { code: '+971', country: 'AE', flag: '🇦🇪' },
-        { code: '+965', country: 'KW', flag: '🇰🇼' },
-        { code: '+973', country: 'BH', flag: '🇧🇭' },
-        { code: '+974', country: 'QA', flag: '🇶🇦' },
-        { code: '+962', country: 'JO', flag: '🇯🇴' },
-        { code: '+970', country: 'PS', flag: '🇵🇸' },
-        { code: '+961', country: 'LB', flag: '🇱🇧' },
-        { code: '+963', country: 'SY', flag: '🇸🇾' },
-        { code: '+964', country: 'IQ', flag: '🇮🇶' },
-        { code: '+967', country: 'YE', flag: '🇾🇪' },
-        { code: '+20', country: 'EG', flag: '🇪🇬' },
-        { code: '+249', country: 'SD', flag: '🇸🇩' },
-        { code: '+218', country: 'LY', flag: '🇱🇾' },
-        { code: '+216', country: 'TN', flag: '🇹🇳' },
-        { code: '+213', country: 'DZ', flag: '🇩🇿' },
-        { code: '+212', country: 'MA', flag: '🇲🇦' },
-        { code: '+222', country: 'MR', flag: '🇲🇷' },
-        { code: '+252', country: 'SO', flag: '🇸🇴' },
-        { code: '+253', country: 'DJ', flag: '🇩🇯' },
-        { code: '+269', country: 'KM', flag: '🇰🇲' },
-    ];
+
 
     // Fallback Data
     const FALLBACK_COUNTRIES: Country[] = [
@@ -210,30 +237,22 @@ export function SignupPage() {
         e.preventDefault();
         if (!agreeTerms || isLoading) return;
 
-        // Validation
-        const errors: Record<string, string> = {};
-        if (!formData.name.trim()) errors.name = 'الاسم مطلوب';
-        if (!formData.email) errors.email = 'البريد الإلكتروني مطلوب';
-        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'البريد الإلكتروني غير صحيح';
-        if (!formData.phone) errors.phone = 'رقم الهاتف مطلوب';
-        if (!formData.countryId) errors.country = 'الدولة مطلوبة';
-        if (!formData.cityId) errors.city = 'المدينة مطلوبة';
+        // Zod Validation
+        const result = signupSchema.safeParse(formData);
 
-        // Parent Validation
-        if (!formData.parentName) errors.parentName = 'اسم ولي الأمر مطلوب';
-        if (!formData.parentEmail) errors.parentEmail = 'بريد ولي الأمر مطلوب';
-        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.parentEmail)) errors.parentEmail = 'بريد ولي الأمر غير صحيح';
-        if (!formData.parentPhone) errors.parentPhone = 'هاتف ولي الأمر مطلوب';
-
-        // Password Validation
-        if (!formData.password) errors.password = 'كلمة المرور مطلوبة';
-        else if (formData.password.length < 8) errors.password = 'يجب أن تكون 8 أحرف على الأقل';
-        if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'كلمتا المرور غير متطابقتين';
-
-        if (Object.keys(errors).length > 0) {
+        if (!result.success) {
+            const errors: Record<string, string> = {};
+            result.error.issues.forEach((issue) => {
+                const path = issue.path[0] as string;
+                if (!errors[path]) {
+                    errors[path] = issue.message;
+                }
+            });
             setFieldErrors(errors);
-            const firstError = document.getElementById(Object.keys(errors)[0]);
-            firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            const firstErrorField = result.error.issues[0].path[0] as string;
+            const element = document.getElementById(firstErrorField);
+            element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
 
@@ -282,8 +301,25 @@ export function SignupPage() {
 
     const handleChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+        // Validate on blur/change if error exists (optional, keeping minimal for now to match request of "on blur")
+        // But for better UX, if there is an error, clear it when user types (which we do below).
         if (fieldErrors[field]) setFieldErrors(prev => ({ ...prev, [field]: '' }));
     };
+
+    const handleBlur = (field: string) => {
+        // Validate single field on blur
+        // This is a bit tricky with partial schemas, but we can check if the field exists in current step schema
+        const schema = getStepSchema(currentStep);
+        // We can use z.pick or similar if we want strict single field, but simple check is:
+        const result = schema.safeParse(formData);
+        if (!result.success) {
+            const issue = result.error.issues.find(i => i.path[0] === field);
+            if (issue) {
+                setFieldErrors(prev => ({ ...prev, [field]: issue.message }));
+            }
+        }
+    };
+
 
     return (
         <div className="min-h-screen bg-soft-cloud" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -345,13 +381,36 @@ export function SignupPage() {
                 >
                     <div className="w-full max-w-2xl">
 
-                        {/* Header */}
-                        <div className="text-center mb-10">
-                            <div className="flex items-center justify-center gap-3 mb-4">
-                                <img src="/images/student-placeholder.png" alt="Student" className="w-24 h-24 object-contain rounded-full bg-slate-50 shadow-[0_0_30px_rgba(225,29,72,0.3)] ring-4 ring-rose-50" />
+                        {/* Header & Stepper */}
+                        <div className="text-center mb-8">
+                            {/* Stepper */}
+                            <div className="flex items-center justify-center gap-2 mb-8" dir="ltr">
+                                {[1, 2, 3].map((step) => (
+                                    <div key={step} className="flex items-center">
+                                        <div
+                                            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300
+                                            ${step === currentStep ? 'bg-shibl-crimson text-white shadow-lg shadow-shibl-crimson/30 scale-110' :
+                                                    step < currentStep ? 'bg-green-500 text-white' : 'bg-slate-100 text-slate-400'}`}
+                                        >
+                                            {step < currentStep ? <CheckCircle size={16} /> : step}
+                                        </div>
+                                        {step < 3 && (
+                                            <div className={`w-12 h-1 mx-2 rounded-full transition-all duration-300 ${step < currentStep ? 'bg-green-500' : 'bg-slate-100'}`} />
+                                        )}
+                                    </div>
+                                ))}
                             </div>
-                            <h1 className="text-3xl font-extrabold text-slate-900 mb-2">حساب طالب جديد</h1>
-                            <p className="text-slate-500 font-medium">قم بتعبئة البيانات أدناه لإنشاء حسابك التعليمي</p>
+
+                            <h1 className="text-3xl font-extrabold text-slate-900 mb-2">
+                                {currentStep === 1 && 'حساب طالب جديد'}
+                                {currentStep === 2 && 'بيانات ولي الأمر'}
+                                {currentStep === 3 && 'تأمين الحساب'}
+                            </h1>
+                            <p className="text-slate-500 font-medium">
+                                {currentStep === 1 && 'ابدأ رحلتك التعليمية بخطوة بسيطة'}
+                                {currentStep === 2 && 'لمتابعة تقدمك التعليمي وتسهيل التواصل'}
+                                {currentStep === 3 && 'قم بتعيين كلمة مرور قوية لحماية حسابك'}
+                            </p>
                         </div>
 
                         {error && (
@@ -365,320 +424,364 @@ export function SignupPage() {
                             </motion.div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-                            {/* Personal Info Section */}
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">البيانات الشخصية</h3>
-                                    <div className="h-px bg-slate-100 flex-1"></div>
-                                </div>
-
-                                <InputGroup
-                                    id="name"
-                                    label="الاسم الكامل"
-                                    icon={User}
-                                    value={formData.name}
-                                    onChange={(v) => handleChange('name', v)}
-                                    error={fieldErrors.name}
-                                    placeholder="الاسم الثلاثي"
-                                    autoComplete="name"
-                                />
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <form onSubmit={(e) => e.preventDefault()} className="space-y-6" noValidate>
+                            {/* Step 1: Personal Info */}
+                            {currentStep === 1 && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="space-y-4"
+                                >
                                     <InputGroup
-                                        id="email"
-                                        label="البريد الإلكتروني"
-                                        icon={Mail}
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={(v) => handleChange('email', v)}
-                                        error={fieldErrors.email}
-                                        placeholder="name@example.com"
-                                        dir="ltr"
-                                        autoComplete="email"
+                                        id="name"
+                                        label="الاسم الكامل"
+                                        icon={User}
+                                        value={formData.name}
+                                        onChange={(v) => handleChange('name', v)}
+                                        onBlur={() => handleBlur('name')}
+                                        error={fieldErrors.name}
+                                        placeholder="الاسم الثلاثي"
+                                        autoComplete="name"
                                     />
 
-                                    <div className="space-y-1.5" id="phone">
-                                        <Label text="رقم الهاتف" error={!!fieldErrors.phone} />
-                                        <div className="relative">
-                                            <input
-                                                type="tel"
-                                                className={`${INPUT_BASE_CLASSES} ${fieldErrors.phone ? INPUT_ERROR_CLASSES : ''} pr-12 pl-20`}
-                                                placeholder="9xxxxxxxx"
-                                                value={formData.phone}
-                                                onChange={(e) => handleChange('phone', e.target.value)}
-                                                dir="ltr"
-                                                autoComplete="tel"
-                                            />
-                                            <Phone size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.phone ? 'text-red-500' : 'text-slate-400'}`} />
-                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-md text-slate-600 font-bold text-xs">
-                                                <select
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <InputGroup
+                                            id="email"
+                                            label="البريد الإلكتروني"
+                                            icon={Mail}
+                                            type="email"
+                                            value={formData.email}
+                                            onChange={(v) => handleChange('email', v)}
+                                            onBlur={() => handleBlur('email')}
+                                            error={fieldErrors.email}
+                                            placeholder="name@example.com"
+                                            dir="ltr"
+                                            autoComplete="email"
+                                        />
+
+                                        <div className="space-y-1.5" id="phone">
+                                            <Label text="رقم الهاتف" error={!!fieldErrors.phone} />
+                                            <div className="flex gap-2" dir="ltr">
+                                                <CountryCodeSelect
                                                     value={formData.countryCode}
-                                                    onChange={(e) => handleChange('countryCode', e.target.value)}
-                                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                                                    dir="ltr"
-                                                >
-                                                    {COUNTRY_CODES.map(code => (
-                                                        <option key={code.code} value={code.code}>{code.flag} {code.code}</option>
-                                                    ))}
-                                                </select>
-                                                <span dir="ltr">{formData.countryCode}</span>
-                                                <span className="text-lg leading-none">{COUNTRY_CODES.find(c => c.code === formData.countryCode)?.flag}</span>
+                                                    onChange={(v) => handleChange('countryCode', v)}
+                                                    className="shrink-0"
+                                                />
+                                                <div className="relative w-full">
+                                                    <input
+                                                        type="tel"
+                                                        className={`${INPUT_BASE_CLASSES} ${fieldErrors.phone ? INPUT_ERROR_CLASSES : ''} pr-12 pl-4`}
+                                                        placeholder="9xxxxxxxx"
+                                                        value={formData.phone}
+                                                        onChange={(e) => handleChange('phone', e.target.value)}
+                                                        onBlur={() => handleBlur('phone')}
+                                                        dir="ltr"
+                                                        autoComplete="tel"
+                                                    />
+                                                    <Phone size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.phone ? 'text-red-500' : 'text-slate-400'}`} />
+                                                </div>
                                             </div>
+                                            {fieldErrors.phone && <ErrorMessage msg={fieldErrors.phone} />}
                                         </div>
-                                        {fieldErrors.phone && <ErrorMessage msg={fieldErrors.phone} />}
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* Country */}
-                                    <div className="space-y-1.5" id="country">
-                                        <Label text="الدولة" error={!!fieldErrors.country} />
-                                        <div className="relative">
-                                            <select
-                                                className={`${INPUT_BASE_CLASSES} px-4 appearance-none ${fieldErrors.country ? INPUT_ERROR_CLASSES : ''}`}
-                                                value={formData.countryId}
-                                                onChange={(e) => {
-                                                    const cid = Number(e.target.value);
-                                                    setFormData(p => ({ ...p, countryId: cid, cityId: 0 }));
-                                                    setFieldErrors(p => ({ ...p, country: '', city: '' }));
-                                                }}
-                                                disabled={loadingCountries}
-                                            >
-                                                <option value="0">اختر الدولة</option>
-                                                {countries.map(c => (
-                                                    <option key={c.id} value={c.id}>{getLocalizedName(c.name, 'ar')}</option>
-                                                ))}
-                                            </select>
-                                            <ChevronDown size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                                        </div>
-                                        {fieldErrors.country && <ErrorMessage msg={fieldErrors.country} />}
                                     </div>
 
-                                    {/* City */}
-                                    <div className="space-y-1.5" id="city">
-                                        <Label text="المدينة / الولاية" error={!!fieldErrors.city} />
-                                        <div className="relative">
-                                            <select
-                                                className={`${INPUT_BASE_CLASSES} px-4 appearance-none ${fieldErrors.city ? INPUT_ERROR_CLASSES : ''}`}
-                                                value={formData.cityId}
-                                                onChange={(e) => {
-                                                    setFormData(p => ({ ...p, cityId: Number(e.target.value) }));
-                                                    setFieldErrors(p => ({ ...p, city: '' }));
-                                                }}
-                                                disabled={loadingCities || !formData.countryId}
-                                            >
-                                                <option value="0">{loadingCities ? 'جاري التحميل...' : 'اختر المدينة'}</option>
-                                                {cities.map(c => (
-                                                    <option key={c.id} value={c.id}>{getLocalizedName(c.name, 'ar')}</option>
-                                                ))}
-                                            </select>
-                                            <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                                        </div>
-                                        {fieldErrors.city && <ErrorMessage msg={fieldErrors.city} />}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Parent Info Section */}
-                            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                                        <Users size={16} />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-sm font-bold text-slate-900">بيانات ولي الأمر</h3>
-                                        <p className="text-[11px] text-slate-500">سيتم إنشاء حساب لولي الأمر تلقائياً للمتابعة</p>
-                                    </div>
-                                </div>
-
-                                <InputGroup
-                                    id="parentName"
-                                    label="اسم ولي الأمر"
-                                    icon={User}
-                                    value={formData.parentName}
-                                    onChange={(v) => handleChange('parentName', v)}
-                                    error={fieldErrors.parentName}
-                                    bg="bg-white"
-                                    autoComplete="name"
-                                />
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <InputGroup
-                                        id="parentEmail"
-                                        label="بريد ولي الأمر"
-                                        icon={Mail}
-                                        type="email"
-                                        value={formData.parentEmail}
-                                        onChange={(v) => handleChange('parentEmail', v)}
-                                        error={fieldErrors.parentEmail}
-                                        placeholder="parent@example.com"
-                                        dir="ltr"
-                                        bg="bg-white"
-                                        autoComplete="email"
-                                    />
-
-                                    <div className="space-y-1.5" id="parentPhone">
-                                        <Label text="هاتف ولي الأمر" error={!!fieldErrors.parentPhone} />
-                                        <div className="relative">
-                                            <input
-                                                type="tel"
-                                                className={`${INPUT_BASE_CLASSES} bg-white ${fieldErrors.parentPhone ? INPUT_ERROR_CLASSES : ''} pr-12 pl-20`}
-                                                placeholder="9xxxxxxxx"
-                                                value={formData.parentPhone}
-                                                onChange={(e) => handleChange('parentPhone', e.target.value)}
-                                                dir="ltr"
-                                                autoComplete="tel"
-                                            />
-                                            <Phone size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.parentPhone ? 'text-red-500' : 'text-slate-400'}`} />
-                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-md text-slate-600 font-bold text-xs">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-1.5" id="country">
+                                            <Label text="الدولة" error={!!fieldErrors.country} />
+                                            <div className="relative">
                                                 <select
-                                                    value={formData.parentCountryCode}
-                                                    onChange={(e) => handleChange('parentCountryCode', e.target.value)}
-                                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                                                    dir="ltr"
+                                                    className={`${INPUT_BASE_CLASSES} px-4 appearance-none ${fieldErrors.country ? INPUT_ERROR_CLASSES : ''}`}
+                                                    value={formData.countryId}
+                                                    onChange={(e) => {
+                                                        const cid = Number(e.target.value);
+                                                        setFormData(p => ({ ...p, countryId: cid, cityId: 0 }));
+                                                        setFieldErrors(p => ({ ...p, country: '', city: '' }));
+                                                    }}
+                                                    disabled={loadingCountries}
                                                 >
-                                                    {COUNTRY_CODES.map(code => (
-                                                        <option key={code.code} value={code.code}>{code.flag} {code.code}</option>
+                                                    <option value="0">اختر الدولة</option>
+                                                    {countries.map(c => (
+                                                        <option key={c.id} value={c.id}>{getLocalizedName(c.name, 'ar')}</option>
                                                     ))}
                                                 </select>
-                                                <span dir="ltr">{formData.parentCountryCode}</span>
-                                                <span className="text-lg leading-none">{COUNTRY_CODES.find(c => c.code === formData.parentCountryCode)?.flag}</span>
+                                                <ChevronDown size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                                             </div>
+                                            {fieldErrors.country && <ErrorMessage msg={fieldErrors.country} />}
                                         </div>
-                                        {fieldErrors.parentPhone && <ErrorMessage msg={fieldErrors.parentPhone} />}
+
+                                        <div className="space-y-1.5" id="city">
+                                            <Label text="المدينة / الولاية" error={!!fieldErrors.city} />
+                                            <div className="relative">
+                                                <select
+                                                    className={`${INPUT_BASE_CLASSES} px-4 appearance-none ${fieldErrors.city ? INPUT_ERROR_CLASSES : ''}`}
+                                                    value={formData.cityId}
+                                                    onChange={(e) => {
+                                                        setFormData(p => ({ ...p, cityId: Number(e.target.value) }));
+                                                        setFieldErrors(p => ({ ...p, city: '' }));
+                                                    }}
+                                                    disabled={loadingCities || !formData.countryId}
+                                                >
+                                                    <option value="0">{loadingCities ? 'جاري التحميل...' : 'اختر المدينة'}</option>
+                                                    {cities.map(c => (
+                                                        <option key={c.id} value={c.id}>{getLocalizedName(c.name, 'ar')}</option>
+                                                    ))}
+                                                </select>
+                                                <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                            </div>
+                                            {fieldErrors.city && <ErrorMessage msg={fieldErrors.city} />}
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
+                                </motion.div>
+                            )}
 
-                            {/* Security Section */}
-                            <div className="space-y-4 pt-2">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <PasswordInput
-                                        id="password"
-                                        label="كلمة المرور"
-                                        value={formData.password}
-                                        onChange={(v) => handleChange('password', v)}
-                                        show={showPassword}
-                                        onToggle={() => setShowPassword(!showPassword)}
-                                        error={fieldErrors.password}
-                                        autoComplete="new-password"
+                            {/* Step 2: Parent Info */}
+                            {currentStep === 2 && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="bg-white border border-slate-100 rounded-3xl shadow-xl shadow-slate-200/50 p-6 md:p-8 space-y-6 relative"
+                                >
+                                    <div className="absolute top-0 right-0 w-2 h-full bg-blue-500 rounded-r-3xl" />
+
+                                    <div className="flex items-center gap-4 mb-2">
+                                        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                            <Users size={24} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-slate-900">بيانات ولي الأمر</h3>
+                                            <p className="text-sm text-slate-500">سيتم إنشاء حساب لولي الأمر تلقائياً للمتابعة</p>
+                                        </div>
+                                    </div>
+
+                                    <InputGroup
+                                        id="parentName"
+                                        label="اسم ولي الأمر"
+                                        icon={User}
+                                        value={formData.parentName}
+                                        onChange={(v) => handleChange('parentName', v)}
+                                        onBlur={() => handleBlur('parentName')}
+                                        error={fieldErrors.parentName}
+                                        bg="bg-white"
+                                        autoComplete="name"
                                     />
-                                    <PasswordInput
-                                        id="confirmPassword"
-                                        label="تأكيد كلمة المرور"
-                                        value={formData.confirmPassword}
-                                        onChange={(v) => handleChange('confirmPassword', v)}
-                                        show={showConfirmPassword}
-                                        onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        error={fieldErrors.confirmPassword}
-                                        autoComplete="new-password"
-                                    />
-                                </div>
-                            </div>
 
-                            {/* How Did You Know Us */}
-                            <div className="space-y-1.5 relative">
-                                <Label text="كيف عرفت عنا؟ (اختياري)" />
-                                <div className="relative">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsHowDidYouKnowUsOpen(!isHowDidYouKnowUsOpen)}
-                                        className={`${INPUT_BASE_CLASSES} px-4 flex items-center justify-between`}
-                                    >
-                                        <span className="flex items-center gap-2 text-sm">
-                                            {formData.howDidYouKnowUs ?
-                                                (() => {
-                                                    const opt = HOW_DID_YOU_KNOW_US_OPTIONS.find(o => o.value === formData.howDidYouKnowUs);
-                                                    return opt ? <><opt.Icon size={18} className={opt.color} /> <span>{opt.label}</span></> : 'اختر...';
-                                                })()
-                                                : <span className="text-slate-400">اختر الطريقة...</span>}
-                                        </span>
-                                        <ChevronDown size={18} className={`text-slate-400 transition-transform ${isHowDidYouKnowUsOpen ? 'rotate-180' : ''}`} />
-                                    </button>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <InputGroup
+                                            id="parentEmail"
+                                            label="بريد ولي الأمر"
+                                            icon={Mail}
+                                            type="email"
+                                            value={formData.parentEmail}
+                                            onChange={(v) => handleChange('parentEmail', v)}
+                                            onBlur={() => handleBlur('parentEmail')}
+                                            error={fieldErrors.parentEmail}
+                                            placeholder="parent@example.com"
+                                            dir="ltr"
+                                            bg="bg-white"
+                                            autoComplete="email"
+                                        />
 
-                                    <AnimatePresence>
-                                        {isHowDidYouKnowUsOpen && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: 10 }}
-                                                className="absolute top-14 left-0 right-0 bg-white border border-slate-100 rounded-xl shadow-xl z-50 max-h-64 overflow-y-auto p-2"
-                                            >
-                                                {HOW_DID_YOU_KNOW_US_OPTIONS.map(opt => (
-                                                    <button
-                                                        key={opt.value}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            handleChange('howDidYouKnowUs', opt.value);
-                                                            setIsHowDidYouKnowUsOpen(false);
-                                                        }}
-                                                        className={`w-full flex items-center gap-3 p-3 rounded-lg text-right transition-colors hover:bg-slate-50 ${formData.howDidYouKnowUs === opt.value ? 'bg-slate-50 font-bold' : ''}`}
+                                        <div className="space-y-1.5" id="parentPhone">
+                                            <Label text="هاتف ولي الأمر" error={!!fieldErrors.parentPhone} />
+                                            <div className="flex gap-2" dir="ltr">
+                                                <CountryCodeSelect
+                                                    value={formData.parentCountryCode}
+                                                    onChange={(v) => handleChange('parentCountryCode', v)}
+                                                    className="shrink-0"
+                                                />
+                                                <div className="relative w-full">
+                                                    <input
+                                                        type="tel"
+                                                        className={`${INPUT_BASE_CLASSES} bg-white ${fieldErrors.parentPhone ? INPUT_ERROR_CLASSES : ''} pr-12 pl-4`}
+                                                        placeholder="9xxxxxxxx"
+                                                        value={formData.parentPhone}
+                                                        onChange={(e) => handleChange('parentPhone', e.target.value)}
+                                                        onBlur={() => handleBlur('parentPhone')}
+                                                        dir="ltr"
+                                                        autoComplete="tel"
+                                                    />
+                                                    <Phone size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 ${fieldErrors.parentPhone ? 'text-red-500' : 'text-slate-400'}`} />
+                                                </div>
+                                            </div>
+                                            {fieldErrors.parentPhone && <ErrorMessage msg={fieldErrors.parentPhone} />}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* Step 3: Security & Extras */}
+                            {currentStep === 3 && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="space-y-6"
+                                >
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <PasswordInput
+                                                id="password"
+                                                label="كلمة المرور"
+                                                value={formData.password}
+                                                onChange={(v) => handleChange('password', v)}
+                                                show={showPassword}
+                                                onToggle={() => setShowPassword(!showPassword)}
+                                                error={fieldErrors.password}
+                                                autoComplete="new-password"
+                                            />
+                                            <AnimatePresence>
+                                                {formData.password && !fieldErrors.password && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: 'auto' }}
+                                                        exit={{ opacity: 0, height: 0 }}
                                                     >
-                                                        <div className={`w-8 h-8 rounded-full ${opt.bg} flex items-center justify-center`}>
-                                                            <opt.Icon size={16} className={opt.color} />
-                                                        </div>
-                                                        <span className="text-sm text-slate-700">{opt.label}</span>
-                                                    </button>
-                                                ))}
+                                                        <PasswordStrengthMeter password={formData.password} />
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                        <PasswordInput
+                                            id="confirmPassword"
+                                            label="تأكيد كلمة المرور"
+                                            value={formData.confirmPassword}
+                                            onChange={(v) => handleChange('confirmPassword', v)}
+                                            show={showConfirmPassword}
+                                            onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            error={fieldErrors.confirmPassword}
+                                            autoComplete="new-password"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5 relative">
+                                        <Label text="كيف عرفت عنا؟ (اختياري)" />
+                                        <div className="relative">
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsHowDidYouKnowUsOpen(!isHowDidYouKnowUsOpen)}
+                                                className={`${INPUT_BASE_CLASSES} px-4 flex items-center justify-between`}
+                                            >
+                                                <span className="flex items-center gap-2 text-sm">
+                                                    {formData.howDidYouKnowUs ?
+                                                        (() => {
+                                                            const opt = HOW_DID_YOU_KNOW_US_OPTIONS.find(o => o.value === formData.howDidYouKnowUs);
+                                                            return opt ? <><opt.Icon size={18} className={opt.color} /> <span>{opt.label}</span></> : 'اختر...';
+                                                        })()
+                                                        : <span className="text-slate-400">اختر الطريقة...</span>}
+                                                </span>
+                                                <ChevronDown size={18} className={`text-slate-400 transition-transform ${isHowDidYouKnowUsOpen ? 'rotate-180' : ''}`} />
+                                            </button>
+
+                                            <AnimatePresence>
+                                                {isHowDidYouKnowUsOpen && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        exit={{ opacity: 0, y: 10 }}
+                                                        className="absolute top-14 left-0 right-0 bg-white border border-slate-100 rounded-xl shadow-xl z-50 max-h-64 overflow-y-auto p-2"
+                                                    >
+                                                        {HOW_DID_YOU_KNOW_US_OPTIONS.map(opt => (
+                                                            <button
+                                                                key={opt.value}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    handleChange('howDidYouKnowUs', opt.value);
+                                                                    setIsHowDidYouKnowUsOpen(false);
+                                                                }}
+                                                                className={`w-full flex items-center gap-3 p-3 rounded-lg text-right transition-colors hover:bg-slate-50 ${formData.howDidYouKnowUs === opt.value ? 'bg-slate-50 font-bold' : ''}`}
+                                                            >
+                                                                <div className={`w-8 h-8 rounded-full ${opt.bg} flex items-center justify-center`}>
+                                                                    <opt.Icon size={16} className={opt.color} />
+                                                                </div>
+                                                                <span className="text-sm text-slate-700">{opt.label}</span>
+                                                            </button>
+                                                        ))}
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                        {formData.howDidYouKnowUs === 'other' && (
+                                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                                                <input
+                                                    type="text"
+                                                    className={`${INPUT_BASE_CLASSES} mt-2 px-4`}
+                                                    placeholder="يرجى الكتابة هنا..."
+                                                    value={formData.howDidYouKnowUsOther}
+                                                    onChange={(e) => handleChange('howDidYouKnowUsOther', e.target.value)}
+                                                />
                                             </motion.div>
                                         )}
-                                    </AnimatePresence>
-                                </div>
-                                {formData.howDidYouKnowUs === 'other' && (
-                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
-                                        <input
-                                            type="text"
-                                            className={`${INPUT_BASE_CLASSES} mt-2 px-4`}
-                                            placeholder="يرجى الكتابة هنا..."
-                                            value={formData.howDidYouKnowUsOther}
-                                            onChange={(e) => handleChange('howDidYouKnowUsOther', e.target.value)}
-                                        />
-                                    </motion.div>
-                                )}
-                            </div>
-
-                            {/* Terms */}
-                            <div className="flex items-start gap-3 p-1">
-                                <div className="relative flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        id="terms"
-                                        checked={agreeTerms}
-                                        onChange={(e) => setAgreeTerms(e.target.checked)}
-                                        className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border-2 border-slate-300 transition-all checked:border-shibl-crimson checked:bg-shibl-crimson"
-                                    />
-                                    <CheckCircle size={14} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
-                                </div>
-                                <label htmlFor="terms" className="text-sm text-slate-500 cursor-pointer select-none">
-                                    أوافق على <Link to="/terms-and-conditions" className="text-shibl-crimson font-bold hover:underline" target="_blank" rel="noopener noreferrer">الشروط والأحكام</Link> وسياسة الخصوصية
-                                </label>
-                            </div>
-
-                            {/* Submit Button */}
-                            <button
-                                type="submit"
-                                disabled={isLoading || !agreeTerms}
-                                className={`w-full h-14 rounded-2xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all duration-300
-                                    ${(isLoading || !agreeTerms)
-                                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
-                                        : 'bg-shibl-crimson text-white hover:bg-rose-700 hover:shadow-shibl-crimson/30 active:scale-[0.98]'
-                                    }`}
-                            >
-                                {isThinking ? (
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        <span>جاري إنشاء الحساب...</span>
                                     </div>
-                                ) : (
-                                    <>
-                                        <span>إنشاء الحساب</span>
-                                        <ArrowLeft size={20} className={isRTL ? 'rotate-180' : ''} />
-                                    </>
-                                )}
-                            </button>
 
-                            <div className="text-center pt-4">
+                                    {/* Terms */}
+                                    <div className="flex items-start gap-3 p-1">
+                                        <div className="relative flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                id="terms"
+                                                checked={agreeTerms}
+                                                onChange={(e) => setAgreeTerms(e.target.checked)}
+                                                className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border-2 border-slate-300 transition-all checked:border-shibl-crimson checked:bg-shibl-crimson"
+                                            />
+                                            <CheckCircle size={14} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
+                                        </div>
+                                        <label htmlFor="terms" className="text-sm text-slate-500 cursor-pointer select-none">
+                                            أوافق على <Link to="/terms-and-conditions" className="text-shibl-crimson font-bold hover:underline" target="_blank" rel="noopener noreferrer">الشروط والأحكام</Link> وسياسة الخصوصية
+                                        </label>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* Actions */}
+                            <div className="flex gap-4 pt-4">
+                                {currentStep > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={handleBack}
+                                        className="h-14 px-8 rounded-2xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-all"
+                                    >
+                                        رجوع
+                                    </button>
+                                )}
+
+                                {currentStep < TOTAL_STEPS ? (
+                                    <button
+                                        type="button"
+                                        onClick={handleNext}
+                                        className="h-14 flex-1 rounded-2xl font-bold text-white bg-slate-900 hover:bg-slate-800 shadow-lg shadow-slate-900/20 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <span>التالي</span>
+                                        <ArrowLeft size={18} className={isRTL ? 'rotate-180' : ''} />
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={handleSubmit} // Triggers final submit
+                                        disabled={isLoading || !agreeTerms}
+                                        className={`h-14 flex-1 rounded-2xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all duration-300
+                                            ${(isLoading || !agreeTerms)
+                                                ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
+                                                : 'bg-shibl-crimson text-white hover:bg-rose-700 hover:shadow-shibl-crimson/30 active:scale-[0.98]'
+                                            }`}
+                                    >
+                                        {isThinking ? (
+                                            <div className="flex items-center gap-2">
+                                                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                <span>جاري إنشاء الحساب...</span>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <span>إنشاء الحساب</span>
+                                                <ArrowLeft size={20} className={isRTL ? 'rotate-180' : ''} />
+                                            </>
+                                        )}
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="text-center">
                                 <p className="text-slate-500">
                                     لديك حساب بالفعل؟{' '}
                                     <Link to={ROUTES.LOGIN} className="text-shibl-crimson font-bold hover:underline">تسجيل الدخول</Link>
@@ -696,7 +799,7 @@ export function SignupPage() {
                         </div>
                     </div>
                 </motion.div>
-            </div>
+            </div >
 
             <VideoModal
                 isOpen={isVideoModalOpen}
@@ -705,7 +808,7 @@ export function SignupPage() {
                 title="شرح خطوات التسجيل في منصة شبل"
                 layoutId="tutorial-video-signup"
             />
-        </div>
+        </div >
     );
 }
 
@@ -722,12 +825,15 @@ const ErrorMessage = ({ msg }: { msg: string }) => (
     </p>
 );
 
+
+
 interface InputGroupProps {
     id: string;
     label: string;
     icon: any;
     value: string;
     onChange: (value: string) => void;
+    onBlur?: () => void;
     error?: string;
     type?: string;
     placeholder?: string;
@@ -736,7 +842,7 @@ interface InputGroupProps {
     autoComplete?: string;
 }
 
-const InputGroup = ({ id, label, icon: Icon, value, onChange, error, type = 'text', placeholder, dir = 'rtl', bg, ...rest }: InputGroupProps) => (
+const InputGroup = ({ id, label, icon: Icon, value, onChange, onBlur, error, type = 'text', placeholder, dir = 'rtl', bg, ...rest }: InputGroupProps) => (
     <div className="space-y-1.5" id={id}>
         <Label text={label} error={!!error} />
         <div className="relative">
@@ -746,6 +852,7 @@ const InputGroup = ({ id, label, icon: Icon, value, onChange, error, type = 'tex
                 placeholder={placeholder}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
+                onBlur={onBlur}
                 dir={dir}
                 autoComplete={rest.autoComplete}
             />
