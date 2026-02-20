@@ -4,7 +4,7 @@
  * Displays the status of a slot request with appropriate styling.
  */
 
-import { Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import type { SlotRequestStatus } from '../../../types/slotRequest';
 import { SLOT_REQUEST_STATUSES } from '../../../types/slotRequest';
 
@@ -34,6 +34,13 @@ const STATUS_CONFIG = {
         bgColor: 'bg-rose-50',
         textColor: 'text-rose-600',
         borderColor: 'border-rose-200',
+    },
+    [SLOT_REQUEST_STATUSES.EXPIRED]: {
+        label: 'منتهي',
+        icon: AlertCircle,
+        bgColor: 'bg-slate-100',
+        textColor: 'text-slate-500',
+        borderColor: 'border-slate-300',
     },
 } as const;
 

@@ -89,6 +89,7 @@ const queryClient = new QueryClient({
 
 // Classroom
 import LiveClassroomPage from './presentation/pages/classroom/LiveClassroomPage';
+import AdminStudentDetailsPage from './presentation/pages/admin/AdminStudentDetailsPage';
 
 import { useSessionEnforcement } from './hooks/useSessionEnforcement';
 
@@ -96,6 +97,8 @@ function SessionEnforcer() {
   useSessionEnforcement();
   return null;
 }
+
+import AdminParentDetailsPage from './presentation/pages/admin/AdminParentDetailsPage';
 
 function App() {
   return (
@@ -211,6 +214,8 @@ function App() {
               <Route index element={<AdminDashboard />} />
               <Route path="admins" element={<AdminAdminsPage />} />
               <Route path="users" element={<AdminUsersPage />} />
+              <Route path="users/students/:id" element={<AdminStudentDetailsPage />} />
+              <Route path="users/parents/:id" element={<AdminParentDetailsPage />} />
               <Route path="grades" element={<AdminGradesPage />} />
               <Route path="courses" element={<AdminCoursesPage />} />
               <Route path="courses/:courseId/units" element={<AdminCourseUnitsPage />} />
