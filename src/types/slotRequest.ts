@@ -15,6 +15,7 @@ export const SLOT_REQUEST_STATUSES = {
     PENDING: 'pending',
     APPROVED: 'approved',
     REJECTED: 'rejected',
+    EXPIRED: 'expired',
 } as const;
 
 export const DAYS_OF_WEEK = [
@@ -145,6 +146,7 @@ export interface SlotRequestStats {
     pending: number;
     approved: number;
     rejected: number;
+    expired: number;
 }
 
 /**
