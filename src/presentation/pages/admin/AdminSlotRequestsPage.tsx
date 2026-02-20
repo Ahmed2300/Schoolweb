@@ -71,6 +71,12 @@ const STATUS_CONFIG: Record<SlotRequestStatus, { label: string; color: string; b
         bgColor: 'bg-red-50',
         icon: <XCircle size={14} />,
     },
+    expired: {
+        label: 'منتهي',
+        color: 'text-slate-600',
+        bgColor: 'bg-slate-100',
+        icon: <AlertCircle size={14} />,
+    },
 };
 
 // ============================================
