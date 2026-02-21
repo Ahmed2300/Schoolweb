@@ -59,6 +59,8 @@ export interface UserData {
     subjects?: string[];
     grades?: string[];
     grade_ids?: number[];
+    // Include nested students for Parent relationships
+    students?: UserData[];
 }
 
 export interface PaginatedResponse<T> {
@@ -2258,7 +2260,7 @@ export const adminService = {
      * Get all teacher slot requests with optional filters
      */
     getSlotRequests: async (params?: {
-        status?: 'pending' | 'approved' | 'rejected' | 'all';
+        status?: 'pending' | 'approved' | 'rejected' | 'expired' | 'all';
         grade_id?: number;
         teacher_id?: number;
         type?: 'weekly' | 'one_time';

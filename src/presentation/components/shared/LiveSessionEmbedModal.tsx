@@ -30,6 +30,7 @@ export function LiveSessionEmbedModal({
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Toggle fullscreen
@@ -93,6 +94,7 @@ export function LiveSessionEmbedModal({
         if (embedUrl) {
             setIsLoading(true);
             setLoadError(false);
+            setRetryCount(prev => prev + 1); // Force a fresh key on new URLs as well
         }
     }, [embedUrl]);
 
@@ -100,6 +102,13 @@ export function LiveSessionEmbedModal({
     const handleIframeError = () => {
         setIsLoading(false);
         setLoadError(true);
+    };
+
+    // Retry connection
+    const handleRetry = () => {
+        setIsLoading(true);
+        setLoadError(false);
+        setRetryCount(prev => prev + 1); // Changing the key forces the iframe to completely remount
     };
 
     if (!isOpen || !embedUrl) return null;
@@ -164,35 +173,49 @@ export function LiveSessionEmbedModal({
                 {/* Error State */}
                 {loadError && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-10">
-                        <div className="text-red-500 mb-4">
+                        <div className="text-red-500 mb-4 bg-red-500/10 p-4 rounded-full">
                             <X size={48} />
                         </div>
-                        <p className="text-slate-200 font-bold text-lg mb-2">فشل تحميل الجلسة</p>
-                        <p className="text-slate-400 text-sm mb-4">انتهت صلاحية الرابط أو حدث خطأ</p>
-                        <button
-                            onClick={onClose}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
-                        >
-                            العودة وإعادة الانضمام
-                        </button>
+                        <p className="text-slate-200 font-bold text-lg mb-2">تعذر الاتصال بالجلسة</p>
+                        <p className="text-slate-400 text-sm mb-6 max-w-md text-center">
+                            قد يكون صلاحية الرابط قد انتهت، أو هناك مشكلة في الاتصال بالشبكة.
+                            الرابط صالح لمدة 5 دقائق من لحظة طلبه.
+                        </p>
+                        <div className="flex gap-4">
+                            <button
+                                onClick={handleRetry}
+                                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center min-w-[140px]"
+                            >
+                                <Loader2 size={18} className="mr-2 hidden" /> {/* Hidden but keeps alignment if we wanted eager spin */}
+                                محاولة الاتصال مجدداً
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-bold border border-slate-700 transition-all"
+                            >
+                                إغلاق النافذة
+                            </button>
+                        </div>
                     </div>
                 )}
 
-                <iframe
-                    src={embedUrl}
-                    className="w-full h-full border-0"
-                    style={{
-                        display: 'block',
-                        width: '100%',
-                        height: '100%',
-                    }}
-                    allow="camera; microphone; display-capture; autoplay; fullscreen; picture-in-picture; geolocation"
-                    allowFullScreen
-                    title="Live Session"
-                    onLoad={() => setIsLoading(false)}
-                    onError={handleIframeError}
-                />
-
+                {!loadError && (
+                    <iframe
+                        key={`${embedUrl}-${retryCount}`}
+                        src={embedUrl}
+                        className="w-full h-full border-0"
+                        style={{
+                            display: 'block',
+                            width: '100%',
+                            height: '100%',
+                        }}
+                        allow="camera; microphone; display-capture; autoplay; fullscreen; picture-in-picture; geolocation"
+                        allowFullScreen
+                        title="Live Session"
+                        onLoad={() => setIsLoading(false)}
+                        onError={handleIframeError}
+                    />
+                )}
                 {/* Floating Watermark */}
                 <SecurityWatermark />
 

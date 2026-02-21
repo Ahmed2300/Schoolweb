@@ -1,4 +1,5 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Search,
     Filter,
@@ -92,6 +93,7 @@ const formatDate = (dateString: string): string => {
 };
 
 export function AdminUsersPage() {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<FilterTab>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -448,7 +450,15 @@ export function AdminUsersPage() {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                                                 <button
-                                                    onClick={() => openViewModal(user)}
+                                                    onClick={() => {
+                                                        if (user.role === 'student') {
+                                                            navigate(`/admin/users/students/${user.id}`);
+                                                        } else if (user.role === 'parent') {
+                                                            navigate(`/admin/users/parents/${user.id}`);
+                                                        } else {
+                                                            openViewModal(user);
+                                                        }
+                                                    }}
                                                     className="w-8 h-8 rounded-[8px] bg-slate-50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-md border border-slate-100 dark:border-white/10 hover:border-slate-200 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-shibl-crimson transition-all"
                                                     title="عرض"
                                                 >

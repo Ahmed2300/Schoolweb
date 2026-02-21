@@ -341,98 +341,98 @@ export function StudentProfilePage() {
     };
 
     return (
-        <div className="p-6 max-w-4xl mx-auto">
-            <h1 className="text-2xl font-extrabold text-charcoal mb-8">الملف الشخصي</h1>
+        <div className="p-3 sm:p-6 max-w-4xl mx-auto overflow-hidden">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-charcoal mb-4 sm:mb-8">الملف الشخصي</h1>
 
             <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden">
                 {/* Cover */}
-                <div className="h-32 bg-gradient-to-r from-shibl-crimson to-[#8B0A12]"></div>
+                <div className="h-24 sm:h-32 bg-gradient-to-r from-shibl-crimson to-[#8B0A12]"></div>
 
-                <div className="px-8 pb-8">
-                    <div className="relative flex justify-between items-end -mt-12 mb-8">
-                        <div className="w-32 h-32 rounded-full border-[6px] border-white overflow-hidden bg-white shadow-md">
+                <div className="px-4 sm:px-8 pb-4 sm:pb-8">
+                    <div className="relative flex flex-col sm:flex-row sm:justify-between sm:items-end -mt-10 sm:-mt-12 mb-4 sm:mb-8 gap-3">
+                        <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full border-4 sm:border-[6px] border-white overflow-hidden bg-white shadow-md">
                             {user?.avatar ? (
                                 <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-slate-800 text-white text-3xl font-bold">
+                                <div className="w-full h-full flex items-center justify-center bg-slate-800 text-white text-xl sm:text-3xl font-bold">
                                     {userInitials}
                                 </div>
                             )}
                         </div>
-                        <div className="flex gap-3 mb-2">
+                        <div className="flex gap-2 sm:gap-3 mb-0 sm:mb-2">
                             <button
                                 onClick={openPasswordModal}
-                                className="flex items-center gap-2 bg-white border border-slate-200 text-slate-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all shadow-sm"
+                                className="flex items-center gap-1.5 sm:gap-2 bg-white border border-slate-200 text-slate-600 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold hover:bg-slate-50 transition-all shadow-sm"
                             >
-                                <KeyRound size={16} />
+                                <KeyRound size={14} className="sm:w-4 sm:h-4" />
                                 تغيير كلمة المرور
                             </button>
                             <button
                                 onClick={openModal}
-                                className="flex items-center gap-2 bg-gradient-to-r from-shibl-crimson to-[#8B0A12] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-shibl-crimson/20 transition-all"
+                                className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-shibl-crimson to-[#8B0A12] text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold hover:shadow-lg hover:shadow-shibl-crimson/20 transition-all"
                             >
-                                <Edit3 size={16} />
+                                <Edit3 size={14} className="sm:w-4 sm:h-4" />
                                 تعديل الملف
                             </button>
                         </div>
                     </div>
 
-                    <div className="mb-10">
-                        <div className="flex items-center gap-3 mb-2">
-                            <h2 className="text-3xl font-extrabold text-charcoal">{user?.name}</h2>
-                            <span className="bg-red-50 text-shibl-crimson px-4 py-1.5 rounded-full text-sm font-bold">طالب</span>
+                    <div className="mb-6 sm:mb-10">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                            <h2 className="text-xl sm:text-3xl font-extrabold text-charcoal">{user?.name}</h2>
+                            <span className="bg-red-50 text-shibl-crimson px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold">طالب</span>
                         </div>
-                        <p className="text-slate-400 flex items-center gap-2">
-                            <MapPin size={16} />
-                            {(user as any)?.address || 'غير مسجل'}
+                        <p className="text-sm sm:text-base text-slate-400 flex items-center gap-2">
+                            <MapPin size={14} className="sm:w-4 sm:h-4 flex-shrink-0" />
+                            <span className="truncate">{(user as any)?.address || 'غير مسجل'}</span>
                         </p>
                     </div>
 
                     {/* Student UID Section */}
                     <div className="mb-6">
                         {studentUid ? (
-                            <div className="group bg-gradient-to-r from-slate-50 to-emerald-50 p-5 rounded-2xl border border-emerald-100 flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
-                                        <Hash size={24} />
+                            <div className="group bg-gradient-to-r from-slate-50 to-emerald-50 p-3 sm:p-5 rounded-2xl border border-emerald-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 flex-shrink-0">
+                                        <Hash size={20} className="sm:w-6 sm:h-6" />
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-slate-400 font-medium mb-1">معرف الطالب (UID)</p>
-                                        <p className="font-bold text-charcoal text-lg tracking-wider" dir="ltr">{studentUid}</p>
+                                    <div className="min-w-0">
+                                        <p className="text-[11px] sm:text-xs text-slate-400 font-medium mb-0.5 sm:mb-1">معرف الطالب (UID)</p>
+                                        <p className="font-bold text-charcoal text-sm sm:text-lg tracking-wider truncate" dir="ltr">{studentUid}</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => handleCopy(studentUid, 'uid')}
-                                    className="flex items-center gap-2 bg-white border border-emerald-200 text-emerald-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-50 transition-all"
+                                    className="flex items-center gap-1.5 sm:gap-2 bg-white border border-emerald-200 text-emerald-600 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold hover:bg-emerald-50 transition-all flex-shrink-0 self-end sm:self-auto"
                                 >
-                                    {copiedField === 'uid' ? <Check size={16} /> : <Copy size={16} />}
+                                    {copiedField === 'uid' ? <Check size={14} /> : <Copy size={14} />}
                                     {copiedField === 'uid' ? 'تم النسخ!' : 'نسخ المعرف'}
                                 </button>
                             </div>
                         ) : (
-                            <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-5 rounded-2xl border border-amber-200 flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
-                                        <Hash size={24} />
+                            <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-3 sm:p-5 rounded-2xl border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 sm:gap-4">
+                                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 flex-shrink-0">
+                                        <Hash size={20} className="sm:w-6 sm:h-6" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-bold text-charcoal">لم يتم إنشاء معرف الطالب بعد</p>
-                                        <p className="text-xs text-slate-500 mt-0.5">يُستخدم المعرف لربط حسابك مع ولي الأمر</p>
+                                        <p className="text-xs sm:text-sm font-bold text-charcoal">لم يتم إنشاء معرف الطالب بعد</p>
+                                        <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">يُستخدم المعرف لربط حسابك مع ولي الأمر</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={handleGenerateUid}
                                     disabled={isGeneratingUid}
-                                    className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-amber-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold hover:shadow-lg hover:shadow-amber-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 self-end sm:self-auto"
                                 >
                                     {isGeneratingUid ? (
                                         <>
-                                            <Loader2 size={16} className="animate-spin" />
+                                            <Loader2 size={14} className="animate-spin" />
                                             جاري الإنشاء...
                                         </>
                                     ) : (
                                         <>
-                                            <Hash size={16} />
+                                            <Hash size={14} />
                                             إنشاء المعرف
                                         </>
                                     )}
@@ -443,60 +443,60 @@ export function StudentProfilePage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Email */}
-                        <div className="group bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-5 relative">
-                            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-shibl-crimson">
-                                <Mail size={24} />
+                        <div className="group bg-white p-3 sm:p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-3 sm:gap-5 relative">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-50 rounded-full flex items-center justify-center text-shibl-crimson flex-shrink-0">
+                                <Mail size={20} className="sm:w-6 sm:h-6" />
                             </div>
-                            <div>
-                                <p className="text-xs text-slate-400 font-medium mb-1">البريد الإلكتروني</p>
-                                <p className="font-bold text-charcoal text-lg dir-ltr">{user?.email}</p>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-[11px] sm:text-xs text-slate-400 font-medium mb-0.5 sm:mb-1">البريد الإلكتروني</p>
+                                <p className="font-bold text-charcoal text-sm sm:text-lg dir-ltr truncate">{user?.email}</p>
                             </div>
                             <button
                                 onClick={() => handleCopy(user?.email || '', 'email')}
-                                className="absolute left-5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all p-2 text-slate-400 hover:text-shibl-crimson hover:bg-red-50 rounded-lg"
+                                className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 sm:opacity-0 sm:group-hover:opacity-100 transition-all p-1.5 sm:p-2 text-slate-400 hover:text-shibl-crimson hover:bg-red-50 rounded-lg"
                                 title="نسخ"
                             >
-                                {copiedField === 'email' ? <Check size={18} /> : <Copy size={18} />}
+                                {copiedField === 'email' ? <Check size={16} /> : <Copy size={16} />}
                             </button>
                         </div>
 
                         {/* Phone */}
-                        <div className="group bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-5 relative">
-                            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-shibl-crimson">
-                                <Phone size={24} />
+                        <div className="group bg-white p-3 sm:p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-3 sm:gap-5 relative">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-50 rounded-full flex items-center justify-center text-shibl-crimson flex-shrink-0">
+                                <Phone size={20} className="sm:w-6 sm:h-6" />
                             </div>
-                            <div>
-                                <p className="text-xs text-slate-400 font-medium mb-1">رقم الهاتف</p>
-                                <p className="font-bold text-charcoal text-lg dir-ltr">{user?.phoneNumber || user?.phone || 'غير مسجل'}</p>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-[11px] sm:text-xs text-slate-400 font-medium mb-0.5 sm:mb-1">رقم الهاتف</p>
+                                <p className="font-bold text-charcoal text-sm sm:text-lg dir-ltr truncate">{user?.phoneNumber || user?.phone || 'غير مسجل'}</p>
                             </div>
                             <button
                                 onClick={() => handleCopy(user?.phoneNumber || user?.phone || '', 'phone')}
-                                className="absolute left-5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all p-2 text-slate-400 hover:text-shibl-crimson hover:bg-red-50 rounded-lg"
+                                className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 sm:opacity-0 sm:group-hover:opacity-100 transition-all p-1.5 sm:p-2 text-slate-400 hover:text-shibl-crimson hover:bg-red-50 rounded-lg"
                                 title="نسخ"
                             >
-                                {copiedField === 'phone' ? <Check size={18} /> : <Copy size={18} />}
+                                {copiedField === 'phone' ? <Check size={16} /> : <Copy size={16} />}
                             </button>
                         </div>
 
                         {/* Location */}
-                        <div className="bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-5">
-                            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-shibl-crimson">
-                                <MapPin size={24} />
+                        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-3 sm:gap-5">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-50 rounded-full flex items-center justify-center text-shibl-crimson flex-shrink-0">
+                                <MapPin size={20} className="sm:w-6 sm:h-6" />
                             </div>
-                            <div>
-                                <p className="text-xs text-slate-400 font-medium mb-1">الموقع</p>
-                                <p className="font-bold text-charcoal text-lg">{(user as any)?.address || 'غير مسجل'}</p>
+                            <div className="min-w-0">
+                                <p className="text-[11px] sm:text-xs text-slate-400 font-medium mb-0.5 sm:mb-1">الموقع</p>
+                                <p className="font-bold text-charcoal text-sm sm:text-lg truncate">{(user as any)?.address || 'غير مسجل'}</p>
                             </div>
                         </div>
 
                         {/* Date of Birth */}
-                        <div className="bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-5">
-                            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-shibl-crimson">
-                                <Calendar size={24} />
+                        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-slate-100 hover:border-red-100 hover:shadow-[0px_4px_20px_rgba(201,28,28,0.05)] transition-all flex items-center gap-3 sm:gap-5">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-50 rounded-full flex items-center justify-center text-shibl-crimson flex-shrink-0">
+                                <Calendar size={20} className="sm:w-6 sm:h-6" />
                             </div>
-                            <div>
-                                <p className="text-xs text-slate-400 font-medium mb-1">تاريخ الميلاد</p>
-                                <p className="font-bold text-charcoal text-lg">
+                            <div className="min-w-0">
+                                <p className="text-[11px] sm:text-xs text-slate-400 font-medium mb-0.5 sm:mb-1">تاريخ الميلاد</p>
+                                <p className="font-bold text-charcoal text-sm sm:text-lg">
                                     {(user as any)?.date_of_birth
                                         ? new Date((user as any).date_of_birth).toLocaleDateString('ar-OM', {
                                             year: 'numeric',
@@ -511,20 +511,20 @@ export function StudentProfilePage() {
 
                     {/* Parent Details Section */}
                     {/* Divider */}
-                    <div className="my-10 border-t border-slate-100 relative">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 text-slate-400 text-sm font-medium">
+                    <div className="my-6 sm:my-10 border-t border-slate-100 relative">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 text-slate-400 text-xs sm:text-sm font-medium">
                             المرافق
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-bold text-charcoal flex items-center gap-2">
-                            <User className="text-shibl-crimson" size={24} />
+                    <div className="flex flex-wrap items-center justify-between mb-4 sm:mb-6 gap-2">
+                        <h3 className="text-base sm:text-xl font-bold text-charcoal flex items-center gap-2">
+                            <User className="text-shibl-crimson" size={20} />
                             معلومات ولي الأمر
                         </h3>
                         {(user as any)?.has_linked_parent && (
-                            <span className="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-full text-xs font-bold">
-                                <Link2 size={14} />
+                            <span className="flex items-center gap-1 sm:gap-1.5 bg-emerald-50 text-emerald-600 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold">
+                                <Link2 size={12} />
                                 حساب مرتبط
                             </span>
                         )}
@@ -532,9 +532,9 @@ export function StudentProfilePage() {
 
                     {(user as any)?.has_linked_parent ? (
                         // Linked Parent - Show full info from parent account
-                        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-6 rounded-2xl border border-emerald-100">
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="w-16 h-16 rounded-full overflow-hidden bg-emerald-100 border-2 border-white shadow-md">
+                        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-4 sm:p-6 rounded-2xl border border-emerald-100">
+                            <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+                                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-emerald-100 border-2 border-white shadow-md flex-shrink-0">
                                     {((user as any)?.linked_parent?.avatar || (user as any)?.linked_parent?.image_path) && !parentImageError ? (
                                         <img
                                             src={(user as any).linked_parent.avatar || (user as any).linked_parent.image_path}
@@ -545,16 +545,16 @@ export function StudentProfilePage() {
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-inner">
                                             {(user as any)?.linked_parent?.name ? (
-                                                <span className="text-2xl font-bold">{(user as any).linked_parent.name.charAt(0).toUpperCase()}</span>
+                                                <span className="text-xl sm:text-2xl font-bold">{(user as any).linked_parent.name.charAt(0).toUpperCase()}</span>
                                             ) : (
-                                                <User size={28} />
+                                                <User size={24} />
                                             )}
                                         </div>
                                     )}
                                 </div>
-                                <div>
-                                    <p className="font-bold text-charcoal text-xl">{(user as any)?.linked_parent?.name}</p>
-                                    <p className="text-emerald-600 text-sm">ولي أمر مرتبط بحسابك</p>
+                                <div className="min-w-0">
+                                    <p className="font-bold text-charcoal text-base sm:text-xl truncate">{(user as any)?.linked_parent?.name}</p>
+                                    <p className="text-emerald-600 text-xs sm:text-sm">ولي أمر مرتبط بحسابك</p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -594,10 +594,10 @@ export function StudentProfilePage() {
                         </div>
                     ) : (
                         // No linked parent - Show registration data (only parent_phone available)
-                        <div className="bg-gradient-to-r from-slate-50 to-gray-50 p-6 rounded-2xl border border-slate-200">
-                            <div className="flex items-center gap-3 mb-4 text-amber-600 bg-amber-50 px-4 py-2 rounded-xl">
-                                <User size={18} />
-                                <p className="text-sm font-medium">بيانات ولي الأمر المسجلة عند إنشاء الحساب</p>
+                        <div className="bg-gradient-to-r from-slate-50 to-gray-50 p-4 sm:p-6 rounded-2xl border border-slate-200">
+                            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 text-amber-600 bg-amber-50 px-3 sm:px-4 py-2 rounded-xl">
+                                <User size={16} className="flex-shrink-0" />
+                                <p className="text-xs sm:text-sm font-medium">بيانات ولي الأمر المسجلة عند إنشاء الحساب</p>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="group bg-white p-4 rounded-xl border border-slate-100 flex items-center gap-4 relative">
@@ -635,7 +635,7 @@ export function StudentProfilePage() {
 
             {/* Edit Profile Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
                     {/* Backdrop */}
                     <div
                         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -643,7 +643,7 @@ export function StudentProfilePage() {
                     ></div>
 
                     {/* Modal Content */}
-                    <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
+                    <div className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-md sm:mx-4 max-h-[90vh] overflow-y-auto overflow-x-hidden">
                         {/* Modal Header */}
                         <div className="bg-gradient-to-r from-shibl-crimson to-[#8B0A12] px-6 py-4 flex items-center justify-between">
                             <h3 className="text-xl font-bold text-white">تعديل الملف الشخصي</h3>
@@ -656,7 +656,7 @@ export function StudentProfilePage() {
                         </div>
 
                         {/* Modal Body */}
-                        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
                             {/* Error Message */}
                             {error && (
                                 <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
@@ -879,7 +879,7 @@ export function StudentProfilePage() {
 
             {/* Change Password Modal */}
             {isPasswordModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
                     {/* Backdrop */}
                     <div
                         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -887,7 +887,7 @@ export function StudentProfilePage() {
                     ></div>
 
                     {/* Modal Content */}
-                    <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
+                    <div className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-md sm:mx-4 max-h-[90vh] overflow-y-auto overflow-x-hidden">
                         {/* Modal Header */}
                         <div className="bg-gradient-to-r from-shibl-crimson to-[#8B0A12] px-6 py-4 flex items-center justify-between">
                             <h3 className="text-xl font-bold text-white flex items-center gap-2">
@@ -903,7 +903,7 @@ export function StudentProfilePage() {
                         </div>
 
                         {/* Modal Body */}
-                        <form onSubmit={handlePasswordSubmit} className="p-6 space-y-5">
+                        <form onSubmit={handlePasswordSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
                             {/* Error Message */}
                             {passwordError && (
                                 <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">

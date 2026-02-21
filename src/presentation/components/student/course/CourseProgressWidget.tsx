@@ -27,9 +27,9 @@ export function CourseProgressWidget({ progress, courseName }: CourseProgressWid
     const levelColor = getLevelColor(progress.level);
 
     return (
-        <div className="bg-white rounded-[3rem] p-8 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] border border-slate-50 sticky top-10">
+        <div className="bg-white rounded-3xl lg:rounded-[3rem] p-5 sm:p-6 lg:p-8 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] border border-slate-50 sticky top-4 sm:top-10">
             {/* Header: Level & Points */}
-            <div className="flex items-center justify-between mb-8 relative">
+            <div className="flex items-center justify-between mb-6 sm:mb-8 relative">
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg" style={{ backgroundColor: `${levelColor}20` }}>
@@ -100,8 +100,8 @@ export function CourseProgressWidget({ progress, courseName }: CourseProgressWid
             </div>
 
             {/* Main Circular Progress */}
-            <div className="flex justify-center mb-10">
-                <div className="w-48 h-48 relative">
+            <div className="flex justify-center mb-8 sm:mb-10">
+                <div className="w-40 h-40 sm:w-48 sm:h-48 relative">
                     <CircularProgressbarWithChildren
                         value={progress.percentage}
                         styles={buildStyles({
@@ -111,11 +111,11 @@ export function CourseProgressWidget({ progress, courseName }: CourseProgressWid
                             pathTransitionDuration: 1.5,
                         })}
                     >
-                        <div className="text-center">
-                            <p className="text-sm text-slate-400 font-bold mb-1">الإنجاز العام</p>
-                            <h2 className="text-5xl font-black text-slate-800 tracking-tight">{progress.percentage}%</h2>
+                        <div className="text-center translate-y-1 sm:translate-y-2">
+                            <p className="text-xs sm:text-sm text-slate-400 font-bold mb-0.5 sm:mb-1">الإنجاز العام</p>
+                            <h2 className="text-4xl sm:text-5xl font-black text-slate-800 tracking-tight leading-none mb-1 sm:mb-0">{progress.percentage}%</h2>
                             {progress.percentage >= 100 && (
-                                <span className="inline-block mt-2 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
+                                <span className="inline-block px-2 sm:px-3 py-0.5 sm:py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] sm:text-xs font-bold mt-1 sm:mt-2">
                                     مكتمل!
                                 </span>
                             )}
@@ -124,14 +124,14 @@ export function CourseProgressWidget({ progress, courseName }: CourseProgressWid
 
                     {/* Decorative Blur */}
                     <div
-                        className="absolute inset-0 rounded-full blur-3xl -z-10 opacity-30"
+                        className="absolute inset-0 rounded-full blur-2xl sm:blur-3xl -z-10 opacity-30"
                         style={{ backgroundColor: levelColor }}
                     ></div>
                 </div>
             </div>
 
             {/* Streak / Next Milestone */}
-            <div className="mb-8 p-5 bg-slate-50 rounded-3xl border border-slate-100">
+            <div className="mb-6 sm:mb-8 p-4 sm:p-5 bg-slate-50 rounded-2xl sm:rounded-3xl border border-slate-100">
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                         <Target size={18} className="text-slate-400" />
@@ -157,7 +157,7 @@ export function CourseProgressWidget({ progress, courseName }: CourseProgressWid
             </div>
 
             {/* Detailed Stats Grid */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 <StatBox
                     icon={Video}
                     color="text-rose-500"
@@ -187,14 +187,14 @@ export function CourseProgressWidget({ progress, courseName }: CourseProgressWid
 
 function StatBox({ icon: Icon, color, bg, value, label, subLabel }: any) {
     return (
-        <div className="flex flex-col items-center justify-center p-3 py-4 rounded-2xl bg-white border border-slate-100 shadow-sm">
-            <div className={`w-8 h-8 rounded-full ${bg} flex items-center justify-center mb-2`}>
-                <Icon size={14} className={color} />
+        <div className="flex flex-col items-center justify-center p-2 sm:p-3 py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-white border border-slate-100 shadow-sm text-center">
+            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full ${bg} flex items-center justify-center mb-1.5 sm:mb-2`}>
+                <Icon className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${color}`} />
             </div>
-            <div className="text-lg font-black text-slate-800 leading-none mb-1">
-                {value}<span className="text-[10px] text-slate-400 font-meduim ml-0.5">{subLabel}</span>
+            <div className="text-sm sm:text-lg font-black text-slate-800 leading-none mb-1 flex items-baseline">
+                {value}{subLabel && <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium ml-0.5">{subLabel}</span>}
             </div>
-            <p className="text-[10px] text-slate-500 font-bold">{label}</p>
+            <p className="text-[9px] sm:text-[10px] text-slate-500 font-bold leading-tight">{label}</p>
         </div>
     );
 }

@@ -80,25 +80,25 @@ export function UpcomingSchedules({ schedules }: UpcomingSchedulesProps) {
                         >
                             <div className={`absolute top-0 left-0 w-1 h-full ${isLive ? 'bg-red-500' : 'bg-shibl-crimson/50'}`} />
 
-                            <div className="flex items-start justify-between mb-2">
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 text-xs font-semibold text-charcoal border border-slate-100">
-                                    <CalendarIcon size={12} className="text-slate-400" />
-                                    {dateLabel} • {format(date, 'h:mm a', { locale: ar })}
+                            <div className="flex flex-wrap items-start justify-between mb-2 gap-2">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 text-xs font-semibold text-charcoal border border-slate-100 max-w-full">
+                                    <CalendarIcon size={12} className="text-slate-400 shrink-0" />
+                                    <span className="truncate">{dateLabel} • {format(date, 'h:mm a', { locale: ar })}</span>
                                 </span>
 
                                 {isLive ? (
-                                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold animate-pulse">
+                                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold animate-pulse shrink-0">
                                         <Radio size={10} />
                                         بث مباشر
                                     </span>
                                 ) : isLectureToday && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold animate-pulse">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold animate-pulse shrink-0">
                                         قريباً
                                     </span>
                                 )}
                             </div>
 
-                            <h3 className="font-bold text-charcoal mb-1 line-clamp-1 group-hover:text-shibl-crimson transition-colors">
+                            <h3 className="font-bold text-charcoal mb-1 line-clamp-1 group-hover:text-shibl-crimson transition-colors" title={lectureTitle}>
                                 {lectureTitle}
                             </h3>
 

@@ -44,12 +44,12 @@ function ParentRequestCard({ request, onAccept, onReject, isProcessing }: Parent
     const isPending = request.status === 'pending';
 
     return (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-md transition-all">
+        <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-5 hover:shadow-md transition-all">
             {/* Header */}
-            <div className="flex items-start justify-between gap-4 mb-4">
-                <div className="flex items-center gap-4">
+            <div className="flex items-start justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
+                <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
                     {/* Avatar */}
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
                         {request.parent?.image_path ? (
                             <img
                                 src={request.parent.image_path}
@@ -57,24 +57,24 @@ function ParentRequestCard({ request, onAccept, onReject, isProcessing }: Parent
                                 className="w-full h-full object-cover"
                             />
                         ) : (
-                            <Users size={24} className="text-slate-400" />
+                            <Users size={20} className="text-slate-400 sm:w-6 sm:h-6" />
                         )}
                     </div>
                     {/* Info */}
-                    <div>
-                        <h3 className="font-bold text-charcoal text-lg">
+                    <div className="min-w-0">
+                        <h3 className="font-bold text-charcoal text-sm sm:text-lg truncate">
                             {request.parent?.name || 'ولي أمر'}
                         </h3>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3 mt-0.5 sm:mt-1 text-[11px] sm:text-xs text-slate-500">
                             {request.parent?.email && (
-                                <span className="flex items-center gap-1">
-                                    <Mail size={12} />
-                                    {request.parent.email}
+                                <span className="flex items-center gap-1 truncate">
+                                    <Mail size={11} className="flex-shrink-0" />
+                                    <span className="truncate">{request.parent.email}</span>
                                 </span>
                             )}
                             {request.parent?.phone && (
                                 <span className="flex items-center gap-1">
-                                    <Phone size={12} />
+                                    <Phone size={11} className="flex-shrink-0" />
                                     {request.parent.phone}
                                 </span>
                             )}
@@ -82,7 +82,7 @@ function ParentRequestCard({ request, onAccept, onReject, isProcessing }: Parent
                     </div>
                 </div>
                 {/* Status Badge */}
-                <span className={`px-3 py-1 rounded-full text-xs font-bold border ${statusStyles[request.status]}`}>
+                <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold border flex-shrink-0 ${statusStyles[request.status]}`}>
                     {statusLabels[request.status]}
                 </span>
             </div>
@@ -95,8 +95,8 @@ function ParentRequestCard({ request, onAccept, onReject, isProcessing }: Parent
             )}
 
             {/* Timestamp */}
-            <div className="flex items-center gap-2 text-xs text-slate-400 mb-4">
-                <Clock size={14} />
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-slate-400 mb-3 sm:mb-4">
+                <Clock size={12} className="flex-shrink-0" />
                 <span>
                     {request.created_at
                         ? new Date(request.created_at).toLocaleDateString('ar-EG', {
@@ -111,24 +111,24 @@ function ParentRequestCard({ request, onAccept, onReject, isProcessing }: Parent
 
             {/* Actions */}
             {isPending && (
-                <div className="flex gap-3 pt-4 border-t border-slate-100">
+                <div className="flex gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-100">
                     <button
                         onClick={() => onReject(request.id)}
                         disabled={isProcessing}
-                        className="flex-1 py-2.5 px-4 bg-red-50 text-red-600 font-bold rounded-xl hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                        className="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 bg-red-50 text-red-600 text-sm sm:text-base font-bold rounded-xl hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5 sm:gap-2"
                     >
-                        <UserX size={18} />
+                        <UserX size={16} />
                         رفض
                     </button>
                     <button
                         onClick={() => onAccept(request.id)}
                         disabled={isProcessing}
-                        className="flex-1 py-2.5 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                        className="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm sm:text-base font-bold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5 sm:gap-2"
                     >
                         {isProcessing ? (
-                            <Loader2 size={18} className="animate-spin" />
+                            <Loader2 size={16} className="animate-spin" />
                         ) : (
-                            <UserCheck size={18} />
+                            <UserCheck size={16} />
                         )}
                         قبول
                     </button>
@@ -245,15 +245,15 @@ export function StudentParentRequestsPage() {
     const historyRequests = requests.filter(r => r.status !== 'pending');
 
     return (
-        <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="p-3 sm:p-4 md:p-8 max-w-4xl mx-auto space-y-5 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
             {/* Header */}
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-extrabold text-charcoal flex items-center gap-3">
-                        <Users className="text-shibl-crimson" />
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-charcoal flex items-center gap-2 sm:gap-3">
+                        <Users className="text-shibl-crimson w-5 h-5 sm:w-6 sm:h-6" />
                         طلبات ربط ولي الأمر
                     </h1>
-                    <p className="text-sm md:text-base text-slate-500 mt-2">
+                    <p className="text-xs sm:text-sm md:text-base text-slate-500 mt-1 sm:mt-2">
                         راجع طلبات الربط من أولياء الأمور ووافق عليها أو ارفضها
                     </p>
                 </div>
@@ -299,10 +299,10 @@ export function StudentParentRequestsPage() {
             {/* Pending Requests Section */}
             {!isLoading && pendingRequests.length > 0 && (
                 <section className="space-y-4">
-                    <h2 className="text-lg font-bold text-charcoal flex items-center gap-2">
-                        <Clock size={20} className="text-amber-500" />
+                    <h2 className="text-base sm:text-lg font-bold text-charcoal flex items-center gap-2">
+                        <Clock size={18} className="text-amber-500" />
                         طلبات قيد الانتظار
-                        <span className="ml-auto text-sm font-normal text-slate-400">
+                        <span className="mr-auto text-xs sm:text-sm font-normal text-slate-400">
                             {pendingRequests.length} طلب
                         </span>
                     </h2>
@@ -323,10 +323,10 @@ export function StudentParentRequestsPage() {
             {/* History Section */}
             {!isLoading && historyRequests.length > 0 && (
                 <section className="space-y-4">
-                    <h2 className="text-lg font-bold text-charcoal flex items-center gap-2">
-                        <CheckCircle size={20} className="text-slate-400" />
+                    <h2 className="text-base sm:text-lg font-bold text-charcoal flex items-center gap-2">
+                        <CheckCircle size={18} className="text-slate-400" />
                         السجل السابق
-                        <span className="ml-auto text-sm font-normal text-slate-400">
+                        <span className="mr-auto text-xs sm:text-sm font-normal text-slate-400">
                             {historyRequests.length} طلب
                         </span>
                     </h2>

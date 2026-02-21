@@ -16,9 +16,22 @@ export function LecturePlayerPage() {
     const navigate = useNavigate();
     const { isRTL } = useLanguage();
     const queryClient = useQueryClient();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 1024);
     const [isCompleting, setIsCompleting] = useState(false);
     const [milestone, setMilestone] = useState<MilestoneData | null>(null);
+
+    // Auto-close sidebar on window resize if it gets smaller than lg breakpoint
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 1024) {
+                setIsSidebarOpen(false);
+            } else {
+                setIsSidebarOpen(true);
+            }
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const { data: course, isLoading, error } = useQuery({
         queryKey: ['student-course', courseId],

@@ -745,8 +745,8 @@ export function StudentPackagesPage() {
 
                 {/* Purchase Modal */}
                 {showPurchaseModal && selectedPackage && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6">
+                        <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
                             {/* Modal Header */}
                             <div className="bg-gradient-to-br from-shibl-crimson to-red-700 p-6 text-white">
                                 <div className="flex items-center justify-between">
@@ -758,7 +758,7 @@ export function StudentPackagesPage() {
                                 <p className="text-white/80 text-sm mt-1">{selectedPackage.name}</p>
                             </div>
 
-                            <div className="p-6 space-y-6">
+                            <div className="p-4 sm:p-6 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
                                 {/* Success State */}
                                 {purchaseSuccess ? (
                                     <div className="text-center py-8">

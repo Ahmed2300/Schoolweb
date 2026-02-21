@@ -743,6 +743,7 @@ export function TeacherCourseDetailsPage() {
     const [liveSessionEmbedUrl, setLiveSessionEmbedUrl] = useState<string | null>(null);
     const [isLiveSessionModalOpen, setIsLiveSessionModalOpen] = useState(false);
     const [showTutorialModal, setShowTutorialModal] = useState(false);
+    const [showLectureTutorialModal, setShowLectureTutorialModal] = useState(false);
 
     // Student State
     const [students, setStudents] = useState<TeacherCourseStudent[]>([]);
@@ -1463,6 +1464,12 @@ export function TeacherCourseDetailsPage() {
                             layoutId="tutorial-video-teacher"
                             title="كيف تبدأ جلستك التجريبية الأولى؟"
                         />
+                        <TutorialThumbnail
+                            videoUrl="https://youtu.be/JZqNkJkoNg0"
+                            onClick={() => setShowLectureTutorialModal(true)}
+                            layoutId="lecture-tutorial-video-teacher"
+                            title="كيف تضيف أول محاضرة؟"
+                        />
 
                         <button
                             onClick={handleStartTestSession}
@@ -1944,6 +1951,15 @@ export function TeacherCourseDetailsPage() {
                 videoUrl="https://youtu.be/YHLgHVoinYQ"
                 title="كيف تبدأ جلستك التجريبية الأولى؟"
                 layoutId="tutorial-video-teacher"
+            />
+
+            {/* Lecture Tutorial Video Modal */}
+            <VideoModal
+                isOpen={showLectureTutorialModal}
+                onClose={() => setShowLectureTutorialModal(false)}
+                videoUrl="https://youtu.be/JZqNkJkoNg0"
+                title="كيف تضيف أول محاضرة؟"
+                layoutId="lecture-tutorial-video-teacher"
             />
 
         </div>

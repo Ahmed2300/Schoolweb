@@ -24,9 +24,9 @@ const WEBSOCKET_ENABLED = import.meta.env.VITE_WEBSOCKET_ENABLED !== 'false';
 const REVERB_CONFIG = {
     key: import.meta.env.VITE_REVERB_APP_KEY || 'school-reverb-key',
     host: import.meta.env.VITE_REVERB_HOST || 'localhost',
-    // Use env port or default to 8080
-    port: parseInt(import.meta.env.VITE_REVERB_PORT ?? '8080'),
-    scheme: import.meta.env.VITE_REVERB_SCHEME || 'http',
+    // Use env port or default to 443 (wss)
+    port: parseInt(import.meta.env.VITE_REVERB_PORT ?? '443'),
+    scheme: import.meta.env.VITE_REVERB_SCHEME || 'https',
 };
 
 // Track connection status to prevent spamming

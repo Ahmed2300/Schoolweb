@@ -144,7 +144,7 @@ export function LectureItem({ lecture, courseId, isSubscribed = false }: Lecture
                 onClick={handleClick}
                 className={`
         relative group
-        flex items-center gap-4 p-4 lg:p-5
+        flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 lg:p-5
         bg-white border border-slate-100 rounded-2xl
         hover:shadow-md ${isSubscribed ? hoverBorder : ''} ${isSubscribed ? 'hover:-translate-y-0.5' : ''}
         transition-all duration-300 cursor-pointer
@@ -152,49 +152,51 @@ export function LectureItem({ lecture, courseId, isSubscribed = false }: Lecture
         ${liveState === 'live' && isSubscribed ? 'ring-2 ring-red-200 border-red-100' : ''}
       `}>
                 {/* Icon Container */}
-                <div className={`w-12 h-12 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center shrink-0 ${isSubscribed ? 'group-hover:scale-110' : ''} transition-transform shadow-sm ${liveState === 'live' && isSubscribed ? 'animate-pulse' : ''}`}>
-                    <Icon size={22} className="stroke-[2.5]" fill={hasVideo ? "currentColor" : "none"} />
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                        <h4 className={`text-lg font-bold text-slate-800 truncate ${isSubscribed ? hoverText : ''} transition-colors`}>
-                            {getLocalizedName(lecture.title, 'Lecture')}
-                        </h4>
-                        {lecture.is_completed && (
-                            <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                        )}
+                <div className={`flex items-center gap-3 sm:gap-4 w-full sm:w-auto mb-2 sm:mb-0`}>
+                    <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center shrink-0 ${isSubscribed ? 'group-hover:scale-110' : ''} transition-transform shadow-sm ${liveState === 'live' && isSubscribed ? 'animate-pulse' : ''}`}>
+                        <Icon size={20} className="stroke-[2.5] lg:w-[22px] lg:h-[22px]" fill={hasVideo ? "currentColor" : "none"} />
                     </div>
 
-                    <div className="flex items-center gap-4 text-xs text-slate-500 font-medium">
-                        {lecture.duration_minutes > 0 && (
-                            <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-0.5 rounded-md">
-                                <Clock size={12} />
-                                <span>{lecture.duration_minutes} دقيقة</span>
-                            </div>
-                        )}
-                        <span className={`font-bold px-2 rounded ${liveState === 'live'
-                            ? 'text-red-600 bg-red-50'
-                            : isLive
-                                ? 'text-emerald-500/80 bg-emerald-50'
-                                : 'opacity-60'
-                            }`}>
-                            {getLiveStatusText()}
-                        </span>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <h4 className={`text-sm lg:text-lg font-bold text-slate-800 truncate ${isSubscribed ? hoverText : ''} transition-colors`}>
+                                {getLocalizedName(lecture.title, 'Lecture')}
+                            </h4>
+                            {lecture.is_completed && (
+                                <CheckCircle2 size={16} className="text-emerald-500 shrink-0 lg:w-[18px] lg:h-[18px]" />
+                            )}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 lg:gap-4 text-xs text-slate-500 font-medium">
+                            {lecture.duration_minutes > 0 && (
+                                <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-0.5 rounded-md">
+                                    <Clock size={12} />
+                                    <span>{lecture.duration_minutes} دقيقة</span>
+                                </div>
+                            )}
+                            <span className={`font-bold px-2 py-0.5 rounded ${liveState === 'live'
+                                ? 'text-red-600 bg-red-50'
+                                : isLive
+                                    ? 'text-emerald-500/80 bg-emerald-50'
+                                    : 'opacity-60'
+                                }`}>
+                                {getLiveStatusText()}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
                 {/* Action / State */}
-                <div className="shrink-0 flex items-center gap-3">
+                <div className="shrink-0 flex items-center gap-3 sm:justify-end w-full sm:w-auto mt-2 sm:mt-0">
                     {!isAccessible ? (
-                        <div className="flex items-center gap-2 text-slate-400 bg-slate-50 px-3 py-2 rounded-xl">
+                        <div className="flex items-center justify-center gap-2 text-slate-400 bg-slate-50 px-3 py-2 rounded-xl w-full sm:w-auto">
                             <Lock size={18} />
-                            {!isSubscribed && <span className="text-xs font-bold">للمشتركين</span>}
+                            {!isSubscribed && <span className="text-xs font-bold sm:hidden">للمشتركين</span>}
                         </div>
                     ) : (
                         <button className={`
-              px-5 py-2.5 rounded-xl text-sm font-bold
+              px-5 py-2.5 rounded-xl text-xs lg:text-sm font-bold w-full sm:w-auto flex items-center justify-center
               ${btnBg}
               transition-all shadow-sm
             `}>

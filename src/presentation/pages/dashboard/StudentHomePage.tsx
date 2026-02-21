@@ -96,9 +96,9 @@ export function StudentHomePage() {
     const displayName = user?.name?.split(' ')[0] || 'طالب';
 
     return (
-        <div className="p-6">
+        <div className="p-4 md:p-6 lg:p-8">
             {/* Welcome Card */}
-            <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#A31D24] to-[#7A151B] p-8 text-white shadow-xl shadow-shibl-crimson/20 mb-8">
+            <div className="relative overflow-hidden rounded-[24px] md:rounded-[32px] bg-gradient-to-br from-[#A31D24] to-[#7A151B] p-6 md:p-8 text-white shadow-xl shadow-shibl-crimson/20 mb-6 md:mb-8">
                 {/* Background Pattern */}
                 <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none">
                     <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -113,51 +113,51 @@ export function StudentHomePage() {
 
                 <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
                     <div className="flex-1 w-full lg:w-auto">
-                        <div className="mb-8">
-                            <h1 className="text-3xl lg:text-4xl font-black mb-2 tracking-tight">
+                        <div className="mb-6 md:mb-8 text-center lg:text-right">
+                            <h1 className="text-2xl md:text-3xl lg:text-4xl font-black mb-2 tracking-tight">
                                 مرحباً، {displayName}! 👋
                             </h1>
-                            <p className="text-white/80 text-lg font-medium max-w-lg leading-relaxed">
+                            <p className="text-white/80 text-base md:text-lg font-medium max-w-lg leading-relaxed mx-auto lg:mx-0">
                                 تابع تقدمك الدراسي واستكشف فرصك التعليمية الجديدة اليوم.
                             </p>
                         </div>
 
-                        <div className="flex flex-wrap gap-4">
+                        <div className="flex flex-wrap gap-3 md:gap-4">
                             {/* Stats Cards with Glassmorphism */}
-                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex items-center gap-4 min-w-[160px] transition-transform hover:scale-105 duration-300">
-                                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white shadow-inner">
-                                    <GraduationCap size={24} />
+                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 md:p-4 flex flex-1 items-center gap-3 min-w-[140px] sm:min-w-[160px] transition-transform hover:scale-105 duration-300">
+                                <div className="w-10 h-10 md:w-12 md:h-12 bg-white/20 rounded-xl flex items-center justify-center text-white shadow-inner shrink-0">
+                                    <GraduationCap size={20} className="md:w-6 md:h-6" />
                                 </div>
                                 <div>
                                     {loading ? (
-                                        <div className="h-7 w-12 bg-white/30 rounded animate-pulse mb-1"></div>
+                                        <div className="h-6 md:h-7 w-10 md:w-12 bg-white/30 rounded animate-pulse mb-1"></div>
                                     ) : (
-                                        <p className="text-2xl font-black">{stats.activeCourses}</p>
+                                        <p className="text-xl md:text-2xl font-black">{stats.activeCourses}</p>
                                     )}
-                                    <p className="text-xs font-bold text-white/70">دورات نشطة</p>
+                                    <p className="text-[10px] md:text-xs font-bold text-white/70 whitespace-nowrap">دورات نشطة</p>
                                 </div>
                             </div>
 
-                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex items-center gap-4 min-w-[160px] transition-transform hover:scale-105 duration-300">
-                                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white shadow-inner">
-                                    <TrendingUp size={24} />
+                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 md:p-4 flex flex-1 items-center gap-3 min-w-[140px] sm:min-w-[160px] transition-transform hover:scale-105 duration-300">
+                                <div className="w-10 h-10 md:w-12 md:h-12 bg-white/20 rounded-xl flex items-center justify-center text-white shadow-inner shrink-0">
+                                    <TrendingUp size={20} className="md:w-6 md:h-6" />
                                 </div>
                                 <div>
                                     <div className="flex items-baseline gap-1">
-                                        <p className="text-2xl font-black">{stats.overallProgress}</p>
-                                        <span className="text-sm font-bold opacity-60">%</span>
+                                        <p className="text-xl md:text-2xl font-black">{stats.overallProgress}</p>
+                                        <span className="text-xs md:text-sm font-bold opacity-60">%</span>
                                     </div>
-                                    <p className="text-xs font-bold text-white/70">مستوى التقدم</p>
+                                    <p className="text-[10px] md:text-xs font-bold text-white/70 whitespace-nowrap">مستوى التقدم</p>
                                 </div>
                             </div>
 
-                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex items-center gap-4 min-w-[160px] transition-transform hover:scale-105 duration-300">
-                                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white shadow-inner">
-                                    <Clock size={24} />
+                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 md:p-4 flex flex-1 items-center gap-3 min-w-[140px] sm:min-w-[160px] transition-transform hover:scale-105 duration-300">
+                                <div className="w-10 h-10 md:w-12 md:h-12 bg-white/20 rounded-xl flex items-center justify-center text-white shadow-inner shrink-0">
+                                    <Clock size={20} className="md:w-6 md:h-6" />
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-black">{stats.upcomingSessions}</p>
-                                    <p className="text-xs font-bold text-white/70">حصص قادمة</p>
+                                    <p className="text-xl md:text-2xl font-black">{stats.upcomingSessions}</p>
+                                    <p className="text-[10px] md:text-xs font-bold text-white/70 whitespace-nowrap">حصص قادمة</p>
                                 </div>
                             </div>
                         </div>
@@ -194,11 +194,11 @@ export function StudentHomePage() {
             </div>
 
             {/* Modern Tabs */}
-            <div className="flex items-center justify-center mb-8">
-                <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100 inline-flex">
+            <div className="flex items-center justify-center mb-6 md:mb-8 px-2 md:px-0">
+                <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row w-full sm:w-auto gap-1 sm:gap-0 mt-4 md:mt-2">
                     <button
                         onClick={() => setActiveTab('academic')}
-                        className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${activeTab === 'academic'
+                        className={`flex-1 px-4 md:px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${activeTab === 'academic'
                             ? 'bg-shibl-crimson text-white shadow-md shadow-shibl-crimson/20'
                             : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
                             }`}
@@ -208,7 +208,7 @@ export function StudentHomePage() {
                     </button>
                     <button
                         onClick={() => setActiveTab('skills')}
-                        className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${activeTab === 'skills'
+                        className={`flex-1 px-4 md:px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${activeTab === 'skills'
                             ? 'bg-shibl-crimson text-white shadow-md shadow-shibl-crimson/20'
                             : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
                             }`}

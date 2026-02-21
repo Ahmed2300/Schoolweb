@@ -2,12 +2,16 @@
  * DayTimeline Component
  *
  * A vertical timeline showing schedule cards for a selected day.
- * Displays time slots from 8 AM to 8 PM with scheduled lectures.
+ * Displays time slots from 12 AM to 11 PM with scheduled lectures.
+ *
+ * Mobile-first responsive design:
+ * - On mobile: simple stacked card list (no timeline dots/connectors to prevent overflow)
+ * - On desktop: full decorative timeline with dots and vertical line
  */
 
 import { useMemo } from 'react';
-import { Clock, PlayCircle, CheckCircle, Trash2, Loader2, Calendar, Radio, Lock } from 'lucide-react';
-import { format, parseISO, getHours, getMinutes, isBefore, addMinutes, differenceInMinutes } from 'date-fns';
+import { Clock, PlayCircle, CheckCircle, Trash2, Loader2, Calendar, Radio, Lock, AlertCircle } from 'lucide-react';
+import { format, parseISO, getHours, isBefore, addMinutes, differenceInMinutes } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { getLocalizedName } from '@/data/api/studentService';
 
@@ -16,7 +20,6 @@ import { getLocalizedName } from '@/data/api/studentService';
 // ============================================================
 
 import { Schedule } from '@/types/schedule';
-import { AlertCircle } from 'lucide-react';
 
 interface DayTimelineProps {
     selectedDate: Date;
@@ -93,43 +96,51 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
     const isLiveSession = !!(schedule.lecture?.is_online && lectureStartTime && Math.abs(differenceInMinutes(startTime, lectureStartTime)) < 15);
     const isReviewSession = !!(schedule.lecture?.is_online && !isLiveSession);
 
-    // Actions Logic: Disable if it's a Live Session and time has NOT start yet (is upcoming)
-    // User wants control "until them missed or attended or there time came" => enable AFTER start
+    // Actions Logic
     const isLiveStarted = isLiveSession && now >= startTime;
     const disableActions = isCompleting || isDeleting || (isLiveSession && !isLiveStarted);
+
+    // Border color based on status
+    const borderColor = isExpired
+        ? 'border-slate-200'
+        : isMissed
+            ? 'border-red-200'
+            : schedule.is_completed
+                ? 'border-green-200'
+                : 'border-shibl-crimson/20 hover:border-shibl-crimson/40';
+
+    const bgColor = isExpired
+        ? 'bg-slate-50 opacity-60'
+        : isMissed
+            ? 'bg-red-50/50'
+            : schedule.is_completed
+                ? 'bg-green-50/50'
+                : 'bg-white hover:shadow-md';
+
+    // Accent color for the left/right strip
+    const accentColor = isExpired
+        ? 'bg-slate-400'
+        : isMissed
+            ? 'bg-red-500'
+            : schedule.is_completed
+                ? 'bg-green-500'
+                : 'bg-shibl-crimson';
 
     return (
         <div
             className={`
-                group relative rounded-xl border-2 p-4 transition-all duration-200 mr-4
-                ${isExpired
-                    ? 'bg-slate-50 border-slate-200 opacity-60'
-                    : isMissed
-                        ? 'bg-red-50/50 border-red-200'
-                        : schedule.is_completed
-                            ? 'bg-green-50/50 border-green-200'
-                            : 'bg-white border-shibl-crimson/20 hover:border-shibl-crimson/40 hover:shadow-md'
-                }
+                group relative rounded-xl border-2 p-3 sm:p-4 transition-all duration-200 overflow-hidden
+                ${borderColor} ${bgColor}
             `}
         >
-            <div
-                className={`
-                    absolute right-[-13px] top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2
-                    ${isExpired
-                        ? 'bg-slate-400 border-slate-300'
-                        : isMissed
-                            ? 'bg-red-500 border-red-200'
-                            : schedule.is_completed
-                                ? 'bg-green-500 border-green-200'
-                                : 'bg-shibl-crimson border-shibl-crimson/30'
-                    }
-                `}
-            />
+            {/* Accent strip on the right side (RTL start) — contained within the card */}
+            <div className={`absolute top-0 right-0 w-1 h-full ${accentColor}`} />
 
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-2 sm:gap-3">
+                {/* Icon */}
                 <div
                     className={`
-                        w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0
+                        w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0
                         ${isExpired
                             ? 'bg-slate-200 text-slate-500'
                             : isMissed
@@ -140,24 +151,27 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
                         }
                     `}
                 >
-                    {isExpired ? <Lock size={20} /> : isMissed ? <AlertCircle size={20} /> : schedule.is_completed ? <CheckCircle size={20} /> : <PlayCircle size={20} />}
+                    {isExpired ? <Lock size={18} /> : isMissed ? <AlertCircle size={18} /> : schedule.is_completed ? <CheckCircle size={18} /> : <PlayCircle size={18} />}
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                        <h4 className={`font-bold truncate ${isMissed ? 'text-red-700' : schedule.is_completed ? 'text-green-700' : 'text-charcoal'}`}>
-                            {lectureTitle}
-                        </h4>
+                    {/* Title + badges */}
+                    <h4 className={`font-bold text-sm sm:text-base truncate mb-0.5 ${isMissed ? 'text-red-700' : schedule.is_completed ? 'text-green-700' : 'text-charcoal'}`}>
+                        {lectureTitle}
+                    </h4>
+
+                    {/* Status badges row */}
+                    <div className="flex flex-wrap items-center gap-1 mb-1">
                         {isExpired && (
-                            <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
-                                <Lock size={10} />
+                            <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-1.5 py-0.5 rounded inline-flex items-center gap-0.5">
+                                <Lock size={9} />
                                 الاشتراك منتهي
                             </span>
                         )}
                         {!isExpired && isMissed && (
-                            <span className="bg-red-100 text-red-700 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
-                                <AlertCircle size={10} />
+                            <span className="bg-red-100 text-red-700 text-[10px] font-bold px-1.5 py-0.5 rounded inline-flex items-center gap-0.5">
+                                <AlertCircle size={9} />
                                 فائتة
                             </span>
                         )}
@@ -167,55 +181,59 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
                             </span>
                         )}
                         {!isExpired && isLiveSession && (
-                            <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 animate-pulse">
-                                <Radio size={10} />
+                            <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded inline-flex items-center gap-0.5 animate-pulse">
+                                <Radio size={9} />
                                 مباشر
                             </span>
                         )}
                         {!isExpired && isReviewSession && (
-                            <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
-                                <PlayCircle size={10} />
+                            <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded inline-flex items-center gap-0.5">
+                                <PlayCircle size={9} />
                                 مسجل
                             </span>
                         )}
                     </div>
-                    <p className="text-sm text-slate-500 truncate mb-1">{courseName}</p>
-                    <div className="flex items-center gap-3 text-xs text-slate-400">
-                        <span className="flex items-center gap-1">
-                            <Clock size={12} />
+
+                    {/* Course name */}
+                    <p className="text-xs sm:text-sm text-slate-500 truncate mb-1">{courseName}</p>
+
+                    {/* Time + Duration */}
+                    <div className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs text-slate-400">
+                        <span className="inline-flex items-center gap-1">
+                            <Clock size={11} />
                             {scheduledTime}
                         </span>
                         {duration && (
-                            <span className="flex items-center gap-1">
-                                <Calendar size={12} />
+                            <span className="inline-flex items-center gap-1">
+                                <Calendar size={11} />
                                 {duration}
                             </span>
                         )}
                     </div>
                 </div>
 
-                {/* Actions - hidden for expired subscriptions */}
+                {/* Actions — visible on hover (desktop), always-visible on mobile for touch */}
                 {!isExpired && (
-                    <div className={`flex items-center gap-1 ${disableActions ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
+                    <div className={`flex items-center gap-0.5 flex-shrink-0 ${disableActions ? 'opacity-50' : 'sm:opacity-0 sm:group-hover:opacity-100'} transition-opacity`}>
                         {!schedule.is_completed && (
                             <button
                                 onClick={() => onComplete(schedule.id)}
                                 disabled={disableActions}
-                                className="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors disabled:opacity-50"
+                                className="p-1 sm:p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors disabled:opacity-50"
                                 title="تم المشاهدة"
                                 aria-label="تم المشاهدة"
                             >
-                                {isCompleting ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                                {isCompleting ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
                             </button>
                         )}
                         <button
                             onClick={() => onDelete(schedule.id)}
                             disabled={disableActions}
-                            className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                            className="p-1 sm:p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
                             title="حذف"
                             aria-label="حذف"
                         >
-                            {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                            {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                         </button>
                     </div>
                 )}
@@ -257,84 +275,65 @@ export function DayTimeline({
     return (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             {/* Day header */}
-            <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-l from-slate-50 to-white">
-                <h3 className="text-lg font-bold text-charcoal">
+            <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-slate-100 bg-gradient-to-l from-slate-50 to-white">
+                <h3 className="text-base sm:text-lg font-bold text-charcoal">
                     {format(selectedDate, 'EEEE، d MMMM', { locale: ar })}
                 </h3>
-                <p className="text-sm text-slate-500">
+                <p className="text-xs sm:text-sm text-slate-500">
                     {schedules.length > 0 ? `${schedules.length} محاضرات مجدولة` : 'لا توجد محاضرات'}
                 </p>
             </div>
 
             {/* Timeline */}
-            <div className="p-5">
-                <div className="relative">
-                    {/* Vertical line */}
-                    <div className="absolute right-[5px] top-0 bottom-0 w-0.5 bg-slate-100" />
+            <div className="p-3 sm:p-5">
+                <div className="space-y-3 sm:space-y-4">
+                    {TIME_SLOTS.map((slot) => {
+                        const slotSchedules = schedulesByHour[slot.hour] || [];
+                        const isPast = isBefore(new Date().setHours(slot.hour, 59), now);
+                        const isCurrent = currentHour === slot.hour;
 
-                    {/* Time slots */}
-                    <div className="space-y-4">
-                        {TIME_SLOTS.map((slot) => {
-                            const slotSchedules = schedulesByHour[slot.hour] || [];
-                            const isPast = isBefore(new Date().setHours(slot.hour, 59), now);
-                            const isCurrent = currentHour === slot.hour;
+                        return (
+                            <div key={slot.hour} className="flex gap-2 sm:gap-4">
+                                {/* Time label */}
+                                <div
+                                    className={`
+                                        w-[52px] sm:w-14 text-[11px] sm:text-sm font-medium text-left flex-shrink-0 pt-2
+                                        ${isCurrent ? 'text-shibl-crimson font-bold' : isPast ? 'text-slate-300' : 'text-slate-400'}
+                                    `}
+                                >
+                                    {slot.label}
+                                </div>
 
-                            return (
-                                <div key={slot.hour} className="flex gap-4">
-                                    {/* Time label */}
-                                    <div
-                                        className={`
-                                            w-14 text-sm font-medium text-left flex-shrink-0 pt-1
-                                            ${isCurrent ? 'text-shibl-crimson' : isPast ? 'text-slate-300' : 'text-slate-400'}
-                                        `}
-                                    >
-                                        {slot.label}
-                                    </div>
-
-                                    {/* Schedules or empty slot */}
-                                    <div className="flex-1 min-h-[48px] relative">
-                                        {/* Connector to timeline */}
+                                {/* Schedules or empty slot */}
+                                <div className="flex-1 min-w-0 min-h-[44px]">
+                                    {slotSchedules.length > 0 ? (
+                                        <div className="space-y-2 sm:space-y-3">
+                                            {slotSchedules.map((schedule) => (
+                                                <TimelineCard
+                                                    key={schedule.id}
+                                                    schedule={schedule}
+                                                    onComplete={onComplete}
+                                                    onDelete={onDelete}
+                                                    isCompleting={completingId === schedule.id}
+                                                    isDeleting={deletingId === schedule.id}
+                                                />
+                                            ))}
+                                        </div>
+                                    ) : (
                                         <div
                                             className={`
-                                                absolute right-0 top-3 w-2 h-0.5
-                                                ${slotSchedules.length > 0
-                                                    ? 'bg-shibl-crimson/30'
-                                                    : isPast
-                                                        ? 'bg-slate-100'
-                                                        : 'bg-slate-200'
+                                                h-11 border-2 border-dashed rounded-lg
+                                                ${isPast
+                                                    ? 'border-slate-100 opacity-50'
+                                                    : 'border-slate-200 hover:border-shibl-crimson/30 hover:bg-shibl-crimson/5 transition-colors cursor-pointer'
                                                 }
                                             `}
                                         />
-
-                                        {slotSchedules.length > 0 ? (
-                                            <div className="space-y-3 mr-3">
-                                                {slotSchedules.map((schedule) => (
-                                                    <TimelineCard
-                                                        key={schedule.id}
-                                                        schedule={schedule}
-                                                        onComplete={onComplete}
-                                                        onDelete={onDelete}
-                                                        isCompleting={completingId === schedule.id}
-                                                        isDeleting={deletingId === schedule.id}
-                                                    />
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div
-                                                className={`
-                                                    h-12 mr-3 border-2 border-dashed rounded-lg
-                                                    ${isPast
-                                                        ? 'border-slate-100 opacity-50'
-                                                        : 'border-slate-200 hover:border-shibl-crimson/30 hover:bg-shibl-crimson/5 transition-colors cursor-pointer'
-                                                    }
-                                                `}
-                                            />
-                                        )}
-                                    </div>
+                                    )}
                                 </div>
-                            );
-                        })}
-                    </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>

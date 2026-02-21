@@ -41,7 +41,7 @@ interface StatsCardProps {
     label: string;
     value: number;
     icon: React.ReactNode;
-    type: 'pending' | 'approved' | 'rejected';
+    type: 'pending' | 'approved' | 'rejected' | 'expired';
     isActive?: boolean;
     onClick?: () => void;
 }
@@ -74,6 +74,15 @@ function StatsCard({ label, value, icon, type, isActive, onClick }: StatsCardPro
             iconBg: 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400',
             shadow: 'shadow-rose-100/50 dark:shadow-none',
             activeRing: 'ring-rose-200 dark:ring-rose-900/40'
+        },
+        expired: {
+            bg: 'bg-gradient-to-br from-slate-50 via-white to-slate-50/50 dark:from-slate-900/20 dark:via-[#1E1E1E] dark:to-slate-900/10',
+            border: 'border-slate-200 dark:border-slate-800/50',
+            checkedBorder: 'border-slate-400 dark:border-slate-500',
+            text: 'text-slate-600 dark:text-slate-400',
+            iconBg: 'bg-slate-200 text-slate-600 dark:bg-slate-800/50 dark:text-slate-400',
+            shadow: 'shadow-slate-200/50 dark:shadow-none',
+            activeRing: 'ring-slate-300 dark:ring-slate-800/40'
         },
     };
 
@@ -246,14 +255,14 @@ export function TeacherSlotRequestsPage() {
     const { requests, isLoading, isCanceling, cancelRequest, refetch } = useSlotRequests();
     const { data: statsResponse, isLoading: isStatsLoading } = useSlotRequestStats();
 
-    // Stats from response
     const stats = useMemo(() => {
-        if (!statsResponse) return { pending: 0, approved: 0, rejected: 0 };
+        if (!statsResponse) return { pending: 0, approved: 0, rejected: 0, expired: 0 };
         const data = (statsResponse as any)?.data || statsResponse;
         return {
             pending: data.pending ?? 0,
             approved: data.approved ?? 0,
             rejected: data.rejected ?? 0,
+            expired: data.expired ?? 0,
         };
     }, [statsResponse]);
 
@@ -279,9 +288,11 @@ export function TeacherSlotRequestsPage() {
 
     // Filter out expired requests, then apply status filter
     const filteredRequests = useMemo(() => {
-        const active = requests.filter(r => !isExpiredRequest(r));
-        if (statusFilter === 'all') return active;
-        return active.filter(r => r.status === statusFilter);
+        const mapped = requests.map(r =>
+            isExpiredRequest(r) ? { ...r, status: SLOT_REQUEST_STATUSES.EXPIRED } : r
+        );
+        if (statusFilter === 'all') return mapped;
+        return mapped.filter(r => r.status === statusFilter);
     }, [requests, statusFilter]);
 
     // Handle cancel
@@ -322,7 +333,7 @@ export function TeacherSlotRequestsPage() {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
                     <StatsCard
                         label="قيد الانتظار"
                         value={stats.pending}
@@ -353,6 +364,16 @@ export function TeacherSlotRequestsPage() {
                             statusFilter === SLOT_REQUEST_STATUSES.REJECTED ? 'all' : SLOT_REQUEST_STATUSES.REJECTED
                         )}
                     />
+                    <StatsCard
+                        label="منتهية"
+                        value={stats.expired}
+                        icon={<AlertCircle size={24} />}
+                        type="expired"
+                        isActive={statusFilter === SLOT_REQUEST_STATUSES.EXPIRED}
+                        onClick={() => setStatusFilter(
+                            statusFilter === SLOT_REQUEST_STATUSES.EXPIRED ? 'all' : SLOT_REQUEST_STATUSES.EXPIRED
+                        )}
+                    />
                 </div>
 
                 {/* Active Filters Bar */}
@@ -371,6 +392,7 @@ export function TeacherSlotRequestsPage() {
                                     {statusFilter === SLOT_REQUEST_STATUSES.PENDING && 'قيد الانتظار'}
                                     {statusFilter === SLOT_REQUEST_STATUSES.APPROVED && 'موافق عليها'}
                                     {statusFilter === SLOT_REQUEST_STATUSES.REJECTED && 'مرفوضة'}
+                                    {statusFilter === SLOT_REQUEST_STATUSES.EXPIRED && 'منتهية'}
                                 </span>
                                 <button
                                     onClick={() => setStatusFilter('all')}
