@@ -193,15 +193,13 @@ export function EssayGradingModal({
     // Save a single answer grade
     const handleSaveGrade = useCallback(async () => {
         if (!currentAnswer || !currentGrading) return;
-        if (currentGrading.isCorrect === null) {
-            toast.error('يرجى تحديد ما إذا كانت الإجابة صحيحة أم خاطئة');
-            return;
-        }
+        // Auto-derive isCorrect from earned points
+        const resolvedIsCorrect = currentGrading.earnedPoints > 0;
 
         try {
             setSaving(true);
             const payload: GradeAnswerPayload = {
-                is_correct: currentGrading.isCorrect,
+                is_correct: resolvedIsCorrect,
                 earned_points: currentGrading.earnedPoints,
                 teacher_feedback: currentGrading.feedback || undefined,
             };
@@ -459,20 +457,20 @@ export function EssayGradingModal({
                                                     value={currentGrading?.earnedPoints ?? 0}
                                                     onChange={(e) => {
                                                         const pts = parseFloat(e.target.value);
-                                                        updateCurrentGrading({ earnedPoints: pts });
+                                                        updateCurrentGrading({ earnedPoints: pts, isCorrect: pts > 0 });
                                                     }}
                                                     className="w-full h-2 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-shibl-crimson"
                                                 />
 
                                                 <div className="flex justify-between mt-2">
                                                     <button
-                                                        onClick={() => updateCurrentGrading({ earnedPoints: 0 })}
+                                                        onClick={() => updateCurrentGrading({ earnedPoints: 0, isCorrect: false })}
                                                         className="text-xs px-2 py-1 rounded bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
                                                     >
                                                         صفر
                                                     </button>
                                                     <button
-                                                        onClick={() => updateCurrentGrading({ earnedPoints: currentAnswer?.points ?? 0 })}
+                                                        onClick={() => updateCurrentGrading({ earnedPoints: currentAnswer?.points ?? 0, isCorrect: true })}
                                                         className="text-xs px-2 py-1 rounded bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors"
                                                     >
                                                         درجة كاملة
