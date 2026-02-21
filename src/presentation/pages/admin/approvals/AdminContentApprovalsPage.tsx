@@ -1,4 +1,4 @@
-
+﻿
 import React, { useEffect, useState, useCallback } from 'react';
 import { useLanguage } from '../../../hooks';
 import { adminContentApprovalService } from '../../../../data/api/adminContentApprovalService';
@@ -139,19 +139,19 @@ export const AdminContentApprovalsPage = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">طلبات التعديل</h1>
-                    <p className="text-slate-500">إدارة طلبات تعديل المحتوى من المعلمين</p>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">طلبات التعديل</h1>
+                    <p className="text-slate-500 dark:text-slate-400">إدارة طلبات تعديل المحتوى من المعلمين</p>
                 </div>
 
                 {/* Filters */}
-                <div className="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+                <div className="flex bg-white dark:bg-[#1E1E1E] p-1 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
                     {(['pending', 'approved', 'rejected'] as const).map((status) => (
                         <button
                             key={status}
                             onClick={() => handleStatusChange(status)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${statusFilter === status
-                                ? 'bg-slate-900 text-white shadow'
-                                : 'text-slate-600 hover:bg-slate-50'
+                                ? 'bg-slate-900 dark:bg-white/10 text-white shadow'
+                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'
                                 }`}
                         >
                             {statusLabels[status]}
@@ -161,55 +161,55 @@ export const AdminContentApprovalsPage = () => {
             </div>
 
             {/* Content List */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden">
                 {loading ? (
-                    <div className="p-12 text-center text-slate-500">جاري تحميل الطلبات...</div>
+                    <div className="p-12 text-center text-slate-500 dark:text-slate-400">جاري تحميل الطلبات...</div>
                 ) : data?.data && data.data.length > 0 ? (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-right">
-                            <thead className="bg-slate-50 border-b border-slate-100">
+                            <thead className="bg-slate-50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
                                 <tr>
-                                    <th className="p-4 font-medium text-slate-500">الرقم</th>
-                                    <th className="p-4 font-medium text-slate-500">المحتوى</th>
-                                    <th className="p-4 font-medium text-slate-500">مقدم الطلب</th>
-                                    <th className="p-4 font-medium text-slate-500">التغييرات</th>
-                                    <th className="p-4 font-medium text-slate-500">التاريخ</th>
-                                    <th className="p-4 font-medium text-slate-500 text-center">الإجراءات</th>
+                                    <th className="p-4 font-medium text-slate-500 dark:text-slate-400">الرقم</th>
+                                    <th className="p-4 font-medium text-slate-500 dark:text-slate-400">المحتوى</th>
+                                    <th className="p-4 font-medium text-slate-500 dark:text-slate-400">مقدم الطلب</th>
+                                    <th className="p-4 font-medium text-slate-500 dark:text-slate-400">التغييرات</th>
+                                    <th className="p-4 font-medium text-slate-500 dark:text-slate-400">التاريخ</th>
+                                    <th className="p-4 font-medium text-slate-500 dark:text-slate-400 text-center">الإجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/10">
                                 {data.data.map((req) => (
-                                    <tr key={req.id} className="hover:bg-slate-50/50 transition-colors">
+                                    <tr key={req.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                                         <td className="p-4 text-slate-400">#{req.id}</td>
                                         <td className="p-4">
                                             <div className="flex items-center gap-2">
                                                 {getTypeIcon(req.approvable_type)}
                                                 <div className="flex flex-col">
-                                                    <span className="font-medium text-slate-900">{getApprovableName(req)}</span>
-                                                    <span className="text-xs text-slate-400">{getTypeLabel(req.approvable_type)}</span>
+                                                    <span className="font-medium text-slate-900 dark:text-white">{getApprovableName(req)}</span>
+                                                    <span className="text-xs text-slate-400 dark:text-slate-500">{getTypeLabel(req.approvable_type)}</span>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="p-4">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600">
+                                                <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300">
                                                     {req.requester?.name?.charAt(0) || '?'}
                                                 </div>
-                                                <span className="text-slate-700">{req.requester?.name}</span>
+                                                <span className="text-slate-700 dark:text-slate-300">{req.requester?.name}</span>
                                             </div>
                                         </td>
                                         <td className="p-4">
-                                            <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-medium">
+                                            <span className="bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 px-2 py-1 rounded text-xs font-medium">
                                                 {Object.keys(req.payload).length} تعديل
                                             </span>
                                         </td>
-                                        <td className="p-4 text-slate-500">
+                                        <td className="p-4 text-slate-500 dark:text-slate-400">
                                             {new Date(req.created_at).toLocaleDateString('ar-EG')}
                                         </td>
                                         <td className="p-4 text-center">
                                             <button
                                                 onClick={() => setSelectedRequest(req)}
-                                                className="p-2 hover:bg-white border border-transparent hover:border-slate-200 hover:shadow-sm rounded-lg text-slate-500 hover:text-blue-600 transition h-auto w-auto inline-flex"
+                                                className="p-2 hover:bg-white dark:hover:bg-white/5 border border-transparent hover:border-slate-200 dark:hover:border-white/10 hover:shadow-sm rounded-lg text-slate-500 dark:text-slate-400 hover:text-blue-600 transition h-auto w-auto inline-flex"
                                                 title="عرض التفاصيل"
                                             >
                                                 <Eye size={18} />
@@ -222,11 +222,11 @@ export const AdminContentApprovalsPage = () => {
                     </div>
                 ) : (
                     <div className="p-12 text-center">
-                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                        <div className="w-16 h-16 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300 dark:text-slate-600">
                             <Filter size={24} />
                         </div>
-                        <h3 className="text-lg font-medium text-slate-900">لا توجد طلبات</h3>
-                        <p className="text-slate-500 mt-1">
+                        <h3 className="text-lg font-medium text-slate-900 dark:text-white">لا توجد طلبات</h3>
+                        <p className="text-slate-500 dark:text-slate-400 mt-1">
                             {statusFilter === 'pending'
                                 ? 'أحسنت! تم معالجة جميع الطلبات المعلقة.'
                                 : `لا توجد طلبات ${statusLabels[statusFilter]}.`}
@@ -236,21 +236,21 @@ export const AdminContentApprovalsPage = () => {
 
                 {/* Pagination */}
                 {data && data.meta.last_page > 1 && (
-                    <div className="p-4 border-t border-slate-100 flex items-center justify-between">
+                    <div className="p-4 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
                         <button
                             onClick={() => setPage(p => Math.min(data.meta.last_page, p + 1))}
                             disabled={page === data.meta.last_page}
-                            className="p-2 hover:bg-slate-100 rounded-lg disabled:opacity-50"
+                            className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg disabled:opacity-50 dark:text-slate-300"
                         >
                             <ChevronRight size={20} />
                         </button>
-                        <span className="text-sm text-slate-600">
+                        <span className="text-sm text-slate-600 dark:text-slate-300">
                             صفحة {page} من {data.meta.last_page}
                         </span>
                         <button
                             onClick={() => setPage(p => Math.max(1, p - 1))}
                             disabled={page === 1}
-                            className="p-2 hover:bg-slate-100 rounded-lg disabled:opacity-50"
+                            className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg disabled:opacity-50 dark:text-slate-300"
                         >
                             <ChevronLeft size={20} />
                         </button>

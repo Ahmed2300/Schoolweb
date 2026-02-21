@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+﻿import { useState, useCallback, useEffect, useMemo } from 'react';
 import {
     ReactFlow,
     Background,
@@ -682,8 +682,8 @@ function AdminPackagesContent() {
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-800">باقات الاشتراكات</h1>
-                        <p className="text-slate-500 mt-1">إدارة الباقات الدراسية وتخصيص محتواها</p>
+                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">باقات الاشتراكات</h1>
+                        <p className="text-slate-500 dark:text-slate-400 mt-1">إدارة الباقات الدراسية وتخصيص محتواها</p>
                     </div>
                     <button
                         onClick={() => setViewMode('studio')}
@@ -695,14 +695,14 @@ function AdminPackagesContent() {
                 </div>
 
                 {/* List View Table (Simplified for brevity) */}
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-visible">
-                    <div className="p-4 border-b border-slate-100 flex gap-4">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-sm border border-slate-200 dark:border-white/10 overflow-visible">
+                    <div className="p-4 border-b border-slate-100 dark:border-white/10 flex gap-4">
                         <div className="relative flex-1">
                             <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                             <input
                                 type="text"
                                 placeholder="بحث عن باقة..."
-                                className="w-full pr-10 pl-4 py-2 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500/20"
+                                className="w-full pr-10 pl-4 py-2 bg-slate-50 dark:bg-[#2A2A2A] border-none rounded-xl focus:ring-2 focus:ring-indigo-500/20 dark:text-white dark:placeholder-slate-500"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -710,21 +710,21 @@ function AdminPackagesContent() {
                     </div>
 
                     {loading ? (
-                        <div className="p-12 text-center text-slate-500">جاري التحميل...</div>
+                        <div className="p-12 text-center text-slate-500 dark:text-slate-400">جاري التحميل...</div>
                     ) : (
                         <table className="w-full">
-                            <thead className="bg-slate-50 border-b border-slate-100">
+                            <thead className="bg-slate-50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
                                 <tr>
-                                    <th className="px-6 py-4 text-right text-sm font-semibold text-slate-600">اسم الباقة</th>
-                                    <th className="px-6 py-4 text-right text-sm font-semibold text-slate-600">السعر</th>
-                                    <th className="px-6 py-4 text-right text-sm font-semibold text-slate-600">عدد الكورسات</th>
-                                    <th className="px-6 py-4 text-right text-sm font-semibold text-slate-600">الحالة</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">إجراءات</th>
+                                    <th className="px-6 py-4 text-right text-sm font-semibold text-slate-600 dark:text-slate-400">اسم الباقة</th>
+                                    <th className="px-6 py-4 text-right text-sm font-semibold text-slate-600 dark:text-slate-400">السعر</th>
+                                    <th className="px-6 py-4 text-right text-sm font-semibold text-slate-600 dark:text-slate-400">عدد الكورسات</th>
+                                    <th className="px-6 py-4 text-right text-sm font-semibold text-slate-600 dark:text-slate-400">الحالة</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600 dark:text-slate-400">إجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/10">
                                 {packages.map(pkg => (
-                                    <tr key={pkg.id} className="hover:bg-slate-50/50 transition-colors">
+                                    <tr key={pkg.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 {pkg.image ? (
@@ -738,7 +738,7 @@ function AdminPackagesContent() {
                                                         <LayoutDashboard size={20} />
                                                     </div>
                                                 )}
-                                                <span className="font-medium text-slate-800">{pkg.name}</span>
+                                                <span className="font-medium text-slate-800 dark:text-white">{pkg.name}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
@@ -758,11 +758,11 @@ function AdminPackagesContent() {
                                                         </span>
                                                     </>
                                                 ) : (
-                                                    <span className="font-bold text-slate-700">{pkg.price?.toLocaleString()} ر.ع</span>
+                                                    <span className="font-bold text-slate-700 dark:text-slate-200">{pkg.price?.toLocaleString()} ر.ع</span>
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-slate-600">{pkg.courses_count || 0}</td>
+                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{pkg.courses_count || 0}</td>
                                         <td className="px-6 py-4">
                                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${pkg.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                                                 }`}>
@@ -773,22 +773,22 @@ function AdminPackagesContent() {
                                             <div className="relative">
                                                 <button
                                                     onClick={() => setOpenDropdownId(openDropdownId === pkg.id ? null : pkg.id)}
-                                                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
                                                 >
                                                     <MoreVertical size={20} />
                                                 </button>
 
                                                 {/* Dropdown Menu */}
                                                 {openDropdownId === pkg.id && (
-                                                    <div className="absolute left-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                                    <div className="absolute left-0 top-full mt-1 w-48 bg-white dark:bg-[#1E1E1E] rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                                                         <button
                                                             onClick={() => handleEditPackage(pkg)}
-                                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-slate-700 hover:bg-slate-50 transition-colors text-right"
+                                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-right"
                                                         >
                                                             <Edit size={18} className="text-blue-500" />
                                                             <span className="font-medium">تعديل الباقة</span>
                                                         </button>
-                                                        <div className="h-px bg-slate-100 my-1" />
+                                                        <div className="h-px bg-slate-100 dark:bg-white/10 my-1" />
                                                         <button
                                                             onClick={() => handleDeletePackage(pkg)}
                                                             className="w-full flex items-center gap-3 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors text-right"
@@ -814,7 +814,7 @@ function AdminPackagesContent() {
                         onClick={() => setDeleteModalPackage(null)}
                     >
                         <div
-                            className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in zoom-in-95 duration-200"
+                            className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in zoom-in-95 duration-200"
                             onClick={(e) => e.stopPropagation()}
                         >
                             {/* Modal Header */}
@@ -839,13 +839,13 @@ function AdminPackagesContent() {
                                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
                                         <Trash2 size={32} className="text-red-500" />
                                     </div>
-                                    <p className="text-slate-700 text-lg">
+                                    <p className="text-slate-700 dark:text-slate-300 text-lg">
                                         هل أنت متأكد من حذف الباقة
                                     </p>
-                                    <p className="text-xl font-bold text-slate-900 mt-2">
+                                    <p className="text-xl font-bold text-slate-900 dark:text-white mt-2">
                                         "{deleteModalPackage.name}"
                                     </p>
-                                    <p className="text-sm text-slate-500 mt-2">
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
                                         سيتم حذف الباقة نهائياً ولا يمكن التراجع عن هذا الإجراء
                                     </p>
                                 </div>
@@ -854,7 +854,7 @@ function AdminPackagesContent() {
                                     <button
                                         onClick={() => setDeleteModalPackage(null)}
                                         disabled={deleting}
-                                        className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors disabled:opacity-50"
+                                        className="flex-1 px-4 py-3 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-200 dark:hover:bg-white/15 transition-colors disabled:opacity-50"
                                     >
                                         إلغاء
                                     </button>
@@ -888,16 +888,16 @@ function AdminPackagesContent() {
     return (
         <div className={`flex flex-col gap-4 transition-all duration-300 ${isFullScreen ? 'fixed inset-0 z-50 bg-slate-50 p-4' : 'h-[calc(100vh-100px)]'}`}>
             {/* Header */}
-            <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+            <div className="flex items-center justify-between bg-white dark:bg-[#1E1E1E] p-4 rounded-xl shadow-sm border border-slate-200 dark:border-white/10">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => setViewMode('list')}
-                        className="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-600 dark:text-slate-400 transition-colors"
                     >
                         <ArrowLeft size={20} />
                     </button>
                     <div>
-                        <h2 className="text-lg font-bold text-slate-800">استوديو تصميم الباقات</h2>
+                        <h2 className="text-lg font-bold text-slate-800 dark:text-white">استوديو تصميم الباقات</h2>
                         <div className="flex items-center gap-2 text-xs text-slate-500">
                             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                             <span>نظام التجميع التلقائي نشط</span>
@@ -986,7 +986,7 @@ function AdminPackagesContent() {
                 </div>
 
                 {/* Sidebar Resources */}
-                <div className="w-80 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+                <div className="w-80 bg-white dark:bg-[#1E1E1E] rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
                     <div className="p-4 border-b border-slate-100">
                         <h3 className="font-bold text-slate-800 mb-4">المصادر التعليمية</h3>
 

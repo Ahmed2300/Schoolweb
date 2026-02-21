@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import {
     Search,
     Plus,
@@ -184,8 +184,8 @@ export function AdminLecturesPage() {
         <div className="p-6 lg:p-8 space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-charcoal">إدارة المحاضرات</h1>
-                    <p className="text-slate-500 text-sm mt-1">إدارة وتنظيم المحاضرات والفيديوهات</p>
+                    <h1 className="text-2xl font-bold text-charcoal dark:text-white">إدارة المحاضرات</h1>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">إدارة وتنظيم المحاضرات والفيديوهات</p>
                 </div>
                 <button
                     onClick={() => setIsAddModalOpen(true)}
@@ -197,43 +197,43 @@ export function AdminLecturesPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-sm">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-shibl-crimson/10 flex items-center justify-center">
                             <PlayCircle size={24} className="text-shibl-crimson" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-charcoal">{stats.total}</p>
-                            <p className="text-sm text-slate-500">إجمالي المحاضرات</p>
+                            <p className="text-2xl font-bold text-charcoal dark:text-white">{stats.total}</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">إجمالي المحاضرات</p>
                         </div>
                     </div>
                 </div>
-                <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-sm">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
                             <Video size={24} className="text-green-600" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-charcoal">{stats.withVideo}</p>
-                            <p className="text-sm text-slate-500">تحتوي فيديو</p>
+                            <p className="text-2xl font-bold text-charcoal dark:text-white">{stats.withVideo}</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">تحتوي فيديو</p>
                         </div>
                     </div>
                 </div>
-                <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-sm">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-xl p-5 border border-slate-200/80 dark:border-white/10 shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
                             <Users size={24} className="text-purple-600" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-charcoal">{stats.online}</p>
-                            <p className="text-sm text-slate-500">أونلاين</p>
+                            <p className="text-2xl font-bold text-charcoal dark:text-white">{stats.online}</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">أونلاين</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-slate-100 flex items-center gap-4 flex-wrap">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-xl border border-slate-200/80 dark:border-white/10 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-slate-100 dark:border-white/10 flex items-center gap-4 flex-wrap">
                     <form onSubmit={handleSearch} className="flex-1 min-w-[200px]">
                         <div className="relative">
                             <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -242,7 +242,7 @@ export function AdminLecturesPage() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="بحث عن محاضرة..."
-                                className="w-full h-10 pr-10 pl-4 rounded-lg bg-slate-50 border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 outline-none text-sm transition-all"
+                                className="w-full h-10 pr-10 pl-4 rounded-lg bg-slate-50 dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 outline-none text-sm transition-all dark:text-white"
                                 dir="rtl"
                             />
                         </div>
@@ -255,7 +255,7 @@ export function AdminLecturesPage() {
                                 setSelectedCourseId(e.target.value ? parseInt(e.target.value) : null);
                                 setCurrentPage(1);
                             }}
-                            className="w-full h-10 px-3 pr-8 rounded-lg bg-slate-50 border border-slate-200 focus:border-blue-400 outline-none text-sm appearance-none cursor-pointer"
+                            className="w-full h-10 px-3 pr-8 rounded-lg bg-slate-50 dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 focus:border-blue-400 outline-none text-sm appearance-none cursor-pointer dark:text-white"
                         >
                             <option value="">كل الكورسات</option>
                             {courses.map((course) => (
@@ -272,7 +272,7 @@ export function AdminLecturesPage() {
                                 setSelectedTeacherId(e.target.value ? parseInt(e.target.value) : null);
                                 setCurrentPage(1);
                             }}
-                            className="w-full h-10 px-3 pr-8 rounded-lg bg-slate-50 border border-slate-200 focus:border-blue-400 outline-none text-sm appearance-none cursor-pointer"
+                            className="w-full h-10 px-3 pr-8 rounded-lg bg-slate-50 dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 focus:border-blue-400 outline-none text-sm appearance-none cursor-pointer dark:text-white"
                         >
                             <option value="">كل المدرسين</option>
                             {teachers.map((teacher) => (
@@ -302,24 +302,24 @@ export function AdminLecturesPage() {
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-slate-50/50 border-b border-slate-100">
-                                    <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase">العنوان</th>
-                                    <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase">الكورس</th>
-                                    <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase">المدرس</th>
-                                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">فيديو</th>
-                                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase">الإجراءات</th>
+                                <tr className="bg-slate-50/50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
+                                    <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">العنوان</th>
+                                    <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">الكورس</th>
+                                    <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">المدرس</th>
+                                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">فيديو</th>
+                                    <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">الإجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/10">
                                 {lectures.map((lecture) => (
-                                    <tr key={lecture.id} className="hover:bg-slate-50/50 transition-colors">
+                                    <tr key={lecture.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-lg bg-shibl-crimson/10 flex items-center justify-center text-shibl-crimson">
                                                     <PlayCircle size={18} />
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium text-charcoal">{extractName(lecture.title)}</p>
+                                                    <p className="font-medium text-charcoal dark:text-white">{extractName(lecture.title)}</p>
                                                     {lecture.start_time && (
                                                         <p className="text-xs text-slate-400 flex items-center gap-1">
                                                             <Clock size={10} />
@@ -337,13 +337,13 @@ export function AdminLecturesPage() {
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
                                                 <BookOpen size={14} className="text-slate-400" />
-                                                <span className="text-sm text-slate-600">
+                                                <span className="text-sm text-slate-600 dark:text-slate-300">
                                                     {lecture.course ? extractName(lecture.course.name) : '-'}
                                                 </span>
                                             </div>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <span className="text-sm text-slate-600">
+                                            <span className="text-sm text-slate-600 dark:text-slate-300">
                                                 {lecture.teacher?.name || '-'}
                                             </span>
                                         </td>
@@ -397,22 +397,22 @@ export function AdminLecturesPage() {
                 )}
 
                 {totalPages > 1 && (
-                    <div className="p-4 border-t border-slate-100 flex items-center justify-between">
-                        <p className="text-sm text-slate-500">
+                    <div className="p-4 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
                             الصفحة {currentPage} من {totalPages}
                         </p>
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="h-9 px-4 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="h-9 px-4 rounded-lg border border-slate-200 dark:border-white/10 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 السابق
                             </button>
                             <button
                                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                 disabled={currentPage === totalPages}
-                                className="h-9 px-4 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="h-9 px-4 rounded-lg border border-slate-200 dark:border-white/10 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 التالي
                             </button>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     BookOpen,
     Search,
@@ -376,8 +376,8 @@ export function AdminSubjectsPage(): React.ReactElement {
                         <BookOpen className="text-white" size={24} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-charcoal">إدارة المواد الدراسية</h1>
-                        <p className="text-sm text-slate-500">إضافة وتعديل وحذف المواد الدراسية</p>
+                        <h1 className="text-2xl font-bold text-charcoal dark:text-white">إدارة المواد الدراسية</h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">إضافة وتعديل وحذف المواد الدراسية</p>
                     </div>
                 </div>
                 <button
@@ -389,7 +389,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                 </button>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-white/10">
                 <div className="relative max-w-md">
                     <Search size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
@@ -397,14 +397,14 @@ export function AdminSubjectsPage(): React.ReactElement {
                         placeholder="البحث في المواد الدراسية..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full h-11 pr-12 pl-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm"
+                        className="w-full h-11 pr-12 pl-4 rounded-xl bg-slate-50 dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm dark:text-white"
                         dir="rtl"
                     />
                 </div>
             </div>
 
             {error && (
-                <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3">
+                <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 rounded-xl flex items-center gap-3">
                     <AlertCircle size={20} />
                     <span>{error}</span>
                     <button onClick={fetchSubjects} className="mr-auto text-sm underline hover:no-underline">
@@ -413,19 +413,19 @@ export function AdminSubjectsPage(): React.ReactElement {
                 </div>
             )}
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-sm border border-slate-100 dark:border-white/10 overflow-hidden">
                 <table className="w-full">
-                    <thead className="bg-slate-50 border-b border-slate-100">
+                    <thead className="bg-slate-50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
                         <tr>
-                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">الاسم</th>
-                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">الكود</th>
-                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">الصف</th>
-                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">الفصل الدراسي</th>
-                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">الوصف</th>
-                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">الإجراءات</th>
+                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الاسم</th>
+                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الكود</th>
+                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الصف</th>
+                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الفصل الدراسي</th>
+                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الوصف</th>
+                            <th className="py-4 px-6 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الإجراءات</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-100 dark:divide-white/10">
                         {loading ? (
                             Array.from({ length: 5 }).map((_, i) => (
                                 <tr key={i} className="animate-pulse">
@@ -446,12 +446,12 @@ export function AdminSubjectsPage(): React.ReactElement {
                             </tr>
                         ) : (
                             filteredSubjects.map((subject) => (
-                                <tr key={subject.id} className="hover:bg-slate-50 transition-colors">
+                                <tr key={subject.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                                     <td className="py-4 px-6">
-                                        <span className="font-semibold text-charcoal">{subject.name}</span>
+                                        <span className="font-semibold text-charcoal dark:text-white">{subject.name}</span>
                                     </td>
                                     <td className="py-4 px-6">
-                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-mono">
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-mono">
                                             <Code size={12} />
                                             {subject.code}
                                         </span>
@@ -487,20 +487,20 @@ export function AdminSubjectsPage(): React.ReactElement {
                                             }
 
                                             return semesterName ? (
-                                                <span className="text-sm text-slate-600">{semesterName}</span>
+                                                <span className="text-sm text-slate-600 dark:text-slate-300">{semesterName}</span>
                                             ) : (
                                                 <span className="text-slate-400 text-sm">—</span>
                                             );
                                         })()}
                                     </td>
-                                    <td className="py-4 px-6 text-sm text-slate-500 max-w-xs truncate">
+                                    <td className="py-4 px-6 text-sm text-slate-500 dark:text-slate-400 max-w-xs truncate">
                                         {subject.description || '—'}
                                     </td>
                                     <td className="py-4 px-6">
                                         <div className="flex items-center gap-2">
                                             <button
                                                 onClick={() => handleOpenModal(subject)}
-                                                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
+                                                className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors"
                                                 title="تعديل"
                                             >
                                                 <Edit2 size={16} />
@@ -539,13 +539,13 @@ export function AdminSubjectsPage(): React.ReactElement {
                 </table>
 
                 {!loading && totalPages > 1 && (
-                    <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">
-                        <p className="text-sm text-slate-500">صفحة {currentPage} من {totalPages}</p>
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-white/10">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">صفحة {currentPage} من {totalPages}</p>
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-sm font-medium dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 السابق
                             </button>
@@ -565,17 +565,17 @@ export function AdminSubjectsPage(): React.ReactElement {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-charcoal/40 backdrop-blur-sm" onClick={closeModal} />
                     <div
-                        className="relative bg-white rounded-2xl w-full max-w-lg animate-in zoom-in-95 fade-in duration-200 max-h-[90vh] overflow-y-auto"
+                        className="relative bg-white dark:bg-[#1E1E1E] rounded-2xl w-full max-w-lg animate-in zoom-in-95 fade-in duration-200 max-h-[90vh] overflow-y-auto"
                         style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}
                     >
                         <div className="px-8 pt-8 pb-2">
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center">
                                         <BookOpen size={20} className="text-shibl-crimson" />
                                     </div>
                                     <div>
-                                        <h2 className="text-xl font-bold text-charcoal">
+                                        <h2 className="text-xl font-bold text-charcoal dark:text-white">
                                             {editingSubject ? 'تعديل المادة الدراسية' : 'إضافة مادة جديدة'}
                                         </h2>
                                         <p className="text-sm text-slate-400 mt-0.5">أدخل بيانات المادة الدراسية</p>
@@ -584,7 +584,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                 <button
                                     onClick={closeModal}
                                     disabled={submitting}
-                                    className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
+                                    className="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors disabled:opacity-50"
                                 >
                                     <X size={18} />
                                 </button>
@@ -593,7 +593,7 @@ export function AdminSubjectsPage(): React.ReactElement {
 
                         <form onSubmit={handleSubmit} className="px-8 pb-8 pt-4">
                             {formError && (
-                                <div className="mb-6 p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm flex items-center gap-2">
+                                <div className="mb-6 p-3 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-sm flex items-center gap-2">
                                     <AlertCircle size={16} />
                                     {formError}
                                 </div>
@@ -602,7 +602,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                             <div className="space-y-6">
                                 <div className="grid grid-cols-2 gap-5">
                                     <div>
-                                        <label className="block text-xs font-medium text-slate-500 mb-1.5">اسم المادة *</label>
+                                        <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">اسم المادة *</label>
                                         <input
                                             type="text"
                                             value={formData.name}
@@ -618,7 +618,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                                 }));
                                             }}
                                             placeholder="مثال: الرياضيات"
-                                            className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm placeholder:text-slate-300 transition-all"
+                                            className="w-full h-12 px-4 rounded-xl bg-slate-50/50 dark:bg-[#2A2A2A] border border-slate-200/80 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm placeholder:text-slate-300 transition-all dark:text-white"
                                             dir="rtl"
                                             disabled={submitting}
                                         />
@@ -648,7 +648,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                         )}
                                     </div>
                                     <div>
-                                        <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mb-1.5">
+                                        <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
                                             <Code size={12} className="text-slate-400" />
                                             كود المادة *
                                         </label>
@@ -657,7 +657,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                             value={formData.code}
                                             onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
                                             placeholder="مثال: MATH101"
-                                            className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-mono placeholder:text-slate-300 transition-all"
+                                            className="w-full h-12 px-4 rounded-xl bg-slate-50/50 dark:bg-[#2A2A2A] border border-slate-200/80 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm font-mono placeholder:text-slate-300 transition-all dark:text-white"
                                             dir="ltr"
                                             disabled={submitting}
                                         />
@@ -665,20 +665,20 @@ export function AdminSubjectsPage(): React.ReactElement {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1.5">الوصف</label>
+                                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">الوصف</label>
                                     <textarea
                                         value={formData.description}
                                         onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                                         placeholder="وصف المادة الدراسية (اختياري)"
                                         rows={2}
-                                        className="w-full px-4 py-3 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm placeholder:text-slate-300 transition-all resize-none"
+                                        className="w-full px-4 py-3 rounded-xl bg-slate-50/50 dark:bg-[#2A2A2A] border border-slate-200/80 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm placeholder:text-slate-300 transition-all resize-none dark:text-white"
                                         dir="rtl"
                                         disabled={submitting}
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mb-1.5">
+                                    <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
                                         <User size={13} className="text-slate-400" />
                                         مدرس المادة *
                                     </label>
@@ -686,7 +686,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                         <select
                                             value={formData.teacher_id || ''}
                                             onChange={(e) => setFormData(prev => ({ ...prev, teacher_id: e.target.value ? Number(e.target.value) : null }))}
-                                            className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm transition-all appearance-none cursor-pointer"
+                                            className="w-full h-12 px-4 rounded-xl bg-slate-50/50 dark:bg-[#2A2A2A] border border-slate-200/80 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm transition-all appearance-none cursor-pointer dark:text-white"
                                             dir="rtl"
                                             disabled={submitting}
                                         >
@@ -699,21 +699,21 @@ export function AdminSubjectsPage(): React.ReactElement {
                                     </div>
                                 </div>
 
-                                <div className="pt-2 border-t border-slate-100">
-                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-4">ربط المادة بالتسلسل التعليمي</p>
+                                <div className="pt-2 border-t border-slate-100 dark:border-white/10">
+                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-4">ربط المادة بالتسلسل التعليمي</p>
 
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mb-1.5">
+                                            <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
                                                 <Layers size={13} className="text-indigo-500" />
                                                 اختر الصف الدراسي
                                             </label>
                                             {loadingDropdowns ? (
-                                                <div className="h-12 rounded-xl bg-slate-50 flex items-center justify-center">
+                                                <div className="h-12 rounded-xl bg-slate-50 dark:bg-[#2A2A2A] flex items-center justify-center">
                                                     <Loader2 size={18} className="animate-spin text-slate-400" />
                                                 </div>
                                             ) : grades.length === 0 ? (
-                                                <div className="h-12 rounded-xl bg-slate-50/50 border border-slate-200/80 flex items-center justify-center text-sm text-slate-400">
+                                                <div className="h-12 rounded-xl bg-slate-50/50 dark:bg-[#2A2A2A] border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-sm text-slate-400">
                                                     لا توجد صفوف متاحة
                                                 </div>
                                             ) : (
@@ -721,7 +721,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                                     <select
                                                         value={formData.grade_id || ''}
                                                         onChange={(e) => handleGradeChange(e.target.value ? parseInt(e.target.value) : null)}
-                                                        className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm transition-all appearance-none cursor-pointer"
+                                                        className="w-full h-12 px-4 rounded-xl bg-slate-50/50 dark:bg-[#2A2A2A] border border-slate-200/80 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none text-sm transition-all appearance-none cursor-pointer dark:text-white"
                                                         dir="rtl"
                                                         disabled={submitting}
                                                     >
@@ -737,13 +737,13 @@ export function AdminSubjectsPage(): React.ReactElement {
 
                                         {formData.grade_id && (
                                             <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                                                <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mb-2">
+                                                <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
                                                     <Calendar size={13} className="text-indigo-500" />
                                                     الفصل الدراسي المرتبط
                                                 </label>
                                                 {filteredSemesters.length === 0 ? (
                                                     <div className="flex flex-col items-center justify-center py-6">
-                                                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+                                                        <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center mb-2">
                                                             <FolderOpen size={20} className="text-slate-300" />
                                                         </div>
                                                         <p className="text-xs text-slate-400">لا توجد فصول مرتبطة بهذا الصف</p>
@@ -762,7 +762,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                                                         flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 border
                                                                         ${isSelected
                                                                             ? 'bg-shibl-crimson text-white border-shibl-crimson shadow-md shadow-crimson/30'
-                                                                            : 'bg-white text-slate-600 border-slate-200 hover:border-red-200 hover:bg-red-50'
+                                                                            : 'bg-white dark:bg-[#2A2A2A] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-red-200 hover:bg-red-50 dark:hover:bg-white/5'
                                                                         }
                                                                         disabled:opacity-50
                                                                     `}
@@ -790,7 +790,7 @@ export function AdminSubjectsPage(): React.ReactElement {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-3 mt-8 pt-6 border-t border-slate-100">
+                            <div className="flex items-center gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-white/10">
                                 <button
                                     type="button"
                                     onClick={closeModal}

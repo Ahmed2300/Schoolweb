@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     CreditCard,
     Search,
@@ -147,16 +147,16 @@ export function AdminPaymentsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-charcoal flex items-center gap-3">
+                    <h1 className="text-2xl font-bold text-charcoal dark:text-white flex items-center gap-3">
                         <CreditCard size={28} className="text-purple-600" />
                         إدارة المدفوعات
                     </h1>
-                    <p className="text-slate-500 mt-1">عرض وإدارة جميع عمليات الدفع</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">عرض وإدارة جميع عمليات الدفع</p>
                 </div>
             </div>
 
             {/* Filters */}
-            <div className="bg-white rounded-2xl p-4 shadow-card border border-slate-100">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl p-4 shadow-card border border-slate-100 dark:border-white/10">
                 <div className="flex flex-wrap gap-4 items-center">
                     {/* Search */}
                     <div className="relative flex-1 min-w-[250px]">
@@ -166,7 +166,7 @@ export function AdminPaymentsPage() {
                             placeholder="البحث بالاسم أو البريد الإلكتروني..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pr-10 pl-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson transition"
+                            className="w-full pr-10 pl-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 dark:bg-[#2A2A2A] dark:text-white dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson transition"
                         />
                     </div>
 
@@ -176,7 +176,7 @@ export function AdminPaymentsPage() {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value as PaymentStatus | 'all')}
-                            className="px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson transition bg-white"
+                            className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-shibl-crimson/20 focus:border-shibl-crimson transition bg-white dark:bg-[#2A2A2A] dark:text-white"
                         >
                             <option value="all">جميع الحالات</option>
                             <option value="pending">قيد الانتظار</option>
@@ -189,24 +189,24 @@ export function AdminPaymentsPage() {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-card border border-slate-100 dark:border-white/10 overflow-hidden">
                 {loading ? (
                     /* Shimmer Skeleton Loading */
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-slate-50 border-b border-slate-100">
+                            <thead className="bg-slate-50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
                                 <tr>
-                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 text-sm">الطالب</th>
-                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 text-sm">المبلغ</th>
-                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 text-sm">طريقة الدفع</th>
-                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 text-sm">الحالة</th>
-                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 text-sm">التاريخ</th>
-                                    <th className="text-center py-4 px-6 font-semibold text-slate-600 text-sm">الإجراءات</th>
+                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 dark:text-slate-400 text-sm">الطالب</th>
+                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 dark:text-slate-400 text-sm">المبلغ</th>
+                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 dark:text-slate-400 text-sm">طريقة الدفع</th>
+                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 dark:text-slate-400 text-sm">الحالة</th>
+                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 dark:text-slate-400 text-sm">التاريخ</th>
+                                    <th className="text-center py-4 px-6 font-semibold text-slate-600 dark:text-slate-400 text-sm">الإجراءات</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {[...Array(6)].map((_, index) => (
-                                    <tr key={index} className="border-b border-slate-100">
+                                    <tr key={index} className="border-b border-slate-100 dark:border-white/10">
                                         {/* Student */}
                                         <td className="py-4 px-6">
                                             <div className="space-y-2">
@@ -255,31 +255,31 @@ export function AdminPaymentsPage() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-slate-50 border-b border-slate-100">
+                            <thead className="bg-slate-50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
                                 <tr>
-                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 text-sm">الطالب</th>
-                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 text-sm">المبلغ</th>
-                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 text-sm">طريقة الدفع</th>
-                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 text-sm">الحالة</th>
-                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 text-sm">التاريخ</th>
-                                    <th className="text-center py-4 px-6 font-semibold text-slate-600 text-sm">الإجراءات</th>
+                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 dark:text-slate-400 text-sm">الطالب</th>
+                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 dark:text-slate-400 text-sm">المبلغ</th>
+                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 dark:text-slate-400 text-sm">طريقة الدفع</th>
+                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 dark:text-slate-400 text-sm">الحالة</th>
+                                    <th className="text-right py-4 px-6 font-semibold text-slate-600 dark:text-slate-400 text-sm">التاريخ</th>
+                                    <th className="text-center py-4 px-6 font-semibold text-slate-600 dark:text-slate-400 text-sm">الإجراءات</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredPayments.map((payment) => {
                                     const statusConfig = STATUS_CONFIG[payment.status];
                                     return (
-                                        <tr key={payment.id} className="border-b border-slate-100 hover:bg-slate-50 transition">
+                                        <tr key={payment.id} className="border-b border-slate-100 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition">
                                             <td className="py-4 px-6">
-                                                <div className="font-medium text-charcoal">{payment.student?.name || '—'}</div>
+                                                <div className="font-medium text-charcoal dark:text-white">{payment.student?.name || '—'}</div>
                                                 <div className="text-xs text-slate-400">{payment.student?.email}</div>
                                             </td>
                                             <td className="py-4 px-6">
-                                                <span className="font-bold text-charcoal">
+                                                <span className="font-bold text-charcoal dark:text-white">
                                                     {formatAmount(payment.amount, payment.currency)}
                                                 </span>
                                             </td>
-                                            <td className="py-4 px-6 text-slate-600">
+                                            <td className="py-4 px-6 text-slate-600 dark:text-slate-300">
                                                 {METHOD_LABELS[payment.method] || payment.method}
                                             </td>
                                             <td className="py-4 px-6">
@@ -288,14 +288,14 @@ export function AdminPaymentsPage() {
                                                     {statusConfig.label}
                                                 </span>
                                             </td>
-                                            <td className="py-4 px-6 text-slate-500 text-sm">
+                                            <td className="py-4 px-6 text-slate-500 dark:text-slate-400 text-sm">
                                                 {formatDate(payment.created_at)}
                                             </td>
                                             <td className="py-4 px-6">
                                                 <div className="flex items-center justify-center gap-2">
                                                     <button
                                                         onClick={() => setSelectedPayment(payment)}
-                                                        className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition"
+                                                        className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 transition"
                                                         title="عرض التفاصيل"
                                                     >
                                                         <Eye size={18} />
@@ -338,21 +338,21 @@ export function AdminPaymentsPage() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="flex items-center justify-center gap-2 py-4 border-t border-slate-100">
+                    <div className="flex items-center justify-center gap-2 py-4 border-t border-slate-100 dark:border-white/10">
                         <button
                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
-                            className="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            className="px-4 py-2 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed transition"
                         >
                             السابق
                         </button>
-                        <span className="px-4 py-2 text-slate-600">
+                        <span className="px-4 py-2 text-slate-600 dark:text-slate-300">
                             صفحة {currentPage} من {totalPages}
                         </span>
                         <button
                             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages}
-                            className="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            className="px-4 py-2 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed transition"
                         >
                             التالي
                         </button>
@@ -363,12 +363,12 @@ export function AdminPaymentsPage() {
             {/* Detail Modal */}
             {selectedPayment && !rejectModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-charcoal">تفاصيل الدفع #{selectedPayment.id}</h3>
+                    <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-charcoal dark:text-white">تفاصيل الدفع #{selectedPayment.id}</h3>
                             <button
                                 onClick={() => setSelectedPayment(null)}
-                                className="p-2 hover:bg-slate-100 rounded-lg transition"
+                                className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition dark:text-slate-400"
                             >
                                 <X size={20} />
                             </button>
@@ -376,39 +376,39 @@ export function AdminPaymentsPage() {
                         <div className="p-6 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-sm text-slate-500">الطالب</label>
-                                    <p className="font-medium">{selectedPayment.student?.name || '—'}</p>
+                                    <label className="text-sm text-slate-500 dark:text-slate-400">الطالب</label>
+                                    <p className="font-medium dark:text-white">{selectedPayment.student?.name || '—'}</p>
                                 </div>
                                 <div>
-                                    <label className="text-sm text-slate-500">البريد الإلكتروني</label>
-                                    <p className="font-medium">{selectedPayment.student?.email || '—'}</p>
+                                    <label className="text-sm text-slate-500 dark:text-slate-400">البريد الإلكتروني</label>
+                                    <p className="font-medium dark:text-white">{selectedPayment.student?.email || '—'}</p>
                                 </div>
                                 <div>
-                                    <label className="text-sm text-slate-500">المبلغ</label>
+                                    <label className="text-sm text-slate-500 dark:text-slate-400">المبلغ</label>
                                     <p className="font-bold text-lg text-shibl-crimson">
                                         {formatAmount(selectedPayment.amount, selectedPayment.currency)}
                                     </p>
                                 </div>
                                 <div>
-                                    <label className="text-sm text-slate-500">طريقة الدفع</label>
-                                    <p className="font-medium">{METHOD_LABELS[selectedPayment.method]}</p>
+                                    <label className="text-sm text-slate-500 dark:text-slate-400">طريقة الدفع</label>
+                                    <p className="font-medium dark:text-white">{METHOD_LABELS[selectedPayment.method]}</p>
                                 </div>
                                 <div>
-                                    <label className="text-sm text-slate-500">الحالة</label>
+                                    <label className="text-sm text-slate-500 dark:text-slate-400">الحالة</label>
                                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${STATUS_CONFIG[selectedPayment.status].bgColor} ${STATUS_CONFIG[selectedPayment.status].color}`}>
                                         {STATUS_CONFIG[selectedPayment.status].icon}
                                         {STATUS_CONFIG[selectedPayment.status].label}
                                     </span>
                                 </div>
                                 <div>
-                                    <label className="text-sm text-slate-500">التاريخ</label>
-                                    <p className="font-medium">{formatDate(selectedPayment.created_at)}</p>
+                                    <label className="text-sm text-slate-500 dark:text-slate-400">التاريخ</label>
+                                    <p className="font-medium dark:text-white">{formatDate(selectedPayment.created_at)}</p>
                                 </div>
                             </div>
                             {selectedPayment.notes && (
                                 <div>
-                                    <label className="text-sm text-slate-500">ملاحظات</label>
-                                    <p className="bg-slate-50 p-3 rounded-lg mt-1">{selectedPayment.notes}</p>
+                                    <label className="text-sm text-slate-500 dark:text-slate-400">ملاحظات</label>
+                                    <p className="bg-slate-50 dark:bg-[#2A2A2A] p-3 rounded-lg mt-1 dark:text-slate-300">{selectedPayment.notes}</p>
                                 </div>
                             )}
                             {selectedPayment.rejection_reason && (
@@ -419,7 +419,7 @@ export function AdminPaymentsPage() {
                             )}
                             {selectedPayment.receipt_image && (
                                 <div>
-                                    <label className="text-sm text-slate-500">صورة الإيصال</label>
+                                    <label className="text-sm text-slate-500 dark:text-slate-400">صورة الإيصال</label>
                                     <img
                                         src={selectedPayment.receipt_image}
                                         alt="Receipt"
@@ -429,7 +429,7 @@ export function AdminPaymentsPage() {
                             )}
                         </div>
                         {selectedPayment.status === 'pending' && (
-                            <div className="p-6 border-t border-slate-100 flex gap-3">
+                            <div className="p-6 border-t border-slate-100 dark:border-white/10 flex gap-3">
                                 <button
                                     onClick={() => handleApprove(selectedPayment.id)}
                                     disabled={actionLoading === selectedPayment.id}
@@ -458,10 +458,10 @@ export function AdminPaymentsPage() {
             {/* Reject Modal */}
             {rejectModalOpen && selectedPayment && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-md w-full">
-                        <div className="p-6 border-b border-slate-100">
-                            <h3 className="text-lg font-bold text-charcoal">رفض الدفع</h3>
-                            <p className="text-sm text-slate-500 mt-1">يرجى ذكر سبب الرفض</p>
+                    <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl max-w-md w-full">
+                        <div className="p-6 border-b border-slate-100 dark:border-white/10">
+                            <h3 className="text-lg font-bold text-charcoal dark:text-white">رفض الدفع</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">يرجى ذكر سبب الرفض</p>
                         </div>
                         <div className="p-6">
                             <textarea
@@ -469,16 +469,16 @@ export function AdminPaymentsPage() {
                                 onChange={(e) => setRejectionReason(e.target.value)}
                                 placeholder="سبب الرفض..."
                                 rows={4}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 resize-none transition"
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 dark:bg-[#2A2A2A] dark:text-white dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 resize-none transition"
                             />
                         </div>
-                        <div className="p-6 border-t border-slate-100 flex gap-3">
+                        <div className="p-6 border-t border-slate-100 dark:border-white/10 flex gap-3">
                             <button
                                 onClick={() => {
                                     setRejectModalOpen(false);
                                     setRejectionReason('');
                                 }}
-                                className="flex-1 py-3 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold transition"
+                                className="flex-1 py-3 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl font-bold transition dark:text-white"
                             >
                                 إلغاء
                             </button>

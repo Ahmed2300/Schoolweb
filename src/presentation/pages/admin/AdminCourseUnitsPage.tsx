@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AdminCourseUnitsPage
  * 
  * Full-page units management for a specific course.
@@ -273,7 +273,7 @@ export function AdminCourseUnitsPage() {
                     </div>
 
                     {/* Title */}
-                    <h1 className="text-2xl font-extrabold text-charcoal flex items-center gap-3">
+                    <h1 className="text-2xl font-extrabold text-charcoal dark:text-white flex items-center gap-3">
                         <Layers size={28} className="text-shibl-crimson" />
                         إدارة وحدات الكورس
                     </h1>
@@ -318,7 +318,7 @@ export function AdminCourseUnitsPage() {
                         <h2 className="text-lg font-bold text-slate-800">
                             {getLocalizedName(course?.name)}
                         </h2>
-                        <p className="text-sm text-slate-500">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
                             {course?.code} • {units.length} وحدة
                         </p>
                     </div>

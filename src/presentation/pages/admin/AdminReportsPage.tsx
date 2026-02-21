@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
     Calendar,
@@ -38,7 +38,7 @@ interface UserDistribution {
 
 function StatsCardSkeleton() {
     return (
-        <div className="bg-white rounded-[20px] p-6 shadow-card border border-slate-100 animate-pulse">
+        <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] p-6 shadow-card border border-slate-100 dark:border-white/10 animate-pulse">
             <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-slate-200" />
                 <div className="flex-1">
@@ -52,7 +52,7 @@ function StatsCardSkeleton() {
 
 function ChartSkeleton() {
     return (
-        <div className="bg-white rounded-[20px] p-6 shadow-card border border-slate-100 animate-pulse">
+        <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] p-6 shadow-card border border-slate-100 dark:border-white/10 animate-pulse">
             <div className="h-6 bg-slate-200 rounded w-48 mb-8" />
             <div className="h-64 bg-slate-100 rounded-lg flex items-end justify-between gap-2 p-4">
                 {[...Array(12)].map((_, i) => (
@@ -65,8 +65,8 @@ function ChartSkeleton() {
 
 function TableSkeleton() {
     return (
-        <div className="bg-white rounded-[20px] shadow-card border border-slate-100 overflow-hidden animate-pulse">
-            <div className="px-6 py-5 border-b border-slate-100">
+        <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] shadow-card border border-slate-100 dark:border-white/10 overflow-hidden animate-pulse">
+            <div className="px-6 py-5 border-b border-slate-100 dark:border-white/10">
                 <div className="h-6 bg-slate-200 rounded w-32" />
             </div>
             <div className="p-4 space-y-3">
@@ -97,9 +97,9 @@ function StatsCard({ title, value, change, icon, bgColor, iconBgColor, isLoading
                     {icon}
                 </div>
                 <div>
-                    <p className="text-slate-500 font-medium text-sm mb-1">{title}</p>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mb-1">{title}</p>
                     <div className="flex items-center gap-2">
-                        <h3 className="text-2xl font-extrabold text-charcoal">{value.toLocaleString('ar-EG')}</h3>
+                        <h3 className="text-2xl font-extrabold text-charcoal dark:text-white">{value.toLocaleString('ar-EG')}</h3>
                         {change !== undefined && (
                             <span className={`flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${change >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                 <TrendingUp size={12} className="ml-1" />
@@ -150,8 +150,8 @@ function RegistrationLineChart({ students, teachers, parents, isLoading }: LineC
 
     if (chartData.length === 0) {
         return (
-            <div className="bg-white rounded-[20px] p-6 shadow-card border border-slate-100">
-                <h3 className="font-bold text-charcoal text-lg mb-4">نمو التسجيلات بمرور الوقت</h3>
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] p-6 shadow-card border border-slate-100 dark:border-white/10">
+                <h3 className="font-bold text-charcoal dark:text-white text-lg mb-4">نمو التسجيلات بمرور الوقت</h3>
                 <div className="h-64 flex items-center justify-center text-slate-400">
                     لا توجد بيانات متاحة
                 </div>
@@ -180,9 +180,9 @@ function RegistrationLineChart({ students, teachers, parents, isLoading }: LineC
     const parentPath = generatePath(chartData.map(d => d.parentTotal));
 
     return (
-        <div className="bg-white rounded-[20px] p-6 shadow-card border border-slate-100">
+        <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] p-6 shadow-card border border-slate-100 dark:border-white/10">
             <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-charcoal text-lg">نمو التسجيلات بمرور الوقت</h3>
+                <h3 className="font-bold text-charcoal dark:text-white text-lg">نمو التسجيلات بمرور الوقت</h3>
                 <div className="flex items-center gap-4 text-sm">
                     <div className="flex items-center gap-2">
                         <span className="w-3 h-3 rounded-full bg-blue-500" />
@@ -238,7 +238,7 @@ interface DonutChartProps {
 function UserDistributionDonut({ distribution, isLoading }: DonutChartProps) {
     if (isLoading) {
         return (
-            <div className="bg-white rounded-[20px] p-6 shadow-card border border-slate-100 animate-pulse">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] p-6 shadow-card border border-slate-100 dark:border-white/10 animate-pulse">
                 <div className="h-6 bg-slate-200 rounded w-40 mb-8" />
                 <div className="w-48 h-48 mx-auto bg-slate-200 rounded-full mb-8" />
                 <div className="space-y-3">
@@ -260,8 +260,8 @@ function UserDistributionDonut({ distribution, isLoading }: DonutChartProps) {
     const parentDash = (parentPercent / 100) * circumference;
 
     return (
-        <div className="bg-white rounded-[20px] p-6 shadow-card border border-slate-100">
-            <h3 className="font-bold text-charcoal text-lg mb-8">توزيع قاعدة المستخدمين</h3>
+        <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] p-6 shadow-card border border-slate-100 dark:border-white/10">
+            <h3 className="font-bold text-charcoal dark:text-white text-lg mb-8">توزيع قاعدة المستخدمين</h3>
 
             <div className="relative w-48 h-48 mx-auto mb-8">
                 <svg viewBox="0 0 100 100" className="transform -rotate-90 w-full h-full">
@@ -299,7 +299,7 @@ function UserDistributionDonut({ distribution, isLoading }: DonutChartProps) {
                 {/* Center Text */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className="text-xs text-slate-400 font-medium">الإجمالي</span>
-                    <span className="text-xl font-extrabold text-charcoal">{total.toLocaleString('ar-EG')}</span>
+                    <span className="text-xl font-extrabold text-charcoal dark:text-white">{total.toLocaleString('ar-EG')}</span>
                 </div>
             </div>
 
@@ -309,21 +309,21 @@ function UserDistributionDonut({ distribution, isLoading }: DonutChartProps) {
                         <div className="w-3 h-3 rounded-full bg-blue-500" />
                         <span className="text-sm font-medium text-slate-600">Students</span>
                     </div>
-                    <span className="text-sm font-bold text-charcoal">{studentPercent.toFixed(0)}%</span>
+                    <span className="text-sm font-bold text-charcoal dark:text-white">{studentPercent.toFixed(0)}%</span>
                 </div>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-emerald-500" />
                         <span className="text-sm font-medium text-slate-600">Teachers</span>
                     </div>
-                    <span className="text-sm font-bold text-charcoal">{teacherPercent.toFixed(0)}%</span>
+                    <span className="text-sm font-bold text-charcoal dark:text-white">{teacherPercent.toFixed(0)}%</span>
                 </div>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-amber-500" />
                         <span className="text-sm font-medium text-slate-600">Parents</span>
                     </div>
-                    <span className="text-sm font-bold text-charcoal">{parentPercent.toFixed(0)}%</span>
+                    <span className="text-sm font-bold text-charcoal dark:text-white">{parentPercent.toFixed(0)}%</span>
                 </div>
             </div>
         </div>
@@ -353,9 +353,9 @@ function RecentRegistrationsTable({ registrations, isLoading, onViewAll }: Recen
     };
 
     return (
-        <div className="bg-white rounded-[20px] shadow-card border border-slate-100 overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                <h3 className="font-bold text-charcoal text-lg">أحدث التسجيلات</h3>
+        <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] shadow-card border border-slate-100 dark:border-white/10 overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
+                <h3 className="font-bold text-charcoal dark:text-white text-lg">أحدث التسجيلات</h3>
                 <button
                     onClick={onViewAll}
                     className="text-sm text-shibl-crimson font-bold hover:underline"
@@ -366,24 +366,24 @@ function RecentRegistrationsTable({ registrations, isLoading, onViewAll }: Recen
             <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>
-                        <tr className="bg-slate-50 border-b border-slate-100">
+                        <tr className="bg-slate-50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
                             <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">اسم المستخدم</th>
                             <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">دوار</th>
                             <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">تاريخ التسجيل</th>
                             <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الحالة</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-100 dark:divide-white/10">
                         {registrations.length === 0 ? (
                             <tr>
                                 <td colSpan={4} className="px-6 py-8 text-center text-slate-400">لا توجد تسجيلات حديثة</td>
                             </tr>
                         ) : (
                             registrations.map((reg) => (
-                                <tr key={reg.id} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="px-6 py-4 font-bold text-charcoal text-sm">{reg.name}</td>
+                                <tr key={reg.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                    <td className="px-6 py-4 font-bold text-charcoal dark:text-white text-sm">{reg.name}</td>
                                     <td className="px-6 py-4">{getRoleBadge(reg.role)}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-500">
+                                    <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400">
                                         {new Date(reg.date).toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' })}
                                     </td>
                                     <td className="px-6 py-4">
@@ -431,10 +431,10 @@ function AllRegistrationsModal({ isOpen, onClose, registrations, isLoading }: Al
             />
 
             {/* Modal */}
-            <div className="relative bg-white rounded-[20px] shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+            <div className="relative bg-white dark:bg-[#1E1E1E] rounded-[20px] shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                    <h2 className="font-bold text-charcoal text-xl">جميع التسجيلات</h2>
+                <div className="px-6 py-5 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
+                    <h2 className="font-bold text-charcoal dark:text-white text-xl">جميع التسجيلات</h2>
                     <button
                         onClick={onClose}
                         className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
@@ -455,7 +455,7 @@ function AllRegistrationsModal({ isOpen, onClose, registrations, isLoading }: Al
                         </div>
                     ) : (
                         <table className="w-full">
-                            <thead className="sticky top-0 bg-slate-50 border-b border-slate-100">
+                            <thead className="sticky top-0 bg-slate-50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
                                 <tr>
                                     <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">اسم المستخدم</th>
                                     <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الدور</th>
@@ -463,12 +463,12 @@ function AllRegistrationsModal({ isOpen, onClose, registrations, isLoading }: Al
                                     <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الحالة</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/10">
                                 {registrations.map((reg) => (
-                                    <tr key={`${reg.role}-${reg.id}`} className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-6 py-4 font-bold text-charcoal text-sm">{reg.name}</td>
+                                    <tr key={`${reg.role}-${reg.id}`} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                        <td className="px-6 py-4 font-bold text-charcoal dark:text-white text-sm">{reg.name}</td>
                                         <td className="px-6 py-4">{getRoleBadge(reg.role)}</td>
-                                        <td className="px-6 py-4 text-sm text-slate-500">
+                                        <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400">
                                             {new Date(reg.date).toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' })}
                                         </td>
                                         <td className="px-6 py-4">
@@ -484,7 +484,7 @@ function AllRegistrationsModal({ isOpen, onClose, registrations, isLoading }: Al
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 text-sm text-slate-500 text-center">
+                <div className="px-6 py-4 border-t border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-[#2A2A2A] text-sm text-slate-500 dark:text-slate-400 text-center">
                     إجمالي التسجيلات: {registrations.length}
                 </div>
             </div>
@@ -565,19 +565,19 @@ export function AdminReportsPage() {
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
                 <div>
-                    <h1 className="text-2xl font-extrabold text-charcoal mb-1">التقارير والتحليلات</h1>
-                    <p className="text-slate-500 text-sm">نظرة شاملة على أداء المنصة والإيرادات</p>
+                    <h1 className="text-2xl font-extrabold text-charcoal dark:text-white mb-1">التقارير والتحليلات</h1>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">نظرة شاملة على أداء المنصة والإيرادات</p>
                 </div>
 
                 <div className="flex items-center gap-3">
                     {/* Date Picker */}
-                    <div className="h-11 px-4 bg-white border border-slate-200 rounded-[12px] flex items-center gap-2 text-slate-600 font-medium text-sm cursor-pointer hover:border-shibl-crimson transition-colors">
+                    <div className="h-11 px-4 bg-white dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 rounded-[12px] dark:text-white flex items-center gap-2 text-slate-600 font-medium text-sm cursor-pointer hover:border-shibl-crimson transition-colors">
                         <Calendar size={18} />
                         <span>{dateRange}</span>
                     </div>
 
                     {/* Export Button */}
-                    <button className="h-11 px-5 rounded-[12px] bg-white border border-slate-200 hover:border-shibl-crimson text-slate-600 hover:text-shibl-crimson font-semibold text-sm transition-all flex items-center gap-2">
+                    <button className="h-11 px-5 rounded-[12px] bg-white dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 dark:text-white hover:border-shibl-crimson text-slate-600 hover:text-shibl-crimson font-semibold text-sm transition-all flex items-center gap-2">
                         <Download size={18} />
                         <span>تصدير</span>
                     </button>
@@ -749,13 +749,13 @@ export function AdminReportsPage() {
                             {/* Payment Status Summary */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 {/* Payments Breakdown */}
-                                <div className="bg-white rounded-[20px] shadow-card border border-slate-100 p-6">
-                                    <h3 className="font-bold text-charcoal text-lg mb-6">ملخص المدفوعات</h3>
+                                <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] shadow-card border border-slate-100 dark:border-white/10 p-6">
+                                    <h3 className="font-bold text-charcoal dark:text-white text-lg mb-6">ملخص المدفوعات</h3>
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-xl">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-3 h-3 bg-emerald-500 rounded-full" />
-                                                <span className="font-medium text-charcoal">مدفوعات معتمدة</span>
+                                                <span className="font-medium text-charcoal dark:text-white">مدفوعات معتمدة</span>
                                             </div>
                                             <div className="text-left">
                                                 <span className="font-bold text-emerald-600">{financialStats.payments.approved_count}</span>
@@ -765,7 +765,7 @@ export function AdminReportsPage() {
                                         <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-3 h-3 bg-amber-500 rounded-full" />
-                                                <span className="font-medium text-charcoal">مدفوعات معلقة</span>
+                                                <span className="font-medium text-charcoal dark:text-white">مدفوعات معلقة</span>
                                             </div>
                                             <div className="text-left">
                                                 <span className="font-bold text-amber-600">{financialStats.payments.pending_count}</span>
@@ -775,7 +775,7 @@ export function AdminReportsPage() {
                                         <div className="flex items-center justify-between p-4 bg-red-50 rounded-xl">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-3 h-3 bg-red-500 rounded-full" />
-                                                <span className="font-medium text-charcoal">مدفوعات مرفوضة</span>
+                                                <span className="font-medium text-charcoal dark:text-white">مدفوعات مرفوضة</span>
                                             </div>
                                             <div className="text-left">
                                                 <span className="font-bold text-red-600">{financialStats.payments.rejected_count}</span>
@@ -786,34 +786,34 @@ export function AdminReportsPage() {
                                 </div>
 
                                 {/* Subscriptions Breakdown */}
-                                <div className="bg-white rounded-[20px] shadow-card border border-slate-100 p-6">
-                                    <h3 className="font-bold text-charcoal text-lg mb-6">ملخص الاشتراكات</h3>
+                                <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] shadow-card border border-slate-100 dark:border-white/10 p-6">
+                                    <h3 className="font-bold text-charcoal dark:text-white text-lg mb-6">ملخص الاشتراكات</h3>
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between p-4 bg-blue-50 rounded-xl">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-3 h-3 bg-blue-500 rounded-full" />
-                                                <span className="font-medium text-charcoal">اشتراكات نشطة</span>
+                                                <span className="font-medium text-charcoal dark:text-white">اشتراكات نشطة</span>
                                             </div>
                                             <span className="font-bold text-blue-600 text-xl">{financialStats.subscriptions.active_subscriptions}</span>
                                         </div>
                                         <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-3 h-3 bg-slate-400 rounded-full" />
-                                                <span className="font-medium text-charcoal">اشتراكات غير نشطة</span>
+                                                <span className="font-medium text-charcoal dark:text-white">اشتراكات غير نشطة</span>
                                             </div>
                                             <span className="font-bold text-slate-600 text-xl">{financialStats.subscriptions.inactive_subscriptions}</span>
                                         </div>
                                         <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-xl">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-3 h-3 bg-emerald-500 rounded-full" />
-                                                <span className="font-medium text-charcoal">اشتراكات حالية (سارية)</span>
+                                                <span className="font-medium text-charcoal dark:text-white">اشتراكات حالية (سارية)</span>
                                             </div>
                                             <span className="font-bold text-emerald-600 text-xl">{financialStats.subscriptions.current_subscriptions}</span>
                                         </div>
                                         <div className="flex items-center justify-between p-4 bg-purple-50 rounded-xl">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-3 h-3 bg-purple-500 rounded-full" />
-                                                <span className="font-medium text-charcoal">إجمالي الاشتراكات</span>
+                                                <span className="font-medium text-charcoal dark:text-white">إجمالي الاشتراكات</span>
                                             </div>
                                             <span className="font-bold text-purple-600 text-xl">{financialStats.subscriptions.total_subscriptions}</span>
                                         </div>
@@ -822,11 +822,11 @@ export function AdminReportsPage() {
                             </div>
                         </>
                     ) : (
-                        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[20px] border border-slate-100 shadow-sm">
+                        <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-[#1E1E1E] rounded-[20px] border border-slate-100 dark:border-white/10 shadow-sm">
                             <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
                                 <DollarSign size={32} className="text-shibl-crimson" />
                             </div>
-                            <h3 className="text-xl font-bold text-charcoal mb-2">لا توجد بيانات مالية</h3>
+                            <h3 className="text-xl font-bold text-charcoal dark:text-white mb-2">لا توجد بيانات مالية</h3>
                             <p className="text-slate-500">لم يتم العثور على بيانات مالية في هذه الفترة.</p>
                         </div>
                     )}
@@ -835,11 +835,11 @@ export function AdminReportsPage() {
 
             {/* Content Tab Placeholder */}
             {activeTab === 'content' && (
-                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[20px] border border-slate-100 shadow-sm">
+                <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-[#1E1E1E] rounded-[20px] border border-slate-100 dark:border-white/10 shadow-sm">
                     <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mb-4">
                         <BookOpen size={32} className="text-purple-500" />
                     </div>
-                    <h3 className="text-xl font-bold text-charcoal mb-2">تحليلات المحتوى قريباً</h3>
+                    <h3 className="text-xl font-bold text-charcoal dark:text-white mb-2">تحليلات المحتوى قريباً</h3>
                     <p className="text-slate-500">ستتمكن قريباً من تتبع أداء الكورسات والدروس الأكثر مشاهدة.</p>
                 </div>
             )}

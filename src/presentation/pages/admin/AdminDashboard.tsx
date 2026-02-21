@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StatCard } from '../../components/admin';
 import {
@@ -101,11 +101,11 @@ const getActivityConfig = (description: string) => {
 const DashboardStatCard = ({ icon, label, value, trend, index }: any) => {
     // Alternate subtle gradients for a premium feel
     const gradient = index % 2 === 0
-        ? 'bg-gradient-to-br from-white to-red-50/30'
-        : 'bg-gradient-to-br from-white to-rose-50/30';
+        ? 'bg-gradient-to-br from-white dark:from-[#1E1E1E] to-red-50/30 dark:to-[#1E1E1E]'
+        : 'bg-gradient-to-br from-white dark:from-[#1E1E1E] to-rose-50/30 dark:to-[#1E1E1E]';
 
     return (
-        <div className={`${gradient} relative overflow-hidden rounded-[24px] p-6 border border-slate-100/60 shadow-[0_4px_20px_-4px_rgba(31,31,31,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(175,12,21,0.1)] transition-all duration-300 group hover:-translate-y-1`}>
+        <div className={`${gradient} relative overflow-hidden rounded-[24px] p-6 border border-slate-100/60 dark:border-white/10 shadow-[0_4px_20px_-4px_rgba(31,31,31,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(175,12,21,0.1)] transition-all duration-300 group hover:-translate-y-1`}>
             {/* Decorative background circle */}
             <div className="absolute -top-6 -right-6 w-24 h-24 bg-shibl-crimson/5 rounded-full blur-2xl group-hover:bg-shibl-crimson/10 transition-all duration-500"></div>
 
@@ -117,7 +117,7 @@ const DashboardStatCard = ({ icon, label, value, trend, index }: any) => {
                 </div>
 
                 <div className="space-y-1">
-                    <h3 className="text-3xl font-extrabold text-charcoal tracking-tight">{value}</h3>
+                    <h3 className="text-3xl font-extrabold text-charcoal dark:text-white tracking-tight">{value}</h3>
                     <p className="text-slate-500 text-sm font-medium flex items-center justify-between">
                         {label}
                         {trend && (
@@ -136,12 +136,12 @@ const QuickActionCard = ({ icon, label, onClick, index }: any) => {
     return (
         <button
             onClick={onClick}
-            className="group relative flex flex-col items-center justify-center gap-3 p-6 rounded-[20px] bg-white border border-slate-100 shadow-[0_2px_8px_-2px_rgba(31,31,31,0.05)] hover:shadow-[0_8px_24px_-6px_rgba(175,12,21,0.15)] hover:border-shibl-crimson/20 transition-all duration-300 hover:-translate-y-1"
+            className="group relative flex flex-col items-center justify-center gap-3 p-6 rounded-[20px] bg-white dark:bg-[#1E1E1E] border border-slate-100 dark:border-white/10 shadow-[0_2px_8px_-2px_rgba(31,31,31,0.05)] hover:shadow-[0_8px_24px_-6px_rgba(175,12,21,0.15)] hover:border-shibl-crimson/20 transition-all duration-300 hover:-translate-y-1"
         >
             <div className={`p-3 rounded-xl bg-slate-50 text-slate-600 group-hover:bg-shibl-crimson group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-[0_4px_12px_rgba(175,12,21,0.3)]`}>
                 {icon}
             </div>
-            <span className="font-bold text-sm text-charcoal group-hover:text-shibl-crimson transition-colors duration-300">{label}</span>
+            <span className="font-bold text-sm text-charcoal dark:text-white group-hover:text-shibl-crimson transition-colors duration-300">{label}</span>
         </button>
     );
 };
@@ -250,7 +250,7 @@ export function AdminDashboard() {
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-4xl font-extrabold text-charcoal mb-2 tracking-tight">
+                    <h1 className="text-4xl font-extrabold text-charcoal dark:text-white mb-2 tracking-tight">
                         مرحباً، <span className="bg-gradient-to-r from-shibl-crimson to-rose-600 bg-clip-text text-transparent">{adminName}</span> 👋
                     </h1>
                     <p className="text-slate-500 font-medium flex items-center gap-2">
@@ -265,7 +265,7 @@ export function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {loading ? (
                     Array.from({ length: 4 }).map((_, index) => (
-                        <div key={index} className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 animate-pulse h-40"></div>
+                        <div key={index} className="bg-white dark:bg-[#1E1E1E] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-white/10 animate-pulse h-40"></div>
                     ))
                 ) : (
                     statsDisplay.map((stat, index) => (
@@ -278,7 +278,7 @@ export function AdminDashboard() {
                 {/* Main Content Area - Activity Log */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-charcoal flex items-center gap-2">
+                        <h2 className="text-xl font-bold text-charcoal dark:text-white flex items-center gap-2">
                             <Activity size={22} className="text-shibl-crimson" />
                             <span>النشاط الأخير</span>
                         </h2>
@@ -288,7 +288,7 @@ export function AdminDashboard() {
                         </button>
                     </div>
 
-                    <div className="bg-white rounded-[24px] p-2 shadow-[0_2px_12px_-4px_rgba(31,31,31,0.05)] border border-slate-100/60">
+                    <div className="bg-white dark:bg-[#1E1E1E] rounded-[24px] p-2 shadow-[0_2px_12px_-4px_rgba(31,31,31,0.05)] border border-slate-100/60 dark:border-white/10">
                         {activitiesLoading ? (
                             <div className="space-y-2 p-4">
                                 {Array.from({ length: 5 }).map((_, i) => (
@@ -314,13 +314,13 @@ export function AdminDashboard() {
                                     return (
                                         <div
                                             key={activity.id}
-                                            className="group flex items-center gap-4 p-4 rounded-[16px] hover:bg-slate-50 transition-all duration-200 border border-transparent hover:border-slate-100"
+                                            className="group flex items-center gap-4 p-4 rounded-[16px] hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-200 border border-transparent hover:border-slate-100 dark:hover:border-white/10"
                                         >
                                             <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold ${config.bg} ${config.text} group-hover:scale-105 transition-transform duration-300 shadow-sm`}>
                                                 {config.icon}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-[15px] font-semibold text-charcoal truncate">
+                                                <p className="text-[15px] font-semibold text-charcoal dark:text-white truncate">
                                                     {config.label} <span className="text-slate-500 font-normal">في</span> {activity.subject?.name || activity.subject?.title || activity.subject_type?.split('\\').pop()}
                                                 </p>
                                                 <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
@@ -344,7 +344,7 @@ export function AdminDashboard() {
 
                 {/* Sidebar / Quick Actions */}
                 <div className="space-y-6">
-                    <h2 className="text-xl font-bold text-charcoal flex items-center gap-2">
+                    <h2 className="text-xl font-bold text-charcoal dark:text-white flex items-center gap-2">
                         <span>إجراءات سريعة</span>
                     </h2>
 

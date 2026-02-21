@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import {
     Search,
     Filter,
@@ -236,8 +236,8 @@ export function AdminAdminsPage() {
             {/* Page Header */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-extrabold text-charcoal">إدارة المديرين</h1>
-                    <p className="text-sm text-slate-grey mt-1">إدارة حسابات المديرين والصلاحيات</p>
+                    <h1 className="text-2xl font-extrabold text-charcoal dark:text-white">إدارة المديرين</h1>
+                    <p className="text-sm text-slate-grey dark:text-slate-400 mt-1">إدارة حسابات المديرين والصلاحيات</p>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -246,7 +246,7 @@ export function AdminAdminsPage() {
                         <input
                             type="text"
                             placeholder="بحث بالاسم أو البريد..."
-                            className="w-full h-11 pl-4 pr-11 rounded-[12px] bg-white border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm"
+                            className="w-full h-11 pl-4 pr-11 rounded-[12px] bg-white dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm dark:text-white dark:placeholder:text-slate-500"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -254,7 +254,7 @@ export function AdminAdminsPage() {
                     </div>
 
                     {/* Filter Button */}
-                    <button className="h-11 px-4 rounded-[12px] bg-white border border-slate-200 hover:border-shibl-crimson text-slate-600 hover:text-shibl-crimson transition-all flex items-center gap-2">
+                    <button className="h-11 px-4 rounded-[12px] bg-white dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 hover:border-shibl-crimson text-slate-600 dark:text-slate-400 hover:text-shibl-crimson transition-all flex items-center gap-2">
                         <Filter size={18} />
                     </button>
 
@@ -272,14 +272,14 @@ export function AdminAdminsPage() {
             {/* Stats Mini Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 {statsDisplay.map((stat, index) => (
-                    <div key={index} className="bg-white rounded-[16px] p-4 shadow-card flex items-center gap-4">
+                    <div key={index} className="bg-white dark:bg-[#1E1E1E] rounded-[16px] p-4 shadow-card border border-transparent dark:border-white/10 flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-[12px] flex items-center justify-center ${stat.bgColor}`}>
                             {stat.icon}
                         </div>
                         <div>
-                            <p className="text-xs text-slate-grey font-medium">{stat.label}</p>
+                            <p className="text-xs text-slate-grey dark:text-slate-400 font-medium">{stat.label}</p>
                             <div className="flex items-center gap-2">
-                                <span className="text-xl font-extrabold text-charcoal">{stat.value}</span>
+                                <span className="text-xl font-extrabold text-charcoal dark:text-white">{stat.value}</span>
                             </div>
                         </div>
                     </div>
@@ -288,29 +288,29 @@ export function AdminAdminsPage() {
 
             {/* Error Message */}
             {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-[12px] mb-6 flex items-center gap-2">
+                <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 px-4 py-3 rounded-[12px] mb-6 flex items-center gap-2">
                     <AlertCircle size={18} />
                     {error}
                 </div>
             )}
 
             {/* Admins Table */}
-            <div className="bg-white rounded-[16px] shadow-card overflow-hidden">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-[16px] shadow-card border border-transparent dark:border-white/10 overflow-hidden">
                 {loading ? (
                     /* Shimmer Skeleton Loading */
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-slate-50 border-b border-slate-100">
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الاسم</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">البريد الإلكتروني</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الدور</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الحالة</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">تاريخ الانضمام</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الإجراءات</th>
+                                <tr className="bg-slate-50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase tracking-wider">الاسم</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase tracking-wider">البريد الإلكتروني</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase tracking-wider">الدور</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase tracking-wider">الحالة</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase tracking-wider">تاريخ الانضمام</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase tracking-wider">الإجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/10">
                                 {[...Array(6)].map((_, index) => (
                                     <tr key={index}>
                                         <td className="px-6 py-4">
@@ -344,9 +344,9 @@ export function AdminAdminsPage() {
                         </table>
                     </div>
                 ) : admins.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-slate-500">
-                        <Shield size={48} className="mb-4 text-slate-300" />
-                        <p className="text-lg font-medium">لا يوجد مديرين</p>
+                    <div className="flex flex-col items-center justify-center py-20 text-slate-500 dark:text-slate-400">
+                        <Shield size={48} className="mb-4 text-slate-300 dark:text-slate-600" />
+                        <p className="text-lg font-medium dark:text-white">لا يوجد مديرين</p>
                         <p className="text-sm">لم يتم إضافة أي مديرين بعد</p>
                         <button
                             onClick={() => setShowAddAdminModal(true)}
@@ -359,20 +359,20 @@ export function AdminAdminsPage() {
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-slate-50 border-b border-slate-100">
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الاسم</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">البريد الإلكتروني</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الدور</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الحالة</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">تاريخ الانضمام</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase tracking-wider">الإجراءات</th>
+                                <tr className="bg-slate-50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase tracking-wider">الاسم</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase tracking-wider">البريد الإلكتروني</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase tracking-wider">الدور</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase tracking-wider">الحالة</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase tracking-wider">تاريخ الانضمام</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase tracking-wider">الإجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/10">
                                 {admins.map((admin) => {
                                     const isCurrentUser = currentUser?.email === admin.email;
                                     return (
-                                        <tr key={admin.id} className={`hover:bg-slate-50/50 transition-colors ${isCurrentUser ? 'bg-blue-50/50' : ''}`}>
+                                        <tr key={admin.id} className={`hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors ${isCurrentUser ? 'bg-blue-50/50 dark:bg-blue-500/5' : ''}`}>
                                             {/* Name with Avatar */}
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
@@ -380,7 +380,7 @@ export function AdminAdminsPage() {
                                                         {admin.name.charAt(0)}
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="font-semibold text-charcoal">{admin.name}</span>
+                                                        <span className="font-semibold text-charcoal dark:text-white">{admin.name}</span>
                                                         {isCurrentUser && (
                                                             <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-shibl-crimson text-white">
                                                                 أنت
@@ -391,7 +391,7 @@ export function AdminAdminsPage() {
                                             </td>
 
                                             {/* Email */}
-                                            <td className="px-6 py-4 text-sm text-slate-grey">{admin.email}</td>
+                                            <td className="px-6 py-4 text-sm text-slate-grey dark:text-slate-400">{admin.email}</td>
 
                                             {/* Role Badge */}
                                             <td className="px-6 py-4">
@@ -411,21 +411,21 @@ export function AdminAdminsPage() {
                                             </td>
 
                                             {/* Date */}
-                                            <td className="px-6 py-4 text-sm text-slate-grey">{formatDate(admin.created_at)}</td>
+                                            <td className="px-6 py-4 text-sm text-slate-grey dark:text-slate-400">{formatDate(admin.created_at)}</td>
 
                                             {/* Actions */}
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-2">
                                                     <button
                                                         onClick={() => openViewModal(admin)}
-                                                        className="w-8 h-8 rounded-[8px] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
+                                                        className="w-8 h-8 rounded-[8px] bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 flex items-center justify-center text-slate-600 dark:text-slate-400 transition-colors"
                                                         title="عرض"
                                                     >
                                                         <Eye size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => openEditModal(admin)}
-                                                        className="w-8 h-8 rounded-[8px] bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 transition-colors"
+                                                        className="w-8 h-8 rounded-[8px] bg-blue-100 dark:bg-blue-500/10 hover:bg-blue-200 dark:hover:bg-blue-500/20 flex items-center justify-center text-blue-600 transition-colors"
                                                         title="تعديل"
                                                     >
                                                         <Edit2 size={16} />
@@ -433,7 +433,7 @@ export function AdminAdminsPage() {
                                                     <button
                                                         onClick={() => openDeleteDialog(admin)}
                                                         disabled={deleting === admin.id}
-                                                        className="w-8 h-8 rounded-[8px] bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 transition-colors disabled:opacity-50"
+                                                        className="w-8 h-8 rounded-[8px] bg-red-100 dark:bg-red-500/10 hover:bg-red-200 dark:hover:bg-red-500/20 flex items-center justify-center text-red-600 transition-colors disabled:opacity-50"
                                                         title="حذف"
                                                     >
                                                         {deleting === admin.id ? (
@@ -454,15 +454,15 @@ export function AdminAdminsPage() {
 
                 {/* Pagination */}
                 {!loading && admins.length > 0 && (
-                    <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-                        <p className="text-sm text-slate-grey">
+                    <div className="px-6 py-4 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
+                        <p className="text-sm text-slate-grey dark:text-slate-400">
                             عرض {admins.length} من {pagination.total}
                         </p>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="w-9 h-9 rounded-[8px] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors disabled:opacity-50"
+                                className="w-9 h-9 rounded-[8px] bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 flex items-center justify-center text-slate-600 dark:text-slate-400 transition-colors disabled:opacity-50"
                             >
                                 <ChevronRight size={18} />
                             </button>
@@ -472,7 +472,7 @@ export function AdminAdminsPage() {
                                     onClick={() => setCurrentPage(page)}
                                     className={`w-9 h-9 rounded-[8px] font-semibold text-sm transition-colors ${currentPage === page
                                         ? 'bg-shibl-crimson text-white'
-                                        : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                                        : 'bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-600 dark:text-slate-400'
                                         }`}
                                 >
                                     {page}
@@ -481,7 +481,7 @@ export function AdminAdminsPage() {
                             <button
                                 onClick={() => setCurrentPage(p => Math.min(pagination.lastPage, p + 1))}
                                 disabled={currentPage === pagination.lastPage}
-                                className="w-9 h-9 rounded-[8px] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors disabled:opacity-50"
+                                className="w-9 h-9 rounded-[8px] bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 flex items-center justify-center text-slate-600 dark:text-slate-400 transition-colors disabled:opacity-50"
                             >
                                 <ChevronLeft size={18} />
                             </button>
@@ -507,7 +507,7 @@ export function AdminAdminsPage() {
             {viewModal.isOpen && viewModal.admin && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="absolute inset-0 bg-charcoal/50 backdrop-blur-sm" onClick={closeViewModal} />
-                    <div className="relative bg-white rounded-[20px] shadow-xl w-full max-w-md mx-4 overflow-hidden">
+                    <div className="relative bg-white dark:bg-[#1E1E1E] rounded-[20px] shadow-xl w-full max-w-md mx-4 overflow-hidden">
                         {/* Header */}
                         <div className="bg-gradient-to-br from-charcoal to-slate-800 px-6 py-5 flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -529,12 +529,12 @@ export function AdminAdminsPage() {
 
                         {/* Content */}
                         <div className="p-6 space-y-4">
-                            <div className="flex justify-between py-2 border-b border-slate-100">
-                                <span className="text-slate-grey">البريد الإلكتروني</span>
-                                <span className="font-semibold text-charcoal">{viewModal.admin.email}</span>
+                            <div className="flex justify-between py-2 border-b border-slate-100 dark:border-white/10">
+                                <span className="text-slate-grey dark:text-slate-400">البريد الإلكتروني</span>
+                                <span className="font-semibold text-charcoal dark:text-white">{viewModal.admin.email}</span>
                             </div>
-                            <div className="flex justify-between py-2 border-b border-slate-100">
-                                <span className="text-slate-grey">الحالة</span>
+                            <div className="flex justify-between py-2 border-b border-slate-100 dark:border-white/10">
+                                <span className="text-slate-grey dark:text-slate-400">الحالة</span>
                                 <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${viewModal.admin.status === 'inactive'
                                     ? 'bg-slate-100 text-slate-500'
                                     : 'bg-green-100 text-green-700'
@@ -542,13 +542,13 @@ export function AdminAdminsPage() {
                                     {viewModal.admin.status === 'inactive' ? 'غير نشط' : 'نشط'}
                                 </span>
                             </div>
-                            <div className="flex justify-between py-2 border-b border-slate-100">
-                                <span className="text-slate-grey">تاريخ الانضمام</span>
-                                <span className="font-semibold text-charcoal">{formatDate(viewModal.admin.created_at)}</span>
+                            <div className="flex justify-between py-2 border-b border-slate-100 dark:border-white/10">
+                                <span className="text-slate-grey dark:text-slate-400">تاريخ الانضمام</span>
+                                <span className="font-semibold text-charcoal dark:text-white">{formatDate(viewModal.admin.created_at)}</span>
                             </div>
                             {viewModal.admin.roles && viewModal.admin.roles.length > 0 && (
                                 <div className="py-2">
-                                    <span className="text-slate-grey block mb-2">الأدوار والصلاحيات</span>
+                                    <span className="text-slate-grey dark:text-slate-400 block mb-2">الأدوار والصلاحيات</span>
                                     <div className="flex flex-wrap gap-2">
                                         {viewModal.admin.roles.map(role => (
                                             <span key={role.id} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
@@ -561,10 +561,10 @@ export function AdminAdminsPage() {
                         </div>
 
                         {/* Footer */}
-                        <div className="px-6 py-4 border-t border-slate-100 flex gap-3">
+                        <div className="px-6 py-4 border-t border-slate-100 dark:border-white/10 flex gap-3">
                             <button
                                 onClick={closeViewModal}
-                                className="flex-1 h-11 rounded-pill bg-slate-100 hover:bg-slate-200 text-charcoal font-semibold text-sm transition-all"
+                                className="flex-1 h-11 rounded-pill bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-charcoal dark:text-white font-semibold text-sm transition-all"
                             >
                                 إغلاق
                             </button>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     Calendar,
     Settings,
@@ -499,13 +499,13 @@ export function AdminScheduleConfigPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 flex items-center gap-3 tracking-tight">
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white flex items-center gap-3 tracking-tight">
                         <div className="p-2.5 bg-[#AF0C15] rounded-xl text-white shadow-xl shadow-[#AF0C15]/20 ring-4 ring-rose-50">
                             <Settings size={24} strokeWidth={2.5} />
                         </div>
                         إعدادات الجدولة
                     </h1>
-                    <p className="text-slate-500 mt-2 text-lg font-medium">تخصيص الأيام، فترات الراحة، وأنظمة الحجز الدراسية</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg font-medium">تخصيص الأيام، فترات الراحة، وأنظمة الحجز الدراسية</p>
                 </div>
                 <button
                     onClick={handleSave}
@@ -522,8 +522,8 @@ export function AdminScheduleConfigPage() {
             {/* Config Grid */}
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* Grades List - Sidebar */}
-                <div className="lg:col-span-1 bg-white rounded-3xl p-6 shadow-sm border border-slate-200/60 h-fit sticky top-6">
-                    <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2.5 text-lg">
+                <div className="lg:col-span-1 bg-white dark:bg-[#1E1E1E] rounded-3xl p-6 shadow-sm border border-slate-200/60 dark:border-white/10 h-fit sticky top-6">
+                    <h3 className="font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2.5 text-lg">
                         <span className="p-1.5 bg-rose-50 text-[#AF0C15] rounded-lg">
                             <Users size={18} strokeWidth={2.5} />
                         </span>
@@ -536,7 +536,7 @@ export function AdminScheduleConfigPage() {
                                 onClick={() => setSelectedGradeId(grade.id)}
                                 className={`w-full text-right px-4 py-3.5 rounded-xl text-sm font-bold transition-all border ${selectedGradeId === grade.id
                                     ? 'bg-[#AF0C15] text-white shadow-md shadow-[#AF0C15]/20 border-transparent transform scale-[1.02]'
-                                    : 'bg-white text-slate-600 hover:bg-slate-50 border-transparent hover:border-slate-200'
+                                    : 'bg-white dark:bg-[#2A2A2A] text-slate-600 dark:text-slate-300 hover:bg-slate-50 border-transparent hover:border-slate-200 dark:hover:border-white/10'
                                     }`}
                             >
                                 <div className="flex justify-between items-center">
@@ -553,11 +553,11 @@ export function AdminScheduleConfigPage() {
                     {/* Global Term Setting Removed by User Request */}
 
                     {selectedGradeId && currentDayConfig ? (
-                        <div className="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden ring-1 ring-slate-900/5">
+                        <div className="bg-white dark:bg-[#1E1E1E] rounded-3xl shadow-sm border border-slate-200/60 dark:border-white/10 overflow-hidden ring-1 ring-slate-900/5">
 
                             {/* Per-Grade Settings Header (Semester Selection) */}
-                            <div className="p-6 border-b border-slate-100 bg-slate-50/30">
-                                <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <div className="p-6 border-b border-slate-100 dark:border-white/10 bg-slate-50/30 dark:bg-white/5">
+                                <h3 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                                     <Calendar size={18} className="text-[#AF0C15]" />
                                     تخصيص الفصل الدراسي لهذا الصف
                                 </h3>
@@ -578,7 +578,7 @@ export function AdminScheduleConfigPage() {
                                                         }
                                                         setSelectedSemesterId(Number(val));
                                                     }}
-                                                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[#AF0C15]/20 appearance-none"
+                                                    className="w-full px-3 py-2 border border-slate-200 dark:border-white/10 rounded-lg text-sm bg-white dark:bg-[#2A2A2A] dark:text-white focus:ring-2 focus:ring-[#AF0C15]/20 appearance-none"
                                                 >
                                                     <option value="">-- اختر الفصل --</option>
                                                     {/* Group semesters by type */}
@@ -620,7 +620,7 @@ export function AdminScheduleConfigPage() {
                                     {selectedSemesterId && (() => {
                                         const selectedSem = semesters.find(s => s.id === selectedSemesterId);
                                         return selectedSem ? (
-                                            <div className="flex flex-wrap gap-4 items-end p-3 rounded-lg border bg-slate-50 border-slate-100">
+                                            <div className="flex flex-wrap gap-4 items-end p-3 rounded-lg border bg-slate-50 dark:bg-[#2A2A2A] border-slate-100 dark:border-white/10">
                                                 <div>
                                                     <label className="text-xs font-bold text-slate-500 mb-1 block">تاريخ البدء</label>
                                                     <input
@@ -651,13 +651,13 @@ export function AdminScheduleConfigPage() {
                             </div>
 
                             {/* Day Tabs */}
-                            <div className="flex border-b border-slate-100 overflow-x-auto p-2 gap-2 bg-slate-50/50">
+                            <div className="flex border-b border-slate-100 dark:border-white/10 overflow-x-auto p-2 gap-2 bg-slate-50/50">
                                 {WEEKDAYS.map(day => (
                                     <button
                                         key={day.key}
                                         onClick={() => setSelectedDay(day.key)}
                                         className={`flex-1 px-4 py-3 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${selectedDay === day.key
-                                            ? 'bg-white text-[#AF0C15] shadow-sm ring-1 ring-slate-200'
+                                            ? 'bg-white dark:bg-[#1E1E1E] text-[#AF0C15] shadow-sm ring-1 ring-slate-200 dark:ring-white/10'
                                             : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/50'
                                             }`}
                                     >
@@ -666,7 +666,7 @@ export function AdminScheduleConfigPage() {
                                 ))}
                             </div>
 
-                            <div className="p-6 space-y-8">
+                            <div className="p-6 space-y-8 dark:text-white">
                                 {/* Day Activation & Booking Mode */}
                                 <div className="flex flex-col md:flex-row gap-6 justify-between">
                                     <div className="flex items-center gap-4">
@@ -682,7 +682,7 @@ export function AdminScheduleConfigPage() {
                                         </label>
                                     </div>
 
-                                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                                    <div className="flex bg-slate-100 dark:bg-[#2A2A2A] p-1 rounded-lg">
                                         <button
                                             onClick={() => updateDayConfig({ bookingMode: 'individual' })}
                                             className={`px-4 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-all ${currentDayConfig.bookingMode === 'individual' ? 'bg-white text-[#AF0C15] shadow-sm' : 'text-slate-500'}`}
@@ -709,7 +709,7 @@ export function AdminScheduleConfigPage() {
                                                         type="time"
                                                         value={currentDayConfig.startTime}
                                                         onChange={(e) => updateDayConfig({ startTime: e.target.value })}
-                                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all font-mono text-center font-bold text-slate-700"
+                                                        className="w-full px-4 py-3 border border-slate-200 dark:border-white/10 rounded-xl bg-white dark:bg-[#2A2A2A] dark:text-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all font-mono text-center font-bold text-slate-700"
                                                     />
                                                 </div>
                                             </div>
@@ -720,7 +720,7 @@ export function AdminScheduleConfigPage() {
                                                         type="time"
                                                         value={currentDayConfig.endTime}
                                                         onChange={(e) => updateDayConfig({ endTime: e.target.value })}
-                                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all font-mono text-center font-bold text-slate-700"
+                                                        className="w-full px-4 py-3 border border-slate-200 dark:border-white/10 rounded-xl bg-white dark:bg-[#2A2A2A] dark:text-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all font-mono text-center font-bold text-slate-700"
                                                     />
                                                 </div>
                                             </div>
@@ -730,7 +730,7 @@ export function AdminScheduleConfigPage() {
                                                     <select
                                                         value={currentDayConfig.slotDurationMinutes}
                                                         onChange={(e) => updateDayConfig({ slotDurationMinutes: parseInt(e.target.value) })}
-                                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all text-center font-bold text-slate-700 appearance-none"
+                                                        className="w-full px-4 py-3 border border-slate-200 dark:border-white/10 rounded-xl bg-white dark:bg-[#2A2A2A] dark:text-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all text-center font-bold text-slate-700 appearance-none"
                                                     >
                                                         <option value={30}>30 دقيقة</option>
                                                         <option value={45}>45 دقيقة</option>
@@ -747,7 +747,7 @@ export function AdminScheduleConfigPage() {
                                                     <select
                                                         value={currentDayConfig.gapMinutes}
                                                         onChange={(e) => updateDayConfig({ gapMinutes: parseInt(e.target.value) })}
-                                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all text-center font-bold text-slate-700 appearance-none"
+                                                        className="w-full px-4 py-3 border border-slate-200 dark:border-white/10 rounded-xl bg-white dark:bg-[#2A2A2A] dark:text-white focus:ring-4 focus:ring-[#AF0C15]/10 focus:border-[#AF0C15] transition-all text-center font-bold text-slate-700 appearance-none"
                                                     >
                                                         <option value={0}>لا يوجد</option>
                                                         <option value={5}>5 دقائق</option>
@@ -780,7 +780,7 @@ export function AdminScheduleConfigPage() {
                                             {currentDayConfig.breaks && currentDayConfig.breaks.length > 0 ? (
                                                 <div className="space-y-3">
                                                     {currentDayConfig.breaks.map(item => (
-                                                        <div key={item.id} className="flex items-center gap-4 bg-white p-3 rounded-xl border border-amber-100 shadow-sm hover:shadow-md hover:border-amber-200 transition-all group">
+                                                        <div key={item.id} className="flex items-center gap-4 bg-white dark:bg-[#2A2A2A] p-3 rounded-xl border border-amber-100 dark:border-white/10 shadow-sm hover:shadow-md hover:border-amber-200 transition-all group">
                                                             <div className="flex items-center gap-3 flex-1">
                                                                 <span className="text-xs font-bold text-slate-400">من</span>
                                                                 <input
@@ -832,7 +832,7 @@ export function AdminScheduleConfigPage() {
                 selectedSemesterId && (
                     <div className="mt-8">
                         {loadingSlots ? (
-                            <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-100 flex items-center justify-center gap-3">
+                            <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl p-6 shadow-lg border border-slate-100 flex items-center justify-center gap-3">
                                 <Loader2 className="animate-spin text-[#AF0C15]" size={24} />
                                 <span className="text-slate-500 font-medium">جاري تحميل بيانات الفترات الزمنية...</span>
                             </div>
@@ -848,19 +848,19 @@ export function AdminScheduleConfigPage() {
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
-                                        <p className="text-3xl font-bold text-slate-800">{slotsStats.total_slots}</p>
+                                    <div className="bg-white dark:bg-[#1E1E1E] rounded-xl p-4 text-center shadow-sm border border-emerald-100">
+                                        <p className="text-3xl font-bold text-slate-800 dark:text-white">{slotsStats.total_slots}</p>
                                         <p className="text-sm text-slate-500 mt-1">إجمالي الفترات</p>
                                     </div>
-                                    <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
+                                    <div className="bg-white dark:bg-[#1E1E1E] rounded-xl p-4 text-center shadow-sm border border-emerald-100">
                                         <p className="text-3xl font-bold text-emerald-600">{slotsStats.available}</p>
                                         <p className="text-sm text-slate-500 mt-1">متاحة</p>
                                     </div>
-                                    <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
+                                    <div className="bg-white dark:bg-[#1E1E1E] rounded-xl p-4 text-center shadow-sm border border-emerald-100">
                                         <p className="text-3xl font-bold text-blue-600">{slotsStats.booked}</p>
                                         <p className="text-sm text-slate-500 mt-1">محجوزة</p>
                                     </div>
-                                    <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-emerald-100">
+                                    <div className="bg-white dark:bg-[#1E1E1E] rounded-xl p-4 text-center shadow-sm border border-emerald-100">
                                         <p className="text-3xl font-bold text-amber-600">{slotsStats.pending}</p>
                                         <p className="text-sm text-slate-500 mt-1">قيد الانتظار</p>
                                     </div>
@@ -996,9 +996,9 @@ export function AdminScheduleConfigPage() {
             {
                 showRevisionModal && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 transform transition-all">
+                        <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-2xl w-full max-w-md p-6 transform transition-all">
                             <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     <div className="p-2 bg-amber-100 rounded-lg">
                                         <Calendar size={20} className="text-amber-600" />
                                     </div>
@@ -1094,14 +1094,14 @@ export function AdminScheduleConfigPage() {
             {/* Day Reset Confirmation Modal */}
             {showResetConfirmation && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in-95 duration-200">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                                 <Trash2 className="text-red-600" size={24} />
                             </div>
                             <div>
-                                <h3 className="text-lg font-bold text-slate-800">تأكيد إلغاء تفعيل اليوم</h3>
-                                <p className="text-sm text-slate-500">
+                                <h3 className="text-lg font-bold text-slate-800 dark:text-white">تأكيد إلغاء تفعيل اليوم</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
                                     {pendingDayReset !== null ? WEEKDAYS[pendingDayReset]?.name : ''}
                                 </p>
                             </div>

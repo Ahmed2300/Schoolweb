@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import {
     Calendar as CalendarIcon,
     Search,
@@ -102,7 +102,7 @@ export function AdminClassSchedulesPage() {
                 </div>
                 <button
                     onClick={() => window.location.reload()}
-                    className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 transition-colors flex items-center gap-2"
                 >
                     <Clock size={16} />
                     <span>تحديث</span>
@@ -198,7 +198,7 @@ export function AdminClassSchedulesPage() {
                     ))}
                 </div>
             ) : !groupedData?.data || groupedData.data.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
+                <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-[#1E1E1E] rounded-2xl border border-dashed border-slate-300">
                     <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                         <CalendarIcon className="text-slate-400" size={32} />
                     </div>
@@ -223,7 +223,7 @@ export function AdminClassSchedulesPage() {
                                                 </div>
                                                 <div>
                                                     <h2 className="text-lg font-bold text-slate-800">{group.name}</h2>
-                                                    <p className="text-sm text-slate-500">
+                                                    <p className="text-sm text-slate-500 dark:text-slate-400">
                                                         {filteredSlots.length} حصة مجدولة
                                                         {bookingStatus === 'all' && filteredSlots.length > 0 && (
                                                             <span className="text-slate-400 mr-1">
@@ -264,7 +264,7 @@ export function AdminClassSchedulesPage() {
                                                             <th className="px-6 py-3 font-semibold">الحالة</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody className="divide-y divide-slate-100">
+                                                    <tbody className="divide-y divide-slate-100 dark:divide-white/10">
                                                         {filteredSlots.map((slot: any) => (
                                                             <tr
                                                                 key={slot.id}

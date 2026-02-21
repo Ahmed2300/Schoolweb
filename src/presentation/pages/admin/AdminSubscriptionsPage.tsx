@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Admin Subscriptions Management Page
  * 
  * Allows admins to view, approve, and reject course subscription requests.
@@ -187,8 +187,8 @@ export function AdminSubscriptionsPage() {
                         <CreditCard size={24} className="text-white" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-extrabold text-charcoal">إدارة الاشتراكات</h1>
-                        <p className="text-sm text-slate-grey">مراجعة وإدارة طلبات الاشتراك في الدورات</p>
+                        <h1 className="text-2xl font-extrabold text-charcoal dark:text-white">إدارة الاشتراكات</h1>
+                        <p className="text-sm text-slate-grey dark:text-slate-400">مراجعة وإدارة طلبات الاشتراك في الدورات</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -197,7 +197,7 @@ export function AdminSubscriptionsPage() {
                         <input
                             type="text"
                             placeholder="بحث بالاسم أو الكورس..."
-                            className="w-full h-11 pl-4 pr-11 rounded-[12px] bg-white border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm"
+                            className="w-full h-11 pl-4 pr-11 rounded-[12px] bg-white dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm dark:text-white dark:placeholder-slate-500"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -207,7 +207,7 @@ export function AdminSubscriptionsPage() {
                     <button
                         onClick={fetchSubscriptions}
                         disabled={loading}
-                        className="h-11 px-4 rounded-[12px] bg-white border border-slate-200 hover:border-shibl-crimson text-slate-600 hover:text-shibl-crimson font-semibold text-sm transition-all flex items-center gap-2"
+                        className="h-11 px-4 rounded-[12px] bg-white dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 hover:border-shibl-crimson text-slate-600 dark:text-slate-400 hover:text-shibl-crimson font-semibold text-sm transition-all flex items-center gap-2"
                     >
                         <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
                     </button>
@@ -228,7 +228,7 @@ export function AdminSubscriptionsPage() {
                             }}
                             className={`flex items-center gap-2 px-5 py-3 rounded-[12px] font-bold text-sm transition-all duration-300 ${isActive
                                 ? `${filter.activeColor} text-white shadow-lg`
-                                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+                                : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10'
                                 }`}
                         >
                             <Icon size={18} />
@@ -246,11 +246,11 @@ export function AdminSubscriptionsPage() {
 
             {/* Content */}
             {loading ? (
-                <div className="bg-white rounded-[16px] shadow-card p-12 flex items-center justify-center">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-[16px] shadow-card p-12 flex items-center justify-center">
                     <Loader2 size={40} className="animate-spin text-shibl-crimson" />
                 </div>
             ) : error ? (
-                <div className="bg-white rounded-[16px] shadow-card p-12 text-center">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-[16px] shadow-card p-12 text-center">
                     <AlertCircle className="mx-auto mb-3 text-red-500" size={48} />
                     <p className="text-red-600 font-medium mb-4">{error}</p>
                     <button
@@ -261,18 +261,18 @@ export function AdminSubscriptionsPage() {
                     </button>
                 </div>
             ) : filteredSubscriptions.length === 0 ? (
-                <div className="bg-white rounded-[16px] shadow-card p-12 text-center">
-                    <CreditCard size={48} className="mx-auto text-slate-300 mb-4" />
-                    <h3 className="text-lg font-bold text-charcoal mb-2">لا توجد اشتراكات</h3>
-                    <p className="text-sm text-slate-grey">لا توجد طلبات اشتراك بالحالة المحددة</p>
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-[16px] shadow-card p-12 text-center">
+                    <CreditCard size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
+                    <h3 className="text-lg font-bold text-charcoal dark:text-white mb-2">لا توجد اشتراكات</h3>
+                    <p className="text-sm text-slate-grey dark:text-slate-400">لا توجد طلبات اشتراك بالحالة المحددة</p>
                 </div>
             ) : (
-                <div className="bg-white rounded-[16px] shadow-card overflow-hidden">
-                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-[16px] shadow-card overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <CreditCard size={20} className="text-shibl-crimson" />
-                            <h2 className="font-bold text-charcoal">قائمة الاشتراكات</h2>
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
+                            <h2 className="font-bold text-charcoal dark:text-white">قائمة الاشتراكات</h2>
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300">
                                 {totalItems} اشتراك
                             </span>
                         </div>
@@ -280,35 +280,35 @@ export function AdminSubscriptionsPage() {
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-slate-50 border-b border-slate-100">
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الطالب</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الدورة</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الحالة</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">التاريخ</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الإجراءات</th>
+                                <tr className="bg-slate-50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase">الطالب</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase">الدورة</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase">الحالة</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase">التاريخ</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey dark:text-slate-400 uppercase">الإجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/10">
                                 {filteredSubscriptions.map((sub) => (
-                                    <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
+                                    <tr key={sub.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white font-bold text-sm">
                                                     {sub.student?.name?.charAt(0) || '?'}
                                                 </div>
                                                 <div>
-                                                    <span className="font-semibold text-charcoal block">{sub.student?.name || 'غير معروف'}</span>
-                                                    <span className="text-xs text-slate-grey">{sub.student?.email || ''}</span>
+                                                    <span className="font-semibold text-charcoal dark:text-white block">{sub.student?.name || 'غير معروف'}</span>
+                                                    <span className="text-xs text-slate-grey dark:text-slate-400">{sub.student?.email || ''}</span>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <BookOpen size={16} className="text-shibl-crimson" />
-                                                <span className="text-sm text-charcoal font-medium">{getLocalizedName(sub.course?.name)}</span>
+                                                <span className="text-sm text-charcoal dark:text-white font-medium">{getLocalizedName(sub.course?.name)}</span>
                                             </div>
                                             {sub.course?.price && (
-                                                <span className="text-xs text-slate-grey flex items-center gap-1 mt-1">
+                                                <span className="text-xs text-slate-grey dark:text-slate-400 flex items-center gap-1 mt-1">
                                                     <DollarSign size={12} />
                                                     {sub.course.price} ر.ع
                                                 </span>
@@ -325,7 +325,7 @@ export function AdminSubscriptionsPage() {
                                             )}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2 text-slate-grey text-sm">
+                                            <div className="flex items-center gap-2 text-slate-grey dark:text-slate-400 text-sm">
                                                 <Calendar size={14} />
                                                 {sub.created_at ? new Date(sub.created_at).toLocaleDateString('ar-EG') : '-'}
                                             </div>
@@ -336,7 +336,7 @@ export function AdminSubscriptionsPage() {
                                                 {sub.bill_image_path && (
                                                     <button
                                                         onClick={() => openReceiptModal(sub)}
-                                                        className="py-2 px-3 rounded-[8px] bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold text-xs transition-colors flex items-center gap-1"
+                                                        className="py-2 px-3 rounded-[8px] bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-semibold text-xs transition-colors flex items-center gap-1"
                                                         title="عرض الإيصال"
                                                     >
                                                         <Receipt size={14} />
@@ -350,7 +350,7 @@ export function AdminSubscriptionsPage() {
                                                         <button
                                                             onClick={() => openApproveModal(sub)}
                                                             disabled={actionLoading}
-                                                            className="py-2 px-4 rounded-[8px] bg-green-100 hover:bg-green-200 text-green-700 font-semibold text-xs transition-colors flex items-center gap-1 disabled:opacity-50"
+                                                            className="py-2 px-4 rounded-[8px] bg-green-100 dark:bg-green-500/10 hover:bg-green-200 dark:hover:bg-green-500/20 text-green-700 dark:text-green-400 font-semibold text-xs transition-colors flex items-center gap-1 disabled:opacity-50"
                                                         >
                                                             <Check size={14} />
                                                             قبول
@@ -358,7 +358,7 @@ export function AdminSubscriptionsPage() {
                                                         <button
                                                             onClick={() => openRejectModal(sub)}
                                                             disabled={actionLoading}
-                                                            className="py-2 px-4 rounded-[8px] bg-red-100 hover:bg-red-200 text-red-600 font-semibold text-xs transition-colors flex items-center gap-1 disabled:opacity-50"
+                                                            className="py-2 px-4 rounded-[8px] bg-red-100 dark:bg-red-500/10 hover:bg-red-200 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 font-semibold text-xs transition-colors flex items-center gap-1 disabled:opacity-50"
                                                         >
                                                             <X size={14} />
                                                             رفض
@@ -375,14 +375,14 @@ export function AdminSubscriptionsPage() {
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="px-6 py-4 border-t border-slate-100 flex justify-center gap-2">
+                        <div className="px-6 py-4 border-t border-slate-100 dark:border-white/10 flex justify-center gap-2">
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                                 <button
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
                                     className={`w-10 h-10 rounded-[8px] font-medium transition-all ${currentPage === page
                                         ? 'bg-shibl-crimson text-white'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                        : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/15'
                                         }`}
                                 >
                                     {page}
@@ -398,14 +398,14 @@ export function AdminSubscriptionsPage() {
             {
                 showReceiptModal && selectedSubscription && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowReceiptModal(false)}>
-                        <div className="bg-white rounded-[20px] max-w-lg w-full overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-                            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                                <h3 className="font-bold text-charcoal flex items-center gap-2">
+                        <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] max-w-lg w-full overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+                            <div className="px-6 py-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
+                                <h3 className="font-bold text-charcoal dark:text-white flex items-center gap-2">
                                     <Receipt size={20} />
                                     معاينة الإيصال
                                 </h3>
-                                <button onClick={() => setShowReceiptModal(false)} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
-                                    <X size={18} className="text-slate-500" />
+                                <button onClick={() => setShowReceiptModal(false)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 flex items-center justify-center">
+                                    <X size={18} className="text-slate-500 dark:text-slate-400" />
                                 </button>
                             </div>
                             <div className="p-6">
@@ -421,18 +421,18 @@ export function AdminSubscriptionsPage() {
                                     </div>
                                 )}
                                 <div className="space-y-3 mb-6">
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-[10px]">
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-[10px]">
                                         <User size={18} className="text-slate-400" />
                                         <div>
-                                            <p className="text-xs text-slate-grey">الطالب</p>
-                                            <p className="font-semibold text-charcoal">{selectedSubscription.student?.name}</p>
+                                            <p className="text-xs text-slate-grey dark:text-slate-400">الطالب</p>
+                                            <p className="font-semibold text-charcoal dark:text-white">{selectedSubscription.student?.name}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-[10px]">
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-[10px]">
                                         <BookOpen size={18} className="text-slate-400" />
                                         <div>
-                                            <p className="text-xs text-slate-grey">الدورة</p>
-                                            <p className="font-semibold text-charcoal">{getLocalizedName(selectedSubscription.course?.name)}</p>
+                                            <p className="text-xs text-slate-grey dark:text-slate-400">الدورة</p>
+                                            <p className="font-semibold text-charcoal dark:text-white">{getLocalizedName(selectedSubscription.course?.name)}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -454,7 +454,7 @@ export function AdminSubscriptionsPage() {
                                                 setShowReceiptModal(false);
                                                 openRejectModal(selectedSubscription);
                                             }}
-                                            className="flex-1 py-3 rounded-[12px] bg-red-100 hover:bg-red-200 text-red-600 font-bold text-sm transition-colors flex items-center justify-center gap-2"
+                                            className="flex-1 py-3 rounded-[12px] bg-red-100 dark:bg-red-500/10 hover:bg-red-200 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 font-bold text-sm transition-colors flex items-center justify-center gap-2"
                                         >
                                             <X size={18} />
                                             رفض
@@ -471,9 +471,9 @@ export function AdminSubscriptionsPage() {
             {
                 showRejectModal && selectedSubscription && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowRejectModal(false)}>
-                        <div className="bg-white rounded-[20px] max-w-md w-full overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-                            <div className="px-6 py-4 border-b border-red-100 bg-red-50 flex items-center justify-between">
-                                <h3 className="font-bold text-red-700 flex items-center gap-2">
+                        <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] max-w-md w-full overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+                            <div className="px-6 py-4 border-b border-red-100 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10 flex items-center justify-between">
+                                <h3 className="font-bold text-red-700 dark:text-red-400 flex items-center gap-2">
                                     <XCircle size={20} />
                                     رفض الاشتراك
                                 </h3>
@@ -482,22 +482,22 @@ export function AdminSubscriptionsPage() {
                                 </button>
                             </div>
                             <div className="p-6 space-y-4">
-                                <p className="text-sm text-slate-600">
+                                <p className="text-sm text-slate-600 dark:text-slate-300">
                                     أنت على وشك رفض طلب اشتراك <strong>{selectedSubscription.student?.name}</strong> في دورة <strong>{getLocalizedName(selectedSubscription.course?.name)}</strong>
                                 </p>
                                 <div>
-                                    <label className="block text-sm font-medium text-charcoal mb-2">سبب الرفض *</label>
+                                    <label className="block text-sm font-medium text-charcoal dark:text-white mb-2">سبب الرفض *</label>
                                     <textarea
                                         value={rejectionReason}
                                         onChange={(e) => setRejectionReason(e.target.value)}
                                         placeholder="اكتب سبب رفض الطلب..."
-                                        className="w-full h-24 rounded-[12px] border border-slate-200 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none p-3 text-sm resize-none"
+                                        className="w-full h-24 rounded-[12px] border border-slate-200 dark:border-white/10 dark:bg-[#2A2A2A] dark:text-white dark:placeholder-slate-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none p-3 text-sm resize-none"
                                     />
                                 </div>
                                 <div className="flex gap-3">
                                     <button
                                         onClick={() => setShowRejectModal(false)}
-                                        className="flex-1 py-3 rounded-[12px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors"
+                                        className="flex-1 py-3 rounded-[12px] bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-700 dark:text-slate-300 font-medium transition-colors"
                                     >
                                         إلغاء
                                     </button>
@@ -523,7 +523,7 @@ export function AdminSubscriptionsPage() {
             {/* Approve Confirm Modal */}
             {showApproveModal && selectedSubscription && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowApproveModal(false)}>
-                    <div className="bg-white rounded-[20px] max-w-md w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] max-w-md w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
                         <div className="px-6 py-5 border-b border-green-100 bg-gradient-to-r from-green-50 to-emerald-50">
                             <div className="flex items-center gap-4">
                                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
@@ -536,27 +536,27 @@ export function AdminSubscriptionsPage() {
                             </div>
                         </div>
                         <div className="p-6 space-y-4">
-                            <div className="space-y-3 bg-slate-50 rounded-xl p-4">
+                            <div className="space-y-3 bg-slate-50 dark:bg-white/5 rounded-xl p-4">
                                 <div className="flex items-center gap-3">
                                     <User size={18} className="text-slate-400" />
                                     <div>
-                                        <p className="text-xs text-slate-grey">الطالب</p>
-                                        <p className="font-semibold text-charcoal">{selectedSubscription.student?.name}</p>
+                                        <p className="text-xs text-slate-grey dark:text-slate-400">الطالب</p>
+                                        <p className="font-semibold text-charcoal dark:text-white">{selectedSubscription.student?.name}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <BookOpen size={18} className="text-slate-400" />
                                     <div>
-                                        <p className="text-xs text-slate-grey">الدورة</p>
-                                        <p className="font-semibold text-charcoal">{getLocalizedName(selectedSubscription.course?.name)}</p>
+                                        <p className="text-xs text-slate-grey dark:text-slate-400">الدورة</p>
+                                        <p className="font-semibold text-charcoal dark:text-white">{getLocalizedName(selectedSubscription.course?.name)}</p>
                                     </div>
                                 </div>
                                 {selectedSubscription.course?.price && (
                                     <div className="flex items-center gap-3">
                                         <DollarSign size={18} className="text-slate-400" />
                                         <div>
-                                            <p className="text-xs text-slate-grey">السعر</p>
-                                            <p className="font-semibold text-charcoal">{selectedSubscription.course.price} ر.ع</p>
+                                            <p className="text-xs text-slate-grey dark:text-slate-400">السعر</p>
+                                            <p className="font-semibold text-charcoal dark:text-white">{selectedSubscription.course.price} ر.ع</p>
                                         </div>
                                     </div>
                                 )}
@@ -565,7 +565,7 @@ export function AdminSubscriptionsPage() {
                                 <button
                                     onClick={() => setShowApproveModal(false)}
                                     disabled={actionLoading}
-                                    className="flex-1 py-3 rounded-[12px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors disabled:opacity-50"
+                                    className="flex-1 py-3 rounded-[12px] bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-700 dark:text-slate-300 font-medium transition-colors disabled:opacity-50"
                                 >
                                     إلغاء
                                 </button>

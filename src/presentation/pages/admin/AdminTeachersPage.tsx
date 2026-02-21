@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import {
     Search,
     GraduationCap,
@@ -189,7 +189,7 @@ export function AdminTeachersPage() {
         <>
             {/* Stats Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <div className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 group">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] p-6 shadow-sm border border-slate-100 dark:border-white/10 hover:shadow-md transition-all duration-300 group">
                     <div className="flex justify-between items-start mb-4">
                         <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform duration-300">
                             <GraduationCap size={24} />
@@ -199,12 +199,12 @@ export function AdminTeachersPage() {
                         </span>
                     </div>
                     <div>
-                        <p className="text-slate-500 text-sm font-medium mb-1">مجموع المدرسين</p>
-                        <h3 className="text-3xl font-extrabold text-slate-800">{stats.totalTeachers}</h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">مجموع المدرسين</p>
+                        <h3 className="text-3xl font-extrabold text-slate-800 dark:text-white">{stats.totalTeachers}</h3>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 group">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] p-6 shadow-sm border border-slate-100 dark:border-white/10 hover:shadow-md transition-all duration-300 group">
                     <div className="flex justify-between items-start mb-4">
                         <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform duration-300">
                             <Lightbulb size={24} />
@@ -214,12 +214,12 @@ export function AdminTeachersPage() {
                         </span>
                     </div>
                     <div>
-                        <p className="text-slate-500 text-sm font-medium mb-1">مجموع المدربين</p>
-                        <h3 className="text-3xl font-extrabold text-slate-800">{stats.totalInstructors}</h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">مجموع المدربين</p>
+                        <h3 className="text-3xl font-extrabold text-slate-800 dark:text-white">{stats.totalInstructors}</h3>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 group">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] p-6 shadow-sm border border-slate-100 dark:border-white/10 hover:shadow-md transition-all duration-300 group">
                     <div className="flex justify-between items-start mb-4">
                         <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform duration-300">
                             <BookOpen size={24} />
@@ -229,12 +229,12 @@ export function AdminTeachersPage() {
                         </span>
                     </div>
                     <div>
-                        <p className="text-slate-500 text-sm font-medium mb-1">الدروس النشطة</p>
-                        <h3 className="text-3xl font-extrabold text-slate-800">{stats.activeLessons}</h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">الدروس النشطة</p>
+                        <h3 className="text-3xl font-extrabold text-slate-800 dark:text-white">{stats.activeLessons}</h3>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 group">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] p-6 shadow-sm border border-slate-100 dark:border-white/10 hover:shadow-md transition-all duration-300 group">
                     <div className="flex justify-between items-start mb-4">
                         <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform duration-300">
                             <AlertCircle size={24} />
@@ -244,25 +244,25 @@ export function AdminTeachersPage() {
                         </span>
                     </div>
                     <div>
-                        <p className="text-slate-500 text-sm font-medium mb-1">طلبات قيد الانتظار</p>
-                        <h3 className="text-3xl font-extrabold text-slate-800">{stats.pendingRequests}</h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">طلبات قيد الانتظار</p>
+                        <h3 className="text-3xl font-extrabold text-slate-800 dark:text-white">{stats.pendingRequests}</h3>
                     </div>
                 </div>
             </div>
 
             {/* Header & Controls */}
-            <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 mb-8">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-white/10 mb-8">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                     <div>
-                        <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-800 to-slate-600 mb-2">
+                        <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 mb-2">
                             إدارة المدرسين والمدربين
                         </h1>
-                        <p className="text-slate-500 text-sm">إدارة كافة أعضاء الهيئة التدريسية ومتابعة أدائهم</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">إدارة كافة أعضاء الهيئة التدريسية ومتابعة أدائهم</p>
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-center gap-4">
                         {/* Tabs */}
-                        <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100 w-full sm:w-auto">
+                        <div className="flex bg-slate-50 dark:bg-[#2A2A2A] p-1.5 rounded-2xl border border-slate-100 dark:border-white/10 w-full sm:w-auto">
                             <button
                                 onClick={() => setActiveTab('teachers')}
                                 className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex-1 sm:flex-none ${activeTab === 'teachers'
@@ -290,7 +290,7 @@ export function AdminTeachersPage() {
                             <input
                                 type="text"
                                 placeholder="بحث..."
-                                className="w-full h-11 pl-4 pr-11 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-shibl-crimson/10 text-sm transition-all"
+                                className="w-full h-11 pl-4 pr-11 rounded-xl bg-slate-50 dark:bg-[#2A2A2A] border-none focus:ring-2 focus:ring-shibl-crimson/10 text-sm transition-all dark:text-white dark:placeholder:text-slate-500"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -313,41 +313,41 @@ export function AdminTeachersPage() {
 
             {/* Teachers Tab Content */}
             {activeTab === 'teachers' && (
-                <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden mb-6 animate-in fade-in duration-500">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-[24px] shadow-sm border border-slate-100 dark:border-white/10 overflow-hidden mb-6 animate-in fade-in duration-500">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-slate-50/50 border-b border-slate-100">
-                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">المعلم</th>
-                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">التخصصات</th>
-                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الصفوف</th>
-                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الأداء</th>
-                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الحالة</th>
-                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">إجراءات</th>
+                                <tr className="bg-slate-50/50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">المعلم</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">التخصصات</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الصفوف</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الأداء</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الحالة</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">إجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-50">
+                            <tbody className="divide-y divide-slate-50 dark:divide-white/5 dark:divide-white/5 dark:divide-white/5">
                                 {loading ? (
                                     /* Shimmer Skeleton Loading */
                                     [...Array(5)].map((_, index) => (
                                         <tr key={index}>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-slate-100 animate-pulse" />
+                                                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 animate-pulse" />
                                                     <div className="space-y-2">
-                                                        <div className="h-4 w-28 rounded-md bg-slate-100 animate-pulse" />
-                                                        <div className="h-3 w-36 rounded-md bg-slate-100 animate-pulse" />
+                                                        <div className="h-4 w-28 rounded-md bg-slate-100 dark:bg-white/10 animate-pulse" />
+                                                        <div className="h-3 w-36 rounded-md bg-slate-100 dark:bg-white/10 animate-pulse" />
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4"><div className="h-4 w-20 rounded-md bg-slate-100 animate-pulse" /></td>
-                                            <td className="px-6 py-4"><div className="h-4 w-16 rounded-md bg-slate-100 animate-pulse" /></td>
-                                            <td className="px-6 py-4"><div className="h-4 w-10 rounded-md bg-slate-100 animate-pulse" /></td>
-                                            <td className="px-6 py-4"><div className="h-6 w-14 rounded-full bg-slate-100 animate-pulse" /></td>
+                                            <td className="px-6 py-4"><div className="h-4 w-20 rounded-md bg-slate-100 dark:bg-white/10 animate-pulse" /></td>
+                                            <td className="px-6 py-4"><div className="h-4 w-16 rounded-md bg-slate-100 dark:bg-white/10 animate-pulse" /></td>
+                                            <td className="px-6 py-4"><div className="h-4 w-10 rounded-md bg-slate-100 dark:bg-white/10 animate-pulse" /></td>
+                                            <td className="px-6 py-4"><div className="h-6 w-14 rounded-full bg-slate-100 dark:bg-white/10 animate-pulse" /></td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-lg bg-slate-100 animate-pulse" />
-                                                    <div className="w-8 h-8 rounded-lg bg-slate-100 animate-pulse" />
+                                                    <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/10 animate-pulse" />
+                                                    <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/10 animate-pulse" />
                                                 </div>
                                             </td>
                                         </tr>
@@ -371,10 +371,10 @@ export function AdminTeachersPage() {
                                     <tr>
                                         <td colSpan={6} className="px-6 py-16 text-center">
                                             <div className="flex flex-col items-center gap-4">
-                                                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center">
-                                                    <Users size={32} className="text-slate-300" />
+                                                <div className="w-16 h-16 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center">
+                                                    <Users size={32} className="text-slate-300 dark:text-slate-600" />
                                                 </div>
-                                                <p className="text-slate-500 font-medium">
+                                                <p className="text-slate-500 dark:text-slate-400 font-medium">
                                                     {searchQuery ? 'لا توجد نتائج مطابقة للبحث' : 'ل م يتم إضافة مدرسين بعد'}
                                                 </p>
                                                 {!searchQuery && (
@@ -390,7 +390,7 @@ export function AdminTeachersPage() {
                                     </tr>
                                 ) : (
                                     filteredTeachers.map((teacher) => (
-                                        <tr key={teacher.id} className="hover:bg-slate-50/80 transition-colors group">
+                                        <tr key={teacher.id} className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
                                                     <div className="relative">
@@ -410,7 +410,7 @@ export function AdminTeachersPage() {
                                                         <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${teacher.status === 'active' ? 'bg-green-500' : 'bg-slate-300'}`}></span>
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className="font-bold text-slate-800 text-sm group-hover:text-shibl-crimson transition-colors">{teacher.name}</span>
+                                                        <span className="font-bold text-slate-800 dark:text-white text-sm group-hover:text-shibl-crimson transition-colors">{teacher.name}</span>
                                                         <span className="text-xs text-slate-400 font-medium font-mono mt-0.5">{teacher.email}</span>
                                                     </div>
                                                 </div>
@@ -481,14 +481,14 @@ export function AdminTeachersPage() {
                                                             setSelectedTeacher(teacher);
                                                             setShowEditTeacherModal(true);
                                                         }}
-                                                        className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 flex items-center justify-center transition-all duration-200 shadow-sm"
+                                                        className="w-8 h-8 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 flex items-center justify-center transition-all duration-200 shadow-sm"
                                                         title="تعديل البيانات"
                                                     >
                                                         <Edit2 size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => openDeleteModal(teacher)}
-                                                        className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 flex items-center justify-center transition-all duration-200 shadow-sm"
+                                                        className="w-8 h-8 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 flex items-center justify-center transition-all duration-200 shadow-sm"
                                                         title="حذف"
                                                     >
                                                         <Trash2 size={16} />
@@ -510,7 +510,7 @@ export function AdminTeachersPage() {
                     <div className="mb-6">
                         <div className="flex items-center gap-2 mb-4">
                             <Lightbulb size={20} className="text-green-600" />
-                            <h2 className="font-bold text-charcoal">المدربون</h2>
+                            <h2 className="font-bold text-charcoal dark:text-white">المدربون</h2>
                         </div>
 
                         {loading ? (
@@ -568,7 +568,7 @@ export function AdminTeachersPage() {
                             /* Instructors Grid */
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {filteredTeachers.map((instructor) => (
-                                    <div key={instructor.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+                                    <div key={instructor.id} className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-sm border border-slate-100 dark:border-white/10 overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1">
                                         <div className="p-6">
                                             <div className="flex items-start justify-between mb-4">
                                                 <div className="flex items-center gap-3">
@@ -584,7 +584,7 @@ export function AdminTeachersPage() {
                                                         </div>
                                                     )}
                                                     <div>
-                                                        <h3 className="font-bold text-charcoal text-lg">{instructor.name}</h3>
+                                                        <h3 className="font-bold text-charcoal dark:text-white text-lg">{instructor.name}</h3>
                                                         <p className="text-sm text-slate-grey">{instructor.specialization || 'مدرب مهارات'}</p>
                                                     </div>
                                                 </div>
@@ -598,10 +598,10 @@ export function AdminTeachersPage() {
                                                 </span>
                                             </div>
 
-                                            <div className="grid grid-cols-3 gap-4 mb-4 py-4 border-t border-b border-slate-100">
+                                            <div className="grid grid-cols-3 gap-4 mb-4 py-4 border-t border-b border-slate-100 dark:border-white/10">
                                                 <div className="text-center">
                                                     <p className="text-xs text-slate-grey mb-1">عدد الدورات</p>
-                                                    <p className="font-bold text-charcoal">{instructor.courses_count ?? instructor.courses?.length ?? 0}</p>
+                                                    <p className="font-bold text-charcoal dark:text-white">{instructor.courses_count ?? instructor.courses?.length ?? 0}</p>
                                                 </div>
                                                 <div className="text-center">
                                                     <p className="text-xs text-slate-grey mb-1">الرصيد</p>
@@ -609,7 +609,7 @@ export function AdminTeachersPage() {
                                                 </div>
                                                 <div className="text-center">
                                                     <p className="text-xs text-slate-grey mb-1">البريد</p>
-                                                    <p className="font-bold text-charcoal text-xs truncate" title={instructor.email}>
+                                                    <p className="font-bold text-charcoal dark:text-white text-xs truncate" title={instructor.email}>
                                                         {instructor.email.split('@')[0]}
                                                     </p>
                                                 </div>

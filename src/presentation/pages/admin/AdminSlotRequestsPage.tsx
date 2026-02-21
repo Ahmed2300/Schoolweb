@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AdminSlotRequestsPage - Teacher Schedule Request Management
  * 
  * Premium admin page for reviewing and managing teacher slot requests.
@@ -90,12 +90,12 @@ const StatCard: React.FC<StatCardProps> = React.memo(({ title, value, icon, colo
     <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 group"
+        className="bg-white dark:bg-[#1E1E1E] rounded-2xl p-6 border border-slate-100 dark:border-white/10 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 group"
     >
         <div className="flex items-start justify-between">
             <div>
                 <p className="text-slate-500 text-sm font-medium mb-1">{title}</p>
-                <h3 className="text-3xl font-bold text-slate-800 group-hover:text-shibl-crimson transition-colors">
+                <h3 className="text-3xl font-bold text-slate-800 dark:text-white group-hover:text-shibl-crimson transition-colors">
                     {value}
                 </h3>
             </div>
@@ -166,7 +166,7 @@ const RequestRow: React.FC<RequestRowProps> = React.memo(({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="group border-b border-slate-50 hover:bg-[#FFF9F9] transition-colors"
+        className="group border-b border-slate-50 dark:border-white/5 hover:bg-[#FFF9F9] dark:hover:bg-white/5 transition-colors"
     >
         <td className="px-6 py-4">
             <div className="flex items-center">
@@ -480,13 +480,13 @@ export function AdminSlotRequestsPage(): React.ReactElement {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">طلبات المواعيد</h1>
-                    <p className="text-slate-500 mt-2 font-medium">إدارة ومراجعة طلبات حجز المواعيد من المدرسين</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">طلبات المواعيد</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">إدارة ومراجعة طلبات حجز المواعيد من المدرسين</p>
                 </div>
                 <button
                     onClick={() => refetch()}
                     disabled={isRefetching}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-600 rounded-xl hover:bg-slate-50 hover:text-shibl-crimson border border-slate-200 transition-all shadow-sm hover:shadow-md disabled:opacity-50 font-medium"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 hover:text-shibl-crimson border border-slate-200 dark:border-white/10 transition-all shadow-sm hover:shadow-md disabled:opacity-50 font-medium"
                 >
                     <RefreshCw size={18} className={isRefetching ? 'animate-spin' : ''} />
                     تحديث البيانات
@@ -498,7 +498,7 @@ export function AdminSlotRequestsPage(): React.ReactElement {
             {/* Filters & Actions */}
             <div className="flex items-center justify-between flex-wrap gap-4 mt-8">
                 {/* Status Filter */}
-                <div className="flex items-center gap-3 bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
+                <div className="flex items-center gap-3 bg-white dark:bg-[#1E1E1E] p-1 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
                     {['all', 'pending', 'approved', 'rejected'].map(status => (
                         <button
                             key={status}
@@ -520,7 +520,7 @@ export function AdminSlotRequestsPage(): React.ReactElement {
                 </div>
 
                 {/* Type Filter */}
-                <div className="flex items-center gap-3 bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
+                <div className="flex items-center gap-3 bg-white dark:bg-[#1E1E1E] p-1 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
                     <button
                         onClick={() => {
                             setTypeFilter(undefined);
@@ -589,10 +589,10 @@ export function AdminSlotRequestsPage(): React.ReactElement {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 dark:border-white/10 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-[#FAFAFA] border-b border-slate-100">
+                        <thead className="bg-[#FAFAFA] dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
                             <tr>
                                 <th className="px-6 py-4 text-right">
                                     <div className="flex items-center">
@@ -646,8 +646,8 @@ export function AdminSlotRequestsPage(): React.ReactElement {
 
                 {/* Pagination */}
                 {meta && meta.last_page > 1 && (
-                    <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
-                        <span className="text-sm text-slate-500">
+                    <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 dark:border-white/10">
+                        <span className="text-sm text-slate-500 dark:text-slate-400">
                             عرض {((meta.current_page - 1) * meta.per_page) + 1} - {Math.min(meta.current_page * meta.per_page, meta.total)} من {meta.total}
                         </span>
                         <div className="flex items-center gap-2">
@@ -701,7 +701,7 @@ export function AdminSlotRequestsPage(): React.ReactElement {
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
                             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                             onClick={e => e.stopPropagation()}
-                            className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100"
+                            className="bg-white dark:bg-[#1E1E1E] rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 dark:border-white/10"
                         >
                             {/* Header with gradient */}
                             <div className="bg-gradient-to-r from-[#AF0C15] to-[#E11D48] px-8 py-6 relative overflow-hidden">
@@ -719,13 +719,13 @@ export function AdminSlotRequestsPage(): React.ReactElement {
 
                             <div className="p-6 space-y-5">
                                 {/* Teacher Info Card */}
-                                <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-2xl border border-slate-100">
+                                <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-slate-50 dark:from-[#2A2A2A] to-slate-100 dark:to-[#2A2A2A] rounded-2xl border border-slate-100 dark:border-white/10">
                                     <div className="w-16 h-16 bg-gradient-to-br from-shibl-crimson to-rose-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-shibl-crimson/30">
                                         {selectedRequest.teacher?.name?.charAt(0) || 'م'}
                                     </div>
                                     <div className="flex-1">
-                                        <p className="font-bold text-lg text-slate-800">{selectedRequest.teacher?.name}</p>
-                                        <p className="text-sm text-slate-500">{selectedRequest.teacher?.email}</p>
+                                        <p className="font-bold text-lg text-slate-800 dark:text-white">{selectedRequest.teacher?.name}</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{selectedRequest.teacher?.email}</p>
                                     </div>
                                 </div>
 
@@ -736,21 +736,21 @@ export function AdminSlotRequestsPage(): React.ReactElement {
                                             <GraduationCap size={16} />
                                             <span className="text-xs font-semibold">الصف</span>
                                         </div>
-                                        <p className="font-bold text-slate-800">{selectedRequest.grade?.name || 'غير محدد'}</p>
+                                        <p className="font-bold text-slate-800 dark:text-white">{selectedRequest.grade?.name || 'غير محدد'}</p>
                                     </div>
                                     <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-4 border border-purple-100">
                                         <div className="flex items-center gap-2 text-purple-600 mb-2">
                                             <Repeat size={16} />
                                             <span className="text-xs font-semibold">النوع</span>
                                         </div>
-                                        <p className="font-bold text-slate-800">{selectedRequest.type === 'weekly' ? 'أسبوعي' : 'لمرة واحدة'}</p>
+                                        <p className="font-bold text-slate-800 dark:text-white">{selectedRequest.type === 'weekly' ? 'أسبوعي' : 'لمرة واحدة'}</p>
                                     </div>
                                     <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-4 border border-amber-100">
                                         <div className="flex items-center gap-2 text-amber-600 mb-2">
                                             <Calendar size={16} />
                                             <span className="text-xs font-semibold">اليوم والتاريخ</span>
                                         </div>
-                                        <p className="font-bold text-slate-800">
+                                        <p className="font-bold text-slate-800 dark:text-white">
                                             {selectedRequest.day_name || selectedRequest.arabic_day || getDayName(selectedRequest.specific_date)}
                                         </p>
                                         {selectedRequest.specific_date && (
@@ -764,7 +764,7 @@ export function AdminSlotRequestsPage(): React.ReactElement {
                                             <Clock size={16} />
                                             <span className="text-xs font-semibold">الوقت</span>
                                         </div>
-                                        <p className="font-bold text-slate-800 font-mono">{selectedRequest.time_range}</p>
+                                        <p className="font-bold text-slate-800 dark:text-white font-mono">{selectedRequest.time_range}</p>
                                     </div>
                                 </div>
 

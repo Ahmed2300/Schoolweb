@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Calendar,
     Search,
@@ -247,31 +247,31 @@ export function AdminSemestersPage(): React.ReactElement {
             {/* Stats Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat, index) => (
-                    <div key={index} className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 group">
+                    <div key={index} className="bg-white dark:bg-[#1E1E1E] rounded-[20px] p-6 shadow-sm border border-slate-100 dark:border-white/10 hover:shadow-md transition-all duration-300 group">
                         <div className="flex justify-between items-start mb-4">
-                            <div className={`w-12 h-12 rounded-2xl ${stat.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                            <div className={`w-12 h-12 rounded-2xl ${stat.bgColor} dark:bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
                                 {stat.icon}
                             </div>
-                            <span className="flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                            <span className="flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 dark:bg-green-500/10 px-2 py-1 rounded-full">
                                 نشط <Check size={12} />
                             </span>
                         </div>
                         <div>
-                            <p className="text-slate-500 text-sm font-medium mb-1">{stat.label}</p>
-                            <h3 className="text-3xl font-extrabold text-slate-800">{stat.value}</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">{stat.label}</p>
+                            <h3 className="text-3xl font-extrabold text-slate-800 dark:text-white">{stat.value}</h3>
                         </div>
                     </div>
                 ))}
             </div>
 
             {/* Header & Controls */}
-            <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-100">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-white/10">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                     <div>
                         <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 mb-2">
                             إدارة الفصول الدراسية
                         </h1>
-                        <p className="text-slate-500 text-sm">إدارة الفترات الزمنية والتقويم الدراسي</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">إدارة الفترات الزمنية والتقويم الدراسي</p>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -282,7 +282,7 @@ export function AdminSemestersPage(): React.ReactElement {
                                 placeholder="بحث..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full md:w-72 h-12 pr-12 pl-4 rounded-[16px] bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 focus:bg-white transition-all duration-300 outline-none text-sm font-medium placeholder:text-slate-400"
+                                className="w-full md:w-72 h-12 pr-12 pl-4 rounded-[16px] bg-slate-50 dark:bg-[#2A2A2A] border-2 border-slate-100 dark:border-white/10 focus:border-indigo-500 focus:bg-white dark:focus:bg-[#1E1E1E] transition-all duration-300 outline-none text-sm font-medium placeholder:text-slate-400 dark:text-white"
                                 dir="rtl"
                             />
                         </div>
@@ -298,7 +298,7 @@ export function AdminSemestersPage(): React.ReactElement {
             </div>
 
             {error && (
-                <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
                     <AlertCircle size={20} />
                     <span>{error}</span>
                     <button onClick={fetchSemesters} className="mr-auto text-sm font-bold underline hover:no-underline">
@@ -308,19 +308,19 @@ export function AdminSemestersPage(): React.ReactElement {
             )}
 
             {/* Semesters Table */}
-            <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-[24px] shadow-sm border border-slate-100 dark:border-white/10 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-slate-50/50 border-b border-slate-100">
+                        <thead className="bg-slate-50/50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
                             <tr>
-                                <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الاسم</th>
-                                <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الصف الدراسي</th>
-                                <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">تاريخ البدء</th>
-                                <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">تاريخ الانتهاء</th>
-                                <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الإجراءات</th>
+                                <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الاسم</th>
+                                <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الصف الدراسي</th>
+                                <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">تاريخ البدء</th>
+                                <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">تاريخ الانتهاء</th>
+                                <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الإجراءات</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50">
+                        <tbody className="divide-y divide-slate-50 dark:divide-white/5 dark:divide-white/5 dark:divide-white/5">
                             {loading ? (
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
@@ -334,29 +334,29 @@ export function AdminSemestersPage(): React.ReactElement {
                             ) : filteredSemesters.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="py-16 text-center text-slate-500">
-                                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <Calendar size={40} className="text-slate-300" />
+                                        <div className="w-20 h-20 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Calendar size={40} className="text-slate-300 dark:text-slate-600" />
                                         </div>
-                                        <p className="font-medium text-lg text-slate-600">لا توجد فصول دراسية</p>
+                                        <p className="font-medium text-lg text-slate-600 dark:text-slate-300">لا توجد فصول دراسية</p>
                                         <p className="text-sm text-slate-400 mt-1">ابدأ بإضافة فصول دراسية جديدة</p>
                                     </td>
                                 </tr>
                             ) : (
                                 filteredSemesters.map((semester) => (
-                                    <tr key={semester.id} className="hover:bg-slate-50/80 transition-colors group">
+                                    <tr key={semester.id} className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold">
+                                                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 font-bold">
                                                     <Calendar size={20} />
                                                 </div>
-                                                <span className="font-bold text-slate-700 text-base">{getSemesterName(semester)}</span>
+                                                <span className="font-bold text-slate-700 dark:text-white text-base">{getSemesterName(semester)}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             {(() => {
                                                 if (semester.grade && typeof semester.grade === 'object') {
                                                     return (
-                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-100">
+                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 text-xs font-bold rounded-lg border border-indigo-100 dark:border-indigo-500/20">
                                                             <GraduationCap size={14} />
                                                             {extractName(semester.grade.name as any)}
                                                         </span>
@@ -366,7 +366,7 @@ export function AdminSemestersPage(): React.ReactElement {
                                                     const foundGrade = grades.find(g => g.id === semester.grade_id);
                                                     if (foundGrade) {
                                                         return (
-                                                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-100">
+                                                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 text-xs font-bold rounded-lg border border-indigo-100 dark:border-indigo-500/20">
                                                                 <GraduationCap size={14} />
                                                                 {foundGrade.name}
                                                             </span>
@@ -382,13 +382,13 @@ export function AdminSemestersPage(): React.ReactElement {
                                             })()}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg w-fit">
+                                            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-3 py-1.5 rounded-lg w-fit">
                                                 <CalendarDays size={14} className="text-emerald-500" />
                                                 <span className="font-mono font-medium">{semester.start_date ? new Date(semester.start_date).toLocaleDateString('ar-EG') : '—'}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg w-fit">
+                                            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-3 py-1.5 rounded-lg w-fit">
                                                 <CalendarClock size={14} className="text-rose-400" />
                                                 <span className="font-mono font-medium">{semester.end_date ? new Date(semester.end_date).toLocaleDateString('ar-EG') : '—'}</span>
                                             </div>
@@ -437,13 +437,13 @@ export function AdminSemestersPage(): React.ReactElement {
                 </div>
 
                 {!loading && totalPages > 1 && (
-                    <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/30">
-                        <p className="text-sm font-medium text-slate-500">صفحة {currentPage} من {totalPages}</p>
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-white/10 bg-slate-50/30 dark:bg-[#2A2A2A]">
+                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">صفحة {currentPage} من {totalPages}</p>
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                                className="px-4 py-2 rounded-xl bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                             >
                                 السابق
                             </button>
@@ -463,17 +463,17 @@ export function AdminSemestersPage(): React.ReactElement {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-charcoal/40 backdrop-blur-sm" onClick={closeModal} />
                     <div
-                        className="relative bg-white rounded-2xl w-full max-w-lg animate-in zoom-in-95 fade-in duration-200"
+                        className="relative bg-white dark:bg-[#1E1E1E] rounded-2xl w-full max-w-lg animate-in zoom-in-95 fade-in duration-200"
                         style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}
                     >
                         <div className="px-8 pt-8 pb-2">
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-500/10 flex items-center justify-center">
                                         <Calendar size={20} className="text-indigo-600" />
                                     </div>
                                     <div>
-                                        <h2 className="text-xl font-bold text-charcoal">
+                                        <h2 className="text-xl font-bold text-charcoal dark:text-white">
                                             {editingSemester ? 'تعديل الفصل الدراسي' : 'إضافة فصل جديد'}
                                         </h2>
                                         <p className="text-sm text-slate-400 mt-0.5">أدخل بيانات الفصل الدراسي</p>
@@ -482,7 +482,7 @@ export function AdminSemestersPage(): React.ReactElement {
                                 <button
                                     onClick={closeModal}
                                     disabled={submitting}
-                                    className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
+                                    className="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors disabled:opacity-50"
                                 >
                                     <X size={18} />
                                 </button>
@@ -491,7 +491,7 @@ export function AdminSemestersPage(): React.ReactElement {
 
                         <form onSubmit={handleSubmit} className="px-8 pb-8 pt-4">
                             {formError && (
-                                <div className="mb-6 p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm flex items-center gap-2">
+                                <div className="mb-6 p-3 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-sm flex items-center gap-2">
                                     <AlertCircle size={16} />
                                     {formError}
                                 </div>
@@ -499,30 +499,30 @@ export function AdminSemestersPage(): React.ReactElement {
 
                             <div className="space-y-6">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">
                                         اسم الفصل الدراسي
                                     </label>
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-xs font-medium text-slate-500 mb-1.5">بالعربية *</label>
+                                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">بالعربية *</label>
                                             <input
                                                 type="text"
                                                 value={formData.name_ar}
                                                 onChange={(e) => setFormData(prev => ({ ...prev, name_ar: e.target.value }))}
                                                 placeholder="مثال: الفصل الدراسي الأول"
-                                                className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 outline-none text-sm placeholder:text-slate-300 transition-all"
+                                                className="w-full h-12 px-4 rounded-xl bg-slate-50/50 dark:bg-[#2A2A2A] border border-slate-200/80 dark:border-white/10 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 outline-none text-sm placeholder:text-slate-300 transition-all dark:text-white"
                                                 dir="rtl"
                                                 disabled={submitting}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-slate-500 mb-1.5">بالإنجليزية</label>
+                                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">بالإنجليزية</label>
                                             <input
                                                 type="text"
                                                 value={formData.name_en}
                                                 onChange={(e) => setFormData(prev => ({ ...prev, name_en: e.target.value }))}
                                                 placeholder="e.g. First Semester"
-                                                className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 outline-none text-sm placeholder:text-slate-300 transition-all"
+                                                className="w-full h-12 px-4 rounded-xl bg-slate-50/50 dark:bg-[#2A2A2A] border border-slate-200/80 dark:border-white/10 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 outline-none text-sm placeholder:text-slate-300 transition-all dark:text-white"
                                                 dir="ltr"
                                                 disabled={submitting}
                                             />
@@ -532,7 +532,7 @@ export function AdminSemestersPage(): React.ReactElement {
 
                                 <div className="grid grid-cols-2 gap-5">
                                     <div>
-                                        <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mb-1.5">
+                                        <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
                                             <CalendarDays size={13} className="text-emerald-500" />
                                             تاريخ البدء
                                         </label>
@@ -548,13 +548,13 @@ export function AdminSemestersPage(): React.ReactElement {
                                                         setFormData(prev => ({ ...prev, end_date: '' }));
                                                     }
                                                 }}
-                                                className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 outline-none text-sm transition-all cursor-pointer"
+                                                className="w-full h-12 px-4 rounded-xl bg-slate-50/50 dark:bg-[#2A2A2A] border border-slate-200/80 dark:border-white/10 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 outline-none text-sm transition-all cursor-pointer dark:text-white dark:[color-scheme:dark]"
                                                 disabled={submitting}
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mb-1.5">
+                                        <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
                                             <CalendarClock size={13} className="text-rose-400" />
                                             تاريخ الانتهاء
                                         </label>
@@ -564,7 +564,7 @@ export function AdminSemestersPage(): React.ReactElement {
                                                 value={formData.end_date}
                                                 min={formData.start_date || getTodayDate()}
                                                 onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
-                                                className="w-full h-12 px-4 rounded-xl bg-slate-50/50 border border-slate-200/80 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 outline-none text-sm transition-all cursor-pointer"
+                                                className="w-full h-12 px-4 rounded-xl bg-slate-50/50 dark:bg-[#2A2A2A] border border-slate-200/80 dark:border-white/10 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 outline-none text-sm transition-all cursor-pointer dark:text-white dark:[color-scheme:dark]"
                                                 disabled={submitting || !formData.start_date}
                                             />
                                             {!formData.start_date && (
@@ -575,7 +575,7 @@ export function AdminSemestersPage(): React.ReactElement {
                                 </div>
 
                                 <div>
-                                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">
+                                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">
                                         <Layers size={13} className="text-indigo-500" />
                                         الصف الدراسي *
                                     </label>
@@ -585,7 +585,7 @@ export function AdminSemestersPage(): React.ReactElement {
                                         </div>
                                     ) : grades.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center py-8">
-                                            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                                            <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center mb-3">
                                                 <FolderOpen size={28} className="text-slate-300" />
                                             </div>
                                             <p className="text-sm text-slate-400">لا توجد صفوف دراسية متاحة</p>
@@ -605,7 +605,7 @@ export function AdminSemestersPage(): React.ReactElement {
                                                             flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
                                                             ${isSelected
                                                                 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                                : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20'
                                                             }
                                                             disabled:opacity-50
                                                         `}
@@ -630,7 +630,7 @@ export function AdminSemestersPage(): React.ReactElement {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-3 mt-8 pt-6 border-t border-slate-100">
+                            <div className="flex items-center gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-white/10">
                                 <button
                                     type="button"
                                     onClick={closeModal}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { AdminSidebar } from './AdminSidebar';
 import { useLanguage } from '../../hooks';
@@ -6,15 +6,18 @@ import { Menu, X } from 'lucide-react';
 import { useAuthStore } from '../../store';
 import { SessionManager } from './SessionManager';
 import { NotificationBell, NotificationToast } from '@/components/notifications';
-import { initializeEcho, disconnectEcho } from '../../../services/websocket';
+import { initializeEcho } from '../../../services/websocket';
 import { getToken } from '../../../data/api/ApiClient';
-import { useEffect } from 'react';
+import { useThemeEffect } from '../../../hooks/useThemeEffect';
 
 export function AdminLayout() {
     const { isRTL } = useLanguage();
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const { user } = useAuthStore();
+
+    // Apply dark/light theme to the <html> element
+    useThemeEffect();
 
     // Ensure WebSocket is initialized (safe to call repeatedly as it's a singleton)
     // We call it here so it's ready before children components mount
@@ -28,7 +31,7 @@ export function AdminLayout() {
     // We rely on explicit logout or window close to disconnect
 
     return (
-        <div className="min-h-screen bg-soft-cloud" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#121212] transition-colors duration-300" dir={isRTL ? 'rtl' : 'ltr'}>
             {/* Real-time Notification Toast */}
             <NotificationToast />
 
@@ -63,7 +66,7 @@ export function AdminLayout() {
                 className={`transition-all duration-300 mr-0 ${isSidebarCollapsed ? 'lg:mr-20' : 'lg:mr-64'}`}
             >
                 {/* Header */}
-                <header className="h-16 lg:h-20 bg-white border-b border-slate-100 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30 transition-all">
+                <header className="h-16 lg:h-20 bg-white/90 dark:bg-[#1E1E1E]/90 backdrop-blur border-b border-slate-100 dark:border-white/10 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30 transition-colors duration-300">
                     {/* Left side - User & Mobile Toggle */}
                     <div className="flex items-center gap-3 lg:gap-4">
                         {/* Mobile Menu Button */}
@@ -79,8 +82,8 @@ export function AdminLayout() {
                                 {user?.name?.charAt(0) || 'A'}
                             </div>
                             <div className="hidden sm:flex flex-col">
-                                <span className="text-sm font-bold text-charcoal">{user?.name || 'Admin User'}</span>
-                                <span className="text-[10px] lg:text-xs text-slate-400">مدير النظام</span>
+                                <span className="text-sm font-bold text-charcoal dark:text-white">{user?.name || 'Admin User'}</span>
+                                <span className="text-[10px] lg:text-xs text-slate-400 dark:text-slate-500">مدير النظام</span>
                             </div>
                         </div>
                     </div>
