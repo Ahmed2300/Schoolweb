@@ -73,10 +73,10 @@ export function WeekStrip({ selectedDate, onDateSelect, scheduleCounts = {} }: W
     const monthLabel = format(selectedDate, 'MMMM yyyy', { locale: ar });
 
     return (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-6">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 sm:p-4 mb-6 overflow-hidden">
             {/* Header with month and navigation */}
             <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-charcoal">{monthLabel}</h2>
+                <h2 className="text-base sm:text-lg font-bold text-charcoal">{monthLabel}</h2>
                 <div className="flex items-center gap-1">
                     <button
                         onClick={handlePrevWeek}
@@ -96,7 +96,7 @@ export function WeekStrip({ selectedDate, onDateSelect, scheduleCounts = {} }: W
             </div>
 
             {/* Days row */}
-            <div className="flex items-center gap-2" role="tablist" aria-label="أيام الأسبوع">
+            <div className="flex items-center gap-1 sm:gap-2 overflow-hidden" role="tablist" aria-label="أيام الأسبوع">
                 {weekDays.map((day) => (
                     <button
                         key={day.dateKey}
@@ -105,7 +105,7 @@ export function WeekStrip({ selectedDate, onDateSelect, scheduleCounts = {} }: W
                         aria-selected={day.isSelected}
                         aria-label={`${day.dayName} ${day.dayNumber}`}
                         className={`
-                            relative flex-1 flex flex-col items-center py-3 px-2 rounded-xl transition-all duration-200
+                            relative flex-1 flex flex-col items-center py-2 sm:py-3 px-1 sm:px-2 rounded-xl transition-all duration-200
                             focus:outline-none focus:ring-2 focus:ring-shibl-crimson/30
                             ${day.isSelected
                                 ? 'bg-shibl-crimson text-white shadow-lg shadow-shibl-crimson/25'

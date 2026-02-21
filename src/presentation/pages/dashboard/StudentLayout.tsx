@@ -25,7 +25,9 @@ import {
     ChevronRight,
     ChevronLeft,
     Package,
-    Users
+    Users,
+    Menu,
+    X
 } from 'lucide-react';
 
 export function StudentLayout() {
@@ -35,6 +37,7 @@ export function StudentLayout() {
     const { user, logout: clearAuthStore } = useAuthStore();
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
 
     // Fetch pending parent requests count
@@ -108,7 +111,7 @@ export function StudentLayout() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F8F9FA] flex" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="min-h-screen bg-[#F8F9FA] flex overflow-x-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
             <LogoutModal
                 isOpen={showLogoutModal}
                 onClose={() => setShowLogoutModal(false)}
@@ -116,11 +119,20 @@ export function StudentLayout() {
                 userName={displayName}
             />
 
+            {/* Mobile Backdrop */}
+            {isMobileOpen && (
+                <div
+                    className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+                    onClick={() => setIsMobileOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
             <aside
                 className={`
-                    fixed top-0 transition-all duration-300 z-50 flex flex-col h-screen bg-white border-l border-slate-200 shadow-xl lg:shadow-none
+                    fixed top-0 transition-all duration-300 z-50 flex flex-col h-screen bg-white border-slate-200 shadow-xl lg:shadow-none
                     ${isRTL ? 'right-0 border-l' : 'left-0 border-r'}
+                    ${isMobileOpen ? 'translate-x-0' : (isRTL ? 'translate-x-full lg:translate-x-0' : '-translate-x-full lg:translate-x-0')}
                     ${isCollapsed ? 'w-20' : 'w-64'}
                 `}
             >
@@ -133,16 +145,25 @@ export function StudentLayout() {
                         <img src="/images/subol-red.png" alt="سُبُل" className="w-8 h-8" />
                         <span className="text-2xl font-extrabold text-shibl-crimson whitespace-nowrap">سُبُل</span>
                     </div>
-                    <div className={`${isCollapsed ? 'block opacity-100' : 'hidden opacity-0'} transition-all duration-500`}>
+
+                    {/* Close button for mobile */}
+                    <button
+                        onClick={() => setIsMobileOpen(false)}
+                        className="lg:hidden text-slate-400 hover:text-shibl-crimson p-1"
+                    >
+                        <X size={20} />
+                    </button>
+
+                    <div className={`${isCollapsed ? 'hidden lg:block opacity-100' : 'hidden opacity-0'} transition-all duration-500`}>
                         <img src="/images/subol-red.png" alt="سُبُل" className="w-8 h-8" />
                     </div>
                 </div>
 
-                {/* Collapse Toggle Button */}
+                {/* Collapse Toggle Button (Desktop Only) */}
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
                     className={`
-                        absolute top-6 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-shibl-crimson hover:border-shibl-crimson transition-colors shadow-sm z-50
+                        hidden lg:flex absolute top-6 w-6 h-6 bg-white border border-slate-200 rounded-full items-center justify-center text-slate-400 hover:text-shibl-crimson hover:border-shibl-crimson transition-colors shadow-sm z-50
                         ${isRTL ? '-left-3' : '-right-3'}
                     `}
                 >
@@ -163,6 +184,7 @@ export function StudentLayout() {
                                 <li key={item.path}>
                                     <Link
                                         to={item.path}
+                                        onClick={() => setIsMobileOpen(false)}
                                         className={`
                                             flex items-center px-4 py-3 rounded-[12px]
                                             transition-all duration-300 group relative overflow-hidden
@@ -170,7 +192,7 @@ export function StudentLayout() {
                                                 ? 'bg-shibl-crimson text-white shadow-crimson'
                                                 : 'text-slate-500 hover:bg-slate-50 hover:text-shibl-crimson'
                                             }
-                                            ${isCollapsed ? 'pl-[30px]' : 'px-4'}
+                                            ${isCollapsed ? 'lg:pl-[30px] px-4' : 'px-4'}
                                         `}
                                         title={isCollapsed ? item.label : undefined}
                                     >
@@ -228,15 +250,24 @@ export function StudentLayout() {
             {/* Main Content */}
             <main
                 className={`
-                    flex-1 transition-all duration-300 flex flex-col min-h-screen
+                    flex-1 transition-all duration-300 flex flex-col min-h-screen w-full
                     ${isRTL
-                        ? (isCollapsed ? 'mr-20' : 'mr-64')
-                        : (isCollapsed ? 'ml-20' : 'ml-64')
+                        ? (isCollapsed ? 'lg:mr-20' : 'lg:mr-64')
+                        : (isCollapsed ? 'lg:ml-20' : 'lg:ml-64')
                     }
                 `}
             >
                 {/* Header */}
-                <header className="h-16 bg-white/80 backdrop-blur-sm flex items-center justify-between px-6 sticky top-0 z-40">
+                <header className="h-16 bg-white/80 backdrop-blur-sm flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
+                    <div className="flex items-center gap-4 lg:hidden">
+                        <button
+                            onClick={() => setIsMobileOpen(true)}
+                            className="text-slate-500 hover:text-shibl-crimson p-2 -ml-2 rounded-lg hover:bg-slate-50 transition-colors"
+                        >
+                            <Menu size={24} />
+                        </button>
+                    </div>
+
                     {/* Search Left Aligned (or right depending on direction, but kept consistent) */}
                     <div className="flex-1"></div>
 

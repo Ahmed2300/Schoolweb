@@ -94,10 +94,10 @@ export function QuizItem({ quiz, isSubscribed = false, isUnitQuiz = false }: Qui
                 </div>
 
                 {/* Main Content */}
-                <div className="flex items-center gap-4 p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-5">
                     {/* Icon */}
                     <div className={`
-                        w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm
+                        w-12 h-12 lg:w-14 lg:h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm
                         ${!isLocked ? 'group-hover:scale-110' : ''} transition-transform
                         ${isLocked
                             ? 'bg-slate-100 text-slate-400'
@@ -107,21 +107,21 @@ export function QuizItem({ quiz, isSubscribed = false, isUnitQuiz = false }: Qui
                         }
                     `}>
                         {isCompleted
-                            ? (isPassed ? <Trophy size={26} className="stroke-[2]" /> : <XCircle size={26} className="stroke-[2]" />)
-                            : <Trophy size={26} className="stroke-[2]" />
+                            ? (isPassed ? <Trophy size={26} className="stroke-[2] w-5 h-5 lg:w-6 lg:h-6" /> : <XCircle size={26} className="stroke-[2] w-5 h-5 lg:w-6 lg:h-6" />)
+                            : <Trophy size={26} className="stroke-[2] w-5 h-5 lg:w-6 lg:h-6" />
                         }
                     </div>
 
                     {/* Text */}
                     <div className="flex-1 min-w-0">
-                        <h4 className={`text-lg font-black truncate transition-colors
+                        <h4 className={`text-base lg:text-lg font-black truncate transition-colors
                             ${isLocked ? 'text-slate-500' : isCompleted
                                 ? (isPassed ? 'text-emerald-800' : 'text-rose-800')
                                 : 'text-slate-900'
                             }`}>
                             {getLocalizedName(quiz.title, 'Quiz')}
                         </h4>
-                        <div className="flex items-center gap-3 text-xs font-medium mt-1">
+                        <div className="flex flex-wrap items-center gap-2 lg:gap-3 text-xs font-medium mt-1">
                             {quiz.duration_minutes > 0 && (
                                 <div className="flex items-center gap-1.5 bg-white/80 text-slate-500 px-2 py-0.5 rounded-md">
                                     <Clock size={12} />
@@ -141,20 +141,21 @@ export function QuizItem({ quiz, isSubscribed = false, isUnitQuiz = false }: Qui
                     </div>
 
                     {/* Action */}
-                    <div className="shrink-0">
+                    <div className="shrink-0 mt-2 sm:mt-0">
                         {isLocked ? (
-                            <div className="flex items-center gap-2 text-slate-400 bg-slate-50 px-3 py-2 rounded-xl">
+                            <div className="flex items-center justify-center gap-2 text-slate-400 bg-slate-50 px-3 py-2 rounded-xl">
                                 <Lock size={18} />
+                                {!isSubscribed && <span className="text-xs font-bold sm:hidden">للمشتركين</span>}
                             </div>
                         ) : isCompleted ? (
-                            <div className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2
+                            <div className={`px-4 py-2 rounded-xl text-xs lg:text-sm font-bold flex items-center justify-center gap-2 w-full sm:w-auto
                                 ${isPendingGrading ? 'bg-amber-100 text-amber-700' : (isPassed ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700')}
                             `}>
                                 {isPendingGrading ? <Clock size={16} /> : (isPassed ? <CheckCircle2 size={16} /> : <XCircle size={16} />)}
                                 {isPendingGrading ? 'قيد التصحيح' : (isPassed ? 'ناجح' : 'أعِد المحاولة')}
                             </div>
                         ) : (
-                            <button className="px-5 py-2.5 rounded-xl text-sm font-black flex items-center gap-2 bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-md shadow-amber-200">
+                            <button className="px-5 py-2.5 rounded-xl text-xs lg:text-sm font-black flex items-center justify-center gap-2 bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-md shadow-amber-200 w-full sm:w-auto">
                                 <Play size={14} />
                                 ابدأ الاختبار
                             </button>
@@ -171,68 +172,70 @@ export function QuizItem({ quiz, isSubscribed = false, isUnitQuiz = false }: Qui
             onClick={handleClick}
             className={`
                 relative group
-                flex items-center gap-4 p-4 lg:p-5
+                flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 lg:p-5
                 bg-white border ${statusStyle.borderColor} rounded-2xl
                 hover:shadow-md ${!isLocked ? 'hover:-translate-y-0.5' : ''}
                 transition-all duration-300 cursor-pointer
                 ${isLocked ? 'opacity-70 grayscale-[0.5]' : ''}
             `}
         >
-            {/* Icon Container */}
-            <div className={`w-12 h-12 rounded-xl ${statusStyle.iconBg} ${statusStyle.iconColor} flex items-center justify-center shrink-0 ${!isLocked ? 'group-hover:scale-110' : ''} transition-transform shadow-sm`}>
-                {isCompleted ? (
-                    isPendingGrading ? <Clock size={22} className="stroke-[2.5]" /> :
-                        (isPassed ? <CheckCircle2 size={22} className="stroke-[2.5]" /> : <XCircle size={22} className="stroke-[2.5]" />)
-                ) : (
-                    <ClipboardCheck size={22} className="stroke-[2.5]" />
-                )}
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                    <h4 className={`text-base font-bold truncate transition-colors ${!isLocked && isCompleted
-                        ? (isPendingGrading ? 'text-amber-800 group-hover:text-amber-600' : (isPassed ? 'text-emerald-800 group-hover:text-emerald-600' : 'text-rose-800 group-hover:text-rose-600'))
-                        : 'text-slate-800'
-                        }`}>
-                        {getLocalizedName(quiz.title, 'Quiz')}
-                    </h4>
+            <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto mb-2 sm:mb-0">
+                {/* Icon Container */}
+                <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-xl ${statusStyle.iconBg} ${statusStyle.iconColor} flex items-center justify-center shrink-0 ${!isLocked ? 'group-hover:scale-110' : ''} transition-transform shadow-sm`}>
+                    {isCompleted ? (
+                        isPendingGrading ? <Clock size={20} className="stroke-[2.5] lg:w-[22px] lg:h-[22px]" /> :
+                            (isPassed ? <CheckCircle2 size={20} className="stroke-[2.5] lg:w-[22px] lg:h-[22px]" /> : <XCircle size={20} className="stroke-[2.5] lg:w-[22px] lg:h-[22px]" />)
+                    ) : (
+                        <ClipboardCheck size={20} className="stroke-[2.5] lg:w-[22px] lg:h-[22px]" />
+                    )}
                 </div>
 
-                <div className="flex items-center gap-3 text-xs font-medium">
-                    {quiz.duration_minutes > 0 && (
-                        <div className="flex items-center gap-1.5 bg-slate-50 text-slate-500 px-2 py-0.5 rounded-md">
-                            <Clock size={12} />
-                            <span>{quiz.duration_minutes} دقيقة</span>
-                        </div>
-                    )}
-                    {quiz.questions_count && (
-                        <span className="text-slate-400">{quiz.questions_count} أسئلة</span>
-                    )}
-
-                    {/* Completion Status (Hidden if pending grading, shown if passed/failed) */}
-                    {isCompleted && !isPendingGrading && (
-                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold ${isPassed
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : 'bg-rose-100 text-rose-700'
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                        <h4 className={`text-sm lg:text-base font-bold truncate transition-colors ${!isLocked && isCompleted
+                            ? (isPendingGrading ? 'text-amber-800 group-hover:text-amber-600' : (isPassed ? 'text-emerald-800 group-hover:text-emerald-600' : 'text-rose-800 group-hover:text-rose-600'))
+                            : 'text-slate-800'
                             }`}>
-                            {isPassed ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
-                            <span>{bestAttempt?.percentage !== undefined ? `${bestAttempt.percentage}%` : `${Math.round(score)}%`}</span>
-                        </div>
-                    )}
+                            {getLocalizedName(quiz.title, 'Quiz')}
+                        </h4>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 lg:gap-3 text-xs font-medium">
+                        {quiz.duration_minutes > 0 && (
+                            <div className="flex items-center gap-1.5 bg-slate-50 text-slate-500 px-2 py-0.5 rounded-md">
+                                <Clock size={12} />
+                                <span>{quiz.duration_minutes} دقيقة</span>
+                            </div>
+                        )}
+                        {quiz.questions_count && (
+                            <span className="text-slate-400">{quiz.questions_count} أسئلة</span>
+                        )}
+
+                        {/* Completion Status (Hidden if pending grading, shown if passed/failed) */}
+                        {isCompleted && !isPendingGrading && (
+                            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold ${isPassed
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : 'bg-rose-100 text-rose-700'
+                                }`}>
+                                {isPassed ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
+                                <span>{bestAttempt?.percentage !== undefined ? `${bestAttempt.percentage}%` : `${Math.round(score)}%`}</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
             {/* Action / State */}
-            <div className="shrink-0 flex items-center gap-3">
+            <div className="shrink-0 flex items-center sm:justify-end gap-3 w-full sm:w-auto mt-2 sm:mt-0">
                 {isLocked ? (
-                    <div className="flex items-center gap-2 text-slate-400 bg-slate-50 px-3 py-2 rounded-xl">
+                    <div className="flex items-center justify-center gap-2 text-slate-400 bg-slate-50 px-3 py-2 rounded-xl w-full sm:w-auto">
                         <Lock size={18} />
                         {!isSubscribed && <span className="text-xs font-bold">للمشتركين</span>}
                     </div>
                 ) : isCompleted ? (
                     <div className={`
-                        px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2
+                        px-4 py-2 rounded-xl text-xs lg:text-sm font-bold flex items-center justify-center gap-2 w-full sm:w-auto
                         ${isPendingGrading
                             ? 'bg-amber-100 text-amber-700'
                             : (isPassed
@@ -245,7 +248,7 @@ export function QuizItem({ quiz, isSubscribed = false, isUnitQuiz = false }: Qui
                     </div>
                 ) : (
                     <button className={`
-                        px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2
+                        px-4 py-2 rounded-xl text-xs lg:text-sm font-bold flex items-center justify-center gap-2 w-full sm:w-auto
                         bg-purple-50 text-purple-600
                         group-hover:bg-purple-600 group-hover:text-white
                         transition-all shadow-sm

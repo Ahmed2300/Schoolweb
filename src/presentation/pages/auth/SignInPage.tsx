@@ -252,65 +252,65 @@ export function SignInPage() {
 
             <div className="pt-[72px] min-h-screen grid lg:grid-cols-2">
                 {/* Form Section - Order 2 on desktop makes it appear on RIGHT in RTL */}
-                <div className="flex items-center justify-center p-8 lg:order-2">
+                <div className="flex items-center justify-center px-4 py-6 sm:p-8 lg:order-2">
                     <div className="w-full max-w-[420px]">
                         {/* Logo */}
                         <div
-                            className="flex items-center gap-2 mb-10 justify-center lg:justify-start cursor-pointer select-none"
+                            className="flex items-center gap-2 mb-6 sm:mb-10 justify-center lg:justify-start cursor-pointer select-none"
                             onDoubleClick={() => navigate(ROUTES.ADMIN_LOGIN)}
                         >
-                            <img src="/images/subol-red.png" alt="سُبُل" className="w-8 h-8 lg:w-9 lg:h-9" />
-                            <span className="text-2xl lg:text-3xl font-extrabold text-shibl-crimson">سُبُل</span>
+                            <img src="/images/subol-red.png" alt="سُبُل" className="w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9" />
+                            <span className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-shibl-crimson">سُبُل</span>
                         </div>
 
                         {/* Header */}
-                        <div className="mb-8 text-center lg:text-right">
-                            <h1 className="text-4xl font-extrabold text-charcoal mb-3">تسجيل الدخول</h1>
-                            <p className="text-slate-grey">أهلاً بك! يرجى إدخال بياناتك للمتابعة.</p>
+                        <div className="mb-5 sm:mb-8 text-center lg:text-right">
+                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-charcoal mb-2 sm:mb-3">تسجيل الدخول</h1>
+                            <p className="text-sm sm:text-base text-slate-grey">أهلاً بك! يرجى إدخال بياناتك للمتابعة.</p>
                         </div>
 
                         {/* Error Message */}
                         {error && (
-                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-center">
+                            <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-center text-sm">
                                 {error}
                             </div>
                         )}
                         {/* Tabs */}
-                        <div className="flex bg-slate-100/50 p-1.5 rounded-2xl mb-8">
+                        <div className="flex bg-slate-100/50 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl mb-5 sm:mb-8">
                             <button
-                                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${userType === 'student'
+                                className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-2 sm:px-4 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 ${userType === 'student'
                                     ? 'bg-white text-shibl-crimson shadow-md shadow-shibl-crimson/10'
                                     : 'text-slate-grey hover:text-charcoal hover:bg-slate-50'
                                     }`}
                                 onClick={() => setUserType('student')}
                             >
-                                <GraduationCap size={20} />
+                                <GraduationCap size={18} className="sm:w-5 sm:h-5" />
                                 <span>طالب</span>
                             </button>
                             <button
-                                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${userType === 'parent'
+                                className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-2 sm:px-4 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 ${userType === 'parent'
                                     ? 'bg-white text-shibl-crimson shadow-md shadow-shibl-crimson/10'
                                     : 'text-slate-grey hover:text-charcoal hover:bg-slate-50'
                                     }`}
                                 onClick={() => setUserType('parent')}
                             >
-                                <Users size={20} />
+                                <Users size={18} className="sm:w-5 sm:h-5" />
                                 <span>ولي أمر</span>
                             </button>
                             <button
-                                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${userType === 'teacher'
+                                className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-2 sm:px-4 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 ${userType === 'teacher'
                                     ? 'bg-white text-shibl-crimson shadow-md shadow-shibl-crimson/10'
                                     : 'text-slate-grey hover:text-charcoal hover:bg-slate-50'
                                     }`}
                                 onClick={() => setUserType('teacher')}
                             >
-                                <School size={20} />
+                                <School size={18} className="sm:w-5 sm:h-5" />
                                 <span>معلم</span>
                             </button>
                         </div>
 
                         {/* Form */}
-                        <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-4 sm:gap-5" noValidate>
                             {/* Email */}
                             <div className="form-control w-full">
                                 <label className="label pb-1">
@@ -397,12 +397,12 @@ export function SignInPage() {
                             </button>
                         </form>
 
-                        <p className="mt-8 text-center text-slate-grey">
+                        <p className="mt-5 sm:mt-8 text-center text-sm sm:text-base text-slate-grey">
                             ليس لديك حساب؟{' '}
                             <Link to={ROUTES.REGISTER} className="text-shibl-crimson font-bold hover:underline">أنشئ حساباً الآن</Link>
                         </p>
 
-                        <div className="mt-8 pt-6 border-t border-slate-100 flex justify-center">
+                        <div className="mt-5 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-100 flex justify-center">
                             <TutorialThumbnail
                                 videoUrl="https://youtu.be/8ux9wCb0iQs"
                                 onClick={() => setShowVideoModal(true)}
