@@ -41,6 +41,14 @@ export interface ScheduleLecture {
     course?: {
         id: number;
         name: string | { ar?: string; en?: string };
+        grade?: {
+            id: number;
+            name: string | { ar?: string; en?: string };
+        };
+        semester?: {
+            id: number;
+            name: string | { ar?: string; en?: string };
+        };
     };
 }
 

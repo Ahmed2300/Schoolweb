@@ -137,12 +137,6 @@ export const TeacherNotificationMenu = () => {
                             </div>
                         )}
                     </div>
-
-                    <div className="p-3 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 text-center">
-                        <button className="text-xs text-slate-500 dark:text-gray-400 hover:text-shibl-crimson transition-colors">
-                            عرض كل الإشعارات
-                        </button>
-                    </div>
                 </div>
             )}
         </div>

@@ -11,7 +11,7 @@
 
 import { useMemo } from 'react';
 import { Clock, PlayCircle, CheckCircle, Trash2, Loader2, Calendar, Radio, Lock, AlertCircle } from 'lucide-react';
-import { format, parseISO, getHours, isBefore, addMinutes, differenceInMinutes } from 'date-fns';
+import { format, getHours, isBefore, isAfter, isToday, parseISO, differenceInMinutes, addMinutes, startOfDay } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { getLocalizedName } from '@/data/api/studentService';
 
@@ -24,10 +24,6 @@ import { Schedule } from '@/types/schedule';
 interface DayTimelineProps {
     selectedDate: Date;
     schedules: Schedule[];
-    onComplete: (id: number) => void;
-    onDelete: (id: number) => void;
-    completingId: number | null;
-    deletingId: number | null;
 }
 
 // Time slots from 12 AM to 11 PM (all 24 hours)
@@ -64,22 +60,27 @@ const TIME_SLOTS = [
 
 interface TimelineCardProps {
     schedule: Schedule;
-    onComplete: (id: number) => void;
-    onDelete: (id: number) => void;
-    isCompleting: boolean;
-    isDeleting: boolean;
 }
 
-function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting }: TimelineCardProps) {
+function TimelineCard({ schedule }: TimelineCardProps) {
     const lectureTitle = schedule.lecture
         ? getLocalizedName(schedule.lecture.title, 'محاضرة')
         : 'محاضرة';
     const courseName = schedule.lecture?.course
         ? getLocalizedName(schedule.lecture.course.name, '')
         : '';
-    const duration = schedule.lecture?.duration_minutes
-        ? `${schedule.lecture.duration_minutes} دقيقة`
+
+    const gradeName = schedule.lecture?.course?.grade
+        ? getLocalizedName(schedule.lecture.course.grade.name, '')
         : '';
+
+    const semesterName = schedule.lecture?.course?.semester
+        ? getLocalizedName(schedule.lecture.course.semester.name, '')
+        : '';
+
+    const detailsLabels = [gradeName, semesterName].filter(Boolean).join(' - ');
+    const durationMins = schedule.lecture?.duration_minutes || 60;
+    const duration = `${durationMins} دقيقة`;
     const scheduledTime = format(parseISO(schedule.scheduled_at), 'h:mm a', { locale: ar });
 
     const isExpired = schedule.is_accessible === false;
@@ -87,8 +88,8 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
     // Calculate Missed Status
     const now = new Date();
     const startTime = parseISO(schedule.scheduled_at);
-    const durationMins = schedule.lecture?.duration_minutes || 60;
-    const endTime = addMinutes(startTime, durationMins);
+    const durationMinsFallback = schedule.lecture?.duration_minutes || 60;
+    const endTime = addMinutes(startTime, durationMinsFallback);
     const isMissed = !schedule.is_completed && !isExpired && now > endTime;
 
     // Calculate session types
@@ -98,7 +99,6 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
 
     // Actions Logic
     const isLiveStarted = isLiveSession && now >= startTime;
-    const disableActions = isCompleting || isDeleting || (isLiveSession && !isLiveStarted);
 
     // Border color based on status
     const borderColor = isExpired
@@ -195,7 +195,9 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
                     </div>
 
                     {/* Course name */}
-                    <p className="text-xs sm:text-sm text-slate-500 truncate mb-1">{courseName}</p>
+                    <p className="text-xs sm:text-sm text-slate-500 line-clamp-2 leading-relaxed mb-1">
+                        {courseName} {detailsLabels && `- ${detailsLabels}`}
+                    </p>
 
                     {/* Time + Duration */}
                     <div className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs text-slate-400">
@@ -212,29 +214,12 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
                     </div>
                 </div>
 
-                {/* Actions — visible on hover (desktop), always-visible on mobile for touch */}
+                {/* View Button visible on hover (desktop), always-visible on mobile for touch */}
                 {!isExpired && (
-                    <div className={`flex items-center gap-0.5 flex-shrink-0 ${disableActions ? 'opacity-50' : 'sm:opacity-0 sm:group-hover:opacity-100'} transition-opacity`}>
-                        {!schedule.is_completed && (
-                            <button
-                                onClick={() => onComplete(schedule.id)}
-                                disabled={disableActions}
-                                className="p-1 sm:p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors disabled:opacity-50"
-                                title="تم المشاهدة"
-                                aria-label="تم المشاهدة"
-                            >
-                                {isCompleting ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
-                            </button>
-                        )}
-                        <button
-                            onClick={() => onDelete(schedule.id)}
-                            disabled={disableActions}
-                            className="p-1 sm:p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-                            title="حذف"
-                            aria-label="حذف"
-                        >
-                            {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                        </button>
+                    <div className="flex items-center gap-0.5 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        <div className="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-shibl-crimson transition-colors" title="عرض التفاصيل">
+                            <PlayCircle size={14} />
+                        </div>
                     </div>
                 )}
             </div>
@@ -249,16 +234,14 @@ function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting
 export function DayTimeline({
     selectedDate,
     schedules,
-    onComplete,
-    onDelete,
-    completingId,
-    deletingId,
 }: DayTimelineProps) {
     // Group schedules by hour
     const schedulesByHour = useMemo(() => {
         const grouped: Record<number, Schedule[]> = {};
         schedules.forEach((s) => {
-            const hour = getHours(parseISO(s.scheduled_at));
+            const date = parseISO(s.scheduled_at);
+            // If it started before today (midnight crossover), force it into the 0:00 AM slot
+            const hour = isBefore(date, startOfDay(selectedDate)) ? 0 : getHours(date);
             if (!grouped[hour]) grouped[hour] = [];
             grouped[hour].push(s);
         });
@@ -312,10 +295,6 @@ export function DayTimeline({
                                                 <TimelineCard
                                                     key={schedule.id}
                                                     schedule={schedule}
-                                                    onComplete={onComplete}
-                                                    onDelete={onDelete}
-                                                    isCompleting={completingId === schedule.id}
-                                                    isDeleting={deletingId === schedule.id}
                                                 />
                                             ))}
                                         </div>

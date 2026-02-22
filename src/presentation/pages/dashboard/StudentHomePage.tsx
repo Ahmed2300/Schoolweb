@@ -13,6 +13,8 @@ import {
 import { TutorialThumbnail } from '../../components/common/TutorialThumbnail';
 import { VideoModal } from '../../components/common/VideoModal';
 import { MissedTasksWidget } from '../../components/student/dashboard/MissedTasksWidget';
+import { UpcomingSchedules } from '../../components/student/schedule/UpcomingSchedules';
+import { useSchedules } from '../../../hooks/useSchedule';
 
 export function StudentHomePage() {
     const { user } = useAuthStore();
@@ -22,6 +24,9 @@ export function StudentHomePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showVideoModal, setShowVideoModal] = useState(false);
+
+    // Fetch schedules for the "Today's Lectures" widget
+    const { data: schedules = [], isLoading: isLoadingSchedules } = useSchedules();
 
     // Fetch non-academic/skills courses for the skills tab
     const fetchSkillsCourses = useCallback(async () => {
@@ -67,6 +72,7 @@ export function StudentHomePage() {
         };
     }, [activeTab, fetchSkillsCourses]);
 
+    const [loadingStats, setLoadingStats] = useState(true);
     const [dashboardStats, setDashboardStats] = useState({
         activeCourses: 0,
         overallProgress: 0,
@@ -76,12 +82,17 @@ export function StudentHomePage() {
     // Fetch dashboard stats
     useEffect(() => {
         const fetchStats = async () => {
-            const stats = await studentService.getDashboardStats();
-            setDashboardStats({
-                activeCourses: stats.inProgressCourses,
-                overallProgress: stats.averageProgress || 0,
-                upcomingSessions: stats.upcomingLiveSessions
-            });
+            setLoadingStats(true);
+            try {
+                const fetchedStats = await studentService.getDashboardStats();
+                setDashboardStats({
+                    activeCourses: fetchedStats.inProgressCourses,
+                    overallProgress: fetchedStats.averageProgress || 0,
+                    upcomingSessions: fetchedStats.upcomingLiveSessions
+                });
+            } finally {
+                setLoadingStats(false);
+            }
         };
         fetchStats();
     }, []);
@@ -129,7 +140,7 @@ export function StudentHomePage() {
                                     <GraduationCap size={20} className="md:w-6 md:h-6" />
                                 </div>
                                 <div>
-                                    {loading ? (
+                                    {loadingStats ? (
                                         <div className="h-6 md:h-7 w-10 md:w-12 bg-white/30 rounded animate-pulse mb-1"></div>
                                     ) : (
                                         <p className="text-xl md:text-2xl font-black">{stats.activeCourses}</p>
@@ -143,10 +154,14 @@ export function StudentHomePage() {
                                     <TrendingUp size={20} className="md:w-6 md:h-6" />
                                 </div>
                                 <div>
-                                    <div className="flex items-baseline gap-1">
-                                        <p className="text-xl md:text-2xl font-black">{stats.overallProgress}</p>
-                                        <span className="text-xs md:text-sm font-bold opacity-60">%</span>
-                                    </div>
+                                    {loadingStats ? (
+                                        <div className="h-6 md:h-7 w-12 md:w-16 bg-white/30 rounded animate-pulse mb-1 mt-1"></div>
+                                    ) : (
+                                        <div className="flex items-baseline gap-1">
+                                            <p className="text-xl md:text-2xl font-black">{stats.overallProgress}</p>
+                                            <span className="text-xs md:text-sm font-bold opacity-60">%</span>
+                                        </div>
+                                    )}
                                     <p className="text-[10px] md:text-xs font-bold text-white/70 whitespace-nowrap">مستوى التقدم</p>
                                 </div>
                             </div>
@@ -156,7 +171,11 @@ export function StudentHomePage() {
                                     <Clock size={20} className="md:w-6 md:h-6" />
                                 </div>
                                 <div>
-                                    <p className="text-xl md:text-2xl font-black">{stats.upcomingSessions}</p>
+                                    {loadingStats ? (
+                                        <div className="h-6 md:h-7 w-10 md:w-12 bg-white/30 rounded animate-pulse mb-1"></div>
+                                    ) : (
+                                        <p className="text-xl md:text-2xl font-black">{stats.upcomingSessions}</p>
+                                    )}
                                     <p className="text-[10px] md:text-xs font-bold text-white/70 whitespace-nowrap">حصص قادمة</p>
                                 </div>
                             </div>
@@ -177,6 +196,17 @@ export function StudentHomePage() {
                 {/* Decor Orbs */}
                 <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
                 <div className="absolute top-10 right-10 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+            </div>
+
+            {/* Today's Lectures (Upcoming Schedules) */}
+            <div className="mb-6 md:mb-8">
+                {isLoadingSchedules ? (
+                    <div className="flex justify-center p-8 bg-white/50 rounded-2xl border border-slate-100 mb-8">
+                        <div className="w-8 h-8 rounded-full border-4 border-shibl-crimson/20 border-t-shibl-crimson animate-spin"></div>
+                    </div>
+                ) : (
+                    <UpcomingSchedules schedules={schedules} />
+                )}
             </div>
 
             {/* Missed Tasks Widget */}
