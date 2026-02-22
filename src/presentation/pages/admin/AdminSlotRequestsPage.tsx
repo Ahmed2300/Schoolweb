@@ -300,6 +300,9 @@ export function AdminSlotRequestsPage(): React.ReactElement {
     const [pendingRejectType, setPendingRejectType] = useState<SlotRequestType>('weekly');
     const [rejectionReason, setRejectionReason] = useState('');
 
+    // Guard: track in-flight approve/reject IDs to prevent double-click
+    const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
+
     // Queries
     const { data, isLoading, refetch, isRefetching } = useSlotRequests({
         status: statusFilter,
@@ -345,7 +348,14 @@ export function AdminSlotRequestsPage(): React.ReactElement {
 
     // Handlers
     const handleApprove = useCallback(async (id: number, request?: SlotRequest) => {
+        // Double-click guard: skip if this ID is already being processed
+        if (processingIds.has(id)) return;
+
         const type: SlotRequestType = (request?.type === 'one_time' ? 'one_time' : 'weekly');
+
+        // Add to processing set immediately
+        setProcessingIds(prev => new Set(prev).add(id));
+
         try {
             await approveMutation.mutateAsync({ id, type });
             toast.success('تمت الموافقة على الطلب بنجاح');
@@ -361,8 +371,15 @@ export function AdminSlotRequestsPage(): React.ReactElement {
             });
         } catch (error) {
             toast.error('حدث خطأ أثناء الموافقة على الطلب');
+        } finally {
+            // Remove from processing set when done (success or failure)
+            setProcessingIds(prev => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+            });
         }
-    }, [approveMutation]);
+    }, [approveMutation, processingIds]);
 
     const handleRejectClick = useCallback((id: number, request?: SlotRequest) => {
         const type: SlotRequestType = (request?.type === 'one_time' ? 'one_time' : 'weekly');
@@ -640,8 +657,8 @@ export function AdminSlotRequestsPage(): React.ReactElement {
                                             onView={handleViewDetails}
                                             onApprove={handleApprove}
                                             onReject={handleRejectClick}
-                                            isApproving={approveMutation.isPending && approveMutation.variables?.id === request.id}
-                                            isRejecting={rejectMutation.isPending && rejectMutation.variables?.id === request.id}
+                                            isApproving={processingIds.has(request.id)}
+                                            isRejecting={processingIds.has(request.id) || (rejectMutation.isPending && rejectMutation.variables?.id === request.id)}
                                         />
                                     ))
                                 )}
