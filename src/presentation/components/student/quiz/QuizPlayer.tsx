@@ -121,8 +121,13 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                     setTimeout(() => handleAutoSubmit(), 100);
                 }
             }
-        } catch (err) {
-            setQuizState({ status: 'error', message: 'فشل في تحميل الاختبار' });
+        } catch (err: any) {
+            const responseData = err.response?.data;
+            if (responseData?.quiz_unavailable) {
+                setQuizState({ status: 'error', message: responseData.message || 'الامتحان غير متاح حالياً أو لم يتم نشره بعد.' });
+            } else {
+                setQuizState({ status: 'error', message: 'فشل في تحميل الاختبار' });
+            }
         }
     };
 
