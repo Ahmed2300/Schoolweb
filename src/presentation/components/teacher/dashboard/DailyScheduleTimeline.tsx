@@ -7,6 +7,7 @@ import { format, addDays, isSameDay, startOfDay } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import { LiveSessionEmbedModal } from '../../shared/LiveSessionEmbedModal';
+import { requestMicPermission } from '../../../../hooks/useMediaPermissions';
 
 interface ClassItem {
     id: number;
@@ -122,6 +123,16 @@ export function DailyScheduleTimeline() {
         if (joiningLectureId) return;
 
         setJoiningLectureId(lectureId);
+
+        // Pre-request mic permission before generating embed token
+        const micResult = await requestMicPermission();
+        if (!micResult.granted) {
+            toast.error(
+                micResult.errorMessage || 'يجب السماح بالوصول للميكروفون لبدء الجلسة',
+                { duration: 6000 }
+            );
+        }
+
         const loadingToast = toast.loading('جاري بدء الجلسة...');
 
         try {

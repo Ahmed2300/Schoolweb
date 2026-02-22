@@ -5,6 +5,7 @@ import { useLanguage, useAuth } from '../../hooks';
 import { teacherService, getCourseName, getCourseDescription, type TeacherCourse, type TeacherCourseStudent } from '../../../data/api';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { teacherLectureService } from '../../../data/api/teacherLectureService';
+import { requestMicPermission } from '../../../hooks/useMediaPermissions';
 import { teacherContentApprovalService } from '../../../data/api/teacherContentApprovalService';
 import type { Unit, CreateUnitRequest, UpdateUnitRequest, UnitLecture } from '../../../types/unit';
 import { quizService, type Quiz } from '../../../data/api/quizService';
@@ -1152,6 +1153,16 @@ export function TeacherCourseDetailsPage() {
     };
 
     const handleStartSession = async (lectureId: number) => {
+        // Pre-request mic permission before starting the session
+        const micResult = await requestMicPermission();
+        if (!micResult.granted) {
+            toast.error(
+                micResult.errorMessage || 'يجب السماح بالوصول للميكروفون لبدء الجلسة المباشرة',
+                { duration: 6000 }
+            );
+            // Don't block — the modal will show the permission overlay anyway
+        }
+
         // Show initial loading with descriptive steps
         const loadingToast = toast.loading(
             <div className="flex flex-col gap-1">
@@ -1343,16 +1354,39 @@ export function TeacherCourseDetailsPage() {
 
         try {
             setStartingTestSession(true);
+
+            // Pre-request mic permission
+            const micResult = await requestMicPermission();
+            if (!micResult.granted) {
+                toast.error(
+                    micResult.errorMessage || 'يجب السماح بالوصول للميكروفون لبدء الجلسة',
+                    { duration: 6000 }
+                );
+            }
+
             toast.loading('جاري بدء الجلسة التجريبية...', { id: 'test-session-toast' });
 
+            // Step 1: Create the test session (returns lecture_id)
             const response = await teacherLectureService.startTestSession(courseId);
 
-            if (response.success && response.join_url) {
+            if (response.success && response.lecture_id) {
+                toast.loading('جاري تجهيز رابط الجلسة الآمن...', { id: 'test-session-toast' });
+
+                // Step 2: Generate secure embed token using the new lecture_id
+                const embedResponse = await teacherLectureService.generateSecureEmbedToken(response.lecture_id);
+
                 toast.dismiss('test-session-toast');
-                toast.success('تم بدء الجلسة بنجاح');
-                // Open in secure embed modal
-                setLiveSessionEmbedUrl(response.join_url);
-                setIsLiveSessionModalOpen(true);
+
+                if (embedResponse.success && embedResponse.data?.embed_url) {
+                    toast.success('تم بدء الجلسة التجريبية بنجاح');
+                    setLiveSessionEmbedUrl(embedResponse.data.embed_url);
+                    setIsLiveSessionModalOpen(true);
+                } else {
+                    toast.error(embedResponse.message || 'فشل تجهيز رابط الجلسة');
+                }
+            } else {
+                toast.dismiss('test-session-toast');
+                toast.error(response.message || 'فشل بدء الجلسة التجريبية');
             }
         } catch (error: any) {
             toast.dismiss('test-session-toast');
