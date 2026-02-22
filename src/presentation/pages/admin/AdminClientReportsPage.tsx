@@ -1,4 +1,4 @@
-
+﻿
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -69,13 +69,13 @@ export function AdminClientReportsPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-extrabold text-charcoal mb-1">بلاغات الدعم الفني</h1>
-                    <p className="text-slate-500 text-sm">إدارة ومتابعة البلاغات والمشاكل التقنية</p>
+                    <h1 className="text-2xl font-extrabold text-charcoal dark:text-white mb-1">بلاغات الدعم الفني</h1>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">إدارة ومتابعة البلاغات والمشاكل التقنية</p>
                 </div>
             </div>
 
             {/* Filters & Search */}
-            <div className="bg-white p-4 rounded-[20px] shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4">
+            <div className="bg-white dark:bg-[#1E1E1E] p-4 rounded-[20px] shadow-sm border border-slate-100 dark:border-white/10 flex flex-col md:flex-row gap-4">
                 <div className="flex-1 relative">
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                     <input
@@ -83,7 +83,7 @@ export function AdminClientReportsPage() {
                         placeholder="بحث في البلاغات..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full h-11 pr-10 pl-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all"
+                        className="w-full h-11 pr-10 pl-4 rounded-xl bg-slate-50 dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all dark:text-white dark:placeholder-slate-500"
                     />
                 </div>
                 <div className="flex items-center gap-2">
@@ -91,7 +91,7 @@ export function AdminClientReportsPage() {
                     <select
                         value={selectedRole}
                         onChange={(e) => setSelectedRole(e.target.value as any)}
-                        className="h-11 px-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-shibl-crimson outline-none cursor-pointer"
+                        className="h-11 px-4 rounded-xl bg-slate-50 dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 focus:border-shibl-crimson outline-none cursor-pointer dark:text-white"
                     >
                         <option value="all">جميع المستخدمين</option>
                         <option value="student">الطلاب</option>
@@ -103,28 +103,28 @@ export function AdminClientReportsPage() {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-[20px] shadow-card border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] shadow-card border border-slate-100 dark:border-white/10 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-slate-50 border-b border-slate-100">
+                        <thead className="bg-slate-50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
                             <tr>
-                                <th className="text-right px-6 py-4 text-xs font-bold text-slate-500 uppercase">المرسل</th>
-                                <th className="text-right px-6 py-4 text-xs font-bold text-slate-500 uppercase">الدور</th>
-                                <th className="text-right px-6 py-4 text-xs font-bold text-slate-500 uppercase">نص البلاغ</th>
-                                <th className="text-right px-6 py-4 text-xs font-bold text-slate-500 uppercase">التاريخ</th>
-                                <th className="text-right px-6 py-4 text-xs font-bold text-slate-500 uppercase">المرفقات</th>
+                                <th className="text-right px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">المرسل</th>
+                                <th className="text-right px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">الدور</th>
+                                <th className="text-right px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">نص البلاغ</th>
+                                <th className="text-right px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">التاريخ</th>
+                                <th className="text-right px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">المرفقات</th>
                                 <th className="px-6 py-4"></th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-100 dark:divide-white/10">
                             {isLoading ? (
                                 [...Array(5)].map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        <td className="px-6 py-4"><div className="h-4 bg-slate-100 rounded w-32" /></td>
-                                        <td className="px-6 py-4"><div className="h-6 bg-slate-100 rounded-full w-16" /></td>
-                                        <td className="px-6 py-4"><div className="h-4 bg-slate-100 rounded w-48" /></td>
-                                        <td className="px-6 py-4"><div className="h-4 bg-slate-100 rounded w-24" /></td>
-                                        <td className="px-6 py-4"><div className="h-8 w-8 bg-slate-100 rounded" /></td>
+                                        <td className="px-6 py-4"><div className="h-4 bg-slate-100 dark:bg-white/10 rounded w-32" /></td>
+                                        <td className="px-6 py-4"><div className="h-6 bg-slate-100 dark:bg-white/10 rounded-full w-16" /></td>
+                                        <td className="px-6 py-4"><div className="h-4 bg-slate-100 dark:bg-white/10 rounded w-48" /></td>
+                                        <td className="px-6 py-4"><div className="h-4 bg-slate-100 dark:bg-white/10 rounded w-24" /></td>
+                                        <td className="px-6 py-4"><div className="h-8 w-8 bg-slate-100 dark:bg-white/10 rounded" /></td>
                                         <td className="px-6 py-4"></td>
                                     </tr>
                                 ))
@@ -138,7 +138,7 @@ export function AdminClientReportsPage() {
                                     </td>
                                 </tr>
                             ) : filteredReports.map((report) => (
-                                <tr key={report.id} className="hover:bg-slate-50/50 transition-colors group">
+                                <tr key={report.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             {report.submitter_image ? (
@@ -153,7 +153,7 @@ export function AdminClientReportsPage() {
                                                 </div>
                                             )}
                                             <div>
-                                                <p className="font-bold text-charcoal text-sm">{report.submitter_name || report.guest_name || 'زائر'}</p>
+                                                <p className="font-bold text-charcoal dark:text-white text-sm">{report.submitter_name || report.guest_name || 'زائر'}</p>
                                                 <p className="text-xs text-slate-400">{report.submitter_email || report.guest_email}</p>
                                             </div>
                                         </div>
@@ -162,7 +162,7 @@ export function AdminClientReportsPage() {
                                         {getRoleBadge(report)}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <p className="text-sm text-slate-600 line-clamp-1 max-w-xs" title={report.text_content}>
+                                        <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-1 max-w-xs" title={report.text_content}>
                                             {report.text_content}
                                         </p>
                                     </td>
@@ -190,7 +190,7 @@ export function AdminClientReportsPage() {
                                     <td className="px-6 py-4 text-left">
                                         <button
                                             onClick={() => setSelectedReport(report)}
-                                            className="p-2 rounded-lg text-slate-400 hover:text-shibl-crimson hover:bg-red-50 transition-colors"
+                                            className="p-2 rounded-lg text-slate-400 hover:text-shibl-crimson hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                                             title="عرض التفاصيل"
                                         >
                                             <Eye size={18} />
@@ -213,7 +213,7 @@ export function AdminClientReportsPage() {
                 {selectedReport && (
                     <div className="space-y-6">
                         {/* Submitter Info */}
-                        <div className="bg-slate-50 rounded-xl p-4 flex items-center justify-between">
+                        <div className="bg-slate-50 dark:bg-[#2A2A2A] rounded-xl p-4 flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 {selectedReport.submitter_image ? (
                                     <img
@@ -227,7 +227,7 @@ export function AdminClientReportsPage() {
                                     </div>
                                 )}
                                 <div>
-                                    <h3 className="font-bold text-charcoal">{selectedReport.submitter_name || selectedReport.guest_name || 'زائر'}</h3>
+                                    <h3 className="font-bold text-charcoal dark:text-white">{selectedReport.submitter_name || selectedReport.guest_name || 'زائر'}</h3>
                                     <div className="flex items-center gap-2 text-sm text-slate-500">
                                         <Mail size={14} />
                                         <span>{selectedReport.submitter_email || selectedReport.guest_email}</span>
@@ -239,11 +239,11 @@ export function AdminClientReportsPage() {
 
                         {/* Content */}
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <label className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                 <MessageSquare size={16} className="text-shibl-crimson" />
                                 وصف المشكلة
                             </label>
-                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-700 leading-relaxed whitespace-pre-wrap">
+                            <div className="bg-slate-50 dark:bg-[#2A2A2A] p-4 rounded-xl border border-slate-100 dark:border-white/10 text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                                 {selectedReport.text_content}
                             </div>
                         </div>
@@ -251,7 +251,7 @@ export function AdminClientReportsPage() {
                         {/* Image Attachment */}
                         {(selectedReport.images && selectedReport.images.length > 0) || selectedReport.image_path ? (
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <label className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                     <ImageIcon size={16} className="text-shibl-crimson" />
                                     المرفقات ({selectedReport.images?.length || 1})
                                 </label>
@@ -282,7 +282,7 @@ export function AdminClientReportsPage() {
                         ) : null}
 
                         {/* Footer Info */}
-                        <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                        <div className="pt-4 border-t border-slate-100 dark:border-white/10 flex items-center justify-between text-xs text-slate-400">
                             <span>رقم البلاغ: #{selectedReport.id}</span>
                             <span dir="ltr">{new Date(selectedReport.created_at).toLocaleString()}</span>
                         </div>

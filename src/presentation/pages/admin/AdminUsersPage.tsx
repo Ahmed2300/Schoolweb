@@ -278,7 +278,7 @@ export function AdminUsersPage() {
                     <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-l from-shibl-crimson to-rose-600">
                         إدارة المستخدمين
                     </h1>
-                    <p className="text-slate-grey text-sm mt-1">إدارة حسابات الطلاب وأولياء الأمور والمشرفين</p>
+                    <p className="text-slate-grey dark:text-slate-400 text-sm mt-1">إدارة حسابات الطلاب وأولياء الأمور والمشرفين</p>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -295,11 +295,11 @@ export function AdminUsersPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {statsDisplay.map((stat, index) => (
-                    <div key={index} className="relative overflow-hidden bg-white rounded-[20px] p-6 shadow-sm border border-slate-100 group hover:shadow-md transition-all duration-300">
+                    <div key={index} className="relative overflow-hidden bg-white dark:bg-[#1E1E1E] rounded-[20px] p-6 shadow-sm border border-slate-100 dark:border-white/10 group hover:shadow-md transition-all duration-300">
                         <div className="flex items-center justify-between relative z-10">
                             <div>
-                                <p className="text-slate-500 text-sm font-medium mb-1">{stat.label}</p>
-                                <h3 className="text-3xl font-bold text-charcoal">{stat.value}</h3>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">{stat.label}</p>
+                                <h3 className="text-3xl font-bold text-charcoal dark:text-white">{stat.value}</h3>
                             </div>
                             <div className={`w-12 h-12 rounded-[14px] bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg shadow-gray-200 transform group-hover:scale-110 transition-transform duration-300`}>
                                 <stat.icon className="text-white" size={24} />
@@ -312,7 +312,7 @@ export function AdminUsersPage() {
             </div>
 
             {/* Controls Bar */}
-            <div className="bg-white rounded-[16px] p-4 shadow-sm border border-slate-100 flex flex-col lg:flex-row gap-4 items-center justify-between">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-[16px] p-4 shadow-sm border border-slate-100 dark:border-white/10 flex flex-col lg:flex-row gap-4 items-center justify-between">
 
                 {/* Search */}
                 <div className="relative w-full lg:w-96 group">
@@ -322,27 +322,27 @@ export function AdminUsersPage() {
                     <input
                         type="text"
                         placeholder="بحث بالاسم أو البريد الإلكتروني..."
-                        className="w-full h-11 pr-10 pl-4 bg-slate-50 border-transparent focus:bg-white border focus:border-shibl-crimson/20 rounded-[12px] text-sm text-charcoal shadow-sm transition-all outline-none focus:ring-4 focus:ring-shibl-crimson/5 placeholder:text-slate-400"
+                        className="w-full h-11 pr-10 pl-4 bg-slate-50 dark:bg-[#2A2A2A] border-transparent focus:bg-white dark:focus:bg-[#2A2A2A] border focus:border-shibl-crimson/20 rounded-[12px] text-sm text-charcoal dark:text-white shadow-sm transition-all outline-none focus:ring-4 focus:ring-shibl-crimson/5 placeholder:text-slate-400"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="flex bg-slate-50 p-1.5 rounded-[14px] w-full lg:w-auto">
+                <div className="flex bg-slate-50 dark:bg-[#2A2A2A] p-1.5 rounded-[14px] w-full lg:w-auto">
                     {filterTabs.map(tab => (
                         <button
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key)}
                             className={`flex-1 lg:flex-initial px-6 py-2 rounded-[10px] text-sm font-bold transition-all duration-200 ${activeTab === tab.key
-                                ? 'bg-white text-shibl-crimson shadow-sm ring-1 ring-black/5'
-                                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                                ? 'bg-white dark:bg-[#1E1E1E] text-shibl-crimson shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
                                 }`}
                         >
                             {tab.label}
                         </button>
                     ))}
-                    <button className="px-3 text-slate-400 hover:text-slate-600 border-r border-slate-200 mr-2 pr-2">
+                    <button className="px-3 text-slate-400 hover:text-slate-600 dark:hover:text-white border-r border-slate-200 dark:border-white/10 mr-2 pr-2">
                         <Filter size={18} />
                     </button>
                 </div>
@@ -350,81 +350,81 @@ export function AdminUsersPage() {
 
             {/* Error Message */}
             {isUsersError && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-[12px] flex items-center gap-3">
+                <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 px-4 py-3 rounded-[12px] flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-red-500" />
                     {usersError instanceof Error ? usersError.message : 'حدث خطأ أثناء تحميل البيانات'}
                 </div>
             )}
 
             {/* Users Table */}
-            <div className="bg-white rounded-[20px] shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] shadow-sm border border-slate-100 dark:border-white/10 overflow-hidden">
                 {showSkeleton ? (
                     /* Shimmer Skeleton Loading */
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-slate-50/50 border-b border-slate-100">
-                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الاسم</th>
-                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">البريد الإلكتروني</th>
-                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الدور</th>
-                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الحالة</th>
-                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">تاريخ الانضمام</th>
-                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">الإجراءات</th>
+                                <tr className="bg-slate-50/50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الاسم</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">البريد الإلكتروني</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الدور</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الحالة</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">تاريخ الانضمام</th>
+                                    <th className="text-right px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">الإجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-50">
+                            <tbody className="divide-y divide-slate-50 dark:divide-white/5 dark:divide-white/5 dark:divide-white/5">
                                 {[...Array(6)].map((_, index) => (
                                     <tr key={index}>
-                                        <td className="px-6 py-4"><div className="w-40 h-5 bg-slate-100 rounded animate-pulse" /></td>
-                                        <td className="px-6 py-4"><div className="w-32 h-4 bg-slate-100 rounded animate-pulse" /></td>
-                                        <td className="px-6 py-4"><div className="w-16 h-6 bg-slate-100 rounded-full animate-pulse" /></td>
-                                        <td className="px-6 py-4"><div className="w-16 h-6 bg-slate-100 rounded-full animate-pulse" /></td>
-                                        <td className="px-6 py-4"><div className="w-24 h-4 bg-slate-100 rounded animate-pulse" /></td>
-                                        <td className="px-6 py-4"><div className="w-20 h-8 bg-slate-100 rounded animate-pulse" /></td>
+                                        <td className="px-6 py-4"><div className="w-40 h-5 bg-slate-100 dark:bg-white/10 rounded animate-pulse" /></td>
+                                        <td className="px-6 py-4"><div className="w-32 h-4 bg-slate-100 dark:bg-white/10 rounded animate-pulse" /></td>
+                                        <td className="px-6 py-4"><div className="w-16 h-6 bg-slate-100 dark:bg-white/10 rounded-full animate-pulse" /></td>
+                                        <td className="px-6 py-4"><div className="w-16 h-6 bg-slate-100 dark:bg-white/10 rounded-full animate-pulse" /></td>
+                                        <td className="px-6 py-4"><div className="w-24 h-4 bg-slate-100 dark:bg-white/10 rounded animate-pulse" /></td>
+                                        <td className="px-6 py-4"><div className="w-20 h-8 bg-slate-100 dark:bg-white/10 rounded animate-pulse" /></td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
                 ) : users.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-24 text-slate-500">
-                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                            <Users size={32} className="text-slate-300" />
+                    <div className="flex flex-col items-center justify-center py-24 text-slate-500 dark:text-slate-400">
+                        <div className="w-16 h-16 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
+                            <Users size={32} className="text-slate-300 dark:text-slate-600" />
                         </div>
-                        <p className="text-lg font-bold text-charcoal">لا يوجد مستخدمين</p>
+                        <p className="text-lg font-bold text-charcoal dark:text-white">لا يوجد مستخدمين</p>
                         <p className="text-sm text-slate-400 mt-1">لم يتم العثور على أي مستخدمين مطابقين لبحثك</p>
                     </div>
                 ) : (
                     <div className={`overflow-x-auto transition-opacity duration-200 ${isUsersFetching && !isUsersLoading ? 'opacity-50' : 'opacity-100'}`}>
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-slate-50/80 border-b border-slate-100">
-                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey uppercase tracking-wider">الاسم</th>
-                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey uppercase tracking-wider">البريد الإلكتروني</th>
-                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey uppercase tracking-wider">الدور</th>
-                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey uppercase tracking-wider">الحالة</th>
-                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey uppercase tracking-wider">تاريخ الانضمام</th>
-                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey uppercase tracking-wider">الإجراءات</th>
+                                <tr className="bg-slate-50/80 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
+                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey dark:text-slate-400 uppercase tracking-wider">الاسم</th>
+                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey dark:text-slate-400 uppercase tracking-wider">البريد الإلكتروني</th>
+                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey dark:text-slate-400 uppercase tracking-wider">الدور</th>
+                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey dark:text-slate-400 uppercase tracking-wider">الحالة</th>
+                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey dark:text-slate-400 uppercase tracking-wider">تاريخ الانضمام</th>
+                                    <th className="text-right px-6 py-4 text-xs font-extrabold text-slate-grey dark:text-slate-400 uppercase tracking-wider">الإجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 bg-white">
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/10 bg-white dark:bg-[#1E1E1E]">
                                 {users.map((user) => (
                                     <tr
                                         key={`${user.role}-${user.id}`}
-                                        className="hover:bg-soft-cloud transition-colors duration-200 group"
+                                        className="hover:bg-soft-cloud dark:hover:bg-white/5 transition-colors duration-200 group"
                                     >
                                         {/* Name with Avatar */}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-white shadow-sm flex items-center justify-center text-slate-600 font-bold text-sm ring-2 ring-transparent group-hover:ring-shibl-crimson/10 transition-all">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-white/10 dark:to-white/5 border border-white dark:border-white/10 shadow-sm flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-sm ring-2 ring-transparent group-hover:ring-shibl-crimson/10 transition-all">
                                                     {user.name.charAt(0)}
                                                 </div>
-                                                <span className="font-bold text-charcoal group-hover:text-shibl-crimson transition-colors">{user.name}</span>
+                                                <span className="font-bold text-charcoal dark:text-white group-hover:text-shibl-crimson transition-colors">{user.name}</span>
                                             </div>
                                         </td>
 
                                         {/* Email */}
-                                        <td className="px-6 py-4 text-sm font-medium text-slate-grey">{user.email}</td>
+                                        <td className="px-6 py-4 text-sm font-medium text-slate-grey dark:text-slate-400">{user.email}</td>
 
                                         {/* Role Badge */}
                                         <td className="px-6 py-4">
@@ -437,14 +437,14 @@ export function AdminUsersPage() {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-1.5">
                                                 <div className={`w-2 h-2 rounded-full ${user.status === 'active' ? 'bg-green-500' : 'bg-slate-300'}`} />
-                                                <span className={`text-xs font-bold ${statusConfig[user.status].textColor}`}>
-                                                    {statusConfig[user.status].label}
+                                                <span className={`text-xs font-bold ${(statusConfig[user.status] || statusConfig['inactive']).textColor}`}>
+                                                    {(statusConfig[user.status] || statusConfig['inactive']).label}
                                                 </span>
                                             </div>
                                         </td>
 
                                         {/* Date */}
-                                        <td className="px-6 py-4 text-sm font-medium text-slate-grey">{formatDate(user.created_at)}</td>
+                                        <td className="px-6 py-4 text-sm font-medium text-slate-grey dark:text-slate-400">{formatDate(user.created_at)}</td>
 
                                         {/* Actions */}
                                         <td className="px-6 py-4">
@@ -459,14 +459,14 @@ export function AdminUsersPage() {
                                                             openViewModal(user);
                                                         }
                                                     }}
-                                                    className="w-8 h-8 rounded-[8px] bg-slate-50 hover:bg-white hover:shadow-md border border-slate-100 hover:border-slate-200 flex items-center justify-center text-slate-500 hover:text-shibl-crimson transition-all"
+                                                    className="w-8 h-8 rounded-[8px] bg-slate-50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-md border border-slate-100 dark:border-white/10 hover:border-slate-200 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-shibl-crimson transition-all"
                                                     title="عرض"
                                                 >
                                                     <Eye size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => openEditModal(user)}
-                                                    className="w-8 h-8 rounded-[8px] bg-blue-50 hover:bg-blue-600 hover:shadow-md hover:shadow-blue-200 border border-blue-100 hover:border-blue-600 flex items-center justify-center text-blue-600 hover:text-white transition-all"
+                                                    className="w-8 h-8 rounded-[8px] bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-600 hover:shadow-md hover:shadow-blue-200 border border-blue-100 dark:border-blue-500/20 hover:border-blue-600 flex items-center justify-center text-blue-600 hover:text-white transition-all"
                                                     title="تعديل"
                                                 >
                                                     <Edit2 size={16} />
@@ -474,7 +474,7 @@ export function AdminUsersPage() {
                                                 <button
                                                     onClick={() => openDeleteDialog(user)}
                                                     disabled={deleting === user.id}
-                                                    className="w-8 h-8 rounded-[8px] bg-red-50 hover:bg-red-600 hover:shadow-md hover:shadow-red-200 border border-red-100 hover:border-red-600 flex items-center justify-center text-red-600 hover:text-white transition-all disabled:opacity-50"
+                                                    className="w-8 h-8 rounded-[8px] bg-red-50 dark:bg-red-500/10 hover:bg-red-600 hover:shadow-md hover:shadow-red-200 border border-red-100 dark:border-red-500/20 hover:border-red-600 flex items-center justify-center text-red-600 hover:text-white transition-all disabled:opacity-50"
                                                     title="حذف"
                                                 >
                                                     {deleting === user.id ? (
@@ -494,15 +494,15 @@ export function AdminUsersPage() {
 
                 {/* Pagination */}
                 {!showSkeleton && users.length > 0 && (
-                    <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-white">
-                        <p className="text-sm font-medium text-slate-grey">
+                    <div className="px-6 py-4 border-t border-slate-100 dark:border-white/10 flex items-center justify-between bg-white dark:bg-[#2A2A2A]">
+                        <p className="text-sm font-medium text-slate-grey dark:text-slate-400">
                             عرض {users.length} من {pagination.total}
                         </p>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="w-9 h-9 rounded-[10px] bg-white border border-slate-200 hover:border-shibl-crimson/50 hover:text-shibl-crimson flex items-center justify-center text-slate-500 transition-all disabled:opacity-50 disabled:hover:border-slate-200 disabled:hover:text-slate-500"
+                                className="w-9 h-9 rounded-[10px] bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/10 hover:border-shibl-crimson/50 hover:text-shibl-crimson flex items-center justify-center text-slate-500 dark:text-slate-400 transition-all disabled:opacity-50 disabled:hover:border-slate-200 disabled:hover:text-slate-500"
                             >
                                 <ChevronRight size={18} />
                             </button>
@@ -512,7 +512,7 @@ export function AdminUsersPage() {
                                     onClick={() => setCurrentPage(page)}
                                     className={`w-9 h-9 rounded-[10px] font-bold text-sm transition-all shadow-sm ${currentPage === page
                                         ? 'bg-gradient-to-br from-shibl-crimson to-[#8B0A11] text-white shadow-shibl-crimson/20'
-                                        : 'bg-white border border-slate-200 text-slate-600 hover:border-shibl-crimson/50 hover:text-shibl-crimson'
+                                        : 'bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-shibl-crimson/50 hover:text-shibl-crimson'
                                         }`}
                                 >
                                     {page}
@@ -521,7 +521,7 @@ export function AdminUsersPage() {
                             <button
                                 onClick={() => setCurrentPage(p => Math.min(lastPage, p + 1))}
                                 disabled={currentPage === lastPage}
-                                className="w-9 h-9 rounded-[10px] bg-white border border-slate-200 hover:border-shibl-crimson/50 hover:text-shibl-crimson flex items-center justify-center text-slate-500 transition-all disabled:opacity-50 disabled:hover:border-slate-200 disabled:hover:text-slate-500"
+                                className="w-9 h-9 rounded-[10px] bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/10 hover:border-shibl-crimson/50 hover:text-shibl-crimson flex items-center justify-center text-slate-500 dark:text-slate-400 transition-all disabled:opacity-50 disabled:hover:border-slate-200 disabled:hover:text-slate-500"
                             >
                                 <ChevronLeft size={18} />
                             </button>

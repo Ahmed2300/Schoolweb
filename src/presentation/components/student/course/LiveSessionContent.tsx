@@ -13,6 +13,7 @@ import { Lecture } from '../../../../data/api/studentCourseService';
 import { BBBEmbedModal } from './BBBEmbedModal';
 import { useJoinLiveSession, LiveSessionErrorCode } from '../../../../hooks/useLiveSession';
 import { parseLocalDate, formatSessionTime, getCountdownText } from '../../../../utils/dateUtils';
+import { useNavigate } from 'react-router-dom';
 
 interface LiveSessionContentProps {
     lecture: Lecture;
@@ -30,6 +31,7 @@ export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [errorState, setErrorState] = useState<{ code: LiveSessionErrorCode | null; message: string | null }>({ code: null, message: null });
     const [countdown, setCountdown] = useState<string>('');
+    const navigate = useNavigate();
 
     // Use the new hook with graceful error handling
     const { mutate: joinSession, isPending: isJoining, data: joinData, error: joinError } = useJoinLiveSession();
@@ -327,7 +329,7 @@ export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, 
                             </>
                         ) : (
                             <>
-                                <p className="text-slate-400 font-medium mb-6">لا يوجد تسجيل متاح لهذه الجلسة</p>
+                                <p className="text-slate-400 font-medium mb-6">لا يوجد وتسجيل متاح لهذه الجلسة</p>
                                 {!isCompleted && onComplete && (
                                     <button
                                         onClick={onComplete}
@@ -343,10 +345,19 @@ export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, 
                                     </button>
                                 )}
                                 {isCompleted && (
-                                    <div className="flex items-center gap-2 text-emerald-600 font-bold mt-2">
-                                        <CheckCircle2 size={20} />
-                                        <span>تم إكمال هذا الدرس</span>
-                                    </div>
+                                    lecture.quizzes && lecture.quizzes[0] && !lecture.quizzes[0].is_completed ? (
+                                        <button
+                                            onClick={() => navigate(`/dashboard/quizzes/${lecture.quizzes![0].id}`)}
+                                            className="inline-flex items-center gap-3 px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-black text-lg transition-all shadow-lg shadow-purple-200"
+                                        >
+                                            <CheckCircle2 size={22} /> ابدأ الاختبار
+                                        </button>
+                                    ) : (
+                                        <div className="flex items-center gap-2 text-emerald-600 font-bold mt-2">
+                                            <CheckCircle2 size={20} />
+                                            <span>تم إكمال هذا الدرس</span>
+                                        </div>
+                                    )
                                 )}
                             </>
                         )}

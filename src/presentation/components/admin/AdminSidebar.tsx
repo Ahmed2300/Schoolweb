@@ -152,13 +152,13 @@ export function AdminSidebar({ isCollapsed, onToggle, className = '' }: AdminSid
     return (
         <aside
             className={`
-                fixed top-0 right-0 h-screen bg-white border-l border-slate-200
+                fixed top-0 right-0 h-screen bg-white dark:bg-[#1E1E1E] border-l border-slate-200 dark:border-white/10
                 transition-all duration-300 z-50 flex flex-col
                 ${isCollapsed ? 'w-20' : 'w-72'}
                 ${className}
             `}
         >
-            <div className="h-16 flex items-center justify-center border-b border-slate-100 px-4 shrink-0">
+            <div className="h-16 flex items-center justify-center border-b border-slate-100 dark:border-white/10 px-4 shrink-0">
                 {!isCollapsed ? (
                     <div className="flex items-center gap-2">
                         <img src="/images/subol-red.png" alt="سُبُل" className="w-8 h-8" />
@@ -171,7 +171,7 @@ export function AdminSidebar({ isCollapsed, onToggle, className = '' }: AdminSid
 
             <button
                 onClick={onToggle}
-                className="absolute top-5 -left-3 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-shibl-crimson hover:border-shibl-crimson transition-colors shadow-sm"
+                className="absolute top-5 -left-3 w-6 h-6 bg-white dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 rounded-full flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-shibl-crimson hover:border-shibl-crimson transition-colors shadow-sm"
             >
                 {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
             </button>
@@ -202,12 +202,12 @@ export function AdminSidebar({ isCollapsed, onToggle, className = '' }: AdminSid
                                             transition-all duration-200 group mb-1
                                             ${hasActiveItem
                                                 ? 'bg-shibl-crimson/5 text-shibl-crimson'
-                                                : 'text-slate-500 hover:bg-slate-50'
+                                                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'
                                             }
                                         `}
                                     >
                                         <div className="flex items-center gap-2 overflow-hidden">
-                                            <span className={`shrink-0 ${hasActiveItem ? 'text-shibl-crimson' : 'text-slate-400 group-hover:text-slate-600'}`}>
+                                            <span className={`shrink-0 ${hasActiveItem ? 'text-shibl-crimson' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`}>
                                                 {group.icon}
                                             </span>
                                             <span className="font-semibold text-xs uppercase tracking-wide whitespace-nowrap opacity-100 transition-opacity duration-300">
@@ -219,7 +219,7 @@ export function AdminSidebar({ isCollapsed, onToggle, className = '' }: AdminSid
                                             className={`
                                                 transition-transform duration-200 shrink-0
                                                 ${isGroupOpen ? 'rotate-180' : ''}
-                                                ${hasActiveItem ? 'text-shibl-crimson' : 'text-slate-400'}
+                                                ${hasActiveItem ? 'text-shibl-crimson' : 'text-slate-400 dark:text-slate-500'}
                                             `}
                                         />
                                     </button>
@@ -252,7 +252,7 @@ export function AdminSidebar({ isCollapsed, onToggle, className = '' }: AdminSid
                                                         transition-all duration-300 group/item relative overflow-hidden
                                                         ${isActive
                                                             ? 'bg-shibl-crimson text-white shadow-sm'
-                                                            : 'text-slate-600 hover:bg-slate-50 hover:text-shibl-crimson'
+                                                            : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-shibl-crimson'
                                                         }
                                                         ${isCollapsed ? 'pl-[19px]' : 'px-3'}
                                                     `}
@@ -260,7 +260,7 @@ export function AdminSidebar({ isCollapsed, onToggle, className = '' }: AdminSid
                                                 >
                                                     <span className={`
                                                         shrink-0 transition-all duration-300
-                                                        ${isActive ? 'text-white' : 'text-slate-400 group-hover/item:text-shibl-crimson'}
+                                                        ${isActive ? 'text-white' : 'text-slate-400 group-hover/item:text-shibl-crimson dark:group-hover/item:text-shibl-crimson'}
                                                     `}>
                                                         {item.icon}
                                                     </span>
@@ -289,12 +289,12 @@ export function AdminSidebar({ isCollapsed, onToggle, className = '' }: AdminSid
                 </div>
             </nav>
 
-            <div className="p-3 border-t border-slate-100 shrink-0">
+            <div className="p-3 border-t border-slate-100 dark:border-white/10 shrink-0">
                 <button
                     onClick={handleLogout}
                     className={`
                         flex items-center px-4 py-3 rounded-xl w-full
-                        text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200
+                        text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all duration-200
                         ${isCollapsed ? 'pl-[19px]' : 'px-4'}
                     `}
                     title={isCollapsed ? 'تسجيل الخروج' : undefined}

@@ -140,6 +140,11 @@ export const studentQuizService = {
         // Backend returns { data: { quiz: {...}, attempt: {...}, next_item: {...} } } when already_completed
         // We need to restructure this to match our expected interface
         if (raw.already_completed && raw.data?.attempt) {
+            // Map answers to results to match frontend interfaces
+            if (raw.data.attempt.answers && !raw.data.attempt.results) {
+                raw.data.attempt.results = raw.data.attempt.answers;
+            }
+
             return {
                 success: raw.success,
                 already_completed: true,
@@ -181,6 +186,12 @@ export const studentQuizService = {
                 'Content-Type': 'multipart/form-data',
             },
         });
+
+        if (response.data && response.data.data) {
+            if (response.data.data.answers && !response.data.data.results) {
+                response.data.data.results = response.data.data.answers;
+            }
+        }
         return response.data;
     },
 
@@ -189,6 +200,11 @@ export const studentQuizService = {
      */
     getQuizResult: async (quizId: number | string): Promise<{ success: boolean; data: QuizResult }> => {
         const response = await apiClient.get(`/api/v1/student/quizzes/${quizId}/result`);
+        if (response.data && response.data.data) {
+            if (response.data.data.answers && !response.data.data.results) {
+                response.data.data.results = response.data.data.answers;
+            }
+        }
         return response.data;
     },
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Search,
@@ -230,7 +230,7 @@ export function AdminCoursesPage() {
         <>
             {/* Page Header */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-                <h1 className="text-2xl font-extrabold text-charcoal">إدارة الكورسات</h1>
+                <h1 className="text-2xl font-extrabold text-charcoal dark:text-white">إدارة الكورسات</h1>
 
                 <div className="flex items-center gap-3">
                     {/* Search */}
@@ -238,7 +238,7 @@ export function AdminCoursesPage() {
                         <input
                             type="text"
                             placeholder="بحث في الكورسات..."
-                            className="w-full h-11 pl-4 pr-11 rounded-[12px] bg-white border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm"
+                            className="w-full h-11 pl-4 pr-11 rounded-[12px] bg-white dark:bg-[#2A2A2A] dark:text-white dark:placeholder:text-slate-500 border border-slate-200 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm"
                             value={searchQuery}
                             onChange={(e) => {
                                 setPage(1);
@@ -269,7 +269,7 @@ export function AdminCoursesPage() {
                     }}
                     className={`flex items-center gap-3 px-6 py-3.5 rounded-[16px] font-bold text-sm transition-all duration-300 ${activeTab === 'academic'
                         ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
-                        : 'bg-white text-slate-600 hover:bg-blue-50 border border-slate-200'
+                        : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-slate-300 hover:bg-blue-50 border border-slate-200 dark:border-white/10'
                         }`}
                 >
                     <GraduationCap size={20} />
@@ -282,7 +282,7 @@ export function AdminCoursesPage() {
                     }}
                     className={`flex items-center gap-3 px-6 py-3.5 rounded-[16px] font-bold text-sm transition-all duration-300 ${activeTab === 'skills'
                         ? 'bg-green-600 text-white shadow-lg shadow-green-600/25'
-                        : 'bg-white text-slate-600 hover:bg-green-50 border border-slate-200'
+                        : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-slate-300 hover:bg-green-50 border border-slate-200 dark:border-white/10'
                         }`}
                 >
                     <Lightbulb size={20} />
@@ -293,13 +293,13 @@ export function AdminCoursesPage() {
             {/* Stats Mini Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {statsDisplay.map((stat, index) => (
-                    <div key={index} className="bg-white rounded-[16px] p-4 shadow-card flex items-center gap-4">
+                    <div key={index} className="bg-white dark:bg-[#1E1E1E] rounded-[16px] p-4 shadow-card border border-slate-100 dark:border-white/10 flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-[12px] flex items-center justify-center ${stat.bgColor}`}>
                             {stat.icon}
                         </div>
                         <div>
                             <p className="text-xs text-slate-grey font-medium">{stat.label}</p>
-                            <span className="text-xl font-extrabold text-charcoal">{stat.value}</span>
+                            <span className="text-xl font-extrabold text-charcoal dark:text-white">{stat.value}</span>
                         </div>
                     </div>
                 ))}
@@ -312,7 +312,7 @@ export function AdminCoursesPage() {
                         value={selectedGradeId ?? ''}
                         onChange={(e) => handleGradeChange(e.target.value ? parseInt(e.target.value) : null)}
                         disabled={loadingDropdowns}
-                        className="h-11 pl-10 pr-4 rounded-[12px] bg-white border border-slate-200 text-sm font-medium text-charcoal appearance-none cursor-pointer focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all disabled:opacity-50"
+                        className="h-11 pl-10 pr-4 rounded-[12px] bg-white dark:bg-[#2A2A2A] dark:text-white dark:border-white/10 border border-slate-200 text-sm font-medium text-charcoal appearance-none cursor-pointer focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all disabled:opacity-50"
                     >
                         <option value="">كل الصفوف</option>
                         {grades.map((grade) => (
@@ -329,7 +329,7 @@ export function AdminCoursesPage() {
                             setSelectedSemesterId(e.target.value ? parseInt(e.target.value) : null);
                         }}
                         disabled={loadingDropdowns || !selectedGradeId}
-                        className={`h-11 pl-10 pr-4 rounded-[12px] bg-white border border-slate-200 text-sm font-medium text-charcoal appearance-none cursor-pointer focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all ${!selectedGradeId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`h-11 pl-10 pr-4 rounded-[12px] bg-white dark:bg-[#2A2A2A] dark:text-white dark:border-white/10 border border-slate-200 text-sm font-medium text-charcoal appearance-none cursor-pointer focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all ${!selectedGradeId ? 'opacity-50 cursor-not-allowed' : ''}`}
                         title={!selectedGradeId ? 'اختر الصف أولاً' : undefined}
                     >
                         <option value="">كل الفصول</option>
@@ -375,11 +375,11 @@ export function AdminCoursesPage() {
 
             {/* Loading State - Shimmer Skeleton */}
             {loading && (
-                <div className="bg-white rounded-[16px] shadow-card overflow-hidden">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-[16px] shadow-card border border-slate-100 dark:border-white/10 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-slate-50 border-b border-slate-100">
+                                <tr className="bg-slate-50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
                                     <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكورس</th>
                                     <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكود</th>
                                     <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الساعات</th>
@@ -388,7 +388,7 @@ export function AdminCoursesPage() {
                                     <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الإجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/10">
                                 {[...Array(6)].map((_, index) => (
                                     <tr key={index}>
                                         <td className="px-6 py-4">
@@ -427,11 +427,11 @@ export function AdminCoursesPage() {
             {/* Courses Table */}
             {!loading && !error && (
                 <>
-                    <div className="bg-white rounded-[16px] shadow-card overflow-hidden">
+                    <div className="bg-white dark:bg-[#1E1E1E] rounded-[16px] shadow-card border border-slate-100 dark:border-white/10 overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead>
-                                    <tr className="bg-slate-50 border-b border-slate-100">
+                                    <tr className="bg-slate-50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
                                         <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase w-20">الصورة</th>
                                         <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكورس</th>
                                         <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكود</th>
@@ -441,7 +441,7 @@ export function AdminCoursesPage() {
                                         <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الإجراءات</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100">
+                                <tbody className="divide-y divide-slate-100 dark:divide-white/10">
                                     {courses.length === 0 ? (
                                         <tr>
                                             <td colSpan={7} className="px-6 py-12 text-center">
@@ -455,7 +455,7 @@ export function AdminCoursesPage() {
                                         courses.map((course) => {
                                             const status = getCourseStatus(course);
                                             return (
-                                                <tr key={course.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <tr key={course.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                                                     <td className="px-6 py-4">
                                                         <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden border border-slate-200">
                                                             {course.image ? (
@@ -474,13 +474,13 @@ export function AdminCoursesPage() {
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-3">
                                                             <div>
-                                                                <span className="font-semibold text-charcoal block">{getCourseName(course)}</span>
+                                                                <span className="font-semibold text-charcoal dark:text-white block">{getCourseName(course)}</span>
                                                                 <span className="text-xs text-slate-400">{course.credits} ساعات معتمدة</span>
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 text-sm text-slate-grey font-mono">{course.code}</td>
-                                                    <td className="px-6 py-4 text-sm text-charcoal">{course.duration_hours || '-'}</td>
+                                                    <td className="px-6 py-4 text-sm text-charcoal dark:text-white">{course.duration_hours || '-'}</td>
                                                     <td className="px-6 py-4">
                                                         {course.price ? (
                                                             <div>

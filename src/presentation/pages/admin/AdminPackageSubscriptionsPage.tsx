@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Admin Package Subscriptions Management Page
  * 
  * Allows admins to view, approve, and reject package subscription requests.
@@ -203,8 +203,8 @@ export function AdminPackageSubscriptionsPage() {
                         <Package size={24} className="text-white" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-extrabold text-charcoal">اشتراكات الباقات</h1>
-                        <p className="text-sm text-slate-grey">مراجعة وإدارة طلبات الاشتراك في الباقات الدراسية</p>
+                        <h1 className="text-2xl font-extrabold text-charcoal dark:text-white">اشتراكات الباقات</h1>
+                        <p className="text-sm text-slate-grey dark:text-slate-400">مراجعة وإدارة طلبات الاشتراك في الباقات الدراسية</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -213,7 +213,7 @@ export function AdminPackageSubscriptionsPage() {
                         <input
                             type="text"
                             placeholder="بحث بالاسم أو الباقة..."
-                            className="w-full h-11 pl-4 pr-11 rounded-[12px] bg-white border border-slate-200 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm"
+                            className="w-full h-11 pl-4 pr-11 rounded-[12px] bg-white dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 focus:border-shibl-crimson focus:ring-4 focus:ring-shibl-crimson/10 outline-none transition-all text-sm dark:text-white dark:placeholder-slate-500"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -223,7 +223,7 @@ export function AdminPackageSubscriptionsPage() {
                     <button
                         onClick={fetchSubscriptions}
                         disabled={loading}
-                        className="h-11 px-4 rounded-[12px] bg-white border border-slate-200 hover:border-shibl-crimson text-slate-600 hover:text-shibl-crimson font-semibold text-sm transition-all flex items-center gap-2"
+                        className="h-11 px-4 rounded-[12px] bg-white dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 hover:border-shibl-crimson text-slate-600 dark:text-slate-400 hover:text-shibl-crimson font-semibold text-sm transition-all flex items-center gap-2"
                     >
                         <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
                     </button>
@@ -244,7 +244,7 @@ export function AdminPackageSubscriptionsPage() {
                             }}
                             className={`flex items-center gap-2 px-5 py-3 rounded-[12px] font-bold text-sm transition-all duration-300 ${isActive
                                 ? `${filter.activeColor} text-white shadow-lg`
-                                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+                                : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10'
                                 }`}
                         >
                             <Icon size={18} />
@@ -262,11 +262,11 @@ export function AdminPackageSubscriptionsPage() {
 
             {/* Content */}
             {loading ? (
-                <div className="bg-white rounded-[16px] shadow-card p-12 flex items-center justify-center">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-[16px] shadow-card p-12 flex items-center justify-center">
                     <Loader2 size={40} className="animate-spin text-shibl-crimson" />
                 </div>
             ) : error ? (
-                <div className="bg-white rounded-[16px] shadow-card p-12 text-center">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-[16px] shadow-card p-12 text-center">
                     <AlertCircle className="mx-auto mb-3 text-red-500" size={48} />
                     <p className="text-red-600 font-medium mb-4">{error}</p>
                     <button
@@ -277,18 +277,18 @@ export function AdminPackageSubscriptionsPage() {
                     </button>
                 </div>
             ) : filteredSubscriptions.length === 0 ? (
-                <div className="bg-white rounded-[16px] shadow-card p-12 text-center">
-                    <Package size={48} className="mx-auto text-slate-300 mb-4" />
-                    <h3 className="text-lg font-bold text-charcoal mb-2">لا توجد اشتراكات</h3>
-                    <p className="text-sm text-slate-grey">لا توجد طلبات اشتراك في الباقات بالحالة المحددة</p>
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-[16px] shadow-card p-12 text-center">
+                    <Package size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
+                    <h3 className="text-lg font-bold text-charcoal dark:text-white mb-2">لا توجد اشتراكات</h3>
+                    <p className="text-sm text-slate-grey dark:text-slate-400">لا توجد طلبات اشتراك في الباقات بالحالة المحددة</p>
                 </div>
             ) : (
-                <div className="bg-white rounded-[16px] shadow-card overflow-hidden">
-                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-[16px] shadow-card overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Package size={20} className="text-shibl-crimson" />
-                            <h2 className="font-bold text-charcoal">قائمة اشتراكات الباقات</h2>
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
+                            <h2 className="font-bold text-charcoal dark:text-white">قائمة اشتراكات الباقات</h2>
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300">
                                 {totalItems} اشتراك
                             </span>
                         </div>
@@ -299,13 +299,13 @@ export function AdminPackageSubscriptionsPage() {
                         {filteredSubscriptions.map((sub) => (
                             <div
                                 key={sub.id}
-                                className="border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 hover:border-shibl-crimson/30"
+                                className="border border-slate-200 dark:border-white/10 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 hover:border-shibl-crimson/30 dark:bg-[#1E1E1E]"
                             >
                                 {/* Header */}
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center gap-3">
                                         {/* Package Image */}
-                                        <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100">
+                                        <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100 dark:bg-white/10">
                                             <img
                                                 src={sub.package?.image || '/images/package-placeholder.png'}
                                                 alt={sub.package?.name || 'Package'}
@@ -316,8 +316,8 @@ export function AdminPackageSubscriptionsPage() {
                                             />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-charcoal">{sub.package?.name || 'باقة'}</h3>
-                                            <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
+                                            <h3 className="font-bold text-charcoal dark:text-white">{sub.package?.name || 'باقة'}</h3>
+                                            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-1">
                                                 <BookOpen size={14} />
                                                 <span>{sub.package?.courses_count || sub.package?.courses?.length || 0} دورة</span>
                                             </div>
@@ -336,8 +336,8 @@ export function AdminPackageSubscriptionsPage() {
                                 </div>
 
                                 {/* Student Info */}
-                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl mb-4">
-                                    <div className="w-10 h-10 rounded-full overflow-hidden bg-white border border-slate-200 flex-shrink-0">
+                                <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-xl mb-4">
+                                    <div className="w-10 h-10 rounded-full overflow-hidden bg-white dark:bg-[#2A2A2A] border border-slate-200 dark:border-white/10 flex-shrink-0">
                                         <img
                                             src={sub.student?.avatar || '/images/student-placeholder.png'}
                                             alt={sub.student?.name || 'Student'}
@@ -348,13 +348,13 @@ export function AdminPackageSubscriptionsPage() {
                                         />
                                     </div>
                                     <div>
-                                        <span className="font-semibold text-charcoal block">{sub.student?.name || 'غير معروف'}</span>
-                                        <span className="text-xs text-slate-grey">{sub.student?.email || ''}</span>
+                                        <span className="font-semibold text-charcoal dark:text-white block">{sub.student?.name || 'غير معروف'}</span>
+                                        <span className="text-xs text-slate-grey dark:text-slate-400">{sub.student?.email || ''}</span>
                                     </div>
                                 </div>
 
                                 {/* Date & Rejection Reason */}
-                                <div className="flex items-center justify-between text-sm text-slate-500 mb-4">
+                                <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 mb-4">
                                     <div className="flex items-center gap-2">
                                         <Calendar size={14} />
                                         <span>{sub.created_at ? new Date(sub.created_at).toLocaleDateString('ar-EG') : '-'}</span>
@@ -362,8 +362,8 @@ export function AdminPackageSubscriptionsPage() {
                                 </div>
 
                                 {sub.status === 'rejected' && sub.rejection_reason && (
-                                    <div className="p-3 bg-red-50 rounded-xl mb-4">
-                                        <p className="text-xs text-red-600">
+                                    <div className="p-3 bg-red-50 dark:bg-red-500/10 rounded-xl mb-4">
+                                        <p className="text-xs text-red-600 dark:text-red-400">
                                             <strong>سبب الرفض:</strong> {sub.rejection_reason}
                                         </p>
                                     </div>
@@ -378,7 +378,7 @@ export function AdminPackageSubscriptionsPage() {
                                                 setSelectedSubscription(sub);
                                                 setShowPackageModal(true);
                                             }}
-                                            className="flex-1 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+                                            className="flex-1 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 font-semibold text-sm transition-colors flex items-center justify-center gap-2"
                                             title="عرض تفاصيل الباقة"
                                         >
                                             <BookOpen size={16} />
@@ -389,7 +389,7 @@ export function AdminPackageSubscriptionsPage() {
                                         {sub.bill_image_url ? (
                                             <button
                                                 onClick={() => openReceiptModal(sub)}
-                                                className="flex-1 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+                                                className="flex-1 py-2.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-semibold text-sm transition-colors flex items-center justify-center gap-2"
                                             >
                                                 <Receipt size={16} />
                                                 الإيصال
@@ -397,7 +397,7 @@ export function AdminPackageSubscriptionsPage() {
                                         ) : (
                                             <button
                                                 disabled
-                                                className="flex-1 py-2.5 rounded-xl bg-slate-50 text-slate-300 font-semibold text-sm flex items-center justify-center gap-2 cursor-not-allowed"
+                                                className="flex-1 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 text-slate-300 dark:text-slate-600 font-semibold text-sm flex items-center justify-center gap-2 cursor-not-allowed"
                                                 title="لا يوجد إيصال"
                                             >
                                                 <Receipt size={16} />
@@ -420,7 +420,7 @@ export function AdminPackageSubscriptionsPage() {
                                             <button
                                                 onClick={() => openRejectModal(sub)}
                                                 disabled={actionLoading}
-                                                className="flex-1 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                                className="flex-1 py-2.5 rounded-xl bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                                             >
                                                 <X size={16} />
                                                 رفض
@@ -434,14 +434,14 @@ export function AdminPackageSubscriptionsPage() {
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="px-6 py-4 border-t border-slate-100 flex justify-center gap-2">
+                        <div className="px-6 py-4 border-t border-slate-100 dark:border-white/10 flex justify-center gap-2">
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                                 <button
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
                                     className={`w-10 h-10 rounded-[8px] font-medium transition-all ${currentPage === page
                                         ? 'bg-shibl-crimson text-white'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                        : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/15'
                                         }`}
                                 >
                                     {page}
@@ -455,14 +455,14 @@ export function AdminPackageSubscriptionsPage() {
             {/* Receipt Preview Modal */}
             {showReceiptModal && selectedSubscription && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowReceiptModal(false)}>
-                    <div className="bg-white rounded-[20px] max-w-lg w-full overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-                        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                            <h3 className="font-bold text-charcoal flex items-center gap-2">
+                    <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] max-w-lg w-full overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+                        <div className="px-6 py-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
+                            <h3 className="font-bold text-charcoal dark:text-white flex items-center gap-2">
                                 <Receipt size={20} />
                                 معاينة الإيصال
                             </h3>
-                            <button onClick={() => setShowReceiptModal(false)} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
-                                <X size={18} className="text-slate-500" />
+                            <button onClick={() => setShowReceiptModal(false)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 flex items-center justify-center">
+                                <X size={18} className="text-slate-500 dark:text-slate-400" />
                             </button>
                         </div>
                         <div className="p-6">
@@ -478,25 +478,25 @@ export function AdminPackageSubscriptionsPage() {
                                 </div>
                             )}
                             <div className="space-y-3 mb-6">
-                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-[10px]">
+                                <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-[10px]">
                                     <User size={18} className="text-slate-400" />
                                     <div>
-                                        <p className="text-xs text-slate-grey">الطالب</p>
-                                        <p className="font-semibold text-charcoal">{selectedSubscription.student?.name}</p>
+                                        <p className="text-xs text-slate-grey dark:text-slate-400">الطالب</p>
+                                        <p className="font-semibold text-charcoal dark:text-white">{selectedSubscription.student?.name}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-[10px]">
+                                <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-[10px]">
                                     <Package size={18} className="text-slate-400" />
                                     <div>
-                                        <p className="text-xs text-slate-grey">الباقة</p>
-                                        <p className="font-semibold text-charcoal">{selectedSubscription.package?.name}</p>
+                                        <p className="text-xs text-slate-grey dark:text-slate-400">الباقة</p>
+                                        <p className="font-semibold text-charcoal dark:text-white">{selectedSubscription.package?.name}</p>
                                     </div>
                                 </div>
                                 {selectedSubscription.package?.price && (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-[10px]">
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-[10px]">
                                         <DollarSign size={18} className="text-slate-400" />
                                         <div>
-                                            <p className="text-xs text-slate-grey">السعر</p>
+                                            <p className="text-xs text-slate-grey dark:text-slate-400">السعر</p>
                                             <p className="font-semibold text-shibl-crimson">{selectedSubscription.package.final_price ?? selectedSubscription.package.price} ر.ع</p>
                                         </div>
                                     </div>
@@ -520,7 +520,7 @@ export function AdminPackageSubscriptionsPage() {
                                             setShowReceiptModal(false);
                                             openRejectModal(selectedSubscription);
                                         }}
-                                        className="flex-1 py-3 rounded-[12px] bg-red-100 hover:bg-red-200 text-red-600 font-bold text-sm transition-colors flex items-center justify-center gap-2"
+                                        className="flex-1 py-3 rounded-[12px] bg-red-100 dark:bg-red-500/10 hover:bg-red-200 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 font-bold text-sm transition-colors flex items-center justify-center gap-2"
                                     >
                                         <X size={18} />
                                         رفض
@@ -535,7 +535,7 @@ export function AdminPackageSubscriptionsPage() {
             {/* Reject Modal */}
             {showRejectModal && selectedSubscription && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowRejectModal(false)}>
-                    <div className="bg-white rounded-[20px] max-w-md w-full overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] max-w-md w-full overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
                         <div className="px-6 py-4 border-b border-red-100 bg-red-50 flex items-center justify-between">
                             <h3 className="font-bold text-red-700 flex items-center gap-2">
                                 <XCircle size={20} />
@@ -546,22 +546,22 @@ export function AdminPackageSubscriptionsPage() {
                             </button>
                         </div>
                         <div className="p-6 space-y-4">
-                            <p className="text-sm text-slate-600">
+                            <p className="text-sm text-slate-600 dark:text-slate-300">
                                 أنت على وشك رفض طلب اشتراك <strong>{selectedSubscription.student?.name}</strong> في باقة <strong>{selectedSubscription.package?.name}</strong>
                             </p>
                             <div>
-                                <label className="block text-sm font-medium text-charcoal mb-2">سبب الرفض *</label>
+                                <label className="block text-sm font-medium text-charcoal dark:text-white mb-2">سبب الرفض *</label>
                                 <textarea
                                     value={rejectionReason}
                                     onChange={(e) => setRejectionReason(e.target.value)}
                                     placeholder="اكتب سبب رفض الطلب..."
-                                    className="w-full h-24 rounded-[12px] border border-slate-200 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none p-3 text-sm resize-none"
+                                    className="w-full h-24 rounded-[12px] border border-slate-200 dark:border-white/10 dark:bg-[#2A2A2A] dark:text-white dark:placeholder-slate-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none p-3 text-sm resize-none"
                                 />
                             </div>
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setShowRejectModal(false)}
-                                    className="flex-1 py-3 rounded-[12px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors"
+                                    className="flex-1 py-3 rounded-[12px] bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-700 dark:text-slate-300 font-medium transition-colors"
                                 >
                                     إلغاء
                                 </button>
@@ -586,7 +586,7 @@ export function AdminPackageSubscriptionsPage() {
             {/* Package Details Modal */}
             {showPackageModal && selectedSubscription?.package && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowPackageModal(false)}>
-                    <div className="bg-white rounded-[20px] max-w-lg w-full overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] max-w-lg w-full overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                         <div className="relative h-48 bg-slate-100">
                             <img
                                 src={selectedSubscription.package.image || '/images/package-placeholder.png'}
@@ -609,8 +609,8 @@ export function AdminPackageSubscriptionsPage() {
 
                         <div className="p-6 space-y-6">
                             {/* Price */}
-                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
-                                <span className="text-slate-600 font-medium">سعر الباقة</span>
+                            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-xl">
+                                <span className="text-slate-600 dark:text-slate-300 font-medium">سعر الباقة</span>
                                 <div className="text-right">
                                     {selectedSubscription.package.final_price && selectedSubscription.package.final_price < selectedSubscription.package.price ? (
                                         <>
@@ -626,21 +626,21 @@ export function AdminPackageSubscriptionsPage() {
                             {/* Description */}
                             {selectedSubscription.package.description && (
                                 <div>
-                                    <h4 className="font-bold text-charcoal mb-2">وصف الباقة</h4>
-                                    <p className="text-slate-600 text-sm leading-relaxed">{selectedSubscription.package.description}</p>
+                                    <h4 className="font-bold text-charcoal dark:text-white mb-2">وصف الباقة</h4>
+                                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{selectedSubscription.package.description}</p>
                                 </div>
                             )}
 
                             {/* Courses */}
                             <div>
-                                <h4 className="font-bold text-charcoal mb-3 flex items-center gap-2">
+                                <h4 className="font-bold text-charcoal dark:text-white mb-3 flex items-center gap-2">
                                     <BookOpen size={18} className="text-shibl-crimson" />
                                     الدورات المشمولة ({selectedSubscription.package.courses?.length || 0})
                                 </h4>
                                 <div className="space-y-3">
                                     {selectedSubscription.package.courses?.map(course => (
-                                        <div key={course.id} className="flex items-center gap-3 p-3 border border-slate-100 rounded-xl hover:border-slate-200 transition-colors">
-                                            <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0">
+                                        <div key={course.id} className="flex items-center gap-3 p-3 border border-slate-100 dark:border-white/10 rounded-xl hover:border-slate-200 transition-colors">
+                                            <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-white/10 overflow-hidden flex-shrink-0">
                                                 <img
                                                     src={course.image || '/images/course-placeholder.png'}
                                                     alt={getLocalizedName(course.name)}
@@ -651,19 +651,19 @@ export function AdminPackageSubscriptionsPage() {
                                                 />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h5 className="font-bold text-charcoal text-sm">{getLocalizedName(course.name)}</h5>
-                                                {course.subject && <span className="text-xs text-slate-500">{getLocalizedName(course.subject.name)}</span>}
+                                                <h5 className="font-bold text-charcoal dark:text-white text-sm">{getLocalizedName(course.name)}</h5>
+                                                {course.subject && <span className="text-xs text-slate-500 dark:text-slate-400">{getLocalizedName(course.subject.name)}</span>}
                                             </div>
                                         </div>
                                     ))}
                                     {(!selectedSubscription.package.courses || selectedSubscription.package.courses.length === 0) && (
-                                        <p className="text-slate-500 text-center py-4 bg-slate-50 rounded-xl text-sm">لا توجد دورات في هذه الباقة</p>
+                                        <p className="text-slate-500 dark:text-slate-400 text-center py-4 bg-slate-50 dark:bg-white/5 rounded-xl text-sm">لا توجد دورات في هذه الباقة</p>
                                     )}
                                 </div>
                             </div>
                         </div>
-                        <div className="p-4 border-t border-slate-100 bg-slate-50 text-center">
-                            <button onClick={() => setShowPackageModal(false)} className="text-slate-500 hover:text-charcoal text-sm font-medium">
+                        <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-[#2A2A2A] text-center">
+                            <button onClick={() => setShowPackageModal(false)} className="text-slate-500 dark:text-slate-400 hover:text-charcoal dark:hover:text-white text-sm font-medium">
                                 إغلاق
                             </button>
                         </div>
@@ -674,47 +674,47 @@ export function AdminPackageSubscriptionsPage() {
             {/* Approve Confirm Modal */}
             {showApproveModal && selectedSubscription && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowApproveModal(false)}>
-                    <div className="bg-white rounded-[20px] max-w-md w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white dark:bg-[#1E1E1E] rounded-[20px] max-w-md w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
                         <div className="px-6 py-5 border-b border-green-100 bg-gradient-to-r from-green-50 to-emerald-50">
                             <div className="flex items-center gap-4">
                                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
                                     <Check size={28} className="text-white" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-lg text-charcoal">تأكيد تفعيل الاشتراك</h3>
+                                    <h3 className="font-bold text-lg text-charcoal dark:text-charcoal">تأكيد تفعيل الاشتراك</h3>
                                     <p className="text-sm text-green-700">هل تريد تفعيل هذا الاشتراك في الباقة؟</p>
                                 </div>
                             </div>
                         </div>
                         <div className="p-6 space-y-4">
-                            <div className="space-y-3 bg-slate-50 rounded-xl p-4">
+                            <div className="space-y-3 bg-slate-50 dark:bg-white/5 rounded-xl p-4">
                                 <div className="flex items-center gap-3">
                                     <User size={18} className="text-slate-400" />
                                     <div>
-                                        <p className="text-xs text-slate-grey">الطالب</p>
-                                        <p className="font-semibold text-charcoal">{selectedSubscription.student?.name}</p>
+                                        <p className="text-xs text-slate-grey dark:text-slate-400">الطالب</p>
+                                        <p className="font-semibold text-charcoal dark:text-white">{selectedSubscription.student?.name}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <Package size={18} className="text-slate-400" />
                                     <div>
-                                        <p className="text-xs text-slate-grey">الباقة</p>
-                                        <p className="font-semibold text-charcoal">{selectedSubscription.package?.name}</p>
+                                        <p className="text-xs text-slate-grey dark:text-slate-400">الباقة</p>
+                                        <p className="font-semibold text-charcoal dark:text-white">{selectedSubscription.package?.name}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <GraduationCap size={18} className="text-slate-400" />
                                     <div>
-                                        <p className="text-xs text-slate-grey">عدد الدورات</p>
-                                        <p className="font-semibold text-charcoal">{selectedSubscription.package?.courses_count || selectedSubscription.package?.courses?.length || 0} دورات</p>
+                                        <p className="text-xs text-slate-grey dark:text-slate-400">عدد الدورات</p>
+                                        <p className="font-semibold text-charcoal dark:text-white">{selectedSubscription.package?.courses_count || selectedSubscription.package?.courses?.length || 0} دورات</p>
                                     </div>
                                 </div>
                                 {selectedSubscription.package?.price && (
                                     <div className="flex items-center gap-3">
                                         <DollarSign size={18} className="text-slate-400" />
                                         <div>
-                                            <p className="text-xs text-slate-grey">السعر</p>
-                                            <p className="font-semibold text-charcoal">{selectedSubscription.package.final_price ?? selectedSubscription.package.price} ر.ع</p>
+                                            <p className="text-xs text-slate-grey dark:text-slate-400">السعر</p>
+                                            <p className="font-semibold text-charcoal dark:text-white">{selectedSubscription.package.final_price ?? selectedSubscription.package.price} ر.ع</p>
                                         </div>
                                     </div>
                                 )}
@@ -723,7 +723,7 @@ export function AdminPackageSubscriptionsPage() {
                                 <button
                                     onClick={() => setShowApproveModal(false)}
                                     disabled={actionLoading}
-                                    className="flex-1 py-3 rounded-[12px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors disabled:opacity-50"
+                                    className="flex-1 py-3 rounded-[12px] bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-700 dark:text-slate-300 font-medium transition-colors disabled:opacity-50"
                                 >
                                     إلغاء
                                 </button>

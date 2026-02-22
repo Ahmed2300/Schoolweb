@@ -629,19 +629,19 @@ const AdminAcademicGraphPage = () => {
     }, []);
 
     return (
-        <div dir="rtl" className={`flex flex-col bg-slate-50 transition-all duration-300 ${isFullscreen
+        <div dir="rtl" className={`flex flex-col bg-slate-50 dark:bg-[#121212] transition-all duration-300 ${isFullscreen
             ? 'fixed inset-0 z-[9999]'
             : 'h-[calc(100vh-64px)]'
             }`}>
             {/* Header Toolbar */}
-            <div className="h-auto min-h-14 lg:h-16 bg-white border-b border-slate-200 px-3 lg:px-6 py-2 lg:py-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 z-10">
+            <div className="h-auto min-h-14 lg:h-16 bg-white dark:bg-[#1E1E1E] border-b border-slate-200 dark:border-white/10 px-3 lg:px-6 py-2 lg:py-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 z-10">
                 <div className="flex items-center gap-3">
                     <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600">
                         <Layers size={24} />
                     </div>
                     <div>
-                        <h1 className="text-lg font-bold text-slate-900">هيكل النظام الأكاديمي</h1>
-                        <p className="text-xs text-slate-500">عرض المراحل الدراسية، الفصول، والمواد</p>
+                        <h1 className="text-lg font-bold text-slate-900 dark:text-white">هيكل النظام الأكاديمي</h1>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">عرض المراحل الدراسية، الفصول، والمواد</p>
                     </div>
                 </div>
 
@@ -651,7 +651,7 @@ const AdminAcademicGraphPage = () => {
 
                     <button
                         onClick={fetchRoots}
-                        className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                        className="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors border border-slate-200 dark:border-white/10"
                     >
                         <RefreshCw size={18} />
                         <span>إعادة تعيين</span>
@@ -664,14 +664,14 @@ const AdminAcademicGraphPage = () => {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="بحث..."
-                            className="pr-10 pl-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 w-40 lg:w-64"
+                            className="pr-10 pl-4 py-2 bg-slate-100 dark:bg-[#2A2A2A] border-none rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 w-40 lg:w-64 dark:text-white dark:placeholder:text-slate-500"
                         />
                     </div>
 
                     {/* Fullscreen Toggle Button */}
                     <button
                         onClick={toggleFullscreen}
-                        className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                        className="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors border border-slate-200 dark:border-white/10"
                         title={isFullscreen ? 'خروج من ملء الشاشة' : 'ملء الشاشة'}
                     >
                         {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
@@ -681,7 +681,7 @@ const AdminAcademicGraphPage = () => {
                     {/* Palette Toggle Button */}
                     <button
                         onClick={() => setShowPalette(prev => !prev)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors border ${showPalette ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 border-slate-200'}`}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors border ${showPalette ? 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20 text-indigo-700' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 border-slate-200 dark:border-white/10'}`}
                         title="تبديل لوحة العناصر"
                     >
                         <LayoutGrid size={18} />
@@ -707,7 +707,7 @@ const AdminAcademicGraphPage = () => {
                         fitView
                         minZoom={0.2}
                         deleteKeyCode={['Backspace', 'Delete']}
-                        className="bg-slate-50"
+                        className="bg-slate-50 dark:bg-[#121212]"
                         onInit={setRfInstance}
                     >
                         <Background color="#cbd5e1" gap={20} size={1} />
@@ -716,9 +716,9 @@ const AdminAcademicGraphPage = () => {
                 </div>
 
                 {/* Entity Palette Sidebar */}
-                <div className={`absolute top-0 left-0 h-full bg-white border-r border-slate-200 shadow-xl transition-transform duration-300 z-40 w-full sm:w-72 lg:w-80 flex flex-col ${showPalette ? 'translate-x-0' : '-translate-x-full'}`}>
-                    <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                        <h2 className="font-bold text-slate-800 flex items-center gap-2">
+                <div className={`absolute top-0 left-0 h-full bg-white dark:bg-[#1E1E1E] border-r border-slate-200 dark:border-white/10 shadow-xl transition-transform duration-300 z-40 w-full sm:w-72 lg:w-80 flex flex-col ${showPalette ? 'translate-x-0' : '-translate-x-full'}`}>
+                    <div className="p-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between bg-slate-50 dark:bg-[#2A2A2A]">
+                        <h2 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                             <LayoutGrid size={18} className="text-indigo-600" />
                             لوحة العناصر
                         </h2>
@@ -730,7 +730,7 @@ const AdminAcademicGraphPage = () => {
                     <div className="flex-1 overflow-y-auto p-4 space-y-6">
                         {/* Semesters */}
                         <div>
-                            <h3 className="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2">
+                            <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-3 flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span> فصول غير مرتبطة
                             </h3>
                             <div className="space-y-2">
@@ -740,11 +740,11 @@ const AdminAcademicGraphPage = () => {
                                         key={item.id}
                                         draggable
                                         onDragStart={(e) => onDragStart(e, 'semester', { ...item.data, id: item.id })}
-                                        className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm cursor-grab hover:border-emerald-400 hover:shadow-md transition-all flex items-center gap-3 active:cursor-grabbing"
+                                        className="bg-white dark:bg-[#2A2A2A] p-3 rounded-lg border border-slate-200 dark:border-white/10 shadow-sm cursor-grab hover:border-emerald-400 hover:shadow-md transition-all flex items-center gap-3 active:cursor-grabbing"
                                     >
                                         <GripVertical size={16} className="text-slate-300" />
                                         <div className="flex-1">
-                                            <div className="text-sm font-medium text-slate-700">{item.data.label}</div>
+                                            <div className="text-sm font-medium text-slate-700 dark:text-white">{item.data.label}</div>
                                         </div>
                                     </div>
                                 ))}
@@ -753,7 +753,7 @@ const AdminAcademicGraphPage = () => {
 
                         {/* Subjects */}
                         <div>
-                            <h3 className="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2">
+                            <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-3 flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-amber-500"></span> مواد غير مرتبطة
                             </h3>
                             <div className="space-y-2">
@@ -763,11 +763,11 @@ const AdminAcademicGraphPage = () => {
                                         key={item.id}
                                         draggable
                                         onDragStart={(e) => onDragStart(e, 'subject', { ...item.data, id: item.id })}
-                                        className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm cursor-grab hover:border-amber-400 hover:shadow-md transition-all flex items-center gap-3 active:cursor-grabbing"
+                                        className="bg-white dark:bg-[#2A2A2A] p-3 rounded-lg border border-slate-200 dark:border-white/10 shadow-sm cursor-grab hover:border-amber-400 hover:shadow-md transition-all flex items-center gap-3 active:cursor-grabbing"
                                     >
                                         <GripVertical size={16} className="text-slate-300" />
                                         <div className="flex-1">
-                                            <div className="text-sm font-medium text-slate-700">{item.data.label}</div>
+                                            <div className="text-sm font-medium text-slate-700 dark:text-white">{item.data.label}</div>
                                         </div>
                                     </div>
                                 ))}
@@ -776,7 +776,7 @@ const AdminAcademicGraphPage = () => {
 
                         {/* Courses */}
                         <div>
-                            <h3 className="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2">
+                            <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-3 flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-slate-400"></span> كورسات غير مرتبطة
                             </h3>
                             <div className="space-y-2">
@@ -786,11 +786,11 @@ const AdminAcademicGraphPage = () => {
                                         key={item.id}
                                         draggable
                                         onDragStart={(e) => onDragStart(e, 'course', { ...item.data, id: item.id })}
-                                        className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm cursor-grab hover:border-slate-400 hover:shadow-md transition-all flex items-center gap-3 active:cursor-grabbing"
+                                        className="bg-white dark:bg-[#2A2A2A] p-3 rounded-lg border border-slate-200 dark:border-white/10 shadow-sm cursor-grab hover:border-slate-400 hover:shadow-md transition-all flex items-center gap-3 active:cursor-grabbing"
                                     >
                                         <GripVertical size={16} className="text-slate-300" />
                                         <div className="flex-1">
-                                            <div className="text-sm font-medium text-slate-700">{item.data.label}</div>
+                                            <div className="text-sm font-medium text-slate-700 dark:text-white">{item.data.label}</div>
                                         </div>
                                     </div>
                                 ))}
@@ -799,7 +799,7 @@ const AdminAcademicGraphPage = () => {
 
                         {/* Units */}
                         <div>
-                            <h3 className="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2">
+                            <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-3 flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-violet-500"></span> وحدات غير مرتبطة
                             </h3>
                             <div className="space-y-2">
@@ -809,11 +809,11 @@ const AdminAcademicGraphPage = () => {
                                         key={item.id}
                                         draggable
                                         onDragStart={(e) => onDragStart(e, 'unit', { ...item.data, id: item.id })}
-                                        className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm cursor-grab hover:border-violet-400 hover:shadow-md transition-all flex items-center gap-3 active:cursor-grabbing"
+                                        className="bg-white dark:bg-[#2A2A2A] p-3 rounded-lg border border-slate-200 dark:border-white/10 shadow-sm cursor-grab hover:border-violet-400 hover:shadow-md transition-all flex items-center gap-3 active:cursor-grabbing"
                                     >
                                         <GripVertical size={16} className="text-slate-300" />
                                         <div className="flex-1">
-                                            <div className="text-sm font-medium text-slate-700">{item.data.label}</div>
+                                            <div className="text-sm font-medium text-slate-700 dark:text-white">{item.data.label}</div>
                                         </div>
                                     </div>
                                 ))}
@@ -822,7 +822,7 @@ const AdminAcademicGraphPage = () => {
 
                         {/* Lectures */}
                         <div>
-                            <h3 className="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2">
+                            <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-3 flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-pink-500"></span> محاضرات غير مرتبطة
                             </h3>
                             <div className="space-y-2">
@@ -832,11 +832,11 @@ const AdminAcademicGraphPage = () => {
                                         key={item.id}
                                         draggable
                                         onDragStart={(e) => onDragStart(e, 'lecture', { ...item.data, id: item.id })}
-                                        className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm cursor-grab hover:border-pink-400 hover:shadow-md transition-all flex items-center gap-3 active:cursor-grabbing"
+                                        className="bg-white dark:bg-[#2A2A2A] p-3 rounded-lg border border-slate-200 dark:border-white/10 shadow-sm cursor-grab hover:border-pink-400 hover:shadow-md transition-all flex items-center gap-3 active:cursor-grabbing"
                                     >
                                         <GripVertical size={16} className="text-slate-300" />
                                         <div className="flex-1">
-                                            <div className="text-sm font-medium text-slate-700">{item.data.label}</div>
+                                            <div className="text-sm font-medium text-slate-700 dark:text-white">{item.data.label}</div>
                                         </div>
                                     </div>
                                 ))}
@@ -847,8 +847,8 @@ const AdminAcademicGraphPage = () => {
             </div>
 
             {/* Legend / Instructions */}
-            <div className={`absolute bottom-2 right-2 sm:bottom-4 sm:right-4 lg:bottom-6 lg:right-6 bg-white/90 backdrop-blur shadow-lg rounded-xl p-2 sm:p-3 lg:p-4 border border-slate-200 z-50 max-w-[90vw] sm:max-w-xs lg:max-w-sm text-[10px] sm:text-xs`}>
-                <h3 className="text-xs font-bold text-slate-500 uppercase mb-2 text-right">أنواع العقد</h3>
+            <div className={`absolute bottom-2 right-2 sm:bottom-4 sm:right-4 lg:bottom-6 lg:right-6 bg-white/90 dark:bg-[#1E1E1E]/90 backdrop-blur shadow-lg rounded-xl p-2 sm:p-3 lg:p-4 border border-slate-200 dark:border-white/10 z-50 max-w-[90vw] sm:max-w-xs lg:max-w-sm text-[10px] sm:text-xs`}>
+                <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 text-right">أنواع العقد</h3>
                 <div className="flex flex-wrap gap-2 mb-3 justify-end">
                     <span className="flex items-center gap-1 text-xs"><span className="w-2 h-2 rounded-full bg-indigo-500"></span>المرحلة</span>
                     <span className="flex items-center gap-1 text-xs"><span className="w-2 h-2 rounded-full bg-emerald-500"></span>الفصل</span>
@@ -857,8 +857,8 @@ const AdminAcademicGraphPage = () => {
                     <span className="flex items-center gap-1 text-xs"><span className="w-2 h-2 rounded-full bg-violet-500"></span>الوحدة</span>
                     <span className="flex items-center gap-1 text-xs"><span className="w-2 h-2 rounded-full bg-pink-500"></span>المحاضرة</span>
                 </div>
-                <h3 className="text-xs font-bold text-slate-500 uppercase mb-2 text-right">التعليمات</h3>
-                <ul className="text-[10px] sm:text-xs lg:text-sm space-y-1 sm:space-y-2 text-slate-700 hidden sm:block">
+                <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 text-right">التعليمات</h3>
+                <ul className="text-[10px] sm:text-xs lg:text-sm space-y-1 sm:space-y-2 text-slate-700 dark:text-slate-300 hidden sm:block">
                     <li className="flex items-center justify-end gap-2">
                         <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
                         <span className="font-bold text-indigo-600">لتوسيع/طي</span>
