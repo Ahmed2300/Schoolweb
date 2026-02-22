@@ -143,13 +143,11 @@ export function LecturePlayerPage() {
 
             toast.success('تم تحديد الدرس كمكتمل بنجاح!', { icon: '✓' });
 
-            // Auto-redirect to attached quiz only on FIRST completion (Manar Branch Logic)
-            if (!wasAlreadyCompleted) {
-                const firstQuiz = currentLecture.quizzes?.[0];
-                if (firstQuiz && !firstQuiz.is_completed) {
-                    toast('يتم توجيهك للاختبار...', { icon: '📝', duration: 2000 });
-                    setTimeout(() => navigate(`/dashboard/quizzes/${firstQuiz.id}`), 1500);
-                }
+            // Auto-redirect to attached quiz if it's not completed yet
+            const firstQuiz = currentLecture.quizzes?.[0];
+            if (firstQuiz && !firstQuiz.is_completed) {
+                toast('يتم توجيهك للاختبار...', { icon: '📝', duration: 2000 });
+                setTimeout(() => navigate(`/dashboard/quizzes/${firstQuiz.id}`), 1500);
             }
 
             // Milestone detection: compare before vs after (AzamEgoO Branch Logic)
@@ -339,9 +337,18 @@ export function LecturePlayerPage() {
 
                                 <div className="flex items-center gap-3 flex-1 lg:flex-none justify-center">
                                     {currentLecture.is_completed ? (
-                                        <button disabled className="h-14 px-8 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full font-black flex items-center gap-2 cursor-default">
-                                            <CheckCircle2 size={24} /> مكتمل
-                                        </button>
+                                        currentLecture.quizzes && currentLecture.quizzes[0] && !currentLecture.quizzes[0].is_completed ? (
+                                            <button
+                                                onClick={() => navigate(`/dashboard/quizzes/${currentLecture.quizzes![0].id}`)}
+                                                className="h-14 px-8 bg-purple-50 text-purple-600 border border-purple-100 hover:bg-purple-100 rounded-full font-black flex items-center gap-2 cursor-pointer transition-all"
+                                            >
+                                                <CheckCircle2 size={24} /> ابدأ الاختبار
+                                            </button>
+                                        ) : (
+                                            <button disabled className="h-14 px-8 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full font-black flex items-center gap-2 cursor-default">
+                                                <CheckCircle2 size={24} /> مكتمل
+                                            </button>
+                                        )
                                     ) : currentLecture.session_status === 'upcoming' ? (
                                         <button disabled className="h-14 px-8 bg-amber-50 text-amber-600 border border-amber-100 rounded-full font-black flex items-center gap-2 cursor-not-allowed">
                                             <Clock size={20} /> الجلسة لم تبدأ بعد

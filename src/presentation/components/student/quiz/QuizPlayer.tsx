@@ -965,24 +965,40 @@ function QuestionReviewCard({ question, questionNumber, totalQuestions }: Questi
                         return (
                             <div
                                 key={option.id}
-                                className={`flex items-center gap-4 p-5 rounded-xl border-2 ${optionStyle}`}
+                                className={`flex items-center gap-4 p-5 rounded-xl border-2 relative ${optionStyle}`}
                             >
-                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isUserAnswer ? 'border-slate-900 bg-slate-900' : 'border-slate-300'}`}>
+                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${isUserAnswer ? 'border-slate-900 bg-slate-900' : 'border-slate-300'}`}>
                                     {isUserAnswer && <div className="w-3 h-3 bg-white rounded-full" />}
                                 </div>
                                 <div className="flex-1 flex flex-col gap-2">
-                                    <span className={`font-medium ${isCorrectOption ? 'text-emerald-700' : isUserAnswer && !isCorrect ? 'text-red-700' : 'text-slate-600'}`}>
-                                        {getLocalizedName(option.option_text)}
-                                    </span>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <span className={`font-medium ${isCorrectOption ? 'text-emerald-700 font-bold' : isUserAnswer && !isCorrect ? 'text-red-700' : 'text-slate-600'}`}>
+                                            {getLocalizedName(option.option_text)}
+                                        </span>
+                                        {/* Badges for Answers */}
+                                        {isUserAnswer && (
+                                            <span className="text-[10px] font-black tracking-wider bg-slate-900 text-white px-2 py-0.5 rounded-md self-start">
+                                                إجابتك
+                                            </span>
+                                        )}
+                                        {isCorrectOption && (
+                                            <span className="text-[10px] font-black tracking-wider bg-emerald-500 text-white px-2 py-0.5 rounded-md self-start">
+                                                الإجابة الصحيحة
+                                            </span>
+                                        )}
+                                    </div>
+
                                     {option.option_image_url && (
                                         <img
                                             src={option.option_image_url}
                                             alt="صورة الخيار"
-                                            className="max-w-[200px] max-h-32 rounded-lg border border-slate-200 object-contain"
+                                            className="max-w-[200px] max-h-32 rounded-lg border border-slate-200 object-contain mt-2"
                                         />
                                     )}
                                 </div>
-                                {iconComponent}
+                                <div className="shrink-0 pl-2">
+                                    {iconComponent}
+                                </div>
                             </div>
                         );
                     })}
