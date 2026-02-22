@@ -3,7 +3,7 @@ import { Lecture } from '../../../../data/api/studentCourseService';
 import { useLanguage } from '../../../hooks';
 import { QuizItem } from './QuizItem';
 import { getLocalizedName } from '../../../../data/api/studentService';
-import { useMemo } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -11,17 +11,27 @@ interface LectureItemProps {
     lecture: Lecture;
     courseId: string;
     isSubscribed?: boolean;
+    isHighlighted?: boolean;
 }
 
 type LiveState = 'not_scheduled' | 'pending' | 'upcoming' | 'live' | 'ended';
 
-export function LectureItem({ lecture, courseId, isSubscribed = false }: LectureItemProps) {
+export function LectureItem({ lecture, courseId, isSubscribed = false, isHighlighted = false }: LectureItemProps) {
     const { isRTL } = useLanguage();
     const navigate = useNavigate();
+    const itemRef = useRef<HTMLDivElement>(null);
     const hasQuizzes = lecture.quizzes && lecture.quizzes.length > 0;
 
     const isLive = lecture.is_online;
     const hasVideo = !!lecture.video_path;
+
+    useEffect(() => {
+        if (isHighlighted && itemRef.current) {
+            setTimeout(() => {
+                itemRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300); // 300ms delay to allow accordion animation to finish
+        }
+    }, [isHighlighted]);
 
     // Determine live session state
     const liveState = useMemo((): LiveState => {
@@ -138,18 +148,18 @@ export function LectureItem({ lecture, courseId, isSubscribed = false }: Lecture
     };
 
     return (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3" ref={itemRef}>
             {/* Lecture Card */}
             <div
                 onClick={handleClick}
                 className={`
         relative group
         flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 lg:p-5
-        bg-white border border-slate-100 rounded-2xl
+        bg-white border rounded-2xl
         hover:shadow-md ${isSubscribed ? hoverBorder : ''} ${isSubscribed ? 'hover:-translate-y-0.5' : ''}
         transition-all duration-300 cursor-pointer
         ${!isAccessible ? 'opacity-70 grayscale-[0.5]' : ''}
-        ${liveState === 'live' && isSubscribed ? 'ring-2 ring-red-200 border-red-100' : ''}
+        ${isHighlighted ? 'border-shibl-crimson shadow-md ring-2 ring-shibl-crimson/20' : liveState === 'live' && isSubscribed ? 'ring-2 ring-red-200 border-red-100' : 'border-slate-100'}
       `}>
                 {/* Icon Container */}
                 <div className={`flex items-center gap-3 sm:gap-4 w-full sm:w-auto mb-2 sm:mb-0`}>

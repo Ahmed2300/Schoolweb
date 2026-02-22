@@ -390,6 +390,7 @@ export const studentService = {
         upcoming_sessions_count: number;
         unread_notifications: number;
         subscriptions: Subscription[];
+        average_progress: number;
     }> => {
         try {
             const response = await apiClient.get(endpoints.studentAuth.homeDashboard);
@@ -401,10 +402,11 @@ export const studentService = {
 
             return {
                 user: data.user,
-                active_courses_count: subscriptions.filter((s: any) => s.status === 1 || s.is_currently_active).length,
+                active_courses_count: subscriptions.filter((s: any) => s.status === 1 || s.status === 'active' || s.is_currently_active).length,
                 upcoming_sessions_count: schedules.length,
                 unread_notifications: data.unread_notifications || 0,
-                subscriptions: subscriptions
+                subscriptions: subscriptions,
+                average_progress: data.average_progress || 0
             };
         } catch (error) {
             console.error('Error fetching home dashboard data:', error);
@@ -414,7 +416,8 @@ export const studentService = {
                 active_courses_count: 0,
                 upcoming_sessions_count: 0,
                 unread_notifications: 0,
-                subscriptions: []
+                subscriptions: [],
+                average_progress: 0
             };
         }
     },
@@ -434,7 +437,7 @@ export const studentService = {
                 completedCourses: 0, // TODO: Backend needs enrollment/progress tracking
                 inProgressCourses: data.active_courses_count,
                 upcomingLiveSessions: data.upcoming_sessions_count,
-                averageProgress: 0, // TODO: Backend needs progress tracking
+                averageProgress: data.average_progress,
             };
         } catch (error) {
             console.error('Error fetching dashboard stats:', error);

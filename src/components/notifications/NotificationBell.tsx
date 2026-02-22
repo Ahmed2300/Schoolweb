@@ -150,14 +150,6 @@ export function NotificationBell() {
                             ))
                         )}
                     </div>
-
-                    {notifications.length > 10 && (
-                        <div className="p-3 border-t border-slate-100 dark:border-white/10 text-center">
-                            <a href="/admin/notifications" className="inline-flex items-center gap-1 text-indigo-600 text-sm hover:underline">
-                                عرض الكل <ExternalLink size={14} />
-                            </a>
-                        </div>
-                    )}
                 </div>
             )}
         </div>

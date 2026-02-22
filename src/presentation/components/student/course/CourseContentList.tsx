@@ -5,6 +5,7 @@ import { getLocalizedName } from '../../../../data/api/studentService';
 import { LectureItem } from './LectureItem';
 import { QuizItem } from './QuizItem';
 import { useLanguage } from '../../../hooks';
+import { useLocation } from 'react-router-dom';
 
 interface CourseContentListProps {
     units: Unit[];
@@ -13,6 +14,11 @@ interface CourseContentListProps {
 }
 
 export function CourseContentList({ units, courseId, isSubscribed = false }: CourseContentListProps) {
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const openLectureIdRaw = queryParams.get('open_lecture');
+    const openLectureId = openLectureIdRaw ? parseInt(openLectureIdRaw, 10) : null;
+
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -26,15 +32,20 @@ export function CourseContentList({ units, courseId, isSubscribed = false }: Cou
             </div>
 
             <div className="space-y-4">
-                {units.map((unit, index) => (
-                    <UnitAccordion
-                        key={unit.id}
-                        unit={unit}
-                        index={index}
-                        courseId={courseId}
-                        isSubscribed={isSubscribed}
-                    />
-                ))}
+                {units.map((unit, index) => {
+                    const hasTargetLecture = openLectureId ? unit.items.some(item => item.item_type === 'lecture' && item.id === openLectureId) : false;
+                    return (
+                        <UnitAccordion
+                            key={unit.id}
+                            unit={unit}
+                            index={index}
+                            courseId={courseId}
+                            isSubscribed={isSubscribed}
+                            defaultOpen={hasTargetLecture || (!openLectureId && index === 0)}
+                            openLectureId={openLectureId}
+                        />
+                    );
+                })}
 
                 {units.length === 0 && (
                     <div className="text-center py-12 sm:py-20 bg-white rounded-3xl sm:rounded-[3rem] border border-dashed border-slate-200">
@@ -49,8 +60,8 @@ export function CourseContentList({ units, courseId, isSubscribed = false }: Cou
     );
 }
 
-function UnitAccordion({ unit, index, courseId, isSubscribed }: { unit: Unit; index: number; courseId: string; isSubscribed: boolean }) {
-    const [isOpen, setIsOpen] = useState(index === 0);
+function UnitAccordion({ unit, index, courseId, isSubscribed, defaultOpen, openLectureId }: { unit: Unit; index: number; courseId: string; isSubscribed: boolean; defaultOpen: boolean; openLectureId: number | null }) {
+    const [isOpen, setIsOpen] = useState(defaultOpen);
     const { isRTL } = useLanguage();
 
     return (
@@ -98,6 +109,7 @@ function UnitAccordion({ unit, index, courseId, isSubscribed }: { unit: Unit; in
                                         lecture={item}
                                         courseId={courseId}
                                         isSubscribed={isSubscribed}
+                                        isHighlighted={openLectureId === item.id}
                                     />
                                 ) : (
                                     <QuizItem

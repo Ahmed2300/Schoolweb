@@ -31,7 +31,7 @@ interface SubscriptionModalProps {
     onSuccess: () => void;
 }
 
-type Step = 'payment' | 'upload' | 'processing' | 'success' | 'error';
+type Step = 'payment' | 'upload' | 'processing' | 'success' | 'error' | 'free-confirm';
 
 // Bank info - In production, this would come from settings/API
 // Fallback values in case settings are missing
@@ -66,10 +66,12 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     const [dragActive, setDragActive] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const isFree = !course.price || course.price === 0;
+
     // Reset state when modal closes
     useEffect(() => {
         if (!isOpen) {
-            setStep('payment');
+            setStep(isFree ? 'free-confirm' : 'payment');
             setLoading(false);
             setError(null);
             setSelectedFile(null);
@@ -77,48 +79,19 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
             setSubscriptionId(null);
             setCopiedField(null);
         }
-    }, [isOpen]);
+    }, [isOpen, isFree]);
 
-    // Fetch system settings on mount
+    // Fetch system settings on mount (only for paid courses)
     useEffect(() => {
         const fetchSettings = async () => {
-            if (!isOpen) return;
+            if (!isOpen || isFree) return;
 
             setLoadingSettings(true);
             try {
                 const settings = await studentService.getSystemSettings();
 
-                // Parse bank account info if available
                 if (settings.bank_account) {
-                    // Try to parse if it's JSON, otherwise use as raw text or structured string
-                    // For now, assuming it comes as a string, let's just use it directly 
-                    // or parse if the admin saves it as specific format.
-                    // Based on AdminSettingsPage, it's a simple text area.
-                    // Let's assume the text area contains lines like:
-                    // Bank Name: ...
-                    // Account Name: ...
-                    // Account Number: ...
-                    // IBAN: ...
-                    // OR just simple text.
-
-                    // Actually, looking at the UI in the screenshot, it expects structured data.
-                    // But the Admin Settings page only has a single text area for "Bank Account Details".
-                    // We need to parse this text area to extract the fields, or simple display the text.
-                    // The current UI components <BankInfoItem> expect specific fields.
-                    // Let's try to map the text content to these fields if possible, or 
-                    // we might need to adjust the UI to just show the text block.
-
-                    // improved approach: The Admin Settings save it as a string. 
-                    // Let's see if we can perform a simple split by newline.
                     const lines = settings.bank_account.split('\n').map(l => l.trim()).filter(Boolean);
-
-                    // Heuristic mapping:
-                    // 1st line -> Bank Name
-                    // 2nd line -> Account Name
-                    // 3rd line -> Account Number
-                    // 4th line -> IBAN
-                    // This is a bit fragile but workable for now until we have structured settings.
-                    // If less than 4 lines, fill what we can.
 
                     if (lines.length > 0) {
                         setBankInfo({
@@ -130,7 +103,6 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                     }
                 }
 
-                // Parse wallet info
                 if (settings.phone_wallet) {
                     setWalletInfo({
                         label: 'محفظة إلكترونية',
@@ -147,7 +119,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         if (isOpen) {
             fetchSettings();
         }
-    }, [isOpen]);
+    }, [isOpen, isFree]);
 
     if (!isOpen) return null;
 
@@ -216,6 +188,24 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         setStep('upload');
     };
 
+    // Free course: direct subscribe — no receipt needed
+    const handleFreeSubscribe = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const subscription = await studentService.subscribeToCourse(course.id);
+            setSubscriptionId(subscription.id);
+            setStep('success');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            const message = error.response?.data?.message || 'حدث خطأ أثناء الاشتراك';
+            setError(message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // This creates subscription AND uploads receipt together
     const handleSubmitReceipt = async () => {
         if (!selectedFile) {
@@ -252,14 +242,14 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
     // Render bank info item with copy
     const BankInfoItem = ({ label, value, field, onCopy }: { label: string; value: string; field: string; onCopy: (text: string, field: string) => void }) => (
-        <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 group hover:border-shibl-crimson/30 transition-colors">
+        <div className="flex items-center justify-between p-2.5 sm:p-3 bg-white rounded-xl border border-slate-100 group hover:border-shibl-crimson/30 transition-colors">
             <div className="flex-1 min-w-0">
-                <p className="text-xs text-slate-500 mb-0.5">{label}</p>
-                <p className="font-semibold text-charcoal text-sm truncate" dir="ltr">{value}</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 mb-0.5">{label}</p>
+                <p className="font-semibold text-charcoal text-xs sm:text-sm break-all leading-relaxed" dir="ltr">{value}</p>
             </div>
             <button
                 onClick={() => onCopy(value, field)}
-                className="w-9 h-9 rounded-lg bg-slate-50 hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-50 hover:bg-shibl-crimson/10 flex items-center justify-center transition-all shrink-0 mr-2"
                 title="نسخ"
             >
                 {copiedField === field ? (
@@ -272,18 +262,23 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     );
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
                 onClick={handleClose}
             />
 
-            {/* Modal */}
-            <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 fade-in duration-300">
+            {/* Modal — bottom-sheet on mobile, centered card on desktop */}
+            <div className="relative bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md max-h-[95dvh] sm:max-h-[90vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 fade-in duration-300">
+
+                {/* Drag Handle — mobile only */}
+                <div className="sm:hidden flex justify-center pt-2 pb-0 shrink-0">
+                    <div className="w-10 h-1 rounded-full bg-slate-300" />
+                </div>
 
                 {/* Header */}
-                <div className="relative bg-gradient-to-l from-shibl-crimson via-[#A31621] to-[#8B0A12] px-6 py-5">
+                <div className="relative bg-gradient-to-l from-shibl-crimson via-[#A31621] to-[#8B0A12] px-4 py-3 sm:px-6 sm:py-5 shrink-0">
                     {/* Background Pattern */}
                     <div className="absolute inset-0 opacity-10">
                         <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/20 -translate-y-1/2 translate-x-1/2" />
@@ -292,70 +287,124 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
                     <button
                         onClick={handleClose}
-                        className="absolute top-4 left-4 w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors backdrop-blur-sm z-10"
+                        className="absolute top-3 left-3 sm:top-4 sm:left-4 w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors backdrop-blur-sm z-10"
                     >
-                        <X size={18} className="text-white" />
+                        <X size={16} className="text-white sm:w-[18px] sm:h-[18px]" />
                     </button>
 
-                    <div className="flex items-center gap-4 relative">
-                        <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                            <CreditCard size={26} className="text-white" />
+                    <div className="flex items-center gap-3 sm:gap-4 relative">
+                        <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg shrink-0">
+                            <CreditCard size={22} className="text-white sm:w-[26px] sm:h-[26px]" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h2 className="text-xl font-bold text-white mb-1">الاشتراك في الدورة</h2>
-                            <p className="text-white/80 text-sm truncate">{courseName}</p>
+                            <h2 className="text-lg sm:text-xl font-bold text-white mb-0.5 sm:mb-1">الاشتراك في الدورة</h2>
+                            <p className="text-white/80 text-xs sm:text-sm truncate">{courseName}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Progress Indicator */}
-                {(step === 'payment' || step === 'upload') && (
-                    <div className="px-6 pt-4">
+                {/* Progress Indicator (paid courses only) */}
+                {!isFree && (step === 'payment' || step === 'upload') && (
+                    <div className="px-4 sm:px-6 pt-3 sm:pt-4 shrink-0">
                         <div className="flex items-center gap-2">
                             <div className={`flex-1 h-1.5 rounded-full transition-colors ${step === 'payment' ? 'bg-shibl-crimson' : 'bg-shibl-crimson'}`} />
                             <div className={`flex-1 h-1.5 rounded-full transition-colors ${step === 'upload' ? 'bg-shibl-crimson' : 'bg-slate-200'}`} />
                         </div>
-                        <div className="flex justify-between mt-2 text-xs text-slate-500">
+                        <div className="flex justify-between mt-1.5 sm:mt-2 text-xs text-slate-500">
                             <span className={step === 'payment' ? 'text-shibl-crimson font-medium' : ''}>معلومات الدفع</span>
                             <span className={step === 'upload' ? 'text-shibl-crimson font-medium' : ''}>رفع الإيصال</span>
                         </div>
                     </div>
                 )}
 
-                {/* Content */}
-                <div className="p-6">
+                {/* Content — scrollable area */}
+                <div className="p-4 sm:p-6 overflow-y-auto flex-1">
 
-                    {/* Step 1: Payment Info */}
-                    {step === 'payment' && (
+                    {/* Free Course: Direct Subscribe */}
+                    {(step === 'free-confirm' && isFree) && (
                         <div className="space-y-5">
+                            {/* Free Badge */}
+                            <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-50 rounded-2xl p-6 border border-emerald-100/50 text-center">
+                                <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+                                    <Sparkles size={28} className="text-emerald-600" />
+                                </div>
+                                <p className="text-lg font-bold text-emerald-800 mb-1">دورة مجانية!</p>
+                                <p className="text-sm text-emerald-600">
+                                    يمكنك الاشتراك مباشرة بدون الحاجة لإرسال إيصال أو انتظار موافقة
+                                </p>
+                            </div>
+
+                            {/* Course Info */}
+                            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                                        <CheckCircle size={20} className="text-emerald-600" />
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-charcoal text-sm">{courseName}</p>
+                                        <p className="text-xs text-slate-500 mt-0.5">سيتم تفعيل اشتراكك فوراً</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {error && (
+                                <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-start gap-3">
+                                    <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
+                                    <p className="text-sm text-red-600">{error}</p>
+                                </div>
+                            )}
+
+                            <button
+                                onClick={handleFreeSubscribe}
+                                disabled={loading}
+                                className="w-full h-14 rounded-2xl bg-gradient-to-l from-emerald-500 to-emerald-600 text-white font-bold text-base shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-70 disabled:hover:translate-y-0"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 size={20} className="animate-spin" />
+                                        جاري الاشتراك...
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle size={20} />
+                                        اشترك الآن مجاناً
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Step 1: Payment Info (paid courses only) */}
+                    {step === 'payment' && (
+                        <div className="space-y-4 sm:space-y-5">
                             {/* Price Card */}
-                            <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 rounded-2xl p-5 border border-amber-100/50">
+                            <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-amber-100/50">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-slate-600 text-sm mb-1">سعر الدورة</p>
-                                        <p className="text-xs text-slate-500">شامل جميع المحاضرات والمواد</p>
+                                        <p className="text-slate-600 text-xs sm:text-sm mb-0.5 sm:mb-1">سعر الدورة</p>
+                                        <p className="text-[11px] sm:text-xs text-slate-500">شامل جميع المحاضرات والمواد</p>
                                     </div>
                                     <div className="text-left">
-                                        <span className="text-3xl font-black text-shibl-crimson">{coursePrice}</span>
-                                        <span className="text-lg font-bold text-shibl-crimson mr-1">ر.ع</span>
+                                        <span className="text-2xl sm:text-3xl font-black text-shibl-crimson">{coursePrice}</span>
+                                        <span className="text-base sm:text-lg font-bold text-shibl-crimson mr-1">ر.ع</span>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Bank Info */}
-                            <div className="space-y-3">
-                                <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                                    <Building2 className="text-red-600" size={24} />
+                            <div className="space-y-2.5 sm:space-y-3">
+                                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+                                    <Building2 className="text-red-600" size={20} />
                                     معلومات الحساب البنكي
                                 </h3>
 
                                 {loadingSettings ? (
-                                    <div className="flex justify-center py-8">
+                                    <div className="flex justify-center py-6 sm:py-8">
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="space-y-4 mb-8">
+                                        <div className="space-y-3 sm:space-y-4 mb-5 sm:mb-8">
                                             {/* Only show items that have values */}
                                             {bankInfo.bankName && <BankInfoItem label="اسم البنك" value={bankInfo.bankName} field="bank" onCopy={handleCopy} />}
                                             {bankInfo.accountName && <BankInfoItem label="اسم الحساب" value={bankInfo.accountName} field="name" onCopy={handleCopy} />}
@@ -372,7 +421,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                                             </div>
                                         </div>
 
-                                        <div className="mt-8">
+                                        <div className="mt-5 sm:mt-8">
                                             {walletInfo.number && <BankInfoItem label={walletInfo.label} value={walletInfo.number} field="wallet" onCopy={handleCopy} />}
                                         </div>
                                     </>
@@ -380,14 +429,14 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                             </div>
 
                             {/* Instructions */}
-                            <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-                                <div className="flex gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-                                        <Shield size={16} className="text-blue-600" />
+                            <div className="bg-blue-50 rounded-xl p-3 sm:p-4 border border-blue-100">
+                                <div className="flex gap-2.5 sm:gap-3">
+                                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                                        <Shield size={14} className="text-blue-600 sm:w-4 sm:h-4" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-blue-800 font-medium mb-1">خطوات التسجيل</p>
-                                        <ol className="text-xs text-blue-700 space-y-1 list-decimal list-inside">
+                                        <p className="text-xs sm:text-sm text-blue-800 font-medium mb-1">خطوات التسجيل</p>
+                                        <ol className="text-[11px] sm:text-xs text-blue-700 space-y-0.5 sm:space-y-1 list-decimal list-inside">
                                             <li>قم بتحويل المبلغ إلى الحساب البنكي أعلاه</li>
                                             <li>احتفظ بصورة واضحة لإيصال التحويل</li>
                                             <li>ارفع صورة الإيصال في الخطوة التالية</li>
@@ -406,7 +455,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                             <button
                                 onClick={handleProceedToUpload}
                                 disabled={loading}
-                                className="w-full h-14 rounded-2xl bg-gradient-to-l from-shibl-crimson to-[#8B0A12] text-white font-bold text-base shadow-lg shadow-shibl-crimson/25 hover:shadow-xl hover:shadow-shibl-crimson/30 transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-70 disabled:hover:translate-y-0"
+                                className="w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-l from-shibl-crimson to-[#8B0A12] text-white font-bold text-sm sm:text-base shadow-lg shadow-shibl-crimson/25 hover:shadow-xl hover:shadow-shibl-crimson/30 transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-70 disabled:hover:translate-y-0"
                             >
                                 {loading ? (
                                     <>
@@ -425,7 +474,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
                     {/* Step 2: Upload Receipt */}
                     {step === 'upload' && (
-                        <div className="space-y-5">
+                        <div className="space-y-4 sm:space-y-5">
                             {/* Back button */}
                             <button
                                 onClick={() => setStep('payment')}
@@ -442,7 +491,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                                 onDragOver={handleDrag}
                                 onDrop={handleDrop}
                                 onClick={() => !selectedFile && fileInputRef.current?.click()}
-                                className={`relative border-2 border-dashed rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden ${dragActive
+                                className={`relative border-2 border-dashed rounded-xl sm:rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden ${dragActive
                                     ? 'border-shibl-crimson bg-shibl-crimson/5 scale-[1.02]'
                                     : selectedFile
                                         ? 'border-emerald-300 bg-emerald-50/50'
@@ -463,7 +512,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                                             <img
                                                 src={previewUrl}
                                                 alt="معاينة الإيصال"
-                                                className="w-full max-h-56 object-contain rounded-xl shadow-md"
+                                                className="w-full max-h-44 sm:max-h-56 object-contain rounded-xl shadow-md"
                                             />
                                             <button
                                                 onClick={(e) => {
@@ -482,12 +531,12 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                                         <p className="text-center text-xs text-slate-400 mt-1">انقر لتغيير الصورة</p>
                                     </div>
                                 ) : (
-                                    <div className="p-8 text-center">
-                                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center mx-auto mb-4 shadow-sm">
-                                            <FileImage size={28} className="text-slate-400" />
+                                    <div className="p-5 sm:p-8 text-center">
+                                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-sm">
+                                            <FileImage size={24} className="text-slate-400 sm:w-7 sm:h-7" />
                                         </div>
-                                        <p className="font-semibold text-charcoal mb-1">اسحب صورة الإيصال هنا</p>
-                                        <p className="text-sm text-slate-500 mb-3">أو انقر لاختيار صورة من جهازك</p>
+                                        <p className="font-semibold text-charcoal text-sm mb-0.5 sm:mb-1">اسحب صورة الإيصال هنا</p>
+                                        <p className="text-xs sm:text-sm text-slate-500 mb-2 sm:mb-3">أو انقر لاختيار صورة من جهازك</p>
                                         <div className="flex items-center justify-center gap-4 text-xs text-slate-400">
                                             <span className="flex items-center gap-1">
                                                 <ImageIcon size={14} />
@@ -500,9 +549,9 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                             </div>
 
                             {/* Tips */}
-                            <div className="bg-amber-50 rounded-xl p-4 border border-amber-100">
-                                <p className="text-sm text-amber-800 font-medium mb-2">💡 نصائح للحصول على موافقة سريعة</p>
-                                <ul className="text-xs text-amber-700 space-y-1">
+                            <div className="bg-amber-50 rounded-xl p-3 sm:p-4 border border-amber-100">
+                                <p className="text-xs sm:text-sm text-amber-800 font-medium mb-1.5 sm:mb-2">💡 نصائح للحصول على موافقة سريعة</p>
+                                <ul className="text-[11px] sm:text-xs text-amber-700 space-y-0.5 sm:space-y-1">
                                     <li>• تأكد من وضوح جميع تفاصيل التحويل</li>
                                     <li>• يجب أن يظهر المبلغ ورقم الحساب بوضوح</li>
                                     <li>• استخدم صورة بجودة عالية</li>
@@ -519,7 +568,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                             <button
                                 onClick={handleSubmitReceipt}
                                 disabled={!selectedFile || loading}
-                                className="w-full h-14 rounded-2xl bg-gradient-to-l from-emerald-500 to-emerald-600 text-white font-bold text-base shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
+                                className="w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-l from-emerald-500 to-emerald-600 text-white font-bold text-sm sm:text-base shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
                             >
                                 <Upload size={20} />
                                 إرسال طلب الاشتراك
@@ -529,54 +578,69 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
                     {/* Processing State */}
                     {step === 'processing' && (
-                        <div className="py-8 text-center">
-                            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-shibl-crimson/10 to-shibl-crimson/5 flex items-center justify-center mx-auto mb-6">
-                                <Loader2 size={36} className="animate-spin text-shibl-crimson" />
+                        <div className="py-6 sm:py-8 text-center">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-shibl-crimson/10 to-shibl-crimson/5 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                                <Loader2 size={30} className="animate-spin text-shibl-crimson sm:w-9 sm:h-9" />
                             </div>
-                            <h3 className="text-xl font-bold text-charcoal mb-2">جاري إرسال طلبك...</h3>
-                            <p className="text-slate-500 text-sm">يرجى الانتظار قليلاً</p>
+                            <h3 className="text-lg sm:text-xl font-bold text-charcoal mb-2">جاري إرسال طلبك...</h3>
+                            <p className="text-slate-500 text-xs sm:text-sm">يرجى الانتظار قليلاً</p>
                         </div>
                     )}
 
                     {/* Success State */}
                     {step === 'success' && (
-                        <div className="py-6 text-center">
-                            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-100">
-                                <CheckCircle size={40} className="text-emerald-500" />
+                        <div className="py-4 sm:py-6 text-center">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center mx-auto mb-4 sm:mb-5 shadow-lg shadow-emerald-100">
+                                <CheckCircle size={32} className="text-emerald-500 sm:w-10 sm:h-10" />
                             </div>
-                            <div className="flex items-center justify-center gap-2 mb-3">
-                                <Sparkles size={20} className="text-amber-500" />
-                                <h3 className="text-xl font-bold text-charcoal">تم إرسال طلبك بنجاح!</h3>
-                                <Sparkles size={20} className="text-amber-500" />
+                            <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                                <Sparkles size={16} className="text-amber-500 sm:w-5 sm:h-5" />
+                                <h3 className="text-lg sm:text-xl font-bold text-charcoal">
+                                    {isFree ? 'تم الاشتراك بنجاح!' : 'تم إرسال طلبك بنجاح!'}
+                                </h3>
+                                <Sparkles size={16} className="text-amber-500 sm:w-5 sm:h-5" />
                             </div>
-                            <p className="text-slate-500 mb-6 text-sm leading-relaxed">
-                                سيتم مراجعة إيصال الدفع وتفعيل اشتراكك<br />
-                                خلال 24 ساعة كحد أقصى
+                            <p className="text-slate-500 mb-4 sm:mb-6 text-xs sm:text-sm leading-relaxed">
+                                {isFree ? (
+                                    <>تم تفعيل اشتراكك في الدورة<br />يمكنك البدء في التعلم الآن!</>
+                                ) : (
+                                    <>سيتم مراجعة إيصال الدفع وتفعيل اشتراكك<br />خلال 24 ساعة كحد أقصى</>
+                                )}
                             </p>
 
-                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-4 mb-6">
-                                <p className="text-sm text-blue-800">
-                                    ✉️ ستتلقى إشعاراً فور الموافقة على طلبك
-                                </p>
-                            </div>
+                            {!isFree && (
+                                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl sm:rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6">
+                                    <p className="text-xs sm:text-sm text-blue-800">
+                                        ✉️ ستتلقى إشعاراً فور الموافقة على طلبك
+                                    </p>
+                                </div>
+                            )}
+
+                            {isFree && (
+                                <div className="bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-100 rounded-xl sm:rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6">
+                                    <p className="text-xs sm:text-sm text-emerald-800">
+                                        🎉 اشتراكك مفعّل! يمكنك الوصول لجميع المحتوى الآن
+                                    </p>
+                                </div>
+                            )}
 
                             <button
                                 onClick={handleClose}
                                 className="w-full h-12 rounded-xl bg-slate-100 hover:bg-slate-200 text-charcoal font-semibold transition-colors"
                             >
-                                حسناً، فهمت
+                                {isFree ? 'ابدأ التعلم' : 'حسناً، فهمت'}
                             </button>
                         </div>
                     )}
 
                     {/* Error State */}
                     {step === 'error' && (
-                        <div className="py-6 text-center">
-                            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-100 to-red-50 flex items-center justify-center mx-auto mb-5">
-                                <AlertCircle size={40} className="text-red-500" />
+                        <div className="py-4 sm:py-6 text-center">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-red-100 to-red-50 flex items-center justify-center mx-auto mb-4 sm:mb-5">
+                                <AlertCircle size={32} className="text-red-500 sm:w-10 sm:h-10" />
                             </div>
-                            <h3 className="text-xl font-bold text-charcoal mb-2">حدث خطأ</h3>
-                            <p className="text-slate-500 mb-6">{error}</p>
+                            <h3 className="text-lg sm:text-xl font-bold text-charcoal mb-2">حدث خطأ</h3>
+                            <p className="text-slate-500 text-sm mb-4 sm:mb-6">{error}</p>
                             <button
                                 onClick={() => setStep('payment')}
                                 className="w-full h-12 rounded-xl bg-slate-100 hover:bg-slate-200 text-charcoal font-semibold transition-colors"
