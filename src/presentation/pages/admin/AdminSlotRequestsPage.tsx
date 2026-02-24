@@ -45,6 +45,7 @@ import {
     SlotRequestType,
 } from '../../hooks/useSlotRequests';
 import type { SlotRequest, SlotRequestStatus, Teacher, Grade } from '../../../types/slotRequest';
+import { getEcho } from '../../../services/websocket';
 
 // ============================================
 // Constants
@@ -320,9 +321,10 @@ export function AdminSlotRequestsPage(): React.ReactElement {
 
     // Real-time listener for new requests
     useEffect(() => {
-        if (typeof window !== 'undefined' && window.Echo) {
+        const echo = getEcho();
+        if (typeof window !== 'undefined' && echo) {
             console.log('🔌 Subscribing to admin channel for slot requests...');
-            const channel = window.Echo.private('admins');
+            const channel = echo.private('admins');
 
             channel.listen('.teacher.slot.created', (e: any) => {
                 console.log('🔔 New Slot Request Received:', e);

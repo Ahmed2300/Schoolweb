@@ -53,8 +53,7 @@ function LoadingSkeleton() {
 }
 
 export function MaintenanceWrapper({ children }: MaintenanceWrapperProps) {
-    const [isLoading, setIsLoading] = useState(true);
-    const [isLive, setIsLive] = useState(true); // Default to live for safety
+    const [isLive, setIsLive] = useState(true); // Default to live for fast initial render
 
     useEffect(() => {
         let isMounted = true;
@@ -73,10 +72,6 @@ export function MaintenanceWrapper({ children }: MaintenanceWrapperProps) {
             } catch (error) {
                 console.error('Unexpected error in maintenance check:', error);
                 // Keep default isLive = true
-            } finally {
-                if (isMounted) {
-                    setIsLoading(false);
-                }
             }
         }
 
@@ -87,17 +82,12 @@ export function MaintenanceWrapper({ children }: MaintenanceWrapperProps) {
         };
     }, []);
 
-    // Show loading state while fetching
-    if (isLoading) {
-        return <LoadingSkeleton />;
-    }
-
     // Show maintenance page if not live
     if (!isLive) {
         return <MaintenancePage />;
     }
 
-    // Normal operation - render the app
+    // Normal operation - render the app immediately while fetching in background
     return <>{children}</>;
 }
 

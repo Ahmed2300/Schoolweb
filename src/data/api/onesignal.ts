@@ -18,13 +18,21 @@ export const oneSignalService = {
      */
     async getSubscriptionId(): Promise<string | null> {
         return new Promise((resolve) => {
+            const timeoutId = setTimeout(() => {
+                // If OneSignal doesn't load within 3 seconds, resolve null to prevent hanging
+                console.warn('OneSignal: getSubscriptionId timed out');
+                resolve(null);
+            }, 3000);
+
             window.OneSignalDeferred = window.OneSignalDeferred || [];
             window.OneSignalDeferred.push(async (OneSignal: any) => {
                 try {
                     const id = await OneSignal.User.PushSubscription.id;
+                    clearTimeout(timeoutId);
                     resolve(id || null);
                 } catch (error) {
                     console.warn('OneSignal: Failed to get subscription ID', error);
+                    clearTimeout(timeoutId);
                     resolve(null);
                 }
             });
