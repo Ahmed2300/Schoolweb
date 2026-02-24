@@ -74,7 +74,7 @@ export default function LiveClassroomPage() {
     }
 
     return (
-        <div className="relative w-full h-screen bg-black overflow-hidden">
+        <div data-live-session className="relative w-full h-screen bg-black overflow-hidden">
             {/* Overlay Header (Auto-hides) */}
             <div className="absolute top-0 left-0 right-0 z-50 p-4 opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                 <div className="flex justify-between items-start pointer-events-auto">

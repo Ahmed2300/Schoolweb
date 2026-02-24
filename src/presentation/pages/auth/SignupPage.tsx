@@ -114,6 +114,12 @@ export function SignupPage() {
         }
     };
 
+    const getStepForField = (field: string) => {
+        if (['name', 'email', 'phone', 'countryCode', 'countryId', 'cityId'].includes(field)) return 1;
+        if (['parentName', 'parentEmail', 'parentPhone', 'parentCountryCode'].includes(field)) return 2;
+        return 3;
+    };
+
     const validateStep = (step: number) => {
         const schema = getStepSchema(step);
         const result = schema.safeParse(formData);
@@ -130,7 +136,10 @@ export function SignupPage() {
             // Focus first error
             const firstErrorField = result.error.issues[0].path[0] as string;
             const element = document.getElementById(firstErrorField);
-            element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.focus();
+            }
             return false;
         }
         setFieldErrors({});
@@ -251,8 +260,24 @@ export function SignupPage() {
             setFieldErrors(errors);
 
             const firstErrorField = result.error.issues[0].path[0] as string;
-            const element = document.getElementById(firstErrorField);
-            element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const targetStep = getStepForField(firstErrorField);
+
+            if (currentStep !== targetStep) {
+                setCurrentStep(targetStep);
+                setTimeout(() => {
+                    const element = document.getElementById(firstErrorField);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        element.focus();
+                    }
+                }, 100);
+            } else {
+                const element = document.getElementById(firstErrorField);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    element.focus();
+                }
+            }
             return;
         }
 
@@ -286,9 +311,37 @@ export function SignupPage() {
             setIsThinking(false);
             const apiErrors = err.response?.data?.errors;
             if (apiErrors) {
-                if (apiErrors.email) setFieldErrors(prev => ({ ...prev, email: 'البريد مسجل بالفعل' }));
-                if (apiErrors.parent_email) setFieldErrors(prev => ({ ...prev, parentEmail: 'بريد ولي الأمر مسجل' }));
-                setError('يرجى مراجعة الأخطاء في النموذج');
+                let errorField = null;
+                if (apiErrors.email) {
+                    setFieldErrors(prev => ({ ...prev, email: 'البريد مسجل بالفعل' }));
+                    errorField = 'email';
+                }
+                if (apiErrors.parent_email) {
+                    setFieldErrors(prev => ({ ...prev, parentEmail: 'بريد ولي الأمر مسجل' }));
+                    if (!errorField) errorField = 'parentEmail';
+                }
+
+                if (errorField) {
+                    const targetStep = getStepForField(errorField);
+                    if (currentStep !== targetStep) {
+                        setCurrentStep(targetStep);
+                        setTimeout(() => {
+                            const element = document.getElementById(errorField as string);
+                            if (element) {
+                                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                element.focus();
+                            }
+                        }, 100);
+                    } else {
+                        const element = document.getElementById(errorField);
+                        if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            element.focus();
+                        }
+                    }
+                }
+
+                setError('يوجد خطأ في إدخال البيانات، يرجى التوجه للحقول المحددة باللون الأحمر وتصحيحها');
             } else if (err.response?.data?.message?.includes('Duplicate')) {
                 setError('البيانات مسجلة بالفعل');
             } else {
@@ -345,7 +398,7 @@ export function SignupPage() {
                                 animate={{ y: [0, -10, 0] }}
                                 transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
                             >
-                                <img src="/images/signup-student.png" alt="Student" className="w-full max-w-[420px] h-auto rounded-[2.5rem] shadow-2xl shadow-shibl-crimson/10 border-4 border-white/50" />
+                                <img src="/images/signup-student.webp" alt="Student" className="w-full max-w-[420px] h-auto rounded-[2.5rem] shadow-2xl shadow-shibl-crimson/10 border-4 border-white/50" />
                             </motion.div>
 
                             {/* Floating Badge */}
@@ -470,6 +523,7 @@ export function SignupPage() {
                                                 />
                                                 <div className="relative w-full">
                                                     <input
+                                                        id="phone"
                                                         type="tel"
                                                         className={`${INPUT_BASE_CLASSES} ${fieldErrors.phone ? INPUT_ERROR_CLASSES : ''} pr-12 pl-4`}
                                                         placeholder="9xxxxxxxx"
@@ -491,7 +545,8 @@ export function SignupPage() {
                                             <Label text="الدولة" error={!!fieldErrors.country} />
                                             <div className="relative">
                                                 <select
-                                                    className={`${INPUT_BASE_CLASSES} px-4 appearance-none ${fieldErrors.country ? INPUT_ERROR_CLASSES : ''}`}
+                                                    id="countryId"
+                                                    className={`${INPUT_BASE_CLASSES} px-4 appearance-none ${fieldErrors.countryId ? INPUT_ERROR_CLASSES : ''}`}
                                                     value={formData.countryId}
                                                     onChange={(e) => {
                                                         const cid = Number(e.target.value);
@@ -514,7 +569,8 @@ export function SignupPage() {
                                             <Label text="المدينة / الولاية" error={!!fieldErrors.city} />
                                             <div className="relative">
                                                 <select
-                                                    className={`${INPUT_BASE_CLASSES} px-4 appearance-none ${fieldErrors.city ? INPUT_ERROR_CLASSES : ''}`}
+                                                    id="cityId"
+                                                    className={`${INPUT_BASE_CLASSES} px-4 appearance-none ${fieldErrors.cityId ? INPUT_ERROR_CLASSES : ''}`}
                                                     value={formData.cityId}
                                                     onChange={(e) => {
                                                         setFormData(p => ({ ...p, cityId: Number(e.target.value) }));
@@ -593,6 +649,7 @@ export function SignupPage() {
                                                 />
                                                 <div className="relative w-full">
                                                     <input
+                                                        id="parentPhone"
                                                         type="tel"
                                                         className={`${INPUT_BASE_CLASSES} bg-white ${fieldErrors.parentPhone ? INPUT_ERROR_CLASSES : ''} pr-12 pl-4`}
                                                         placeholder="9xxxxxxxx"
@@ -843,10 +900,11 @@ interface InputGroupProps {
 }
 
 const InputGroup = ({ id, label, icon: Icon, value, onChange, onBlur, error, type = 'text', placeholder, dir = 'rtl', bg, ...rest }: InputGroupProps) => (
-    <div className="space-y-1.5" id={id}>
+    <div className="space-y-1.5">
         <Label text={label} error={!!error} />
         <div className="relative">
             <input
+                id={id}
                 type={type}
                 className={`${INPUT_BASE_CLASSES} ${bg || ''} ${error ? INPUT_ERROR_CLASSES : ''} pr-12 pl-4`}
                 placeholder={placeholder}
@@ -874,10 +932,11 @@ interface PasswordInputProps {
 }
 
 const PasswordInput = ({ id, label, value, onChange, show, onToggle, error, ...rest }: PasswordInputProps) => (
-    <div className="space-y-1.5" id={id}>
+    <div className="space-y-1.5">
         <Label text={label} error={!!error} />
         <div className="relative">
             <input
+                id={id}
                 type={show ? 'text' : 'password'}
                 className={`${INPUT_BASE_CLASSES} ${error ? INPUT_ERROR_CLASSES : ''} pr-12 pl-12 text-lg tracking-wider`}
                 placeholder="••••••••"

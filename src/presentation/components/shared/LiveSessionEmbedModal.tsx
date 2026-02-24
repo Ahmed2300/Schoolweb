@@ -149,6 +149,7 @@ export function LiveSessionEmbedModal({
     return createPortal(
         <div
             ref={containerRef}
+            data-live-session
             className="fixed inset-0 flex flex-col bg-black"
             style={{
                 zIndex: 99999,

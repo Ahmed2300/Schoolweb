@@ -20,7 +20,26 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    // ⛔ Disable sourcemaps in production — saves ~30% bundle size
+    sourcemap: false,
+    // Split vendor code into stable, cacheable chunks
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Core React runtime — changes rarely, highly cacheable
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          // Data layer
+          'vendor-query': ['@tanstack/react-query'],
+          // UI framework (heaviest vendor dependency)
+          'vendor-mui': ['@mui/material', '@mui/icons-material'],
+          // Animation libraries
+          'vendor-motion': ['framer-motion'],
+          'vendor-gsap': ['gsap'],
+          // Form handling
+          'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
+        },
+      },
+    },
   },
   optimizeDeps: {
     include: ['react-circular-progressbar']

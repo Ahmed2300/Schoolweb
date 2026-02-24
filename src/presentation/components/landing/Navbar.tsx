@@ -5,6 +5,7 @@ import { ROUTES } from '../../../shared/constants';
 import { Menu, X, LogIn, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
+import { ThemeToggle } from '../common/ThemeToggle';
 
 export function Navbar() {
     const navigate = useNavigate();
@@ -45,7 +46,7 @@ export function Navbar() {
     ];
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-[1000] bg-white/90 backdrop-blur-md border-b border-slate-200" dir={isRTL ? 'rtl' : 'ltr'}>
+        <header className="fixed top-0 left-0 right-0 z-[1000] bg-white/90 dark:bg-charcoal/90 backdrop-blur-md border-b border-slate-200 dark:border-white/10" dir={isRTL ? 'rtl' : 'ltr'}>
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
                 {/* Logo */}
                 <div
@@ -58,7 +59,7 @@ export function Navbar() {
                     ) : (
                         <img src="/images/subol-red.png" alt="سُبُل" className="w-[85px] h-[85px] sm:w-[50px] sm:h-[50px] object-contain" />
                     )}
-                    <span className="text-xl sm:text-2xl font-extrabold text-charcoal hidden sm:block">{platformName}</span>
+                    <span className="text-xl sm:text-2xl font-extrabold text-charcoal dark:text-white hidden sm:block">{platformName}</span>
                 </div>
 
                 {/* Desktop Menu */}
@@ -68,7 +69,7 @@ export function Navbar() {
                             <a
                                 key={link.name}
                                 href={link.href}
-                                className="text-slate-600 hover:text-shibl-crimson font-medium transition-colors text-sm lg:text-base relative group"
+                                className="text-slate-600 dark:text-slate-300 hover:text-shibl-crimson dark:hover:text-shibl-crimson font-medium transition-colors text-sm lg:text-base relative group"
                             >
                                 {link.name}
                                 <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-shibl-crimson scale-x-0 group-hover:scale-x-100 transition-transform origin-right" />
@@ -77,7 +78,7 @@ export function Navbar() {
                             <Link
                                 key={link.name}
                                 to={link.href}
-                                className={`text-sm lg:text-base font-medium transition-colors relative group ${link.active ? 'text-shibl-crimson font-bold' : 'text-slate-600 hover:text-shibl-crimson'
+                                className={`text-sm lg:text-base font-medium transition-colors relative group ${link.active ? 'text-shibl-crimson font-bold' : 'text-slate-600 dark:text-slate-300 hover:text-shibl-crimson dark:hover:text-shibl-crimson'
                                     }`}
                             >
                                 {link.name}
@@ -90,9 +91,10 @@ export function Navbar() {
 
                 {/* Desktop Buttons */}
                 <div className="hidden md:flex items-center gap-4">
+                    <ThemeToggle />
                     <Link
                         to={ROUTES.LOGIN}
-                        className="text-slate-700 hover:text-shibl-crimson font-bold text-sm transition-colors flex items-center gap-2"
+                        className="text-slate-700 dark:text-slate-200 hover:text-shibl-crimson dark:hover:text-shibl-crimson font-bold text-sm transition-colors flex items-center gap-2"
                     >
                         <LogIn size={18} />
                         تسجيل الدخول
@@ -107,12 +109,15 @@ export function Navbar() {
                 </div>
 
                 {/* Mobile Menu Button */}
-                <button
-                    onClick={toggleMobileMenu}
-                    className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                    {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
+                <div className="md:hidden flex items-center gap-3">
+                    <ThemeToggle />
+                    <button
+                        onClick={toggleMobileMenu}
+                        className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+                    >
+                        {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
             </nav>
 
             {/* Mobile Menu Overlay */}

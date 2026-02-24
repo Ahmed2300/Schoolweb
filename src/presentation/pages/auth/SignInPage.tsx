@@ -429,7 +429,7 @@ export function SignInPage() {
                         {/* Main Image - Changes based on user type */}
                         <div className="relative w-full max-w-[380px]">
                             <img
-                                src={userType === 'student' ? '/images/signin-student.png' : userType === 'parent' ? '/images/signin-parent.png' : '/images/hero-teacher.png'}
+                                src={userType === 'student' ? '/images/signin-student.webp' : userType === 'parent' ? '/images/signin-parent.webp' : '/images/hero-teacher.webp'}
                                 alt={userType === 'student' ? 'طالب' : userType === 'parent' ? 'ولي أمر' : 'معلم'}
                                 className="w-full h-auto rounded-3xl drop-shadow-2xl transition-all duration-500"
                             />
