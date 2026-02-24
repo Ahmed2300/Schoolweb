@@ -246,7 +246,7 @@ export function AddLectureModal({
                             </div>
                         </div>
 
-                        <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+                        <div className="p-6 overflow-y-auto flex-1 custom-scrollbar overscroll-contain">
                             {error && (
                                 <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-2 text-sm">
                                     <X size={18} />

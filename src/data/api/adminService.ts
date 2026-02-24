@@ -1173,6 +1173,29 @@ export const adminService = {
     },
 
     /**
+     * Get subscribers for a specific course.
+     */
+    getCourseSubscribers: async (courseId: number): Promise<{
+        data: Array<{
+            id: number;
+            student_id: number;
+            course_id: number;
+            status: string;
+            start_date: string | null;
+            end_date: string | null;
+            created_at: string;
+            student?: {
+                id: number;
+                name: string;
+                email: string;
+            };
+        }>;
+    }> => {
+        const response = await apiClient.get(`/api/v1/admin/courses/${courseId}/subscribers`);
+        return response.data;
+    },
+
+    /**
      * Get single course by ID
      */
     getCourse: async (id: number): Promise<CourseData> => {
@@ -1941,6 +1964,29 @@ export const adminService = {
      */
     deletePackage: async (id: number): Promise<void> => {
         await apiClient.delete(`/api/v1/admin/packages/${id}`);
+    },
+
+    /**
+     * Get subscribers for a specific package.
+     */
+    getPackageSubscribers: async (packageId: number): Promise<{
+        data: Array<{
+            id: number;
+            student_id: number;
+            package_id: number;
+            status: string;
+            start_date: string | null;
+            end_date: string | null;
+            created_at: string;
+            student?: {
+                id: number;
+                name: string;
+                email: string;
+            };
+        }>;
+    }> => {
+        const response = await apiClient.get(`/api/v1/admin/packages/${packageId}/subscribers`);
+        return response.data;
     },
 
     /**

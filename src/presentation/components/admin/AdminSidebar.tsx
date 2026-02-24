@@ -176,7 +176,7 @@ export function AdminSidebar({ isCollapsed, onToggle, className = '' }: AdminSid
                 {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
             </button>
 
-            <nav className="flex-1 py-4 px-3 overflow-y-auto scrollbar-hide overflow-x-hidden">
+            <nav className="flex-1 py-4 px-3 overflow-y-auto scrollbar-sleek overflow-x-hidden overscroll-contain">
                 <div className="space-y-2">
                     {navGroups.map((group) => {
                         const isGroupOpen = expandedGroups.has(group.id);
