@@ -12,7 +12,7 @@ export function SEO({
     title,
     description,
     canonical = 'https://www.soubul.net/',
-    ogImage = '/images/subol-hero.png',
+    ogImage = '/images/subol-hero.webp',
     type = 'website'
 }: SEOProps) {
     const siteTitle = 'سُبُل - علم يوصل للمستقبل';
@@ -24,7 +24,7 @@ export function SEO({
         "@type": "Organization",
         "name": "Subol (سُبُل)",
         "url": "https://www.soubul.net/",
-        "logo": "https://www.soubul.net/images/subol-red.png",
+        "logo": "https://www.soubul.net/images/subol-red.webp",
         "description": "منصة تعليمية متكاملة تجمع بين الفصول التفاعلية والمتابعة الدقيقة لضمان أفضل تجربة تعليمية.",
         "sameAs": [
             "https://www.instagram.com/soubul.om",

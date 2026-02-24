@@ -29,6 +29,44 @@
 body {
   font-family: 'Cairo', 'Tajawal', sans-serif;
   @apply bg-soft-cloud text-charcoal min-h-screen;
+  /* Disable default cursor for custom cursor */
+  cursor: none;
+}
+
+/* Ensure links and buttons don't show the default pointer either */
+a,
+button,
+[role="button"] {
+  cursor: none;
+}
+
+/* ─── Restore native cursor inside iframes & live session containers ───
+   The custom cursor element (position:fixed div) cannot render inside
+   cross-origin iframes (e.g. BBB live sessions). Without this fix,
+   users see NO cursor at all when hovering over the iframe.
+   We restore `cursor: auto` on the iframe itself and any wrapper
+   that covers the viewport during a live session.
+   ─────────────────────────────────────────────────────────────────── */
+iframe,
+iframe *,
+[data-live-session] {
+  cursor: auto !important;
+}
+
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  background-color: white;
+  /* Basic color, overridden by mixBlendMode */
+  mix-blend-mode: difference;
+  /* Creates a cool inverse effect depending on background */
+  transform: translate(-50%, -50%);
 }
 
 /* Text Selection */
@@ -310,4 +348,148 @@ body {
 
 .animate-confetti-fall {
   animation: confetti-fall 3s ease-in forwards;
+}
+
+/* ============================================
+   PARALLAX HERO — Ambient Orb Styles
+   ============================================ */
+.parallax-hero {
+  background-color: #AF0C15;
+  /* Fallback while images load */
+}
+
+.parallax-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.45;
+  will-change: transform;
+}
+
+/* Orb 1: Large warm glow — drifts left-to-right */
+.parallax-orb-1 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255, 180, 120, 0.6) 0%, transparent 70%);
+  top: 10%;
+  left: 15%;
+  animation: orbDrift1 12s ease-in-out infinite alternate;
+}
+
+/* Orb 2: Smaller cool accent — drifts right-to-left */
+.parallax-orb-2 {
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.35) 0%, transparent 70%);
+  top: 30%;
+  right: 10%;
+  animation: orbDrift2 16s ease-in-out infinite alternate;
+}
+
+/* Orb 3: Subtle center shimmer */
+.parallax-orb-3 {
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(255, 100, 80, 0.4) 0%, transparent 70%);
+  bottom: 5%;
+  left: 40%;
+  animation: orbDrift3 20s ease-in-out infinite alternate;
+}
+
+@keyframes orbDrift1 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate(60px, -30px) scale(1.15);
+  }
+}
+
+@keyframes orbDrift2 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate(-50px, 40px) scale(1.1);
+  }
+}
+
+@keyframes orbDrift3 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate(30px, -50px) scale(1.2);
+  }
+}
+
+/* Responsive: smaller orbs on mobile */
+@media (max-width: 768px) {
+  .parallax-orb-1 {
+    width: 200px;
+    height: 200px;
+  }
+
+  .parallax-orb-2 {
+    width: 140px;
+    height: 140px;
+  }
+
+  .parallax-orb-3 {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+/* ─── Expandable Course Card — Preview Shimmer ─── */
+@keyframes shimmerPreview {
+
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmerSweep {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ============================================
+   BENTO CARD — Proximity Glow Border
+   ============================================ */
+.bento-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(600px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+      rgba(175, 12, 21, 0.35),
+      transparent 40%);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.bento-card:hover::before {
+  opacity: 1;
 }

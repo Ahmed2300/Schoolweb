@@ -127,6 +127,7 @@ export function BBBEmbedModal({
     return createPortal(
         <div
             ref={containerRef}
+            data-live-session
             className="fixed inset-0 flex flex-col bg-black"
             style={{
                 zIndex: 99999,  // Maximum z-index to ensure it's above everything
@@ -153,12 +154,12 @@ export function BBBEmbedModal({
                     {lectureId && (
                         <span
                             className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${connectionStatus === 'connected'
-                                    ? 'bg-emerald-500/20 text-emerald-400'
-                                    : connectionStatus === 'reconnecting'
-                                        ? 'bg-amber-500/20 text-amber-400 animate-pulse'
-                                        : connectionStatus === 'disconnected'
-                                            ? 'bg-red-500/20 text-red-400'
-                                            : 'bg-blue-500/20 text-blue-400'
+                                ? 'bg-emerald-500/20 text-emerald-400'
+                                : connectionStatus === 'reconnecting'
+                                    ? 'bg-amber-500/20 text-amber-400 animate-pulse'
+                                    : connectionStatus === 'disconnected'
+                                        ? 'bg-red-500/20 text-red-400'
+                                        : 'bg-blue-500/20 text-blue-400'
                                 }`}
                             title={statusConfig.text}
                         >

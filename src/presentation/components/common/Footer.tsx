@@ -41,7 +41,7 @@ export const Footer = () => {
                             {settings.logo_path ? (
                                 <img src={settings.logo_path} alt={settings.platform_name || "سُبُل"} className="w-10 h-10 object-contain bg-white rounded-full p-1" />
                             ) : (
-                                <img src="/images/subol-white.png" alt="سُبُل" className="w-8 h-8 sm:w-10 sm:h-10" />
+                                <img src="/images/subol-white.webp" alt="سُبُل" className="w-8 h-8 sm:w-10 sm:h-10" />
                             )}
                             <span className="text-xl sm:text-2xl font-extrabold">{settings.platform_name || "سُبُل"}</span>
                         </div>
