@@ -26,6 +26,10 @@
 }
 
 /* Global Styles */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: 'Cairo', 'Tajawal', sans-serif;
   @apply bg-soft-cloud text-charcoal min-h-screen;
@@ -186,6 +190,11 @@ iframe *,
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
     /* Chrome, Safari, Opera */
+  }
+
+  /* Prevent scroll chaining - keeps scroll inside the element */
+  .overscroll-contain {
+    overscroll-behavior: contain;
   }
 
   /* Minimal sleek scrollbar - appears on hover */
