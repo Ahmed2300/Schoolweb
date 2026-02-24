@@ -762,11 +762,10 @@ export const adminService = {
     login: async (data: AdminLoginRequest): Promise<AdminAuthResponse> => {
         const response = await apiClient.post(endpoints.adminAuth.login, data);
 
-        // Store token on successful login
         if (response.data.token) {
             setTokens(response.data.token, '');
             try {
-                await oneSignalService.registerDevice();
+                oneSignalService.registerDevice();
             } catch (error) {
                 console.error('OneSignal: Failed to register device', error);
             }
@@ -781,7 +780,7 @@ export const adminService = {
      */
     logout: async () => {
         try {
-            await oneSignalService.unregisterDevice();
+            oneSignalService.unregisterDevice();
         } catch (error) {
             console.error('OneSignal: Failed to unregister device', error);
         } finally {

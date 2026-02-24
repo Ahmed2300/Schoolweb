@@ -10,8 +10,10 @@ import './index.css';
 // ─────────────────────────────────────────────────────────────
 // Non-lazy: lightweight wrappers & providers (tiny footprint)
 // ─────────────────────────────────────────────────────────────
-import { AdminLayout } from './presentation/components/admin';
-import { TeacherLayout } from './presentation/components/teacher';
+// Layouts are lazy-loaded so their specific dependencies (large Sidebars, charts) don't bloat the main bundle
+const AdminLayout = lazy(() => import('./presentation/components/admin').then(m => ({ default: m.AdminLayout })));
+const TeacherLayout = lazy(() => import('./presentation/components/teacher').then(m => ({ default: m.TeacherLayout })));
+
 import { ProtectedRoute } from './presentation/components/auth';
 import { MaintenanceWrapper } from './presentation/components/MaintenanceWrapper';
 import { SmoothScrollWrapper } from './presentation/components/SmoothScrollWrapper';

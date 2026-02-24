@@ -8,13 +8,11 @@ interface SmoothScrollWrapperProps {
 export const SmoothScrollWrapper: React.FC<SmoothScrollWrapperProps> = ({ children }) => {
     React.useEffect(() => {
         const handler = (e: WheelEvent) => {
-            const isPrevented = e.defaultPrevented;
-            if (isPrevented) {
-                console.log('Wheel default prevented on:', e.target);
+            if (e.defaultPrevented) {
+                console.log('[DEBUG] Wheel default prevented on:', e.target);
             }
         };
         window.addEventListener('wheel', handler, { passive: false });
-        // NOTE: Lenis runs before this if we use capture, but wheel bubbling lets us inspect the end state
         return () => window.removeEventListener('wheel', handler);
     }, []);
 
@@ -27,7 +25,12 @@ export const SmoothScrollWrapper: React.FC<SmoothScrollWrapperProps> = ({ childr
                 const scrollableParent = nodeElement.closest(
                     '.custom-scrollbar, .overflow-y-auto, .overscroll-contain, [data-lenis-prevent]'
                 );
-                return scrollableParent !== null;
+
+                // Add debug logging to trace exact issue with input hovering
+                const isPrevented = scrollableParent !== null;
+                console.log('[DEBUG] Lenis prevent called on', nodeElement.tagName, nodeElement.className, '=> Returns', isPrevented, 'Parent:', scrollableParent?.className);
+
+                return isPrevented;
             }
         }}>
             {children}
