@@ -87,6 +87,13 @@ apiClient.interceptors.response.use(
             '/auth/parents/resend-otp',
             '/auth/parents/forgot-password',
             '/auth/parents/reset-password',
+            '/auth/teachers/verify-email',
+            '/auth/teachers/login',
+            '/auth/teachers/register',
+            '/auth/teachers/resend-otp',
+            '/auth/teachers/forgot-password',
+            '/auth/teachers/reset-password',
+            '/admin/auth/login',
         ];
 
         const isPublicAuthEndpoint = publicAuthEndpoints.some(

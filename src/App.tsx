@@ -15,7 +15,7 @@ import { TeacherLayout } from './presentation/components/teacher';
 import { ProtectedRoute } from './presentation/components/auth';
 import { MaintenanceWrapper } from './presentation/components/MaintenanceWrapper';
 import { SmoothScrollWrapper } from './presentation/components/SmoothScrollWrapper';
-import { CustomCursor } from './presentation/components/CustomCursor';
+
 import { ThemeProvider } from './context/ThemeContext';
 import { useSessionEnforcement } from './hooks/useSessionEnforcement';
 import 'lenis/dist/lenis.css';
@@ -132,7 +132,6 @@ function SessionEnforcer() {
 function App() {
   return (
     <SmoothScrollWrapper>
-      <CustomCursor />
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <BrowserRouter>
