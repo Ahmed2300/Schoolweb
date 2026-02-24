@@ -121,7 +121,9 @@ const queryClient = new QueryClient({
 });
 
 // ─────────────────────────────────────────────────────────────
-// Session enforcer (tiny component, no lazy needed)
+// Session Enforcer (WebSocket force-logout listener)
+// React Router's native startTransition keeps the old page
+// visible until the new one is ready — no manual skeleton needed.
 // ─────────────────────────────────────────────────────────────
 function SessionEnforcer() {
   useSessionEnforcement();
