@@ -40,7 +40,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalProps) =>
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0" data-lenis-prevent>
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
@@ -71,7 +71,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalProps) =>
                 </div>
 
                 {/* Body */}
-                <div className="p-6 overflow-y-auto custom-scrollbar">
+                <div className="p-6 overflow-y-auto custom-scrollbar" data-lenis-prevent>
                     {children}
                 </div>
             </div>
