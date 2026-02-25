@@ -198,7 +198,8 @@ export function SignInPage() {
                 setOtpError(arabicMessage || err.response?.data?.message || 'رمز التحقق غير صحيح');
             }
 
-        } finally {
+            // Clear loading on error paths — spinner stays visible on success
+            // because startTransition holds this page while the destination loads.
             setIsLoading(false);
             setIsForceLoginLoading(false);
             setIsOtpLoading(false);
