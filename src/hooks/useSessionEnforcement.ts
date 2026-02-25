@@ -66,13 +66,13 @@ export function useSessionEnforcement() {
             return;
         }
 
-        console.log(`SessionEnforcement: Subscribing to private channel "${channelName}"`);
+
 
         const channel = echo.private(channelName);
 
         // Handler that runs when the server pushes a force-logout event
         const handleForceLogout = (event: unknown) => {
-            console.log('SessionEnforcement: ForceLogout event received', event);
+
 
             toast.error('تم تسجيل الدخول من جهاز آخر. تم إنهاء الجلسة الحالية.', {
                 duration: 6000,

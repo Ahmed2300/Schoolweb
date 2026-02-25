@@ -43,7 +43,7 @@ class ReverbClient {
 
         const uri = `${wsScheme}://${REVERB_CONFIG.host}${portSuffix}/app/${REVERB_CONFIG.key}?protocol=7&client=js&version=8.4.0&flash=false`;
 
-        console.log(`[ReverbClient] Connecting to: ${uri}`);
+
 
         try {
             this.ws = new WebSocket(uri);
@@ -53,7 +53,7 @@ class ReverbClient {
         }
 
         this.ws.onopen = () => {
-            console.log('[ReverbClient] WebSocket connected');
+
         };
 
         this.ws.onmessage = (event) => {
@@ -66,7 +66,7 @@ class ReverbClient {
         };
 
         this.ws.onclose = () => {
-            console.log('[ReverbClient] WebSocket closed');
+
             this.socketId = null;
         };
 
@@ -80,7 +80,7 @@ class ReverbClient {
         if (message.event === 'pusher:connection_established') {
             const data = JSON.parse(message.data);
             this.socketId = data.socket_id;
-            console.log(`[ReverbClient] Connection established. Socket ID: ${this.socketId}`);
+
 
             // Process any subscriptions that were queued while connecting
             this.processPendingSubscriptions();
@@ -154,7 +154,7 @@ class ReverbClient {
                     }
                 });
                 this.subscribedChannels.add(channel);
-                console.log(`[ReverbClient] Subscribed to ${channel}`);
+
 
             } catch (err) {
                 console.error(`[ReverbClient] Auth request failed for channel ${channel}`, err);
