@@ -343,10 +343,10 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
         };
 
         return (
-            <div className="max-w-5xl mx-auto p-4 md:p-8 pb-32 animate-in fade-in slide-in-from-bottom-6 duration-700">
+            <div className="max-w-5xl mx-auto px-3 py-4 sm:p-4 md:p-8 pb-32 animate-in fade-in slide-in-from-bottom-6 duration-700">
                 {/* Header Card with Result Summary */}
                 <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden mb-8 transform transition-all hover:scale-[1.01] duration-500">
-                    <div className={`h-40 relative overflow-hidden ${isPendingGrading
+                    <div className={`h-28 sm:h-40 relative overflow-hidden ${isPendingGrading
                         ? 'bg-gradient-to-br from-amber-400 to-orange-500'
                         : isPassed
                             ? 'bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600'
@@ -356,21 +356,21 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                         <div className="absolute inset-0 bg-white/5 opacity-30 patterned-bg"></div>
 
                         {/* Status Icon Bubble */}
-                        <div className="absolute -bottom-14 left-1/2 -translate-x-1/2 w-28 h-28 bg-white rounded-full p-2 shadow-xl shadow-slate-900/5 flex items-center justify-center z-10 ring-8 ring-white/20 backdrop-blur-sm">
+                        <div className="absolute -bottom-10 sm:-bottom-14 left-1/2 -translate-x-1/2 w-20 h-20 sm:w-28 sm:h-28 bg-white rounded-full p-1.5 sm:p-2 shadow-xl shadow-slate-900/5 flex items-center justify-center z-10 ring-4 sm:ring-8 ring-white/20 backdrop-blur-sm">
                             <div className="w-full h-full bg-slate-50 rounded-full flex items-center justify-center border border-slate-100">
                                 {isPendingGrading ? (
-                                    <Clock size={48} className="text-amber-500 drop-shadow-md" />
+                                    <Clock className="text-amber-500 drop-shadow-md w-8 h-8 sm:w-12 sm:h-12" />
                                 ) : isPassed ? (
-                                    <Trophy size={48} className="text-emerald-500 drop-shadow-md" />
+                                    <Trophy className="text-emerald-500 drop-shadow-md w-8 h-8 sm:w-12 sm:h-12" />
                                 ) : (
-                                    <AlertCircle size={48} className="text-red-500 drop-shadow-md" />
+                                    <AlertCircle className="text-red-500 drop-shadow-md w-8 h-8 sm:w-12 sm:h-12" />
                                 )}
                             </div>
                         </div>
                     </div>
 
-                    <div className="pt-20 pb-10 px-8 text-center relative z-0">
-                        <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-2 tracking-tight">
+                    <div className="pt-14 sm:pt-20 pb-6 sm:pb-10 px-4 sm:px-8 text-center relative z-0">
+                        <h2 className="text-xl sm:text-3xl md:text-4xl font-extrabold text-slate-800 mb-2 tracking-tight">
                             {getLocalizedName(quiz.name)}
                         </h2>
                         <div className="flex items-center justify-center gap-2 mb-8 bg-slate-50 w-fit mx-auto px-4 py-1.5 rounded-full border border-slate-100">
@@ -379,25 +379,25 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                         </div>
 
                         {/* Stats Grid */}
-                        <div className="grid grid-cols-3 gap-4 md:gap-8 max-w-2xl mx-auto">
-                            <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
-                                <p className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-wider group-hover:text-shibl-crimson transition-colors">الدرجة</p>
+                        <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-8 max-w-2xl mx-auto">
+                            <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-5 border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
+                                <p className="text-[10px] sm:text-xs text-slate-400 font-bold mb-1 sm:mb-2 uppercase tracking-wider group-hover:text-shibl-crimson transition-colors">الدرجة</p>
                                 <div className="flex items-baseline justify-center gap-1">
-                                    <p className={`text-3xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
+                                    <p className={`text-xl sm:text-3xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
                                         {attempt.score !== null ? attempt.score : '---'}
                                     </p>
                                     <span className="text-sm font-bold text-slate-300">/{attempt.total_possible_score}</span>
                                 </div>
                             </div>
-                            <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
-                                <p className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-wider group-hover:text-shibl-crimson transition-colors">النسبة</p>
-                                <p className={`text-3xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
+                            <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-5 border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
+                                <p className="text-[10px] sm:text-xs text-slate-400 font-bold mb-1 sm:mb-2 uppercase tracking-wider group-hover:text-shibl-crimson transition-colors">النسبة</p>
+                                <p className={`text-xl sm:text-3xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
                                     {percentage !== null ? `${percentage}%` : '---'}
                                 </p>
                             </div>
-                            <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
-                                <p className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-wider group-hover:text-shibl-crimson transition-colors">الحالة</p>
-                                <p className={`text-2xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
+                            <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-5 border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
+                                <p className="text-[10px] sm:text-xs text-slate-400 font-bold mb-1 sm:mb-2 uppercase tracking-wider group-hover:text-shibl-crimson transition-colors">الحالة</p>
+                                <p className={`text-base sm:text-2xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
                                     {isPendingGrading ? 'قيد التصحيح' : isPassed ? 'ناجح' : 'راسب'}
                                 </p>
                             </div>
@@ -413,7 +413,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                 </div>
 
                 {/* Question Navigation Pills */}
-                <div className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/40 border border-slate-100 mb-8 backdrop-blur-xl bg-white/80">
+                <div className="bg-white rounded-2xl sm:rounded-[2rem] p-4 sm:p-6 shadow-xl shadow-slate-200/40 border border-slate-100 mb-6 sm:mb-8 backdrop-blur-xl bg-white/80">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
@@ -429,13 +429,13 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                             <span className="flex items-center gap-1 text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-lg"><div className="w-2 h-2 rounded-full bg-red-500"></div> خاطئة</span>
                         </div>
                     </div>
-                    <div className="flex flex-wrap gap-2.5">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2.5">
                         {results.map((q, idx) => (
                             <button
                                 key={q.question_id}
                                 onClick={() => setReviewQuestionIndex(idx)}
                                 className={`
-                                    w-11 h-11 rounded-2xl font-black text-sm transition-all duration-300 flex items-center justify-center
+                                    w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm transition-all duration-300 flex items-center justify-center
                                     hover:scale-110 active:scale-95 shadow-sm
                                     ${idx === reviewQuestionIndex
                                         ? 'ring-4 ring-slate-100 z-10 scale-110 shadow-md'
@@ -467,12 +467,12 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
 
 
                 {/* Navigation Footer */}
-                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 md:px-10 z-[60]">
+                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-3 sm:p-4 md:px-10 z-[60]">
                     <div className="max-w-4xl mx-auto flex items-center justify-between">
                         <button
                             disabled={reviewQuestionIndex === 0}
                             onClick={() => setReviewQuestionIndex(prev => prev - 1)}
-                            className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-slate-500 disabled:opacity-50 hover:bg-slate-50 transition-colors"
+                            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base text-slate-500 disabled:opacity-50 hover:bg-slate-50 transition-colors"
                         >
                             <ChevronRight className={isRTL ? '' : 'rotate-180'} />
                             السابق
@@ -481,7 +481,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                         {reviewQuestionIndex === results.length - 1 ? (
                             <button
                                 onClick={handleContinue}
-                                className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20"
+                                className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold text-sm sm:text-base transition-all shadow-lg shadow-emerald-500/20"
                             >
                                 {nextItem ? (
                                     <>
@@ -498,7 +498,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                         ) : (
                             <button
                                 onClick={() => setReviewQuestionIndex(prev => prev + 1)}
-                                className="flex items-center gap-2 px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-all shadow-lg shadow-slate-900/20"
+                                className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-8 py-2.5 sm:py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm sm:text-base transition-all shadow-lg shadow-slate-900/20"
                             >
                                 التالي
                                 <ChevronLeft className={isRTL ? '' : 'rotate-180'} />
@@ -518,11 +518,11 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
         const percentage = result.score !== null ? Math.round((result.score / result.total_possible_score) * 100) : null;
 
         return (
-            <div className="max-w-3xl mx-auto p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden relative">
-                    <div className={`h-32 ${isPendingGrading ? 'bg-amber-500' : isPassed ? 'bg-emerald-500' : 'bg-red-500'} relative overflow-hidden`}>
+            <div className="max-w-3xl mx-auto px-3 py-4 sm:p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-white rounded-2xl sm:rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden relative">
+                    <div className={`h-24 sm:h-32 ${isPendingGrading ? 'bg-amber-500' : isPassed ? 'bg-emerald-500' : 'bg-red-500'} relative overflow-hidden`}>
                         <div className="absolute inset-0 bg-white/10 opacity-50 patterned-bg"></div>
-                        <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-24 h-24 bg-white rounded-full p-2 shadow-lg flex items-center justify-center">
+                        <div className="absolute -bottom-10 sm:-bottom-12 left-1/2 -translate-x-1/2 w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-full p-1.5 sm:p-2 shadow-lg flex items-center justify-center">
                             {isPendingGrading ? (
                                 <Clock size={48} className="text-amber-500" />
                             ) : isPassed ? (
@@ -533,8 +533,8 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                         </div>
                     </div>
 
-                    <div className="pt-16 pb-10 px-8 text-center">
-                        <h2 className="text-3xl font-black text-slate-800 mb-2">
+                    <div className="pt-14 sm:pt-16 pb-6 sm:pb-10 px-4 sm:px-8 text-center">
+                        <h2 className="text-xl sm:text-3xl font-black text-slate-800 mb-2">
                             {isPendingGrading
                                 ? 'تم تسليم الاختبار بنجاح'
                                 : isPassed
@@ -551,20 +551,20 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                             }
                         </p>
 
-                        <div className="flex flex-wrap justify-center gap-4 mb-10">
-                            <div className="bg-slate-50 rounded-2xl p-4 min-w-[120px] border border-slate-100">
+                        <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-6 sm:mb-10">
+                            <div className="bg-slate-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 min-w-[90px] sm:min-w-[120px] border border-slate-100">
                                 <p className="text-xs text-slate-400 font-bold mb-1">الدرجة النهائية</p>
-                                <p className={`text-2xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
+                                <p className={`text-xl sm:text-2xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
                                     {result.score !== null ? result.score : '---'} <span className="text-sm text-slate-400">/ {result.total_possible_score}</span>
                                 </p>
                             </div>
-                            <div className="bg-slate-50 rounded-2xl p-4 min-w-[120px] border border-slate-100">
+                            <div className="bg-slate-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 min-w-[90px] sm:min-w-[120px] border border-slate-100">
                                 <p className="text-xs text-slate-400 font-bold mb-1">النسبة المئوية</p>
-                                <p className={`text-2xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
+                                <p className={`text-xl sm:text-2xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
                                     {percentage !== null ? `${percentage}%` : '---'}
                                 </p>
                             </div>
-                            <div className="bg-slate-50 rounded-2xl p-4 min-w-[120px] border border-slate-100">
+                            <div className="bg-slate-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 min-w-[90px] sm:min-w-[120px] border border-slate-100">
                                 <p className="text-xs text-slate-400 font-bold mb-1">الحالة</p>
                                 <p className={`text-xl font-black ${isPendingGrading ? 'text-amber-600' : isPassed ? 'text-emerald-600' : 'text-red-600'}`}>
                                     {isPendingGrading ? 'قيد التصحيح' : isPassed ? 'ناجح' : 'راسب'}
@@ -604,7 +604,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                         </div>
 
                         {/* Title & Description */}
-                        <h1 className="text-3xl md:text-5xl font-black text-slate-800 mb-4 tracking-tight leading-tight">
+                        <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-slate-800 mb-3 sm:mb-4 tracking-tight leading-tight">
                             {getLocalizedName(quiz.name)}
                         </h1>
                         {quiz.description && (
@@ -614,29 +614,29 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                         )}
 
                         {/* Stats Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10 max-w-3xl mx-auto">
-                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex flex-col items-center justify-center hover:bg-slate-100 transition-colors group">
-                                <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-shibl-crimson mb-3 group-hover:scale-110 transition-transform">
+                        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-10 max-w-3xl mx-auto">
+                            <div className="bg-slate-50 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-100 flex flex-col items-center justify-center hover:bg-slate-100 transition-colors group">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-shibl-crimson mb-2 sm:mb-3 group-hover:scale-110 transition-transform">
                                     <Clock size={20} />
                                 </div>
-                                <p className="text-sm text-slate-400 font-bold uppercase tracking-wider mb-1">المدة الزمنية</p>
-                                <p className="text-xl font-black text-slate-700">{quiz.duration_minutes} دقيقة</p>
+                                <p className="text-[10px] sm:text-sm text-slate-400 font-bold uppercase tracking-wider mb-1">المدة الزمنية</p>
+                                <p className="text-base sm:text-xl font-black text-slate-700">{quiz.duration_minutes} دقيقة</p>
                             </div>
 
-                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex flex-col items-center justify-center hover:bg-slate-100 transition-colors group">
-                                <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-blue-600 mb-3 group-hover:scale-110 transition-transform">
+                            <div className="bg-slate-50 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-100 flex flex-col items-center justify-center hover:bg-slate-100 transition-colors group">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-blue-600 mb-2 sm:mb-3 group-hover:scale-110 transition-transform">
                                     <HelpCircle size={20} />
                                 </div>
-                                <p className="text-sm text-slate-400 font-bold uppercase tracking-wider mb-1">عدد الأسئلة</p>
-                                <p className="text-xl font-black text-slate-700">{quiz.questions?.length || 0} سؤال</p>
+                                <p className="text-[10px] sm:text-sm text-slate-400 font-bold uppercase tracking-wider mb-1">عدد الأسئلة</p>
+                                <p className="text-base sm:text-xl font-black text-slate-700">{quiz.questions?.length || 0} سؤال</p>
                             </div>
 
-                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex flex-col items-center justify-center hover:bg-slate-100 transition-colors group">
-                                <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-emerald-600 mb-3 group-hover:scale-110 transition-transform">
+                            <div className="bg-slate-50 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-100 flex flex-col items-center justify-center hover:bg-slate-100 transition-colors group">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-emerald-600 mb-2 sm:mb-3 group-hover:scale-110 transition-transform">
                                     <Award size={20} />
                                 </div>
-                                <p className="text-sm text-slate-400 font-bold uppercase tracking-wider mb-1">درجة النجاح</p>
-                                <p className="text-xl font-black text-slate-700">{quiz.passing_percentage}%</p>
+                                <p className="text-[10px] sm:text-sm text-slate-400 font-bold uppercase tracking-wider mb-1">درجة النجاح</p>
+                                <p className="text-base sm:text-xl font-black text-slate-700">{quiz.passing_percentage}%</p>
                             </div>
                         </div>
 
@@ -692,8 +692,8 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-6 pb-24 relative min-h-full flex flex-col">
             {/* Top Bar */}
-            <div className="flex items-center justify-between mb-8 sticky top-0 bg-[#FDFDFD] z-10 py-4 border-b border-slate-100">
-                <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between mb-4 sm:mb-8 sticky top-0 bg-[#FDFDFD] z-10 py-3 sm:py-4 border-b border-slate-100">
+                <div className="flex items-center gap-2 sm:gap-4">
                     <button onClick={onExit} className="text-slate-400 hover:text-slate-600" aria-label="إغلاق">
                         <XCircle size={24} />
                     </button>
@@ -708,7 +708,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                     </div>
                 </div>
 
-                <div className={`flex items-center gap-2 font-mono font-bold text-lg px-4 py-2 rounded-xl ${isTimeLow ? 'bg-red-50 text-red-600 animate-pulse' : 'bg-slate-100 text-slate-600'}`}>
+                <div className={`flex items-center gap-1.5 sm:gap-2 font-mono font-bold text-sm sm:text-lg px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl ${isTimeLow ? 'bg-red-50 text-red-600 animate-pulse' : 'bg-slate-100 text-slate-600'}`}>
                     <Timer size={20} />
                     <span>{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}</span>
                 </div>
@@ -831,7 +831,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                                         </div>
                                         <button
                                             onClick={() => handleAnswerChange(currentQuestion.id, answers[currentQuestion.id] || '', null!)}
-                                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                                             title="حذف الصورة"
                                         >
                                             <Trash2 size={14} />
@@ -845,12 +845,12 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
             )}
 
             {/* Navigation Footer */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 md:px-10 z-[60]">
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-3 sm:p-4 md:px-10 z-[60]">
                 <div className="max-w-4xl mx-auto flex items-center justify-between">
                     <button
                         disabled={currentQuestionIndex === 0}
                         onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
-                        className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-slate-500 disabled:opacity-50 hover:bg-slate-50 transition-colors"
+                        className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base text-slate-500 disabled:opacity-50 hover:bg-slate-50 transition-colors"
                     >
                         <ChevronRight className={isRTL ? '' : 'rotate-180'} />
                         السابق
@@ -860,7 +860,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                         <button
                             onClick={handleSubmit}
                             disabled={submitting}
-                            className="flex items-center gap-2 px-8 py-3 bg-[#10B981] hover:bg-[#059669] text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-70"
+                            className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-8 py-2.5 sm:py-3 bg-[#10B981] hover:bg-[#059669] text-white rounded-xl font-bold text-sm sm:text-base transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-70"
                         >
                             {submitting ? 'جاري التسليم...' : 'تسليم الاختبار'}
                             <CheckCircle2 size={20} />
@@ -868,7 +868,7 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                     ) : (
                         <button
                             onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
-                            className="flex items-center gap-2 px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-all shadow-lg shadow-slate-900/20"
+                            className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-8 py-2.5 sm:py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm sm:text-base transition-all shadow-lg shadow-slate-900/20"
                         >
                             التالي
                             <ChevronLeft className={isRTL ? '' : 'rotate-180'} />
@@ -892,9 +892,9 @@ function QuestionReviewCard({ question, questionNumber, totalQuestions }: Questi
     const isPending = question.is_correct === null;
 
     return (
-        <div className="bg-white rounded-[2rem] p-6 md:p-10 shadow-sm border border-slate-100">
+        <div className="bg-white rounded-2xl sm:rounded-[2rem] p-4 sm:p-6 md:p-10 shadow-sm border border-slate-100">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4 sm:mb-6">
                 <div className="flex items-center gap-3">
                     <span className="text-sm font-bold text-slate-400">
                         السؤال {questionNumber} من {totalQuestions}
@@ -970,7 +970,7 @@ function QuestionReviewCard({ question, questionNumber, totalQuestions }: Questi
                         return (
                             <div
                                 key={option.id}
-                                className={`flex items-center gap-4 p-5 rounded-xl border-2 relative ${optionStyle}`}
+                                className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-5 rounded-xl border-2 relative ${optionStyle}`}
                             >
                                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${isUserAnswer ? 'border-slate-900 bg-slate-900' : 'border-slate-300'}`}>
                                     {isUserAnswer && <div className="w-3 h-3 bg-white rounded-full" />}

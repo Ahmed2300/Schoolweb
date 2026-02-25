@@ -22,6 +22,10 @@ export default defineConfig({
     outDir: 'dist',
     // ⛔ Disable sourcemaps in production — saves ~30% bundle size
     sourcemap: false,
+    // Target modern browsers for smaller JS output
+    target: 'es2020',
+    // Warn on chunks larger than 250KB
+    chunkSizeWarningLimit: 250,
     // Split vendor code into stable, cacheable chunks
     rollupOptions: {
       output: {
