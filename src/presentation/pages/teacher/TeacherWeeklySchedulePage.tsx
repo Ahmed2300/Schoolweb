@@ -8,6 +8,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { studentService, getLocalizedName, type Semester } from '../../../data/api/studentService';
+import { useQueryClient } from '@tanstack/react-query';
 import {
     Calendar,
     CalendarDays,
@@ -37,6 +38,7 @@ import {
     useMyRecurringSchedule,
     useSubmitRecurringSlot,
     useCancelRecurringSlot,
+    recurringScheduleKeys,
     type WeekDayConfig,
     type RecurringSlot,
     type AvailableSlot,
@@ -82,26 +84,33 @@ interface StatCardProps {
 
 function StatCard({ label, value, icon, color }: StatCardProps) {
     const colorClasses = {
-        amber: 'from-amber-500 to-amber-600',
-        emerald: 'from-emerald-500 to-emerald-600',
-        red: 'from-red-500 to-red-600',
-        blue: 'from-blue-500 to-blue-600',
+        amber: 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/20 dark:border-amber-800/30 dark:text-amber-500',
+        emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800/30 dark:text-emerald-500',
+        red: 'bg-red-50 border-red-200 text-[#AF0C15] dark:bg-red-900/20 dark:border-red-800/30 dark:text-[#E11D48]',
+        blue: 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800/30 dark:text-blue-500',
+    };
+
+    const iconBgClasses = {
+        amber: 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400',
+        emerald: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400',
+        red: 'bg-[#FEF2F2] dark:bg-red-900/40 text-[#AF0C15] dark:text-[#FF8A92]',
+        blue: 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400',
     };
 
     return (
         <div
             className={`
-                flex items-center gap-4 p-4 rounded-2xl shadow-lg text-white
-                bg-gradient-to-br ${colorClasses[color]}
-                dark:shadow-none border border-transparent dark:border-white/10
+                flex items-center gap-4 p-5 rounded-2xl shadow-sm border
+                transition-all duration-300 hover:shadow-md hover:-translate-y-0.5
+                ${colorClasses[color]}
             `}
         >
-            <div className="p-3 bg-white/20 dark:bg-black/20 rounded-xl shrink-0">
+            <div className={`p-3 rounded-xl shrink-0 ${iconBgClasses[color]}`}>
                 {icon}
             </div>
             <div className="flex-1 min-w-0 text-right">
-                <p className="text-2xl font-bold text-white">{value}</p>
-                <p className="text-sm opacity-90 truncate text-white/90">{label}</p>
+                <p className="text-2xl font-extrabold">{value}</p>
+                <p className="text-sm font-medium opacity-80 truncate">{label}</p>
             </div>
         </div>
     );
@@ -142,15 +151,15 @@ function WeekDayTabs({ days, selectedDay, onSelectDay, isLoading }: WeekDayTabsP
                         onClick={() => !day.is_locked && onSelectDay(day.day)}
                         disabled={day.is_locked}
                         className={`
-                            relative flex min-w-[100px] shrink-0 flex-col items-center gap-1 rounded-xl border-2 px-4 py-3 transition-all duration-200
+                            relative flex min-w-[105px] shrink-0 flex-col items-center gap-1.5 rounded-2xl border-2 px-4 py-3.5 transition-all duration-300
                             ${isSelected
-                                ? 'border-shibl-crimson bg-shibl-crimson/10 dark:bg-shibl-crimson/20 shadow-md'
-                                : 'border-gray-200 dark:border-white/5 bg-white dark:bg-[#1E1E1E] hover:border-gray-300 dark:hover:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5'}
+                                ? 'border-[#AF0C15] bg-[#AF0C15]/5 dark:bg-[#AF0C15]/10 shadow-[0_4px_14px_0_rgba(175,12,21,0.15)]'
+                                : 'border-gray-200 dark:border-white/5 bg-white dark:bg-[#1E1E1E] hover:border-[#D41420]/30 hover:bg-[#FEF2F2]/50 dark:hover:bg-[#AF0C15]/5'}
                             ${day.is_locked ? 'cursor-not-allowed opacity-50' : ''}
                             ${!day.is_active ? 'opacity-60' : ''}
                         `}
                     >
-                        <span className={`text-sm font-semibold ${isSelected ? 'text-shibl-crimson' : 'text-gray-700 dark:text-gray-300'}`}>
+                        <span className={`text-sm font-bold ${isSelected ? 'text-[#AF0C15]' : 'text-charcoal dark:text-gray-300'}`}>
                             {dayNamesAr[day.day] || day.day}
                         </span>
 
@@ -216,11 +225,10 @@ function TimeSlotCard({
     // Cursor styling should be handled by individual action buttons/divs only
     const stateStyles = slot.is_mine
         ? slot.status === 'pending'
-            ? "bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/30 hover:border-amber-300 dark:hover:border-amber-700/50 hover:shadow-lg hover:shadow-amber-100/50 dark:hover:shadow-none"
-            : "bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800/30 hover:border-emerald-300 dark:hover:border-emerald-700/50 hover:shadow-lg hover:shadow-emerald-100/50 dark:hover:shadow-none"
+            ? "bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/30 hover:shadow-lg hover:shadow-amber-100/50 dark:hover:shadow-none"
+            : "bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800/30 hover:shadow-lg hover:shadow-emerald-100/50 dark:hover:shadow-none"
         : slot.is_available
-            ? "bg-white dark:bg-[#1E1E1E] border-gray-100 dark:border-white/5 hover:border-shibl-crimson/30 dark:hover:border-shibl-crimson/30 hover:shadow-xl hover:shadow-shibl-crimson/5 dark:hover:shadow-none hover:-translate-y-0.5"
-            // No cursor-not-allowed on card - the action div inside will handle it
+            ? "bg-white dark:bg-[#1E1E1E] border-gray-100 dark:border-white/5 hover:border-[#AF0C15]/30 hover:shadow-[0_8px_24px_0_rgba(175,12,21,0.1)] hover:-translate-y-0.5"
             : "bg-gray-50/80 dark:bg-[#1E1E1E]/30 border-gray-100 dark:border-white/5 opacity-60";
 
     return (
@@ -229,9 +237,9 @@ function TimeSlotCard({
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2">
                     <div className={`
-                        p-2 rounded-xl 
+                        p-2.5 rounded-xl transition-colors
                         ${slot.is_mine ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
-                            slot.is_available ? 'bg-shibl-crimson/5 dark:bg-shibl-crimson/10 text-shibl-crimson dark:text-shibl-crimson/90' :
+                            slot.is_available ? 'bg-[#FEF2F2] dark:bg-[#AF0C15]/10 text-[#AF0C15] dark:text-[#E11D48]' :
                                 'bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-gray-500'}
                     `}>
                         <Clock className="w-5 h-5" />
@@ -262,9 +270,9 @@ function TimeSlotCard({
                         onClick={onCancel}
                         disabled={isLoading}
                         className="
-                            w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-red-100 dark:border-red-900/30
-                            text-red-500 dark:text-red-400 font-bold text-sm transition-all duration-200
-                            hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 dark:hover:border-red-800/50 active:scale-[0.98]
+                            w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-red-200 dark:border-red-900/40
+                            text-[#D41420] dark:text-red-400 font-bold text-sm transition-all duration-300
+                            hover:bg-[#FEF2F2] dark:hover:bg-red-900/20 hover:border-[#AF0C15] active:scale-[0.98]
                             disabled:opacity-50 disabled:cursor-not-allowed
                         "
                     >
@@ -290,11 +298,11 @@ function TimeSlotCard({
                         onClick={onBook}
                         disabled={isLoading}
                         className="
-                            w-full flex items-center justify-center gap-2 py-2.5 rounded-xl
-                            bg-gradient-to-l from-shibl-crimson to-rose-600
-                            text-white font-bold text-sm shadow-md shadow-shibl-crimson/20
-                            transition-all duration-200
-                            hover:shadow-lg hover:shadow-shibl-crimson/30 hover:brightness-110 active:scale-[0.98]
+                            w-full flex items-center justify-center gap-2 py-3 rounded-xl
+                            bg-gradient-to-l from-[#AF0C15] to-[#8B0A11]
+                            text-white font-bold text-sm shadow-[0_4px_14px_0_rgba(175,12,21,0.39)]
+                            transition-all duration-300
+                            hover:shadow-[0_8px_24px_0_rgba(175,12,21,0.45)] hover:brightness-110 active:scale-[0.98]
                             disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none
                             cursor-pointer pointer-events-auto relative z-10
                         "
@@ -438,11 +446,11 @@ function ScheduleSummary({ slots, isLoading, onCancel, cancellingSlotId }: Sched
                     <button
                         onClick={() => onCancel(slot.id)}
                         disabled={cancellingSlotId === slot.id}
-                        className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 text-gray-400 dark:text-gray-500 hover:text-[#AF0C15] dark:hover:text-[#E11D48] hover:bg-[#FEF2F2] dark:hover:bg-red-900/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="إلغاء الحجز"
                     >
                         {cancellingSlotId === slot.id ? (
-                            <Loader2 className="h-5 w-5 animate-spin text-red-500" />
+                            <Loader2 className="h-5 w-5 animate-spin text-[#AF0C15]" />
                         ) : (
                             <XCircle className="h-5 w-5" />
                         )}
@@ -467,20 +475,25 @@ export function TeacherWeeklySchedulePage() {
     const [semesters, setSemesters] = useState<Semester[]>([]);
     const [isLoadingSemesters, setIsLoadingSemesters] = useState(false);
 
+    // Query client for manual invalidation
+    const queryClient = useQueryClient();
+
     // Queries
     const { data: gradesData, isLoading: isLoadingGrades } = useAssignedGrades();
-    const { data: weekConfigData, isLoading: isLoadingWeekConfig, refetch: refetchWeekConfig } = useWeekConfig(
+    const { data: weekConfigData, isLoading: isLoadingWeekConfig, isFetching: isFetchingWeekConfig, refetch: refetchWeekConfig } = useWeekConfig(
         selectedGradeId ?? 0,
         selectedSemesterId ?? 0
     );
-    const { data: slotsData, isLoading: isLoadingSlots, refetch: refetchSlots } = useAvailableRecurringSlots(
+    const { data: slotsData, isLoading: isLoadingSlots, isFetching: isFetchingSlots, refetch: refetchSlots } = useAvailableRecurringSlots(
         selectedGradeId ?? 0,
         selectedSemesterId ?? 0,
         selectedDay
     );
-    const { data: myScheduleData, isLoading: isLoadingMySchedule, refetch: refetchMySchedule } = useMyRecurringSchedule(
+    const { data: myScheduleData, isLoading: isLoadingMySchedule, isFetching: isFetchingMySchedule, refetch: refetchMySchedule } = useMyRecurringSchedule(
         selectedSemesterId ?? 0
     );
+
+    const isRefreshing = isFetchingSlots || isFetchingWeekConfig || isFetchingMySchedule;
 
     // Mutations
     const submitSlotMutation = useSubmitRecurringSlot();
@@ -616,11 +629,9 @@ export function TeacherWeeklySchedulePage() {
         }
     };
 
-    const handleRefresh = () => {
-        refetchSlots();
-        refetchWeekConfig();
-        refetchMySchedule();
-    };
+    const handleRefresh = useCallback(() => {
+        queryClient.invalidateQueries({ queryKey: recurringScheduleKeys.all });
+    }, [queryClient]);
 
     // If no grades assigned
     if (!isLoadingGrades && grades.length === 0) {
@@ -636,19 +647,23 @@ export function TeacherWeeklySchedulePage() {
     }
 
     return (
-        <div className="space-y-6 p-4 md:p-6" dir="rtl">
+        <div className="space-y-6 p-4 md:p-6 font-cairo" dir="rtl">
             {/* Header */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">جدولي الأسبوعي</h1>
-                    <p className="text-gray-600 dark:text-gray-400">اختر مواعيد حصصك الأسبوعية المتكررة</p>
+                    <h1 className="text-3xl font-extrabold bg-gradient-to-l from-[#AF0C15] to-[#E11D48] bg-clip-text text-transparent">
+                        جدولي الأسبوعي
+                    </h1>
+                    <p className="text-slate-grey dark:text-gray-400 mt-1">
+                        اختر مواعيد حصصك الأسبوعية المتكررة
+                    </p>
                 </div>
                 <button
                     onClick={handleRefresh}
-                    disabled={isLoadingSlots}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1E1E1E] text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+                    disabled={isRefreshing}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1E1E1E] text-charcoal dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm hover:shadow-md disabled:opacity-50"
                 >
-                    <RefreshCw className={`h-4 w-4 ${isLoadingSlots ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                     تحديث
                 </button>
             </div>
@@ -682,14 +697,16 @@ export function TeacherWeeklySchedulePage() {
             </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap items-center gap-4 rounded-xl border border-gray-200 dark:border-white/5 bg-white dark:bg-[#1E1E1E] p-4">
-                <div className="flex items-center gap-2">
-                    <GraduationCap className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-[#1E1E1E] p-4 shadow-sm">
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl">
+                        <GraduationCap className="h-5 w-5 text-charcoal dark:text-gray-400" />
+                    </div>
                     <select
                         value={selectedGradeId ?? ''}
                         onChange={(e) => setSelectedGradeId(Number(e.target.value))}
                         disabled={isLoadingGrades}
-                        className="w-[180px] px-3 py-2 border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1E1E1E] text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-shibl-crimson focus:border-shibl-crimson outline-none"
+                        className="flex-1 sm:w-[200px] px-4 py-2.5 border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1E1E1E] text-charcoal dark:text-white rounded-xl focus:ring-2 focus:ring-[#AF0C15]/20 focus:border-[#AF0C15] outline-none transition-all cursor-pointer"
                     >
                         <option value="" disabled>اختر الصف</option>
                         {grades.map((grade) => (
@@ -700,13 +717,15 @@ export function TeacherWeeklySchedulePage() {
                     </select>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl">
+                        <BookOpen className="h-5 w-5 text-charcoal dark:text-gray-400" />
+                    </div>
                     <select
                         value={selectedSemesterId ?? ''}
                         onChange={(e) => setSelectedSemesterId(Number(e.target.value))}
                         disabled={isLoadingSemesters || semesters.length === 0}
-                        className="w-[180px] px-3 py-2 border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1E1E1E] text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-shibl-crimson focus:border-shibl-crimson outline-none disabled:bg-gray-50 dark:disabled:bg-white/5 disabled:text-gray-400"
+                        className="flex-1 sm:w-[200px] px-4 py-2.5 border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1E1E1E] text-charcoal dark:text-white rounded-xl focus:ring-2 focus:ring-[#AF0C15]/20 focus:border-[#AF0C15] outline-none disabled:bg-gray-50 dark:disabled:bg-white/5 disabled:text-gray-400 transition-all cursor-pointer"
                     >
                         {isLoadingSemesters ? (
                             <option value="" disabled>جاري التحميل...</option>
@@ -727,8 +746,8 @@ export function TeacherWeeklySchedulePage() {
             </div>
 
             {/* Day Tabs */}
-            <div className="rounded-xl border border-gray-200 dark:border-white/5 bg-white dark:bg-[#1E1E1E] p-4">
-                <h2 className="mb-4 font-semibold text-gray-900 dark:text-white">أيام الأسبوع</h2>
+            <div className="rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-[#1E1E1E] p-4 shadow-sm">
+                <h2 className="mb-4 text-lg font-bold text-charcoal dark:text-white">أيام الأسبوع</h2>
                 <WeekDayTabs
                     days={weekConfig}
                     selectedDay={selectedDay}
@@ -737,12 +756,11 @@ export function TeacherWeeklySchedulePage() {
                 />
             </div>
 
-            {/* Main Content Grid */}
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* Available Slots */}
                 <div className="lg:col-span-2">
-                    <div className="rounded-xl border border-gray-200 dark:border-white/5 bg-white dark:bg-[#1E1E1E] p-4">
-                        <h2 className="mb-4 font-semibold text-gray-900 dark:text-white">المواعيد المتاحة</h2>
+                    <div className="rounded-2xl border border-gray-100 dark:border-white/5 bg-[#F8F9FA] dark:bg-[#1E1E1E]/80 p-5 shadow-inner">
+                        <h2 className="mb-5 text-lg font-bold text-charcoal dark:text-white">المواعيد المتاحة</h2>
 
                         {isLoadingSlots ? (
                             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -780,8 +798,8 @@ export function TeacherWeeklySchedulePage() {
 
                 {/* My Schedule Summary */}
                 <div className="lg:col-span-1">
-                    <div className="rounded-xl border border-gray-200 dark:border-white/5 bg-white dark:bg-[#1E1E1E] p-4 sticky top-4">
-                        <h2 className="mb-4 font-semibold text-gray-900 dark:text-white">حجوزاتي</h2>
+                    <div className="rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-[#1E1E1E] p-5 shadow-sm sticky top-6">
+                        <h2 className="mb-5 text-lg font-bold text-charcoal dark:text-white">حجوزاتي</h2>
                         <ScheduleSummary
                             slots={mySchedule}
                             isLoading={isLoadingMySchedule}

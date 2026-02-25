@@ -73,6 +73,7 @@ const TeacherLayout = lazyWithRetry(() => import('./presentation/components/teac
 import { ProtectedRoute } from './presentation/components/auth';
 import { MaintenanceWrapper } from './presentation/components/MaintenanceWrapper';
 import { SmoothScrollWrapper } from './presentation/components/SmoothScrollWrapper';
+import { ScrollToTop } from './presentation/components/common/ScrollToTop';
 
 import { ThemeProvider } from './context/ThemeContext';
 import { useSessionEnforcement } from './hooks/useSessionEnforcement';
@@ -338,6 +339,7 @@ function App() {
       <ThemeProvider>
         <BrowserRouter>
           <SessionEnforcer />
+          <ScrollToTop />
           <Toaster
             position="top-center"
             toastOptions={{

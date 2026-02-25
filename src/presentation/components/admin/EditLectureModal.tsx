@@ -170,6 +170,13 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
             return;
         }
 
+        // For LIVE lectures: submit directly (no video step)
+        if (formData.isOnline) {
+            await handleFinalSubmit();
+            return;
+        }
+
+        // For recorded lectures: go to video upload step
         setStep(2);
     };
 
@@ -205,6 +212,9 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
 
     if (!isOpen) return null;
 
+    // Only show 2-step flow for recorded lectures
+    const isRecordedLecture = !formData.isOnline;
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-xl">
@@ -212,31 +222,33 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div>
                         <h2 className="text-lg font-bold text-charcoal">تعديل المحاضرة</h2>
-                        <p className="text-sm text-slate-500">{formData.titleAr}</p>
+                        <p className="text-sm text-slate-500">{formData.titleAr || 'بدون عنوان'}</p>
                     </div>
                     <button onClick={handleClose} disabled={loading} className="text-slate-400 hover:text-slate-600 transition-colors">
                         <X size={24} />
                     </button>
                 </div>
 
-                {/* Steps Indicator */}
-                <div className="px-6 py-4">
-                    <div className="flex items-center justify-between relative">
-                        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-100 -z-10" />
-                        <div className={`flex flex-col items-center gap-2 bg-white px-2 ${step >= 1 ? 'text-blue-600' : 'text-slate-400'}`}>
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${step >= 1 ? 'border-blue-600 bg-blue-50' : 'border-slate-200 bg-white'}`}>
-                                <FileText size={20} />
+                {/* Steps Indicator — only for recorded lectures */}
+                {isRecordedLecture && (
+                    <div className="px-6 py-4">
+                        <div className="flex items-center justify-between relative">
+                            <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-100 -z-10" />
+                            <div className={`flex flex-col items-center gap-2 bg-white px-2 ${step >= 1 ? 'text-blue-600' : 'text-slate-400'}`}>
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${step >= 1 ? 'border-blue-600 bg-blue-50' : 'border-slate-200 bg-white'}`}>
+                                    <FileText size={20} />
+                                </div>
+                                <span className="text-xs font-medium">بيانات المحاضرة</span>
                             </div>
-                            <span className="text-xs font-medium">بيانات المحاضرة</span>
-                        </div>
-                        <div className={`flex flex-col items-center gap-2 bg-white px-2 ${step >= 2 ? 'text-blue-600' : 'text-slate-400'}`}>
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${step >= 2 ? 'border-blue-600 bg-blue-50' : 'border-slate-200 bg-white'}`}>
-                                <Video size={20} />
+                            <div className={`flex flex-col items-center gap-2 bg-white px-2 ${step >= 2 ? 'text-blue-600' : 'text-slate-400'}`}>
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${step >= 2 ? 'border-blue-600 bg-blue-50' : 'border-slate-200 bg-white'}`}>
+                                    <Video size={20} />
+                                </div>
+                                <span className="text-xs font-medium">الفيديو</span>
                             </div>
-                            <span className="text-xs font-medium">الفيديو</span>
                         </div>
                     </div>
-                </div>
+                )}
 
                 <div className="p-6">
                     {error && (
@@ -474,10 +486,25 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
                             <button
                                 type="submit"
                                 form="editForm"
-                                className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all flex items-center gap-2"
+                                disabled={loading}
+                                className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                التالي
-                                <ChevronLeft size={18} />
+                                {loading ? (
+                                    <>
+                                        <Loader2 size={18} className="animate-spin" />
+                                        جاري الحفظ...
+                                    </>
+                                ) : formData.isOnline ? (
+                                    <>
+                                        <Check size={18} />
+                                        حفظ التعديلات
+                                    </>
+                                ) : (
+                                    <>
+                                        التالي
+                                        <ChevronLeft size={18} />
+                                    </>
+                                )}
                             </button>
                         </>
                     ) : (
