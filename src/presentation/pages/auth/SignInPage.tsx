@@ -162,6 +162,11 @@ export function SignInPage() {
                 return;
             }
 
+            if (errorCode === 'invalid_otp') {
+                setOtpError(arabicMessage || 'رمز التحقق غير صحيح. يرجى المحاولة مرة أخرى.');
+                return;
+            }
+
             if (errorCode === 'email_not_verified') {
                 if (userType === 'teacher') {
                     navigate(ROUTES.TEACHER_VERIFY_EMAIL, {

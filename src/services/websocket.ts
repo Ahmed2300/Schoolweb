@@ -250,6 +250,22 @@ class MockChannel {
         this.client.stopListening(this.channelName, event, callback);
         return this;
     }
+
+    /**
+     * No-op error handler for Laravel Echo API compatibility.
+     * Our WebSocket client handles errors internally via console.error.
+     */
+    error(_callback: (error: any) => void) {
+        // Stub — error handling is done in ReverbClient.authenticateAndSubscribe
+        return this;
+    }
+
+    /**
+     * No-op notification handler for Laravel Echo API compatibility.
+     */
+    notification(_callback: (notification: any) => void) {
+        return this;
+    }
 }
 
 export class MockEcho {

@@ -113,7 +113,7 @@ export function StudentPackagesPage() {
 
             // Refetch subscriptions when package subscription status changes
             if (notification?.type?.includes('package') || notification?.type?.includes('subscription')) {
-                console.log('Package subscription status changed, refreshing data...');
+
                 fetchData();
             }
         };

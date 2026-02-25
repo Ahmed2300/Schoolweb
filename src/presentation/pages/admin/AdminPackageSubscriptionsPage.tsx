@@ -121,7 +121,7 @@ export function AdminPackageSubscriptionsPage() {
 
             // Refetch when package subscription-related notifications arrive
             if (notification?.type?.includes('package') || notification?.type?.includes('subscription')) {
-                console.log('Package subscription data update received, refreshing list...');
+
                 fetchSubscriptions();
             }
         };

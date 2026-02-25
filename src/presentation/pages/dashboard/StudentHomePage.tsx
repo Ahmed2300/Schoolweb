@@ -57,7 +57,7 @@ export function StudentHomePage() {
 
             // Refetch when subscription status changes
             if (notification?.type?.includes('subscription')) {
-                console.log('Subscription status changed, refreshing student home...');
+
                 if (activeTab === 'skills') {
                     fetchSkillsCourses();
                 }
@@ -257,7 +257,7 @@ export function StudentHomePage() {
                     onBack={() => setSelectedCourseId(null)}
                     onEnroll={(id) => {
                         // TODO: Implement enrollment flow
-                        console.log('Enrolling in course:', id);
+
                     }}
                 />
             ) : (

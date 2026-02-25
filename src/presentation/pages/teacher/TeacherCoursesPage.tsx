@@ -124,7 +124,7 @@ export function TeacherCoursesPage() {
     // This prevents conflicting Echo subscriptions/unsubscriptions on the same channel
     useEffect(() => {
         const handleApprovalUpdate = (e: CustomEvent) => {
-            console.log('TeacherCoursesPage: Real-time update received:', e.detail);
+
             const approval = e.detail;
 
             // Allow time for backend to process if needed, then refresh
