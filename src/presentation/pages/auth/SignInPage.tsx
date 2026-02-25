@@ -193,10 +193,8 @@ export function SignInPage() {
             } else if (!showOtpModal) {
                 // Only show main form error if OTP modal is not open
                 setError(err.response?.data?.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
-            }
-
-            // Handle OTP specific errors (including resend errors)
-            if (otp || showOtpModal) {
+                // Handle OTP specific errors that weren't caught by specific error codes above
+            } else if (otp || showOtpModal) {
                 setOtpError(arabicMessage || err.response?.data?.message || 'رمز التحقق غير صحيح');
             }
 
