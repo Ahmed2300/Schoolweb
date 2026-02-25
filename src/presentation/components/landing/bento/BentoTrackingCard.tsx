@@ -111,7 +111,7 @@ export const BentoTrackingCard = () => {
                             <defs>
                                 <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" stopColor="#af0c15" />
-                                    <stop offset="100%" stopColor="#10b981" />
+                                    <stop offset="100%" stopColor="#D41420" />
                                 </linearGradient>
                             </defs>
                         </svg>
@@ -170,7 +170,7 @@ export const BentoTrackingCard = () => {
                             <defs>
                                 <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                                     <stop offset="0%" stopColor="#af0c15" />
-                                    <stop offset="100%" stopColor="#10b981" />
+                                    <stop offset="100%" stopColor="#D41420" />
                                 </linearGradient>
                                 <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="0%" stopColor="#af0c15" stopOpacity="0.15" />
@@ -182,7 +182,7 @@ export const BentoTrackingCard = () => {
                         {/* Stats row */}
                         <div className="flex gap-3 mt-2">
                             {[
-                                { label: 'هذا الأسبوع', value: '90%', color: 'text-emerald-600' },
+                                { label: 'هذا الأسبوع', value: '90%', color: 'text-shibl-crimson' },
                                 { label: 'التحسن', value: '+12%', color: 'text-shibl-crimson' },
                             ].map((stat, i) => (
                                 <div key={i}>
