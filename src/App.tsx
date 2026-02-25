@@ -1,9 +1,9 @@
-import { lazy, Suspense, type ComponentType } from 'react';
+import { lazy, Suspense, useEffect, type ComponentType } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { ROUTES } from './shared/constants';
 import { FullPageSkeleton } from './presentation/components/common/FullPageSkeleton';
+import { prefetchAllRoutes } from './prefetchAllRoutes';
 import './shared/i18n';
 import './index.css';
 
@@ -66,7 +66,7 @@ function lazyWithRetry<T extends ComponentType<any>>(
 // ─────────────────────────────────────────────────────────────
 // Non-lazy: lightweight wrappers & providers (tiny footprint)
 // ─────────────────────────────────────────────────────────────
-// Layouts are lazy-loaded so their specific dependencies (large Sidebars, charts) don't bloat the main bundle
+// Layouts are lazy-loaded (each has its own internal <Suspense> + <Outlet>)
 const AdminLayout = lazyWithRetry(() => import('./presentation/components/admin').then(m => ({ default: m.AdminLayout })));
 const TeacherLayout = lazyWithRetry(() => import('./presentation/components/teacher').then(m => ({ default: m.TeacherLayout })));
 
@@ -80,8 +80,9 @@ import 'lenis/dist/lenis.css';
 
 // ─────────────────────────────────────────────────────────────
 // React.lazy — Each page is a separate chunk loaded on demand.
-// This is THE #1 performance improvement: visitors to /landing
-// no longer download the Admin, Teacher, Student, or Parent code.
+// The prefetchAllRoutes() system downloads ALL chunks in the
+// background after first paint, so by the time the user clicks
+// anything, the chunks are already cached and resolve instantly.
 // ─────────────────────────────────────────────────────────────
 
 // Public / Landing
@@ -164,22 +165,7 @@ const AdminParentDetailsPage = lazyWithRetry(() => import('./presentation/pages/
 const LiveClassroomPage = lazyWithRetry(() => import('./presentation/pages/classroom/LiveClassroomPage'));
 
 // ─────────────────────────────────────────────────────────────
-// React Query Client
-// ─────────────────────────────────────────────────────────────
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
-// ─────────────────────────────────────────────────────────────
 // Session Enforcer (WebSocket force-logout listener)
-// React Router's native startTransition keeps the old page
-// visible until the new one is ready — no manual skeleton needed.
 // ─────────────────────────────────────────────────────────────
 function SessionEnforcer() {
   useSessionEnforcement();
@@ -187,13 +173,28 @@ function SessionEnforcer() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// AppRoutes — React Router v6 wraps navigations in
-// startTransition, which keeps the old page visible while the
-// new lazy chunk loads. No key is needed on Suspense — adding
-// one would unmount the entire tree (including persistent
-// sidebars/layouts) and flash a full-page skeleton.
+// AppRoutes — Route tree.
+//
+// Each layout component (StudentLayout, ParentLayout,
+// TeacherLayout, AdminLayout) has its own internal
+// <Suspense fallback={skeleton}><Outlet /></Suspense>,
+// so child-route navigations within a layout show a branded
+// content skeleton while the next chunk loads.
+//
+// The top-level <Suspense> here handles full-page transitions
+// (e.g. landing → login, or login → dashboard layout).
+//
+// prefetchAllRoutes() downloads ALL 60+ chunks in staggered
+// background batches after first paint, so by the time the
+// user clicks anything, the chunks are already cached and
+// React.lazy resolves instantly.
 // ─────────────────────────────────────────────────────────────
 function AppRoutes() {
+  // Prefetch ALL route modules in the background after first paint.
+  useEffect(() => {
+    prefetchAllRoutes();
+  }, []);
+
   return (
     <Suspense fallback={<FullPageSkeleton />}>
       <Routes>
@@ -326,33 +327,34 @@ function AppRoutes() {
 
 // ─────────────────────────────────────────────────────────────
 // App — Code-split route tree
+//
+// NOTE: QueryClientProvider lives in main.tsx. Do NOT add a
+// second one here — duplicate providers cause separate caches
+// and double-fetching.
 // ─────────────────────────────────────────────────────────────
 function App() {
   return (
     <SmoothScrollWrapper>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <BrowserRouter>
-            <SessionEnforcer />
-            <Toaster
-              position="top-center"
-              toastOptions={{
-                duration: 5000,
-                style: {
-                  background: '#363636',
-                  color: '#fff',
-                },
-              }}
-            />
-            <MaintenanceWrapper>
-              <AppRoutes />
-            </MaintenanceWrapper>
-          </BrowserRouter>
-        </ThemeProvider>
-      </QueryClientProvider>
+      <ThemeProvider>
+        <BrowserRouter>
+          <SessionEnforcer />
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              duration: 5000,
+              style: {
+                background: '#363636',
+                color: '#fff',
+              },
+            }}
+          />
+          <MaintenanceWrapper>
+            <AppRoutes />
+          </MaintenanceWrapper>
+        </BrowserRouter>
+      </ThemeProvider>
     </SmoothScrollWrapper>
   );
 }
 
 export default App;
-

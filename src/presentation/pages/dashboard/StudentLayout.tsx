@@ -288,7 +288,7 @@ export function StudentLayout() {
 
                 {/* Page Content */}
                 <div className="flex-1">
-                    <Suspense fallback={
+                    <Suspense key={location.pathname} fallback={
                         <div className="animate-pulse space-y-6 p-6">
                             <div className="h-8 bg-slate-200 rounded-lg w-1/3" />
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

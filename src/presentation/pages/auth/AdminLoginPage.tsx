@@ -81,7 +81,8 @@ export function AdminLoginPage() {
             } else {
                 setError('حدث خطأ. يرجى المحاولة مرة أخرى');
             }
-        } finally {
+            // Clear loading only on error — keep spinner visible on success
+            // so the user sees feedback while startTransition loads the dashboard.
             setIsLoading(false);
         }
     };
