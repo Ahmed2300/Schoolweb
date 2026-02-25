@@ -544,14 +544,14 @@ export function TeacherWeeklySchedulePage() {
     // Real-time slot decision updates from admin
     useEffect(() => {
         const handleSlotDecision = (event: CustomEvent) => {
-            console.log('TeacherWeeklySchedulePage: Received slot-decision-change event', event.detail);
+
             // Refetch all schedule data when admin approves/rejects a slot
             Promise.all([
                 refetchSlots(),
                 refetchWeekConfig(),
                 refetchMySchedule()
             ]).then(() => {
-                console.log('Schedule data refreshed after admin decision');
+
             });
         };
 

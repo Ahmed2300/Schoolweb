@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ComponentType } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { ROUTES } from './shared/constants';
@@ -187,15 +187,15 @@ function SessionEnforcer() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// AppRoutes — Suspense with key={pathname} forces React to
-// treat each route as a NEW boundary, so the fallback skeleton
-// renders immediately instead of holding the stale old page.
-// This fixes: "URL changed in address bar but page didn't."
+// AppRoutes — React Router v6 wraps navigations in
+// startTransition, which keeps the old page visible while the
+// new lazy chunk loads. No key is needed on Suspense — adding
+// one would unmount the entire tree (including persistent
+// sidebars/layouts) and flash a full-page skeleton.
 // ─────────────────────────────────────────────────────────────
 function AppRoutes() {
-  const location = useLocation();
   return (
-    <Suspense key={location.pathname} fallback={<FullPageSkeleton />}>
+    <Suspense fallback={<FullPageSkeleton />}>
       <Routes>
         {/* Public routes */}
         <Route path={ROUTES.HOME} element={<LandingPage />} />

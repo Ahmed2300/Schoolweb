@@ -369,7 +369,7 @@ export function ParentChildrenPage() {
             try {
                 initializeParentEcho(token);
                 subscribeToParentChannel(Number(user.id), (event: any) => {
-                    console.log('Parent Notification:', event);
+
 
                     if (event.type === 'link_accepted') {
                         toast.success(event.message || 'تم قبول طلب الربط! 🎉');

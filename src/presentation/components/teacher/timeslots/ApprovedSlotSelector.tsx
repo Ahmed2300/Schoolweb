@@ -249,7 +249,7 @@ export function ApprovedSlotSelector({
             const serverDate = new Date(serverTime);
             const offset = serverDate.getTime() - Date.now();
             setServerOffset(offset);
-            console.log('🕒 Time synced with server. Offset:', offset, 'ms');
+
         }
     }, [serverTime]);
 
@@ -263,24 +263,23 @@ export function ApprovedSlotSelector({
     // Listen for real-time slot updates
     useEffect(() => {
         if (!gradeId) {
-            console.warn('⚠️ ApprovedSlotSelector: Missing gradeId for socket subscription');
+
             return;
         }
 
         const echo = getTeacherEcho();
         if (!echo) {
-            console.warn('⚠️ ApprovedSlotSelector: Echo instance not initialized');
+
             return;
         }
 
         const channelName = `grade.${gradeId}.schedule`;
         const channel = echo.private(channelName);
 
-        console.log(`🔌 Subscribing to ${channelName} for slot updates...`);
+
 
         channel.listen('.slot.status.changed', (e: any) => {
-            console.log('🔔 LIVE UPDATE: Slot status changed event received:', e);
-            console.log('🔄 Invalidating query keys:', teacherTimeSlotKeys.all);
+
 
             // Invalidate to refresh UI immediately
             queryClient.invalidateQueries({ queryKey: teacherTimeSlotKeys.all });
@@ -290,12 +289,12 @@ export function ApprovedSlotSelector({
         });
 
         // Error handling for subscription
-        (channel as any).error((err: any) => {
-            console.error('❌ Socket Subscription Error:', err);
+        channel.error((err: unknown) => {
+            console.error('Socket Subscription Error:', err);
         });
 
         return () => {
-            console.log(`🔌 Unsubscribing from ${channelName}`);
+
             channel.stopListening('.slot.status.changed');
             echo.leave(channelName);
         };
@@ -344,7 +343,9 @@ export function ApprovedSlotSelector({
     const availableDays = useMemo(() => {
         const days = new Set<string>();
         filteredSlots.recurringSlots.forEach(slot => {
-            days.add(slot.day_of_week.toLowerCase());
+            if (slot.day_of_week) {
+                days.add(slot.day_of_week.toLowerCase());
+            }
         });
 
         // Also add days from exception slots if they match the current week
@@ -390,7 +391,7 @@ export function ApprovedSlotSelector({
 
             // 1. Add matching recurring slots
             const recurringForDay = filteredSlots.recurringSlots.filter(
-                s => s.day_of_week.toLowerCase() === dayName
+                s => s.day_of_week?.toLowerCase() === dayName
             );
 
             recurringForDay.forEach(slot => {
@@ -441,7 +442,7 @@ export function ApprovedSlotSelector({
     // Slots for the selected day
     const slotsForSelectedDay = useMemo(() => {
         if (!selectedDay) return [];
-        return datedSlots.filter(s => s.day_of_week.toLowerCase() === selectedDay);
+        return datedSlots.filter(s => s.day_of_week?.toLowerCase() === selectedDay);
     }, [datedSlots, selectedDay]);
 
     // Navigation handlers
@@ -609,7 +610,7 @@ export function ApprovedSlotSelector({
                     const dayDate = date.getDate();
 
                     // Check if all slots for this day are booked
-                    const daySlots = datedSlots.filter(s => s.day_of_week.toLowerCase() === day);
+                    const daySlots = datedSlots.filter(s => s.day_of_week?.toLowerCase() === day);
                     const allBooked = daySlots.length > 0 && daySlots.every(s => s.isBooked);
 
                     return (

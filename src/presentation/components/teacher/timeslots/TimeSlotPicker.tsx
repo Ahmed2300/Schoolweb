@@ -35,10 +35,10 @@ export function TimeSlotPicker({ onSelect, selectedSlotId, bookedSlots = [], cur
         const channel = echo?.channel('time-slots');
         if (!channel) return;
 
-        console.log(`Listening for time-slots on date: ${selectedDate}`);
+
 
         const handleUpdate = (e: any) => {
-            console.log('Real-time slot update:', e);
+
             queryClient.invalidateQueries({ queryKey: teacherTimeSlotKeys.available(selectedDate) });
         };
 

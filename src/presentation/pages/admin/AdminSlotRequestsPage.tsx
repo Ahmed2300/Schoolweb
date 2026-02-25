@@ -327,7 +327,6 @@ export function AdminSlotRequestsPage(): React.ReactElement {
             const channel = echo.private('admins');
 
             channel.listen('.teacher.slot.created', (e: any) => {
-                console.log('🔔 New Slot Request Received:', e);
 
                 toast.success('تم استلام طلب موعد جديد من ' + (e.slot?.teacher?.name || 'مدرس'), {
                     icon: '🔔',

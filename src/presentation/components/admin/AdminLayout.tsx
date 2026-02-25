@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import { AdminSidebar } from './AdminSidebar';
 import { useLanguage } from '../../hooks';
@@ -96,7 +96,19 @@ export function AdminLayout() {
 
                 {/* Page Content */}
                 <main className="p-4 lg:p-8">
-                    <Outlet />
+                    <Suspense fallback={
+                        <div className="animate-pulse space-y-6">
+                            <div className="h-8 bg-slate-200 dark:bg-white/10 rounded-lg w-1/3" />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="h-32 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl shadow-sm" />
+                                ))}
+                            </div>
+                            <div className="h-64 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl shadow-sm" />
+                        </div>
+                    }>
+                        <Outlet />
+                    </Suspense>
                 </main>
             </div>
         </div>
