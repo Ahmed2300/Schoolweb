@@ -13,7 +13,7 @@ export const SmoothScrollWrapper: React.FC<SmoothScrollWrapperProps> = ({ childr
             smoothWheel: true,
             prevent: (nodeElement: Element) => {
                 return nodeElement.closest(
-                    '.custom-scrollbar, .overflow-y-auto, .overscroll-contain, [data-lenis-prevent]'
+                    '[role="dialog"], .modal-content, .custom-scrollbar, .overflow-y-auto, .overscroll-contain, [data-lenis-prevent]'
                 ) !== null;
             }
         }}>
