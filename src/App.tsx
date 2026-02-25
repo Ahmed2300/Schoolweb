@@ -8,11 +8,21 @@ import './shared/i18n';
 import './index.css';
 
 // ─────────────────────────────────────────────────────────────
-// lazyWithRetry — wraps React.lazy with automatic retry logic.
-// If a chunk fails to load (network hiccup, stale cache), it
-// retries up to `retries` times with exponential backoff.
-// This prevents the "URL changed but page is stuck" issue.
+// lazyWithRetry — Production-grade lazy loader.
+//
+// Problem: After a new deployment, Vite generates new chunk
+// hashes. Users with stale HTML reference old chunk URLs that
+// now 404. React.lazy fails silently, startTransition holds
+// the old page, and the app appears "stuck."
+//
+// Solution (3 layers):
+//  1. Retry the import up to 3× with 1-second intervals
+//  2. If all retries fail → force a full page reload to get
+//     fresh HTML with updated chunk references
+//  3. sessionStorage flag prevents infinite reload loops
 // ─────────────────────────────────────────────────────────────
+const CHUNK_RELOAD_KEY = 'chunk_reload_attempted';
+
 function lazyWithRetry<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
   retries = 3,
@@ -20,12 +30,35 @@ function lazyWithRetry<T extends ComponentType<any>>(
 ) {
   return lazy(() => {
     const attempt = (retriesLeft: number): Promise<{ default: T }> =>
-      importFn().catch((error: unknown) => {
-        if (retriesLeft <= 0) throw error;
-        return new Promise<{ default: T }>((resolve) =>
-          setTimeout(() => resolve(attempt(retriesLeft - 1)), interval),
-        );
-      });
+      importFn()
+        .then((module) => {
+          // Chunk loaded successfully — clear any stale reload flag
+          sessionStorage.removeItem(CHUNK_RELOAD_KEY);
+          return module;
+        })
+        .catch((error: unknown) => {
+          if (retriesLeft > 0) {
+            // Retry after a short delay
+            return new Promise<{ default: T }>((resolve) =>
+              setTimeout(() => resolve(attempt(retriesLeft - 1)), interval),
+            );
+          }
+
+          // All retries exhausted — likely a stale deployment
+          const hasReloaded = sessionStorage.getItem(CHUNK_RELOAD_KEY);
+          if (!hasReloaded) {
+            // Force a hard reload to get fresh HTML + chunk manifest
+            sessionStorage.setItem(CHUNK_RELOAD_KEY, '1');
+            window.location.reload();
+            // Return a never-resolving promise to prevent React from
+            // rendering anything while the reload happens
+            return new Promise<{ default: T }>(() => { });
+          }
+
+          // Already reloaded once and still failing — throw to error boundary
+          sessionStorage.removeItem(CHUNK_RELOAD_KEY);
+          throw error;
+        });
     return attempt(retries);
   });
 }
