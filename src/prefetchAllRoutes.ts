@@ -138,10 +138,16 @@ export function prefetchAllRoutes(): void {
         });
     };
 
-    if (typeof window.requestIdleCallback === 'function') {
-        window.requestIdleCallback(start, { timeout: 3000 });
-    } else {
-        // Safari / older browsers
-        setTimeout(start, 2000);
-    }
+    // Delay prefetching to avoid competing with initial page load and LCP
+    const delayedStart = () => {
+        if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(start, { timeout: 5000 });
+        } else {
+            // Safari / older browsers
+            setTimeout(start, 3000);
+        }
+    };
+
+    // Wait 5 seconds after invocation before even queueing the prefetch
+    setTimeout(delayedStart, 5000);
 }

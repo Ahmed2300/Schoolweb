@@ -398,7 +398,12 @@ export function SignupPage() {
                                 animate={{ y: [0, -10, 0] }}
                                 transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
                             >
-                                <img src="/images/signup-student.webp" alt="Student" className="w-full max-w-[420px] h-auto rounded-[2.5rem] shadow-2xl shadow-shibl-crimson/10 border-4 border-white/50" />
+                                <img
+                                    src="/images/signup-student.webp"
+                                    alt="Student"
+                                    className="w-full max-w-[420px] h-auto rounded-[2.5rem] shadow-2xl shadow-shibl-crimson/10 border-4 border-white/50"
+                                    fetchPriority="high"
+                                />
                             </motion.div>
 
                             {/* Floating Badge */}

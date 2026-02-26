@@ -436,6 +436,7 @@ export function SignInPage() {
                                 src={userType === 'student' ? '/images/signin-student.webp' : userType === 'parent' ? '/images/signin-parent.webp' : '/images/hero-teacher.webp'}
                                 alt={userType === 'student' ? 'طالب' : userType === 'parent' ? 'ولي أمر' : 'معلم'}
                                 className="w-full h-auto rounded-3xl drop-shadow-2xl transition-all duration-500"
+                                fetchPriority="high"
                             />
                         </div>
 

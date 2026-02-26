@@ -78,10 +78,26 @@ export default defineConfig({
             return 'vendor-lenis';
           }
 
-          // Everything else (React, MUI, framer-motion, recharts,
-          // react-hook-form, etc.) → Rollup handles automatically.
-          // This avoids circular dependency issues between chunks.
-          return undefined;
+          // ── Heavy UI & Core Libraries ──
+          if (id.includes('@mui')) {
+            return 'vendor-mui';
+          }
+          if (id.includes('framer-motion')) {
+            return 'vendor-framer-motion';
+          }
+          if (id.includes('@xyflow')) {
+            return 'vendor-xyflow';
+          }
+          if (id.includes('firebase') || id.includes('@firebase')) {
+            return 'vendor-firebase';
+          }
+
+          if (id.includes('@tanstack/react-query')) {
+            return 'vendor-query';
+          }
+
+          // Everything else (React, react-hook-form, etc.) 
+          // → Rollup handles automatically.
         },
       },
     },
