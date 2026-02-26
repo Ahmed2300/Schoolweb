@@ -242,7 +242,7 @@ export function LandingPage() {
                                     src="/images/hero-teacher.webp"
                                     alt="Professional Omani teacher explaining lesson"
                                     className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
-                                    loading="lazy"
+                                    fetchPriority="high"
                                     decoding="async"
                                 />
                                 {/* Overlay Gradient */}
