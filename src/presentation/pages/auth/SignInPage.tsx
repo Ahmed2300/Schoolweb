@@ -20,15 +20,15 @@ import {
     TrendingUp,
     ArrowLeft,
     School,
-    PlayCircle
+
 } from 'lucide-react';
-import { VideoModal } from '../../components/common/VideoModal';
+
 import { SessionConflictModal } from '../../components/auth/SessionConflictModal';
 import { OtpVerificationModal } from '../../components/auth/OtpVerificationModal';
 
 type UserType = 'student' | 'parent' | 'teacher';
 
-import { TutorialThumbnail } from '../../components/common/TutorialThumbnail';
+
 
 export function SignInPage() {
     const { isRTL } = useLanguage();
@@ -39,7 +39,7 @@ export function SignInPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [showVideoModal, setShowVideoModal] = useState(false);
+
     const [showConflictModal, setShowConflictModal] = useState(false);
     const [showOtpModal, setShowOtpModal] = useState(false);
     const [otpError, setOtpError] = useState('');
@@ -421,13 +421,7 @@ export function SignInPage() {
                             <Link to={ROUTES.REGISTER} className="text-shibl-crimson font-bold hover:underline">أنشئ حساباً الآن</Link>
                         </p>
 
-                        <div className="mt-5 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-100 flex justify-center">
-                            <TutorialThumbnail
-                                videoUrl="https://youtu.be/8ux9wCb0iQs"
-                                onClick={() => setShowVideoModal(true)}
-                                layoutId="tutorial-video-card"
-                            />
-                        </div>
+
                     </div>
                 </div>
 
@@ -483,14 +477,7 @@ export function SignInPage() {
                 </div>
             </div>
 
-            {/* Video Modal */}
-            <VideoModal
-                isOpen={showVideoModal}
-                onClose={() => setShowVideoModal(false)}
-                videoUrl="https://youtu.be/8ux9wCb0iQs"
-                title="كيف تسجل الدخول في منصة سُبُل"
-                layoutId="tutorial-video-card"
-            />
+
             {/* Session Conflict Modal */}
             <SessionConflictModal
                 isOpen={showConflictModal}

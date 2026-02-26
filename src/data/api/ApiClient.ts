@@ -37,8 +37,11 @@ apiClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
         // Skip adding the Authorization header for strictly public endpoints
         // so the browser can utilize HTTP caching (ETags, Cache-Control).
-        const isPublicGet = config.method === 'get' && config.url && (
-            config.url.includes('/settings') ||
+        // IMPORTANT: Only skip for truly public routes. Admin routes like
+        // /api/v1/admin/settings MUST include the token.
+        const isAdminRoute = config.url?.includes('/admin/');
+        const isPublicGet = config.method === 'get' && config.url && !isAdminRoute && (
+            config.url.includes('/v1/settings') ||
             config.url.includes('/countries') ||
             config.url.includes('/public')
         );

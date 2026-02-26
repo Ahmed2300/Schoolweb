@@ -70,6 +70,13 @@ export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, 
         if (errorState.code === 'SESSION_ENDED') return 'ended';
         if (errorState.code === 'MEETING_NOT_RUNNING') return 'upcoming';
 
+        // CRITICAL: If a recording exists or meeting is marked completed,
+        // the session has definitively ended — regardless of scheduling times.
+        // This prevents "upcoming" status when the teacher already recorded it.
+        const hasRecording = lecture.has_recording || !!lecture.recording_url;
+        const isMeetingCompleted = lecture.meeting_status === 'completed';
+        if (hasRecording || isMeetingCompleted) return 'ended';
+
         if (!timeSlot) return 'live'; // No schedule = assume available to join
 
         if (timeSlot.status === 'pending') return 'pending';

@@ -7,8 +7,7 @@ import { authService } from '../../../data/api';
 import apiClient from '../../../data/api/ApiClient';
 import { endpoints } from '../../../data/api/endpoints';
 import { motion, AnimatePresence } from 'framer-motion';
-import { VideoModal } from '../../components/common/VideoModal';
-import { TutorialThumbnail } from '../../components/common/TutorialThumbnail';
+
 import { PasswordStrengthMeter } from '../../components/auth/PasswordStrengthMeter';
 import { signupSchema, step1Schema, step2Schema, step3Schema } from './schemas/signupSchema';
 import { CountryCodeSelect } from '../../components/ui/CountryCodeSelect';
@@ -187,8 +186,7 @@ export function SignupPage() {
         { id: 3, name: 'صحار', country_id: 1 }, { id: 4, name: 'نزوى', country_id: 1 },
     ];
 
-    // Video Modal State
-    const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
 
     // Data Fetching
     useEffect(() => {
@@ -851,25 +849,12 @@ export function SignupPage() {
                             </div>
                         </form>
 
-                        {/* Secondary Action: Watch Tutorial */}
-                        <div className="mt-8 pt-6 border-t border-slate-100 flex justify-center">
-                            <TutorialThumbnail
-                                videoUrl="https://youtu.be/xDY-eLt9NKQ"
-                                onClick={() => setIsVideoModalOpen(true)}
-                                layoutId="tutorial-video-signup"
-                            />
-                        </div>
+
                     </div>
                 </motion.div>
             </div >
 
-            <VideoModal
-                isOpen={isVideoModalOpen}
-                onClose={() => setIsVideoModalOpen(false)}
-                videoUrl="https://youtu.be/xDY-eLt9NKQ"
-                title="شرح خطوات التسجيل في منصة شبل"
-                layoutId="tutorial-video-signup"
-            />
+
         </div >
     );
 }
