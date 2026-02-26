@@ -5,16 +5,16 @@ import App from './App.tsx'
 import { QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { queryClient } from './lib/react-query';
-import { initOneSignal } from './initOneSignal';
-
-// Initialize OneSignal but defer it to not block the main thread and initial paint (improves Total Blocking Time)
+// Initialize OneSignal but defer it — dynamic import ensures the module
+// itself doesn't load until the browser is idle (improves TBT / unused JS)
 if (typeof window !== 'undefined') {
+  const loadOneSignal = () => {
+    import('./initOneSignal').then(({ initOneSignal }) => initOneSignal());
+  };
   if ('requestIdleCallback' in window) {
-    window.requestIdleCallback(() => {
-      initOneSignal();
-    });
+    window.requestIdleCallback(loadOneSignal);
   } else {
-    setTimeout(initOneSignal, 3000);
+    setTimeout(loadOneSignal, 3000);
   }
 }
 

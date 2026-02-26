@@ -22,78 +22,72 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     target: 'es2020',
-    cssCodeSplit: false, // ← Single CSS file instead of per-chunk CSS
+    cssCodeSplit: false,
     chunkSizeWarningLimit: 600,
-
-    // Inline images/SVGs under 8 KB as data-URIs → fewer HTTP requests
     assetsInlineLimit: 8192,
 
-    // ─────────────────────────────────────────────────────────
-    // CHUNK STRATEGY — Aggressive consolidation
-    //
-    // Goal: ~8 JS files on initial landing page instead of 133.
-    //
-    // How it works:
-    //  • ALL vendor node_modules → single `vendor` chunk
-    //  • App pages grouped by ROLE → one chunk per role
-    //  • Landing & Auth pages → their own small chunks
-    //  • Everything else → stays in the main entry bundle
-    //
-    // Trade-off: slightly larger individual chunks, but
-    // dramatically fewer HTTP requests. On HTTP/2, one 200KB
-    // file is faster than twenty 10KB files due to per-request
-    // overhead (headers, TLS records, multiplexing contention).
-    // ─────────────────────────────────────────────────────────
     rollupOptions: {
       output: {
+        // ─────────────────────────────────────────────────────
+        // SMART CHUNK STRATEGY
+        //
+        // Vendors split by USAGE PATTERN — landing page only
+        // downloads what it needs. Heavy dashboard-only libs
+        // (xyflow, d3, firebase) are left to Rollup, so they
+        // lazy-load with the pages that actually import them.
+        //
+        // App pages grouped by ROLE — one chunk per role.
+        // ─────────────────────────────────────────────────────
         manualChunks(id: string) {
-          // Normalize Windows backslashes
           const n = id.replace(/\\/g, '/');
 
-          // ── Vendor: ALL node_modules in ONE chunk ──
-          if (n.includes('node_modules')) {
-            return 'vendor';
+          // ── App pages by role ──
+          if (!n.includes('node_modules')) {
+            if (n.includes('/pages/admin/')) return 'app-admin';
+            if (n.includes('/pages/teacher/')) return 'app-teacher';
+            if (
+              n.includes('/pages/dashboard/Student') ||
+              n.includes('/pages/student/')
+            ) return 'app-student';
+            if (n.includes('/pages/dashboard/Parent')) return 'app-parent';
+            if (n.includes('/pages/auth/')) return 'app-auth';
+            if (n.includes('/pages/landing/')) return 'app-landing';
+            return undefined;
           }
 
-          // ── App PAGES only: group by role ──
-          // Components, hooks, stores, and services are left to
-          // Rollup to avoid circular initialization errors.
-
-          // Admin pages
-          if (n.includes('/pages/admin/')) {
-            return 'app-admin';
-          }
-
-          // Teacher pages
-          if (n.includes('/pages/teacher/')) {
-            return 'app-teacher';
-          }
-
-          // Student pages
+          // ── Vendor: React core — needed on EVERY page ──
           if (
-            n.includes('/pages/dashboard/Student') ||
-            n.includes('/pages/student/')
-          ) {
-            return 'app-student';
-          }
+            n.includes('/react/') ||
+            n.includes('/react-dom/') ||
+            n.includes('/react-router') ||
+            n.includes('/@remix-run/') ||
+            n.includes('/scheduler/')
+          ) return 'vendor-react';
 
-          // Parent pages
-          if (n.includes('/pages/dashboard/Parent')) {
-            return 'app-parent';
-          }
+          // ── Icons (lucide-react) — large but tree-shakeable ──
+          if (n.includes('/lucide-react/')) return 'vendor-icons';
 
-          // Auth pages (login, signup, forgot password, etc.)
-          if (n.includes('/pages/auth/')) {
-            return 'app-auth';
-          }
+          // ── Animation / motion — landing + dashboards ──
+          if (
+            n.includes('/framer-motion/') ||
+            n.includes('/gsap/') ||
+            n.includes('/lenis/')
+          ) return 'vendor-ui';
 
-          // Landing / marketing pages
-          if (n.includes('/pages/landing/')) {
-            return 'app-landing';
-          }
+          // ── Heavy dashboard-only libs ──
+          // DON'T group these — let Rollup attach them to the
+          // lazy chunks that actually import them. They will NOT
+          // load on the landing page.
+          if (
+            n.includes('/@xyflow/') ||
+            n.includes('/d3') ||
+            n.includes('/firebase/') ||
+            n.includes('/react-circular-progressbar') ||
+            n.includes('/onesignal/')
+          ) return undefined; // Rollup auto-splits
 
-          // Everything else → Rollup handles safely
-          return undefined;
+          // ── Common utilities ──
+          return 'vendor-lib';
         },
       },
     },
