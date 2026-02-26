@@ -76,12 +76,9 @@ export default defineConfig({
             return 'vendor-icons';
           }
 
-          // ── 3. Heavy UI framework (MUI) ──
-          if (
-            id.includes('@mui/') ||
-            id.includes('@emotion/') ||
-            id.includes('@popperjs/')
-          ) {
+          // ── 3. Heavy UI framework (MUI + Emotion) ──
+          // Keep @emotion with MUI — they're tightly coupled
+          if (id.includes('@mui/') || id.includes('@emotion/')) {
             return 'vendor-mui';
           }
 
@@ -121,13 +118,11 @@ export default defineConfig({
           }
 
           // ── 9. Charting / Data viz ──
-          if (
-            id.includes('recharts') ||
-            id.includes('d3-') ||
-            id.includes('react-circular-progressbar') ||
-            id.includes('victory')
-          ) {
-            return 'vendor-charts';
+          // NOTE: recharts & react-circular-progressbar use CJS React.Component
+          // references that break when chunked separately from React.
+          // d3-* is safe to group (pure util, no React dependency).
+          if (id.includes('d3-')) {
+            return 'vendor-d3';
           }
 
           // ── 10. Date / i18n utilities ──
