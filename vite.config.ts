@@ -24,6 +24,9 @@ export default defineConfig({
     sourcemap: false,
     // Target modern browsers for smaller JS output
     target: 'es2020',
+    // Split CSS per route chunk — avoids one monolithic render-blocking bundle.
+    // Each lazy-loaded route gets only the CSS it needs.
+    cssCodeSplit: true,
     // Warn on chunks larger than 250KB
     chunkSizeWarningLimit: 250,
     // Split vendor code into stable, cacheable chunks
