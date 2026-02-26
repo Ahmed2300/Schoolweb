@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useLanguage } from '../../hooks/useLanguage';
 import { useTheme } from '../../../context/ThemeContext';
 import { useSettings } from '../../../hooks/useSettings';
-import { FullPageLoader } from '../common/FullPageLoader';
 import { ROUTES } from '../../../shared/constants';
 import { Menu, X, LogIn, UserPlus, Home, Layers, Star, Phone, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,9 +12,9 @@ import { ThemeToggle } from '../common/ThemeToggle';
 export function Navbar() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, logout, isLoggingOut } = useAuth();
+    const { user, logout } = useAuth();
     const { data: settingsData } = useSettings();
-    const { isRTL } = useTheme(); // Assuming useTheme provides isRTL
+    const { isRTL } = useLanguage();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const logoPath = settingsData?.logo_path || '';
