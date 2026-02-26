@@ -164,7 +164,8 @@ body {
   .scrollbar-sleek {
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
-    transition: scrollbar-color 0.3s ease;
+    /* ⚠️ No transition on scrollbar-color — it's non-composited and triggers
+       forced reflow on every frame, flagged by Lighthouse as CLS source. */
   }
 
   .scrollbar-sleek:hover {

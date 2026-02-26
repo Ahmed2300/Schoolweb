@@ -2,8 +2,6 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-gsap.registerPlugin(ScrollTrigger);
-
 export const ParallaxHero = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const backgroundRef = useRef<HTMLDivElement>(null);
@@ -11,6 +9,10 @@ export const ParallaxHero = () => {
     const foregroundRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        // Register plugin lazily — avoids synchronous DOM measurements
+        // during initial script evaluation (saves ~50ms main-thread work).
+        gsap.registerPlugin(ScrollTrigger);
+
         const container = containerRef.current;
         const background = backgroundRef.current;
         const orbLayer = orbLayerRef.current;

@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import gsap from 'gsap';
 
 interface TextRevealProps {
@@ -19,6 +19,9 @@ interface TextRevealProps {
  * Instead of splitting text into individual words (which breaks bg-clip-text gradients),
  * this component animates each direct child as a whole block.
  * Each child block slides up and fades in with a staggered delay.
+ *
+ * Performance: Uses IntersectionObserver to defer GSAP until the element
+ * enters the viewport, eliminating forced reflows during initial page load.
  */
 export const TextReveal = ({
     children,
@@ -29,8 +32,29 @@ export const TextReveal = ({
     as: Tag = 'div',
 }: TextRevealProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const [isVisible, setIsVisible] = useState(false);
 
+    // Track viewport entry — only animate once visible
     useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '100px' }
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
+
+    // Run animation only after element is in viewport
+    useEffect(() => {
+        if (!isVisible) return;
         const container = containerRef.current;
         if (!container) return;
 
@@ -54,7 +78,7 @@ export const TextReveal = ({
         }, container);
 
         return () => ctx.revert();
-    }, [delay, duration, stagger]);
+    }, [isVisible, delay, duration, stagger]);
 
     const TagComponent = Tag as React.ElementType;
 
