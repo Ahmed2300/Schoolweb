@@ -69,6 +69,8 @@ import {
 } from './presentation/pages';
 import { AdminLayout } from './presentation/components/admin';
 import { TeacherLayout } from './presentation/components/teacher';
+import { InfluencerLayout } from './presentation/components/influencer/InfluencerLayout';
+import { InfluencerDashboardPage } from './presentation/pages/influencer/InfluencerDashboardPage';
 import { ProtectedRoute } from './presentation/components/auth';
 import { MaintenanceWrapper } from './presentation/components/MaintenanceWrapper';
 import { ROUTES } from './shared/constants';
@@ -99,6 +101,10 @@ function SessionEnforcer() {
 }
 
 import AdminParentDetailsPage from './presentation/pages/admin/AdminParentDetailsPage';
+import { AdminInfluencersPage } from './presentation/pages/admin/AdminInfluencersPage';
+import { AdminAffiliateAnalyticsPage } from './presentation/pages/admin/AdminAffiliateAnalyticsPage';
+import { AdminWithdrawalsPage } from './presentation/pages/admin/AdminWithdrawalsPage';
+import { AdminAddInfluencerPage, AdminEditInfluencerPage } from './presentation/pages/admin';
 
 function App() {
   return (
@@ -230,13 +236,29 @@ function App() {
               <Route path="package-subscriptions" element={<AdminPackageSubscriptionsPage />} />
               <Route path="academic-structure" element={<AdminAcademicGraphPage />} />
               <Route path="client-reports" element={<AdminClientReportsPage />} />
+              <Route path="influencers" element={<AdminInfluencersPage />} />
+              <Route path="affiliate-analytics" element={<AdminAffiliateAnalyticsPage />} />
+              <Route path="influencers/create" element={<AdminAddInfluencerPage />} />
+              <Route path="influencers/:id/edit" element={<AdminEditInfluencerPage />} />
+              <Route path="withdrawals" element={<AdminWithdrawalsPage />} />
 
               <Route path="content-approvals" element={<AdminContentApprovalsPage />} />
               <Route path="quizzes" element={<AdminQuizzesPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
               <Route path="schedule-config" element={<AdminScheduleConfigPage />} />
-              <Route path="slot-requests" element={<AdminSlotRequestsPage />} />
               <Route path="class-schedules" element={<AdminClassSchedulesPage />} />
+            </Route>
+
+            {/* Influencer Routes - Protected for influencer role only */}
+            <Route
+              path="/influencer"
+              element={
+                <ProtectedRoute allowedRoles={['influencer']}>
+                  <InfluencerLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="dashboard" element={<InfluencerDashboardPage />} />
             </Route>
 
             {/* 404 Catch-all Route */}

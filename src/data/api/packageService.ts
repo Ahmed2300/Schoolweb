@@ -43,6 +43,8 @@ export interface PackageSubscription {
     package_id: number;
     status: 'pending' | 'active' | 'rejected' | 'expired';
     bill_image_url?: string;
+    promo_code?: string;
+    commission_amount?: number;
     rejection_reason?: string;
     start_date?: string;
     end_date?: string;
@@ -110,10 +112,13 @@ export const packageService = {
     /**
      * Purchase a package (with optional bill image)
      */
-    purchasePackage: async (packageId: number, billImage?: File): Promise<PackageSubscription> => {
+    purchasePackage: async (packageId: number, billImage?: File, promoCode?: string): Promise<PackageSubscription> => {
         const formData = new FormData();
         if (billImage) {
             formData.append('bill_image', billImage);
+        }
+        if (promoCode) {
+            formData.append('promo_code', promoCode);
         }
 
         // Don't set Content-Type manually - let axios handle it for FormData

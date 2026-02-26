@@ -302,6 +302,46 @@ export interface UpdateRoleRequest {
     permissions?: number[];
 }
 
+// ==================== AFFILIATE SYSTEM TYPES ====================
+
+export interface InfluencerData {
+    id: number;
+    name: string;
+    email: string;
+    mobile?: string;
+    role: 'influencer';
+    status: 'active' | 'inactive';
+    codes?: { id: number; code: string; is_active: boolean }[];
+    fixed_commission_amount: number;
+    total_balance: number;
+    total_withdrawn: number;
+    created_at: string;
+}
+
+export interface CreateInfluencerRequest {
+    name: string;
+    email: string;
+    mobile: string;
+    password?: string;
+    fixed_commission_amount: number;
+    status: 'active' | 'inactive';
+    discount_percentage?: number;
+    codes_count?: number;
+    promo_code?: string;
+}
+
+export interface WithdrawalData {
+    id: number;
+    amount: number;
+    status: 'pending' | 'approved' | 'rejected';
+    created_at: string;
+    requestable?: {
+        id: number;
+        name: string;
+        email: string;
+    };
+}
+
 // Subject types
 
 
@@ -383,6 +423,8 @@ export interface AdminSubscription {
     status: AdminSubscriptionStatus;
     status_label: string;
     bill_image_path?: string;
+    promo_code?: string;
+    commission_amount?: number;
     rejection_reason?: string;
     start_date?: string;
     end_date?: string;
@@ -2421,6 +2463,68 @@ export const adminService = {
 
     deleteSetting: async (key: string): Promise<void> => {
         await apiClient.delete(endpoints.settings.admin.delete(key));
+    },
+
+    // ==================== AFFILIATE SYSTEM (ADMIN) ====================
+
+    getInfluencers: async (params?: { page?: number; per_page?: number; search?: string }): Promise<PaginatedResponse<InfluencerData>> => {
+        const response = await apiClient.get('/api/v1/admin/influencers', { params });
+        return response.data;
+    },
+
+    getInfluencerUsages: async (id: number, params?: { page?: number; per_page?: number }): Promise<PaginatedResponse<any>> => {
+        const response = await apiClient.get(`/api/v1/admin/influencers/${id}/usages`, { params });
+        return response.data;
+    },
+
+    createInfluencer: async (data: CreateInfluencerRequest): Promise<{ data: InfluencerData }> => {
+        const response = await apiClient.post('/api/v1/admin/influencers', data);
+        return response.data;
+    },
+
+    getInfluencer: async (id: number): Promise<{ data: InfluencerData }> => {
+        const response = await apiClient.get(`/api/v1/admin/influencers/${id}`);
+        return response.data;
+    },
+
+    updateInfluencer: async (id: number, data: Partial<CreateInfluencerRequest>): Promise<{ data: InfluencerData }> => {
+        const response = await apiClient.put(`/api/v1/admin/influencers/${id}`, data);
+        return response.data;
+    },
+
+    deleteInfluencer: async (id: number): Promise<{ message: string }> => {
+        const response = await apiClient.delete(`/api/v1/admin/influencers/${id}`);
+        return response.data;
+    },
+
+    toggleInfluencerActive: async (id: number): Promise<{ message: string; is_active: boolean }> => {
+        const response = await apiClient.patch(`/api/v1/admin/influencers/${id}/toggle-active`);
+        return response.data;
+    },
+
+    updateInfluencerCommission: async (id: number, commission: number): Promise<{ message: string; influencer: InfluencerData }> => {
+        const response = await apiClient.patch(`/api/v1/admin/influencers/${id}/commission`, { fixed_commission_amount: commission });
+        return response.data;
+    },
+
+    getWithdrawals: async (params?: { page?: number; per_page?: number; status?: string }): Promise<PaginatedResponse<WithdrawalData>> => {
+        const response = await apiClient.get('/api/v1/admin/withdrawals', { params });
+        return response.data;
+    },
+
+    approveWithdrawal: async (id: number): Promise<{ message: string; withdrawal: WithdrawalData }> => {
+        const response = await apiClient.patch(`/api/v1/admin/withdrawals/${id}/approve`);
+        return response.data;
+    },
+
+    rejectWithdrawal: async (id: number, reason?: string): Promise<{ message: string; withdrawal: WithdrawalData }> => {
+        const response = await apiClient.patch(`/api/v1/admin/withdrawals/${id}/reject`, { reason });
+        return response.data;
+    },
+
+    updateAffiliateCode: async (id: number, data: { code?: string, discount_percentage?: number, is_active?: boolean }): Promise<any> => {
+        const response = await apiClient.put(`/api/v1/admin/affiliate-codes/${id}`, data);
+        return response.data;
     },
 };
 

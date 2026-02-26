@@ -61,6 +61,13 @@ export const ROUTES = {
     ADMIN_REPORTS: '/admin/reports',
     ADMIN_SETTINGS: '/admin/settings',
     ADMIN_PACKAGES: '/admin/packages',
+    ADMIN_INFLUENCERS: '/admin/influencers',
+    ADMIN_INFLUENCER_EDIT: '/admin/influencers/:id/edit',
+    ADMIN_AFFILIATE_ANALYTICS: '/admin/affiliate-analytics',
+    ADMIN_WITHDRAWALS: '/admin/withdrawals',
+
+    // Influencer routes
+    INFLUENCER_DASHBOARD: '/influencer/dashboard',
 } as const;
 
 // Helper to generate paths with params

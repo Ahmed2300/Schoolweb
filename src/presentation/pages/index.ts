@@ -7,6 +7,7 @@ export { AdminQuizzesPage } from './admin/quizzes/AdminQuizzesPage';
 export { StudentLayout } from './dashboard/StudentLayout';
 export * from './admin';
 export * from './teacher';
+export * from './influencer';
 export { NotFoundPage } from './NotFoundPage';
 export { MaintenancePage } from './MaintenancePage';
 export { ContactPage } from './ContactPage';

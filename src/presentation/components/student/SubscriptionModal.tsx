@@ -59,6 +59,10 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     const [bankInfo, setBankInfo] = useState(DEFAULT_BANK_INFO);
     const [walletInfo, setWalletInfo] = useState(DEFAULT_WALLET_INFO);
     const [loadingSettings, setLoadingSettings] = useState(false);
+    const [promoCode, setPromoCode] = useState('');
+    const [appliedPromo, setAppliedPromo] = useState<{ code: string; discountPercentage: number; amount: number; type: 'percentage' | 'fixed_amount'; minSpend?: number | null } | null>(null);
+    const [validatingPromo, setValidatingPromo] = useState(false);
+    const [promoError, setPromoError] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [subscriptionId, setSubscriptionId] = useState<number | null>(null);
@@ -78,6 +82,9 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
             setPreviewUrl(null);
             setSubscriptionId(null);
             setCopiedField(null);
+            setPromoCode('');
+            setAppliedPromo(null);
+            setPromoError(null);
         }
     }, [isOpen, isFree]);
 
@@ -136,6 +143,49 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
             console.error('Failed to copy:', err);
         }
     };
+
+    // Promo code validation
+    const handleApplyPromoCode = async () => {
+        if (!promoCode.trim()) return;
+        setValidatingPromo(true);
+        setPromoError(null);
+        try {
+            // Updated to pass course_id and type
+            const response = await studentService.validatePromoCode(promoCode.trim(), course.id, 'course');
+
+            // Validate min spend
+            if (response.data.min_spend && coursePrice < response.data.min_spend) {
+                setPromoError(`هذا الكود يتطلب حد أدنى للشراء ${response.data.min_spend} ر.ع`);
+                setAppliedPromo(null);
+                setValidatingPromo(false);
+                return;
+            }
+
+            setAppliedPromo({
+                code: response.data.code,
+                discountPercentage: response.data.discount_percentage,
+                amount: response.data.discount_amount,
+                type: response.data.discount_type,
+                minSpend: response.data.min_spend,
+            });
+        } catch (err: any) {
+            setPromoError(err.response?.data?.message || 'كود الخصم غير صحيح أو منتهي الصلاحية');
+            setAppliedPromo(null);
+        } finally {
+            setValidatingPromo(false);
+        }
+    };
+
+    // Calculate final price
+    let finalPrice = coursePrice;
+    if (appliedPromo) {
+        if (appliedPromo.type === 'percentage') {
+            finalPrice = coursePrice - (coursePrice * (appliedPromo.discountPercentage / 100));
+        } else if (appliedPromo.type === 'fixed_amount') {
+            finalPrice = coursePrice - appliedPromo.amount;
+        }
+    }
+    finalPrice = Math.max(0, finalPrice);
 
     // File handling
     const handleFileSelect = (file: File) => {
@@ -218,7 +268,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
         try {
             // Step 1: Create the subscription
-            const subscription = await studentService.subscribeToCourse(course.id);
+            const subscription = await studentService.subscribeToCourse(course.id, appliedPromo?.code);
 
             // Step 2: Upload the receipt
             await studentService.uploadPaymentReceipt(subscription.id, selectedFile);
@@ -384,15 +434,75 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                                         <p className="text-slate-600 text-xs sm:text-sm mb-0.5 sm:mb-1">سعر الدورة</p>
                                         <p className="text-[11px] sm:text-xs text-slate-500">شامل جميع المحاضرات والمواد</p>
                                     </div>
-                                    <div className="text-left">
-                                        <span className="text-2xl sm:text-3xl font-black text-shibl-crimson">{coursePrice}</span>
-                                        <span className="text-base sm:text-lg font-bold text-shibl-crimson mr-1">ر.ع</span>
+                                    <div className="text-left flex flex-col items-end">
+                                        {appliedPromo && (
+                                            <div className="text-slate-400 line-through text-sm sm:text-base font-semibold">
+                                                {coursePrice} ر.ع
+                                            </div>
+                                        )}
+                                        <div>
+                                            <span className="text-2xl sm:text-3xl font-black text-shibl-crimson">
+                                                {finalPrice}
+                                            </span>
+                                            <span className="text-base sm:text-lg font-bold text-shibl-crimson mr-1">ر.ع</span>
+                                        </div>
+                                        {appliedPromo && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 mt-1">
+                                                خصم {appliedPromo.type === 'percentage' ? `${appliedPromo.discountPercentage}%` : `${appliedPromo.amount} ر.ع`}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
 
+                            {/* Promo Code Input */}
+                            <div className="space-y-2">
+                                <label className="text-xs sm:text-sm font-semibold text-slate-700">كود الخصم (اختياري)</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={promoCode}
+                                        onChange={(e) => {
+                                            setPromoCode(e.target.value.toUpperCase());
+                                            if (promoError) setPromoError(null);
+                                        }}
+                                        disabled={!!appliedPromo || validatingPromo}
+                                        placeholder="أدخل الكود هنا"
+                                        className="flex-1 h-10 sm:h-12 px-3 sm:px-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none transition-all uppercase placeholder:normal-case font-mono disabled:opacity-50"
+                                        dir="ltr"
+                                    />
+                                    {appliedPromo ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setAppliedPromo(null);
+                                                setPromoCode('');
+                                            }}
+                                            className="h-10 sm:h-12 px-4 sm:px-5 rounded-xl text-red-600 bg-red-50 hover:bg-red-100 font-semibold text-sm transition-colors shrink-0"
+                                        >
+                                            إلغاء
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={handleApplyPromoCode}
+                                            disabled={!promoCode.trim() || validatingPromo}
+                                            className="h-10 sm:h-12 px-4 sm:px-5 rounded-xl text-white bg-slate-800 hover:bg-slate-900 font-semibold text-sm transition-all shrink-0 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[80px]"
+                                        >
+                                            {validatingPromo ? <Loader2 size={16} className="animate-spin" /> : 'تطبيق'}
+                                        </button>
+                                    )}
+                                </div>
+                                {promoError && (
+                                    <p className="text-xs text-red-500 font-medium flex items-center gap-1 mt-1">
+                                        <AlertCircle size={12} />
+                                        {promoError}
+                                    </p>
+                                )}
+                            </div>
+
                             {/* Bank Info */}
-                            <div className="space-y-2.5 sm:space-y-3">
+                            <div className="space-y-2.5 sm:space-y-3 pt-2">
                                 <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
                                     <Building2 className="text-red-600" size={20} />
                                     معلومات الحساب البنكي

@@ -470,12 +470,33 @@ export const studentService = {
     // ============================================================
 
     /**
+     * Validate an affiliate promo code
+     */
+    validatePromoCode: async (code: string, id: number, type: 'course' | 'package'): Promise<{
+        success: boolean;
+        data: {
+            code: string;
+            discount_percentage: number;
+            discount_amount: number;
+            discount_type: 'percentage' | 'fixed_amount';
+            min_spend?: number | null;
+        }
+    }> => {
+        const response = await apiClient.get('/api/v1/students/affiliate/validate-code', {
+            params: { code, id, type }
+        });
+        return response.data;
+    },
+
+    /**
      * Subscribe to a course (creates pending subscription)
      */
-    subscribeToCourse: async (courseId: number): Promise<Subscription> => {
-        const response = await apiClient.post('/api/v1/students/subscriptions', {
-            course_id: courseId,
-        });
+    subscribeToCourse: async (courseId: number, promoCode?: string): Promise<Subscription> => {
+        const payload: any = { course_id: courseId };
+        if (promoCode) {
+            payload.promo_code = promoCode;
+        }
+        const response = await apiClient.post('/api/v1/students/subscriptions', payload);
         return response.data.data || response.data;
     },
 

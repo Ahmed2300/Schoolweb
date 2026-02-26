@@ -21,3 +21,7 @@ export { AdminScheduleConfigPage } from './AdminScheduleConfigPage';
 export { AdminSlotRequestsPage } from './AdminSlotRequestsPage';
 export { AdminClassSchedulesPage } from './AdminClassSchedulesPage';
 export { AdminClientReportsPage } from './AdminClientReportsPage';
+export * from './AdminAffiliateAnalyticsPage';
+export { AdminInfluencersPage } from './AdminInfluencersPage';
+export { AdminAddInfluencerPage } from './AdminAddInfluencerPage';
+export { AdminEditInfluencerPage } from './AdminEditInfluencerPage';

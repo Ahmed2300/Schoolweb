@@ -4,7 +4,7 @@ import { ROUTES } from '../../../shared/constants';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
-    allowedRoles?: ('student' | 'parent' | 'teacher' | 'admin')[];
+    allowedRoles?: ('student' | 'parent' | 'teacher' | 'admin' | 'influencer')[];
 }
 
 /**
@@ -39,6 +39,8 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
                 return <Navigate to={ROUTES.TEACHER_DASHBOARD} replace />;
             } else if (user.role === 'admin') {
                 return <Navigate to={ROUTES.ADMIN_DASHBOARD} replace />;
+            } else if (user.role === 'influencer') {
+                return <Navigate to={ROUTES.INFLUENCER_DASHBOARD} replace />;
             }
             // Fallback to home
             return <Navigate to={ROUTES.HOME} replace />;
