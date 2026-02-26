@@ -23,15 +23,19 @@ export const BentoQuizCard = () => {
                 {/* Quiz image */}
                 <div className="flex-1 flex items-center justify-center mt-auto">
                     <div className="relative w-full rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-500">
-                        <img
-                            src="/images/smart-quiz.png"
-                            alt="اختبارات ذكية - اختبارات MCQ مع تصحيح تلقائي"
-                            className="w-full h-full object-cover rounded-2xl transition-transform duration-700 ease-out"
-                            style={{
-                                transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-                            }}
-                            loading="lazy"
-                        />
+                        <picture>
+                            <source srcSet="/images/smart-quiz.webp" type="image/webp" />
+                            <img
+                                src="/images/smart-quiz.png"
+                                alt="اختبارات ذكية - اختبارات MCQ مع تصحيح تلقائي"
+                                className="w-full h-full object-cover rounded-2xl transition-transform duration-700 ease-out"
+                                style={{
+                                    transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+                                }}
+                                loading="lazy"
+                                decoding="async"
+                            />
+                        </picture>
                     </div>
                 </div>
             </div>

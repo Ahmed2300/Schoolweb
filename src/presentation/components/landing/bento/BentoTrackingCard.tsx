@@ -40,12 +40,16 @@ export const BentoTrackingCard = () => {
                 {/* Tracking dashboard image */}
                 <div className="flex-1 flex items-center justify-center mt-auto">
                     <div className="relative w-full rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-500">
-                        <img
-                            src="/images/tracking-dashboard.png"
-                            alt="متابعة دقيقة - تقارير تقدم الطلاب"
-                            className="w-full h-full object-cover rounded-2xl transition-transform duration-700 ease-out group-hover:scale-105"
-                            loading="lazy"
-                        />
+                        <picture>
+                            <source srcSet="/images/tracking-dashboard.webp" type="image/webp" />
+                            <img
+                                src="/images/tracking-dashboard.png"
+                                alt="متابعة دقيقة - تقارير تقدم الطلاب"
+                                className="w-full h-full object-cover rounded-2xl transition-transform duration-700 ease-out group-hover:scale-105"
+                                loading="lazy"
+                                decoding="async"
+                            />
+                        </picture>
                     </div>
                 </div>
             </div>

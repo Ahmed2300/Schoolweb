@@ -24,15 +24,19 @@ export const BentoLiveCard = () => {
 
                 {/* Live session image */}
                 <div className="flex-1 flex items-center justify-center mt-auto relative rounded-xl overflow-hidden shadow-lg">
-                    <img
-                        src="/images/live-session.png"
-                        alt="حصة مباشرة تفاعلية مع المعلم والطلاب"
-                        className="w-full h-full object-cover rounded-xl transition-transform duration-700 ease-out"
-                        style={{
-                            transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-                        }}
-                        loading="lazy"
-                    />
+                    <picture>
+                        <source srcSet="/images/live-session.webp" type="image/webp" />
+                        <img
+                            src="/images/live-session.png"
+                            alt="حصة مباشرة تفاعلية مع المعلم والطلاب"
+                            className="w-full h-full object-cover rounded-xl transition-transform duration-700 ease-out"
+                            style={{
+                                transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+                            }}
+                            loading="lazy"
+                            decoding="async"
+                        />
+                    </picture>
                     {/* LIVE badge overlay */}
                     <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 dark:bg-charcoal/90 backdrop-blur-sm border border-red-200 dark:border-red-800 shadow-sm">
                         <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />

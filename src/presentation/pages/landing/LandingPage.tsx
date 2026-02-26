@@ -57,7 +57,7 @@ export function LandingPage() {
                         className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none transition-opacity hover:opacity-80"
                         onDoubleClick={() => navigate(ROUTES.ADMIN_LOGIN)}
                     >
-                        <img src="/images/subol-red.png" alt="سُبُل" className="w-6 h-6 sm:w-8 sm:h-8" />
+                        <img src="/images/subol-red.png" alt="سُبُل" className="w-6 h-6 sm:w-8 sm:h-8" width="32" height="32" loading="eager" />
                         <span className="text-base sm:text-xl font-extrabold text-charcoal whitespace-nowrap">سُبُل</span>
                     </div>
 
@@ -242,6 +242,8 @@ export function LandingPage() {
                                     src="/images/hero-teacher.webp"
                                     alt="Professional Omani teacher explaining lesson"
                                     className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
+                                    loading="lazy"
+                                    decoding="async"
                                 />
                                 {/* Overlay Gradient */}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />

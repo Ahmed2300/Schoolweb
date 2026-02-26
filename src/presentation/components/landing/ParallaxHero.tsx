@@ -84,6 +84,8 @@ export const ParallaxHero = () => {
                     role="presentation"
                     className="w-full h-full object-cover"
                     loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
                 />
             </div>
 
@@ -112,6 +114,8 @@ export const ParallaxHero = () => {
                     alt="طلاب ومعلم سُبُل"
                     className="w-full h-full object-cover"
                     loading="eager"
+                    fetchPriority="low"
+                    decoding="async"
                 />
             </div>
         </section>

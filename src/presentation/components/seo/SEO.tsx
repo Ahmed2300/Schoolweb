@@ -12,7 +12,7 @@ export function SEO({
     title,
     description,
     canonical = 'https://www.soubul.net/',
-    ogImage = '/images/subol-hero.webp',
+    ogImage = 'https://www.soubul.net/images/subol-hero.webp',
     type = 'website'
 }: SEOProps) {
     const siteTitle = 'سُبُل - علم يوصل للمستقبل';
@@ -45,6 +45,8 @@ export function SEO({
             <meta property="og:title" content={fullTitle} />
             <meta property="og:description" content={description} />
             <meta property="og:image" content={ogImage} />
+            <meta property="og:locale" content="ar_OM" />
+            <meta property="og:site_name" content="سُبُل - علم يوصل للمستقبل" />
 
             {/* Twitter */}
             <meta name="twitter:card" content="summary_large_image" />

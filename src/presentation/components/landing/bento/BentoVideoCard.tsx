@@ -44,12 +44,16 @@ export const BentoVideoCard = () => {
                 {/* Video content image */}
                 <div className="flex-1 flex items-center justify-center mt-auto">
                     <div className="relative w-full rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-500">
-                        <img
-                            src="/images/video-content.png"
-                            alt="محتوى فيديو متميز - دروس مسجلة بأعلى جودة"
-                            className="w-full h-full object-cover rounded-2xl transition-transform duration-700 ease-out group-hover:scale-105"
-                            loading="lazy"
-                        />
+                        <picture>
+                            <source srcSet="/images/video-content.webp" type="image/webp" />
+                            <img
+                                src="/images/video-content.png"
+                                alt="محتوى فيديو متميز - دروس مسجلة بأعلى جودة"
+                                className="w-full h-full object-cover rounded-2xl transition-transform duration-700 ease-out group-hover:scale-105"
+                                loading="lazy"
+                                decoding="async"
+                            />
+                        </picture>
 
                         {/* Glowing play button overlay */}
                         <div className="absolute inset-0 flex items-center justify-center">
