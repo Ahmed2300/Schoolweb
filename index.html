@@ -23,13 +23,48 @@
 
   <link rel="canonical" href="https://soubul.net/" />
 
-  <!-- NOTE: Hero images are NOT preloaded here because LandingPage is lazy-loaded
-       via React.lazy. By the time the chunk loads + mounts, the preloaded resources
-       time out (~3s gap). Instead, fetchPriority="high" is set directly on the
-       <img> tags in ParallaxHero.tsx for same-effect without the warning. -->
-  <!-- Preconnect to Google Fonts for faster TLS handshake (saves ~100-200ms) -->
+  <!-- Preconnect: Google Fonts (TLS handshake ~100-200ms saved) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Preload LCP image — browser discovers it immediately instead of
+       waiting for JS to parse → mount → render the <img> tag. -->
+  <link rel="preload" as="image" type="image/webp" href="/images/hero-background.webp" fetchpriority="high" />
+
+  <!-- Inline Critical CSS — renders the above-the-fold skeleton
+       BEFORE the full 341KB CSS file finishes downloading. -->
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Cairo', 'Tajawal', sans-serif;
+      background: #F8F9FA;
+      color: #1F1F1F;
+      min-height: 100vh;
+    }
+
+    #root {
+      display: contents;
+    }
+
+    .parallax-hero {
+      background-color: #AF0C15;
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      height: clamp(200px, 50vw, 600px);
+    }
+  </style>
   <link rel="dns-prefetch" href="https://api.dicebear.com" />
 
   <!-- Google Fonts — non-render-blocking (saves ~930ms on mobile) -->
@@ -46,7 +81,30 @@
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <!-- Instant-paint skeleton: renders from HTML before ANY JS loads.
+         React.createRoot replaces this on mount. Eliminates white-screen. -->
+    <div
+      style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#F8F9FA;direction:rtl">
+      <img src="/images/subol-red.png" alt="" width="80" height="80"
+        style="animation:pulse 1.5s ease-in-out infinite" />
+      <p style="margin-top:16px;font-family:'Cairo','Tajawal',sans-serif;color:#636E72;font-size:14px">جاري التحميل...
+      </p>
+    </div>
+    <style>
+      @keyframes pulse {
+
+        0%,
+        100% {
+          opacity: 1
+        }
+
+        50% {
+          opacity: .5
+        }
+      }
+    </style>
+  </div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 
