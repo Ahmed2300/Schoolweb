@@ -23,25 +23,15 @@ export default defineConfig({
     sourcemap: false,
     target: 'es2020',
     cssCodeSplit: false,
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 800,
     assetsInlineLimit: 8192,
 
     rollupOptions: {
       output: {
-        // ─────────────────────────────────────────────────────
-        // SMART CHUNK STRATEGY
-        //
-        // Vendors split by USAGE PATTERN — landing page only
-        // downloads what it needs. Heavy dashboard-only libs
-        // (xyflow, d3, firebase) are left to Rollup, so they
-        // lazy-load with the pages that actually import them.
-        //
-        // App pages grouped by ROLE — one chunk per role.
-        // ─────────────────────────────────────────────────────
         manualChunks(id: string) {
           const n = id.replace(/\\/g, '/');
 
-          // ── App pages by role ──
+          // ── App pages by role (pages only) ──
           if (!n.includes('node_modules')) {
             if (n.includes('/pages/admin/')) return 'app-admin';
             if (n.includes('/pages/teacher/')) return 'app-teacher';
@@ -55,39 +45,20 @@ export default defineConfig({
             return undefined;
           }
 
-          // ── Vendor: React core — needed on EVERY page ──
-          if (
-            n.includes('/react/') ||
-            n.includes('/react-dom/') ||
-            n.includes('/react-router') ||
-            n.includes('/@remix-run/') ||
-            n.includes('/scheduler/')
-          ) return 'vendor-react';
-
-          // ── Icons (lucide-react) — large but tree-shakeable ──
-          if (n.includes('/lucide-react/')) return 'vendor-icons';
-
-          // ── Animation / motion — landing + dashboards ──
-          if (
-            n.includes('/framer-motion/') ||
-            n.includes('/gsap/') ||
-            n.includes('/lenis/')
-          ) return 'vendor-ui';
-
           // ── Heavy dashboard-only libs ──
-          // DON'T group these — let Rollup attach them to the
-          // lazy chunks that actually import them. They will NOT
-          // load on the landing page.
+          // These are safe to separate: they don't call React.memo
+          // at top level, and only load when admin/teacher pages need them.
+          // Saves ~300KB of unused JS from loading on the landing page.
           if (
             n.includes('/@xyflow/') ||
-            n.includes('/d3') ||
-            n.includes('/firebase/') ||
-            n.includes('/react-circular-progressbar') ||
-            n.includes('/onesignal/')
-          ) return undefined; // Rollup auto-splits
+            n.includes('/d3-') ||
+            n.includes('/d3/')
+          ) return 'vendor-heavy';
 
-          // ── Common utilities ──
-          return 'vendor-lib';
+          // ── Everything else: ONE vendor chunk ──
+          // React + all React-dependent libs must stay together to
+          // avoid initialization order errors (React.memo not defined).
+          return 'vendor';
         },
       },
     },
