@@ -35,9 +35,19 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor - add auth token and headers
 apiClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        const token = localStorage.getItem(TOKEN_KEY);
-        if (token && config.headers) {
-            config.headers.Authorization = `Bearer ${token}`;
+        // Skip adding the Authorization header for strictly public endpoints
+        // so the browser can utilize HTTP caching (ETags, Cache-Control).
+        const isPublicGet = config.method === 'get' && config.url && (
+            config.url.includes('/settings') ||
+            config.url.includes('/countries') ||
+            config.url.includes('/public')
+        );
+
+        if (!isPublicGet) {
+            const token = localStorage.getItem(TOKEN_KEY);
+            if (token && config.headers) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
         }
 
         // Add language header for i18n

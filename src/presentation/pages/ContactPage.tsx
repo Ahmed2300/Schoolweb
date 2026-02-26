@@ -11,13 +11,12 @@ import {
     Loader2,
     Link as LinkIcon
 } from 'lucide-react';
-import { commonService } from '../../data/api/commonService';
+import { useSettings } from '../../hooks/useSettings';
 import { Navbar } from '../components/landing/Navbar';
 import { Footer } from '../components/common/Footer';
 
 export function ContactPage() {
-    const [loading, setLoading] = useState(true);
-    const [settings, setSettings] = useState<any>({});
+    const { data: settings = {}, isLoading: settingsLoading } = useSettings();
 
     // Form state
     const [formData, setFormData] = useState({
@@ -28,25 +27,6 @@ export function ContactPage() {
     });
     const [formLoading, setFormLoading] = useState(false);
     const [formSuccess, setFormSuccess] = useState(false);
-
-    useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                const data = await commonService.getSettings();
-                const settingsMap: any = {};
-                if (data && Array.isArray(data)) {
-                    data.forEach((s: any) => { settingsMap[s.key] = s.value; });
-                }
-                setSettings(settingsMap);
-            } catch (error) {
-                console.error("Failed to fetch settings", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchSettings();
-    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -60,7 +40,7 @@ export function ContactPage() {
         setTimeout(() => setFormSuccess(false), 5000);
     };
 
-    if (loading) {
+    if (settingsLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
                 <Loader2 className="w-10 h-10 text-shibl-crimson animate-spin" />

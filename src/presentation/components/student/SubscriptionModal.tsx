@@ -23,6 +23,7 @@ import {
     Shield
 } from 'lucide-react';
 import { studentService, Course, getLocalizedName } from '../../../data/api/studentService';
+import { useSettings } from '../../../hooks/useSettings';
 
 interface SubscriptionModalProps {
     isOpen: boolean;
@@ -56,9 +57,9 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     const [step, setStep] = useState<Step>('payment');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { data: settings = {}, isLoading: loadingSettings } = useSettings();
     const [bankInfo, setBankInfo] = useState(DEFAULT_BANK_INFO);
     const [walletInfo, setWalletInfo] = useState(DEFAULT_WALLET_INFO);
-    const [loadingSettings, setLoadingSettings] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [subscriptionId, setSubscriptionId] = useState<number | null>(null);
@@ -81,45 +82,30 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         }
     }, [isOpen, isFree]);
 
-    // Fetch system settings on mount (only for paid courses)
+    // Process system settings on mount (only for paid courses)
     useEffect(() => {
-        const fetchSettings = async () => {
-            if (!isOpen || isFree) return;
+        if (!isOpen || isFree || Object.keys(settings).length === 0) return;
 
-            setLoadingSettings(true);
-            try {
-                const settings = await studentService.getSystemSettings();
+        if (settings.bank_account) {
+            const lines = settings.bank_account.split('\n').map((l: string) => l.trim()).filter(Boolean);
 
-                if (settings.bank_account) {
-                    const lines = settings.bank_account.split('\n').map(l => l.trim()).filter(Boolean);
-
-                    if (lines.length > 0) {
-                        setBankInfo({
-                            bankName: lines[0] || DEFAULT_BANK_INFO.bankName,
-                            accountName: lines[1] || '',
-                            accountNumber: lines[2] || '',
-                            iban: lines[3] || '',
-                        });
-                    }
-                }
-
-                if (settings.phone_wallet) {
-                    setWalletInfo({
-                        label: 'محفظة إلكترونية',
-                        number: settings.phone_wallet,
-                    });
-                }
-            } catch (err) {
-                console.error('Failed to load payment settings', err);
-            } finally {
-                setLoadingSettings(false);
+            if (lines.length > 0) {
+                setBankInfo({
+                    bankName: lines[0] || DEFAULT_BANK_INFO.bankName,
+                    accountName: lines[1] || '',
+                    accountNumber: lines[2] || '',
+                    iban: lines[3] || '',
+                });
             }
-        };
-
-        if (isOpen) {
-            fetchSettings();
         }
-    }, [isOpen, isFree]);
+
+        if (settings.phone_wallet) {
+            setWalletInfo({
+                label: 'محفظة إلكترونية',
+                number: settings.phone_wallet,
+            });
+        }
+    }, [isOpen, isFree, settings]);
 
     if (!isOpen) return null;
 

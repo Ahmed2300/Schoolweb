@@ -628,35 +628,6 @@ export const studentService = {
         return response.data.data || response.data;
     },
 
-    /**
-     * Get system public settings
-     */
-    getSystemSettings: async (): Promise<Record<string, string>> => {
-        try {
-            const response = await apiClient.get(endpoints.settings.public.list);
-            const settingsList = response.data.data || response.data || [];
-
-            // Convert array of settings to object key-value pairs
-            // Assuming response is [{key: 'k', value: 'v'}, ...]
-            const settingsMap: Record<string, string> = {};
-
-            if (Array.isArray(settingsList)) {
-                settingsList.forEach((setting: any) => {
-                    if (setting.key && setting.value) {
-                        settingsMap[setting.key] = setting.value;
-                    }
-                });
-            } else if (typeof settingsList === 'object') {
-                // Handle case where it might already be an object
-                return settingsList;
-            }
-
-            return settingsMap;
-        } catch (error) {
-            console.error('Error fetching system settings:', error);
-            return {};
-        }
-    },
 
     /**
      * Mark a scheduled lecture as completed

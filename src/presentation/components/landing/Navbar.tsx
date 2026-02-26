@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useLanguage } from '../../hooks';
+import { useAuth } from '../../hooks/useAuth';
+import { useTheme } from '../../../context/ThemeContext';
+import { useSettings } from '../../../hooks/useSettings';
+import { FullPageLoader } from '../common/FullPageLoader';
 import { ROUTES } from '../../../shared/constants';
 import { Menu, X, LogIn, UserPlus, Home, Layers, Star, Phone, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,28 +12,13 @@ import { ThemeToggle } from '../common/ThemeToggle';
 export function Navbar() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { isRTL } = useLanguage();
+    const { user, logout, isLoggingOut } = useAuth();
+    const { data: settingsData } = useSettings();
+    const { isRTL } = useTheme(); // Assuming useTheme provides isRTL
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [logoPath, setLogoPath] = useState<string>('');
-    const [platformName, setPlatformName] = useState<string>('سُبُل');
 
-    useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                const { commonService } = await import('../../../data/api/commonService');
-                const data = await commonService.getSettings();
-                if (data && Array.isArray(data)) {
-                    const settingsMap: Record<string, string> = {};
-                    data.forEach((s: { key: string; value: string }) => { settingsMap[s.key] = s.value; });
-                    if (settingsMap.logo_path) setLogoPath(settingsMap.logo_path);
-                    if (settingsMap.platform_name) setPlatformName(settingsMap.platform_name);
-                }
-            } catch (error) {
-                console.error("Failed to fetch settings navbar", error);
-            }
-        };
-        fetchSettings();
-    }, []);
+    const logoPath = settingsData?.logo_path || '';
+    const platformName = settingsData?.platform_name || 'سُبُل';
 
     const toggleMobileMenu = useCallback(() => {
         setIsMobileMenuOpen(prev => !prev);
