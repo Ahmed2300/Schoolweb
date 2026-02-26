@@ -108,6 +108,12 @@ export function SignInPage() {
                             role: 'teacher',
                         };
                         setUser(userWithRole as any);
+
+                        // Pre-warm teacher chunks so navigation is instant
+                        await Promise.allSettled([
+                            import('../../components/teacher'),
+                            import('../teacher/TeacherDashboardPage'),
+                        ]);
                         navigate(ROUTES.TEACHER_DASHBOARD);
                     }
                     return;
@@ -135,10 +141,19 @@ export function SignInPage() {
 
                     setUser(userWithRole as any);
 
-                    // Navigate based on user role
+                    // Pre-warm the destination chunks BEFORE navigating
+                    // so React Router's transition resolves instantly
                     if (userType === 'student') {
+                        await Promise.allSettled([
+                            import('../dashboard/StudentLayout'),
+                            import('../dashboard/StudentHomePage'),
+                        ]);
                         navigate(ROUTES.DASHBOARD);
                     } else if (userType === 'parent') {
+                        await Promise.allSettled([
+                            import('../dashboard/ParentLayout'),
+                            import('../dashboard/ParentHomePage'),
+                        ]);
                         navigate(ROUTES.PARENT_DASHBOARD);
                     }
                 }

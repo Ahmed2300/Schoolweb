@@ -69,6 +69,12 @@ export function AdminLoginPage() {
                     role: 'admin' as const,
                 };
                 setUser(adminUser as any);
+
+                // Pre-warm admin chunks so navigation is instant
+                await Promise.allSettled([
+                    import('../../components/admin'),
+                    import('../admin/AdminDashboard'),
+                ]);
                 navigate(ROUTES.ADMIN_DASHBOARD);
             }
         } catch (err: any) {

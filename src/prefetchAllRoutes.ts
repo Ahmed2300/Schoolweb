@@ -1,68 +1,59 @@
 /**
- * prefetchAllRoutes — Background module preloader
+ * prefetchAllRoutes — Role-aware background module preloader
  *
- * Fires all route-level dynamic imports in the background immediately
- * after the app paints. Every `import()` call returns the same module
- * promise once resolved, so when React.lazy later requests the same
- * chunk, it resolves instantly from the browser's module cache.
+ * Only prefetches the routes relevant to the current user's role,
+ * drastically cutting the initial request count from 60+ to ~10-15.
  *
  * Strategy:
- *  1. `requestIdleCallback` (or 2-second fallback) to avoid blocking
- *     first paint and main-thread interactivity.
- *  2. Small staggered batches to avoid saturating the network with
- *     60+ parallel requests — the browser's HTTP/2 limit is ~6-8
- *     concurrent streams per origin.
- *  3. Each import is individually caught so one failure never blocks
- *     the rest.
+ *  1. `requestIdleCallback` to avoid blocking first paint
+ *  2. Small staggered batches of 4 to avoid network saturation
+ *  3. Each import is individually caught
+ *  4. Only loads `shared` + current role routes
  */
 
-// ── All route imports (mirrors App.tsx exactly) ──────────────────
+type UserRole = 'student' | 'parent' | 'teacher' | 'admin' | null;
 
-const routeImports: Array<() => Promise<unknown>> = [
-    // Public / Landing
-    () => import('./presentation/pages/landing/LandingPage'),
-    () => import('./presentation/pages/landing/FeaturesPage'),
-    () => import('./presentation/pages/landing/PrivacyPolicyPage'),
-    () => import('./presentation/pages/landing/TermsAndConditionsPage'),
-    () => import('./presentation/pages/landing/TechSupportPage'),
-    () => import('./presentation/pages/ContactPage'),
-    () => import('./presentation/pages/NotFoundPage'),
+// ── Route imports grouped by role ─────────────────────────────
 
-    // Auth
+const sharedImports: Array<() => Promise<unknown>> = [
+    // Auth pages (user might navigate to these)
     () => import('./presentation/pages/auth/SignInPage'),
     () => import('./presentation/pages/auth/SignupPage'),
-    () => import('./presentation/pages/auth/VerifyEmailPage'),
     () => import('./presentation/pages/auth/ForgotPasswordPage'),
     () => import('./presentation/pages/auth/ResetPasswordPage'),
-    () => import('./presentation/pages/auth/AdminLoginPage'),
-    () => import('./presentation/pages/auth/TeacherVerifyEmailPage'),
+];
 
-    // Layouts
-    () => import('./presentation/components/admin'),
-    () => import('./presentation/components/teacher'),
+const publicImports: Array<() => Promise<unknown>> = [
+    () => import('./presentation/pages/landing/LandingPage'),
+    () => import('./presentation/pages/landing/FeaturesPage'),
+    () => import('./presentation/pages/ContactPage'),
+    () => import('./presentation/pages/NotFoundPage'),
+];
+
+const studentImports: Array<() => Promise<unknown>> = [
     () => import('./presentation/pages/dashboard/StudentLayout'),
-    () => import('./presentation/pages/dashboard/ParentLayout'),
-
-    // Student Dashboard
     () => import('./presentation/pages/dashboard/StudentHomePage'),
     () => import('./presentation/pages/dashboard/StudentCoursesPage'),
     () => import('./presentation/pages/dashboard/StudentCourseDetailPage'),
     () => import('./presentation/pages/dashboard/StudentSchedulePage'),
     () => import('./presentation/pages/dashboard/StudentQuizzesPage'),
-    () => import('./presentation/pages/dashboard/StudentLivePage'),
     () => import('./presentation/pages/dashboard/StudentProfilePage'),
     () => import('./presentation/pages/dashboard/StudentPackagesPage'),
     () => import('./presentation/pages/dashboard/StudentParentRequestsPage'),
     () => import('./presentation/pages/student/LecturePlayerPage'),
+];
 
-    // Parent Dashboard
+const parentImports: Array<() => Promise<unknown>> = [
+    () => import('./presentation/pages/dashboard/ParentLayout'),
     () => import('./presentation/pages/dashboard/ParentHomePage'),
     () => import('./presentation/pages/dashboard/ParentChildrenPage'),
     () => import('./presentation/pages/dashboard/ParentStorePage'),
     () => import('./presentation/pages/dashboard/ParentSettingsPage'),
     () => import('./presentation/pages/dashboard/ParentCourseProgressPage'),
+];
 
-    // Teacher Dashboard
+const teacherImports: Array<() => Promise<unknown>> = [
+    () => import('./presentation/components/teacher'),
     () => import('./presentation/pages/teacher/TeacherDashboardPage'),
     () => import('./presentation/pages/teacher/TeacherCoursesPage'),
     () => import('./presentation/pages/teacher/TeacherCourseDetailsPage'),
@@ -71,8 +62,10 @@ const routeImports: Array<() => Promise<unknown>> = [
     () => import('./presentation/pages/teacher/AnalyticsPage'),
     () => import('./presentation/pages/teacher/TeacherSlotRequestsPage'),
     () => import('./presentation/pages/teacher/TeacherWeeklySchedulePage'),
+];
 
-    // Admin Dashboard
+const adminImports: Array<() => Promise<unknown>> = [
+    () => import('./presentation/components/admin'),
     () => import('./presentation/pages/admin/AdminDashboard'),
     () => import('./presentation/pages/admin/AdminAdminsPage'),
     () => import('./presentation/pages/admin/AdminUsersPage'),
@@ -98,56 +91,77 @@ const routeImports: Array<() => Promise<unknown>> = [
     () => import('./presentation/pages/admin/AdminClassSchedulesPage'),
     () => import('./presentation/pages/admin/AdminStudentDetailsPage'),
     () => import('./presentation/pages/admin/AdminParentDetailsPage'),
-
-    // Classroom
-    () => import('./presentation/pages/classroom/LiveClassroomPage'),
 ];
 
-// ── Batch executor ───────────────────────────────────────────────
+// ── Batch executor ──────────────────────────────────────────
 
-const BATCH_SIZE = 6;
-const BATCH_DELAY_MS = 100; // small gap between batches
+const BATCH_SIZE = 4;
+const BATCH_DELAY_MS = 150;
 
 async function executeBatch(batch: Array<() => Promise<unknown>>): Promise<void> {
     await Promise.allSettled(batch.map((fn) => fn()));
 }
 
-async function prefetchSequentially(): Promise<void> {
-    for (let i = 0; i < routeImports.length; i += BATCH_SIZE) {
-        const batch = routeImports.slice(i, i + BATCH_SIZE);
+async function prefetchSequentially(imports: Array<() => Promise<unknown>>): Promise<void> {
+    for (let i = 0; i < imports.length; i += BATCH_SIZE) {
+        const batch = imports.slice(i, i + BATCH_SIZE);
         await executeBatch(batch);
-        // Small yield to keep main thread responsive
-        if (i + BATCH_SIZE < routeImports.length) {
+        if (i + BATCH_SIZE < imports.length) {
             await new Promise((r) => setTimeout(r, BATCH_DELAY_MS));
         }
     }
 }
 
-// ── Public API ───────────────────────────────────────────────────
+// ── Public API ──────────────────────────────────────────────
 
 /**
+ * Prefetch route modules relevant to the current user role.
+ *
+ * - Unauthenticated: only shared + public pages (~8 chunks)
+ * - Student: shared + student pages (~14 chunks)
+ * - Admin: shared + admin pages (~30 chunks)
+ *
  * Call once after the app has rendered its first paint.
- * Uses `requestIdleCallback` where available, otherwise
- * falls back to a 2-second `setTimeout`.
  */
-export function prefetchAllRoutes(): void {
+export function prefetchAllRoutes(role: UserRole = null): void {
     const start = () => {
-        prefetchSequentially().catch(() => {
+        // Build the import list based on role
+        const imports: Array<() => Promise<unknown>> = [];
+
+        if (!role) {
+            // Not logged in: only prefetch public + auth pages
+            imports.push(...publicImports, ...sharedImports);
+        } else {
+            // Logged in: prefetch shared + role-specific routes
+            imports.push(...sharedImports);
+
+            switch (role) {
+                case 'student':
+                    imports.push(...studentImports);
+                    break;
+                case 'parent':
+                    imports.push(...parentImports);
+                    break;
+                case 'teacher':
+                    imports.push(...teacherImports);
+                    break;
+                case 'admin':
+                    imports.push(...adminImports);
+                    break;
+            }
+        }
+
+        prefetchSequentially(imports).catch(() => {
             // Silently swallow — individual import errors are already
             // handled by `allSettled`; this catch is a safety net.
         });
     };
 
-    // Delay prefetching to avoid competing with initial page load and LCP
-    const delayedStart = () => {
-        if (typeof window.requestIdleCallback === 'function') {
-            window.requestIdleCallback(start, { timeout: 5000 });
-        } else {
-            // Safari / older browsers
-            setTimeout(start, 3000);
-        }
-    };
-
-    // Wait 5 seconds after invocation before even queueing the prefetch
-    setTimeout(delayedStart, 5000);
+    // Use requestIdleCallback to avoid blocking interactivity
+    if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(start, { timeout: 4000 });
+    } else {
+        // Safari / older browsers — short fallback delay
+        setTimeout(start, 2000);
+    }
 }

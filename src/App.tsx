@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { ROUTES } from './shared/constants';
 import { FullPageSkeleton } from './presentation/components/common/FullPageSkeleton';
 import { prefetchAllRoutes } from './prefetchAllRoutes';
+import { useAuthStore } from './presentation/store/authStore';
 import './shared/i18n';
 import './index.css';
 
@@ -21,46 +22,59 @@ import './index.css';
 //     fresh HTML with updated chunk references
 //  3. sessionStorage flag prevents infinite reload loops
 // ─────────────────────────────────────────────────────────────
-const CHUNK_RELOAD_KEY = 'chunk_reload_attempted';
-
+// ─────────────────────────────────────────────────────────────
+// lazyWithRetry — Production-grade lazy loader.
+//
+// Problem: After a new deployment, Vite generates new chunk
+// hashes. Users with stale HTML reference old chunk URLs that
+// now 404. React.lazy fails silently, startTransition holds
+// the old page, and the app appears "stuck."
+//
+// Solution (3 layers):
+//  1. Retry the import once with a 500ms delay
+//  2. If retry fails → force a cache-busting page reload
+//  3. URL param `_reload=1` prevents infinite reload loops
+//     (survives mobile tab kills, unlike sessionStorage)
+// ─────────────────────────────────────────────────────────────
 function lazyWithRetry<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
-  retries = 3,
-  interval = 1000,
 ) {
   return lazy(() => {
-    const attempt = (retriesLeft: number): Promise<{ default: T }> =>
-      importFn()
-        .then((module) => {
-          // Chunk loaded successfully — clear any stale reload flag
-          sessionStorage.removeItem(CHUNK_RELOAD_KEY);
-          return module;
-        })
-        .catch((error: unknown) => {
-          if (retriesLeft > 0) {
-            // Retry after a short delay
-            return new Promise<{ default: T }>((resolve) =>
-              setTimeout(() => resolve(attempt(retriesLeft - 1)), interval),
-            );
-          }
+    return importFn()
+      .catch(() => {
+        // First failure — retry once after 500ms
+        return new Promise<{ default: T }>((resolve) =>
+          setTimeout(() => resolve(importFn()), 500),
+        );
+      })
+      .catch((error: unknown) => {
+        // Both attempts failed — likely a stale deployment
+        const url = new URL(window.location.href);
+        const alreadyReloaded = url.searchParams.has('_reload');
 
-          // All retries exhausted — likely a stale deployment
-          const hasReloaded = sessionStorage.getItem(CHUNK_RELOAD_KEY);
-          if (!hasReloaded) {
-            // Force a hard reload to get fresh HTML + chunk manifest
-            sessionStorage.setItem(CHUNK_RELOAD_KEY, '1');
-            window.location.reload();
-            // Return a never-resolving promise to prevent React from
-            // rendering anything while the reload happens
-            return new Promise<{ default: T }>(() => { });
-          }
+        if (!alreadyReloaded) {
+          // Force a cache-busting full page reload
+          url.searchParams.set('_reload', '1');
+          url.searchParams.set('_t', String(Date.now()));
+          window.location.replace(url.toString());
+          // Never-resolving promise to prevent React from rendering
+          return new Promise<{ default: T }>(() => { });
+        }
 
-          // Already reloaded once and still failing — throw to error boundary
-          sessionStorage.removeItem(CHUNK_RELOAD_KEY);
-          throw error;
-        });
-    return attempt(retries);
+        // Already reloaded once and still failing — throw to error boundary
+        throw error;
+      });
   });
+}
+
+// Clean up reload params on successful app load
+if (typeof window !== 'undefined') {
+  const url = new URL(window.location.href);
+  if (url.searchParams.has('_reload')) {
+    url.searchParams.delete('_reload');
+    url.searchParams.delete('_t');
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -191,10 +205,12 @@ function SessionEnforcer() {
 // React.lazy resolves instantly.
 // ─────────────────────────────────────────────────────────────
 function AppRoutes() {
-  // Prefetch ALL route modules in the background after first paint.
+  const role = useAuthStore((s) => s.user?.role ?? null);
+
+  // Prefetch only the route modules relevant to the current user's role.
   useEffect(() => {
-    prefetchAllRoutes();
-  }, []);
+    prefetchAllRoutes(role);
+  }, [role]);
 
   return (
     <Suspense fallback={<FullPageSkeleton />}>

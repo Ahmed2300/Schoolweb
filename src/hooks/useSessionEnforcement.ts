@@ -28,67 +28,76 @@ export function useSessionEnforcement() {
     useEffect(() => {
         if (!user) return;
 
-        // Retrieve the stored auth token – needed to initialize Echo
-        const token = localStorage.getItem('auth_token');
-        if (!token) {
-            console.warn('SessionEnforcement: No auth token in localStorage');
-            return;
-        }
-
-        let echo;
-        let channelName: string;
-
-        // Determine which Echo instance and channel to use based on user role.
-        // If the getter returns null, we initialize it ourselves.
-        switch (user.role) {
-            case 'student':
-                echo = getStudentEcho() ?? initializeStudentEcho(token);
-                channelName = `student.${user.id}`;
-                break;
-            case 'parent':
-                echo = getParentEcho() ?? initializeParentEcho(token);
-                channelName = `parent.${user.id}`;
-                break;
-            case 'teacher':
-                echo = getTeacherEcho() ?? initializeTeacherEcho(token);
-                channelName = `teacher.${user.id}`;
-                break;
-            case 'admin':
-                echo = getEcho() ?? initializeEcho(token);
-                channelName = `admin.${user.id}`;
-                break;
-            default:
+        // Defer WebSocket initialization by 3 seconds to avoid competing
+        // with critical chunk downloads during dashboard load.
+        // Notifications/force-logout are not critical-path.
+        const deferTimer = setTimeout(() => {
+            // Retrieve the stored auth token – needed to initialize Echo
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                console.warn('SessionEnforcement: No auth token in localStorage');
                 return;
-        }
+            }
 
-        if (!echo) {
-            console.warn('SessionEnforcement: Failed to create Echo instance for role', user.role);
-            return;
-        }
+            let echo;
+            let channelName: string;
 
+            // Determine which Echo instance and channel to use based on user role.
+            // If the getter returns null, we initialize it ourselves.
+            switch (user.role) {
+                case 'student':
+                    echo = getStudentEcho() ?? initializeStudentEcho(token);
+                    channelName = `student.${user.id}`;
+                    break;
+                case 'parent':
+                    echo = getParentEcho() ?? initializeParentEcho(token);
+                    channelName = `parent.${user.id}`;
+                    break;
+                case 'teacher':
+                    echo = getTeacherEcho() ?? initializeTeacherEcho(token);
+                    channelName = `teacher.${user.id}`;
+                    break;
+                case 'admin':
+                    echo = getEcho() ?? initializeEcho(token);
+                    channelName = `admin.${user.id}`;
+                    break;
+                default:
+                    return;
+            }
 
+            if (!echo) {
+                console.warn('SessionEnforcement: Failed to create Echo instance for role', user.role);
+                return;
+            }
 
-        const channel = echo.private(channelName);
+            const channel = echo.private(channelName);
 
-        // Handler that runs when the server pushes a force-logout event
-        const handleForceLogout = (event: unknown) => {
+            // Handler that runs when the server pushes a force-logout event
+            const handleForceLogout = (_event: unknown) => {
+                toast.error('تم تسجيل الدخول من جهاز آخر. تم إنهاء الجلسة الحالية.', {
+                    duration: 6000,
+                    icon: '🔒',
+                });
 
+                // Clear local state and redirect
+                logout();
+                navigate('/login');
+            };
 
-            toast.error('تم تسجيل الدخول من جهاز آخر. تم إنهاء الجلسة الحالية.', {
-                duration: 6000,
-                icon: '🔒',
-            });
+            // Laravel Echo prepends a dot to custom broadcastAs names
+            channel.listen('.force.logout', handleForceLogout);
 
-            // Clear local state and redirect
-            logout();
-            navigate('/login');
-        };
+            // Store cleanup ref for unmount
+            cleanupRef = () => {
+                channel.stopListening('.force.logout');
+            };
+        }, 3000);
 
-        // Laravel Echo prepends a dot to custom broadcastAs names
-        channel.listen('.force.logout', handleForceLogout);
+        let cleanupRef: (() => void) | undefined;
 
         return () => {
-            channel.stopListening('.force.logout');
+            clearTimeout(deferTimer);
+            cleanupRef?.();
         };
     }, [user, logout, navigate]);
 }
