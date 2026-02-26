@@ -17,9 +17,6 @@ import {
     ArrowRight
 } from 'lucide-react';
 import { parentService } from '../../../data/api';
-import { TutorialThumbnail } from '../../components/common/TutorialThumbnail';
-import { VideoModal } from '../../components/common/VideoModal';
-
 export function ParentHomePage() {
     const { user } = useAuthStore();
     const displayName = user?.name?.split(' ')[0] || 'ولي الأمر';
@@ -27,7 +24,6 @@ export function ParentHomePage() {
     // --- State ---
     const [children, setChildren] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [showVideoModal, setShowVideoModal] = useState(false);
 
     // Fetch Linked Students
     useEffect(() => {
@@ -108,21 +104,6 @@ export function ParentHomePage() {
                             تابع تقدم أبنائك الأكاديمي وراقب مستواهم التعليمي أولاً بأول من لوحة تحكم واحدة متكاملة.
                         </p>
                     </div>
-
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.3 }}
-                        className="hidden lg:block w-80 relative group"
-                    >
-                        <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-                        <TutorialThumbnail
-                            videoUrl="https://youtu.be/CVyfRKSRUwQ"
-                            onClick={() => setShowVideoModal(true)}
-                            layoutId="parent-tutorial-video"
-                            title="كيف تتابع أبناءك وتستفيد من حساب ولي الأمر؟"
-                        />
-                    </motion.div>
                 </div>
 
                 {/* Animated Background Decor */}
@@ -327,12 +308,6 @@ export function ParentHomePage() {
                 </motion.div>
             </div>
 
-            <VideoModal
-                isOpen={showVideoModal}
-                onClose={() => setShowVideoModal(false)}
-                videoUrl="https://youtu.be/CVyfRKSRUwQ" // Correct video URL for parents
-                layoutId="parent-tutorial-video"
-            />
         </div>
     );
 }

@@ -10,8 +10,6 @@ import {
     Rocket,
     PlayCircle
 } from 'lucide-react';
-import { TutorialThumbnail } from '../../components/common/TutorialThumbnail';
-import { VideoModal } from '../../components/common/VideoModal';
 import { MissedTasksWidget } from '../../components/student/dashboard/MissedTasksWidget';
 import { UpcomingSchedules } from '../../components/student/schedule/UpcomingSchedules';
 import { useSchedules } from '../../../hooks/useSchedule';
@@ -23,7 +21,6 @@ export function StudentHomePage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [showVideoModal, setShowVideoModal] = useState(false);
 
     // Fetch schedules for the "Today's Lectures" widget
     const { data: schedules = [], isLoading: isLoadingSchedules } = useSchedules();
@@ -181,16 +178,6 @@ export function StudentHomePage() {
                             </div>
                         </div>
                     </div>
-
-                    <div className="hidden lg:block relative w-80 transform hover:scale-105 transition-transform duration-500">
-                        <div className="absolute -inset-4 bg-white/20 blur-2xl rounded-full opacity-0 lg:group-hover:opacity-50 transition-opacity duration-500"></div>
-                        <TutorialThumbnail
-                            videoUrl="https://youtu.be/jn4WSHLKKQc"
-                            onClick={() => setShowVideoModal(true)}
-                            layoutId="student-tutorial-video"
-                            title="كيف تستخدم حسابك وتستفيد من المنصة؟"
-                        />
-                    </div>
                 </div>
 
                 {/* Decor Orbs */}
@@ -286,13 +273,6 @@ export function StudentHomePage() {
                 </>
             )}
 
-            <VideoModal
-                isOpen={showVideoModal}
-                onClose={() => setShowVideoModal(false)}
-                videoUrl="https://youtu.be/jn4WSHLKKQc"
-                title="شرح استخدام حساب الطالب"
-                layoutId="student-tutorial-video"
-            />
         </div>
     );
 }
