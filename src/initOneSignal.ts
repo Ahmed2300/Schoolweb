@@ -22,8 +22,12 @@ export const initOneSignal = async () => {
                         appId: import.meta.env.VITE_ONESIGNAL_APP_ID,
                         allowLocalhostAsSecureOrigin: true,
                     });
-                } catch (error) {
-                    console.error('OneSignal Initialization Error:', error);
+                } catch (error: any) {
+                    if (error?.message?.includes('Can only be used on')) {
+                        console.warn('OneSignal disabled for local development environment (origin mismatch).');
+                    } else {
+                        console.error('OneSignal Initialization Error:', error);
+                    }
                 }
             });
         };

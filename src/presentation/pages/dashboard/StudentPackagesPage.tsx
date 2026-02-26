@@ -20,6 +20,7 @@ import {
 import { packageService, Package as PackageType, PackageSubscription } from '../../../data/api';
 import studentService, { getLocalizedName } from '../../../data/api/studentService';
 import { PackageCardSkeleton } from '../../components/ui/skeletons/PackageCardSkeleton';
+import { useSettings } from '../../../hooks/useSettings';
 
 // Status badge component
 const StatusBadge = ({ status }: { status: string }) => {
@@ -68,7 +69,7 @@ export function StudentPackagesPage() {
     const [purchaseSuccess, setPurchaseSuccess] = useState(false);
 
     // Dynamic Payment Settings
-    const [loadingSettings, setLoadingSettings] = useState(false);
+    const { data: settings = {}, isLoading: loadingSettings } = useSettings();
     const [copiedField, setCopiedField] = useState<string | null>(null);
     const [bankInfo, setBankInfo] = useState(DEFAULT_BANK_INFO);
     const [walletInfo, setWalletInfo] = useState<{ label: string; number: string }>({
@@ -125,47 +126,32 @@ export function StudentPackagesPage() {
         };
     }, [fetchData]);
 
-    // Fetch System Settings (Bank Info)
+    // Process System Settings (Bank Info)
     useEffect(() => {
-        const fetchSettings = async () => {
-            if (!showPurchaseModal) return;
+        if (!showPurchaseModal || Object.keys(settings).length === 0) return;
 
-            setLoadingSettings(true);
-            try {
-                const settings = await studentService.getSystemSettings();
+        // Parse bank account info if available
+        if (settings.bank_account) {
+            const lines = settings.bank_account.split('\n').map((l: string) => l.trim()).filter(Boolean);
 
-                // Parse bank account info if available
-                if (settings.bank_account) {
-                    const lines = settings.bank_account.split('\n').map(l => l.trim()).filter(Boolean);
-
-                    if (lines.length > 0) {
-                        setBankInfo({
-                            bankName: lines[0] || DEFAULT_BANK_INFO.bankName,
-                            accountName: lines[1] || '',
-                            accountNumber: lines[2] || '',
-                            iban: lines[3] || '',
-                        });
-                    }
-                }
-
-                // Parse wallet info
-                if (settings.phone_wallet) {
-                    setWalletInfo({
-                        label: 'محفظة إلكترونية',
-                        number: settings.phone_wallet,
-                    });
-                }
-            } catch (err) {
-                console.error('Failed to load payment settings', err);
-            } finally {
-                setLoadingSettings(false);
+            if (lines.length > 0) {
+                setBankInfo({
+                    bankName: lines[0] || DEFAULT_BANK_INFO.bankName,
+                    accountName: lines[1] || '',
+                    accountNumber: lines[2] || '',
+                    iban: lines[3] || '',
+                });
             }
-        };
-
-        if (showPurchaseModal) {
-            fetchSettings();
         }
-    }, [showPurchaseModal]);
+
+        // Parse wallet info
+        if (settings.phone_wallet) {
+            setWalletInfo({
+                label: 'محفظة إلكترونية',
+                number: settings.phone_wallet,
+            });
+        }
+    }, [showPurchaseModal, settings]);
 
     const handleCopy = (text: string, field: string) => {
         navigator.clipboard.writeText(text);

@@ -88,7 +88,8 @@ export default defineConfig({
           if (id.includes('@xyflow')) {
             return 'vendor-xyflow';
           }
-          if (id.includes('firebase') || id.includes('@firebase')) {
+          // ── Firebase & Realtime DB ──
+          if (id.includes('node_modules/firebase/') || id.includes('node_modules/@firebase/')) {
             return 'vendor-firebase';
           }
 
@@ -96,7 +97,13 @@ export default defineConfig({
             return 'vendor-query';
           }
 
-          // Everything else (React, react-hook-form, etc.) 
+          // ── Core React & Router ──
+          // These are safe to group together and reduce the main bundle size significantly.
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/react-router-dom/') || id.includes('node_modules/@remix-run/')) {
+             return 'vendor-react-core';
+          }
+
+          // Everything else (react-hook-form, etc.) 
           // → Rollup handles automatically.
         },
       },
