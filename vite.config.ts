@@ -79,9 +79,6 @@ export default defineConfig({
           }
 
           // ── Heavy UI & Core Libraries ──
-          if (id.includes('@mui')) {
-            return 'vendor-mui';
-          }
           if (id.includes('framer-motion')) {
             return 'vendor-framer-motion';
           }
