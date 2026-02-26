@@ -23,10 +23,10 @@
 
   <link rel="canonical" href="https://soubul.net/" />
 
-  <!-- Preload LCP images — discovered early before CSS/JS (biggest perf win) -->
-  <link rel="preload" as="image" href="/images/hero-background.webp" type="image/webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="/images/hero-foreground.webp" type="image/webp" />
-
+  <!-- NOTE: Hero images are NOT preloaded here because LandingPage is lazy-loaded
+       via React.lazy. By the time the chunk loads + mounts, the preloaded resources
+       time out (~3s gap). Instead, fetchPriority="high" is set directly on the
+       <img> tags in ParallaxHero.tsx for same-effect without the warning. -->
   <!-- Preconnect to Google Fonts for faster TLS handshake (saves ~100-200ms) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
