@@ -22,86 +22,78 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     target: 'es2020',
-    cssCodeSplit: true,
-    chunkSizeWarningLimit: 250,
+    cssCodeSplit: false, // ← Single CSS file instead of per-chunk CSS
+    chunkSizeWarningLimit: 600,
+
+    // Inline images/SVGs under 8 KB as data-URIs → fewer HTTP requests
+    assetsInlineLimit: 8192,
 
     // ─────────────────────────────────────────────────────────
-    // CHUNK STRATEGY (conservative — avoids circular deps)
+    // CHUNK STRATEGY — Aggressive consolidation
     //
-    // ONLY groups libraries that are self-contained and have
-    // NO circular dependency risk with React. Everything else
-    // is left for Rollup to split safely.
+    // Goal: ~8 JS files on initial landing page instead of 133.
     //
-    // Key insight: catch-all `vendor-misc` causes circular
-    // initialization (vendor-react ↔ vendor-misc). Never use it.
+    // How it works:
+    //  • ALL vendor node_modules → single `vendor` chunk
+    //  • App pages grouped by ROLE → one chunk per role
+    //  • Landing & Auth pages → their own small chunks
+    //  • Everything else → stays in the main entry bundle
+    //
+    // Trade-off: slightly larger individual chunks, but
+    // dramatically fewer HTTP requests. On HTTP/2, one 200KB
+    // file is faster than twenty 10KB files due to per-request
+    // overhead (headers, TLS records, multiplexing contention).
     // ─────────────────────────────────────────────────────────
     rollupOptions: {
       output: {
         manualChunks(id: string) {
-          if (!id.includes('node_modules')) return undefined;
+          // Normalize Windows backslashes
+          const n = id.replace(/\\/g, '/');
 
-          // ── Icons: kills 100+ micro-chunks (biggest win) ──
-          // lucide-react exports each icon as a separate ESM module.
-          // Without this, Rollup creates a 0.2KB file per icon.
-          if (id.includes('lucide-react')) {
-            return 'vendor-icons';
-          }
-
-          // ── GSAP: self-contained, no React dependency ──
-          if (id.includes('gsap')) {
-            return 'vendor-gsap';
+          // ── Vendor: ALL node_modules in ONE chunk ──
+          if (n.includes('node_modules')) {
+            return 'vendor';
           }
 
-          // ── d3: pure math/data utils, no React dependency ──
-          if (id.includes('d3-')) {
-            return 'vendor-d3';
+          // ── App PAGES only: group by role ──
+          // Components, hooks, stores, and services are left to
+          // Rollup to avoid circular initialization errors.
+
+          // Admin pages
+          if (n.includes('/pages/admin/')) {
+            return 'app-admin';
           }
 
-          // ── Zod: pure validation, no React dependency ──
-          if (id.includes('zod')) {
-            return 'vendor-zod';
+          // Teacher pages
+          if (n.includes('/pages/teacher/')) {
+            return 'app-teacher';
           }
 
-          // ── i18next core: no React dependency ──
-          // (react-i18next is NOT included — it depends on React)
-          if (id.includes('i18next') && !id.includes('react-i18next')) {
-            return 'vendor-i18n';
+          // Student pages
+          if (
+            n.includes('/pages/dashboard/Student') ||
+            n.includes('/pages/student/')
+          ) {
+            return 'app-student';
           }
 
-          // ── Axios: standalone HTTP client ──
-          if (id.includes('axios')) {
-            return 'vendor-axios';
+          // Parent pages
+          if (n.includes('/pages/dashboard/Parent')) {
+            return 'app-parent';
           }
 
-          // ── Lenis: standalone smooth scroll ──
-          if (id.includes('lenis')) {
-            return 'vendor-lenis';
+          // Auth pages (login, signup, forgot password, etc.)
+          if (n.includes('/pages/auth/')) {
+            return 'app-auth';
           }
 
-          // ── Heavy UI & Core Libraries ──
-          if (id.includes('framer-motion')) {
-            return 'vendor-framer-motion';
-          }
-          if (id.includes('@xyflow')) {
-            return 'vendor-xyflow';
-          }
-          // ── Firebase & Realtime DB ──
-          if (id.includes('node_modules/firebase/') || id.includes('node_modules/@firebase/')) {
-            return 'vendor-firebase';
+          // Landing / marketing pages
+          if (n.includes('/pages/landing/')) {
+            return 'app-landing';
           }
 
-          if (id.includes('@tanstack/react-query')) {
-            return 'vendor-query';
-          }
-
-          // ── Core React & Router ──
-          // These are safe to group together and reduce the main bundle size significantly.
-          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/react-router-dom/') || id.includes('node_modules/@remix-run/')) {
-             return 'vendor-react-core';
-          }
-
-          // Everything else (react-hook-form, etc.) 
-          // → Rollup handles automatically.
+          // Everything else → Rollup handles safely
+          return undefined;
         },
       },
     },

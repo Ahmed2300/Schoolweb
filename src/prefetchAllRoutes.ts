@@ -8,27 +8,12 @@
  *  1. `requestIdleCallback` to avoid blocking first paint
  *  2. Small staggered batches of 4 to avoid network saturation
  *  3. Each import is individually caught
- *  4. Only loads `shared` + current role routes
+ *  4. Only loads current role routes (nothing for unauthenticated)
  */
 
 type UserRole = 'student' | 'parent' | 'teacher' | 'admin' | null;
 
 // ── Route imports grouped by role ─────────────────────────────
-
-const sharedImports: Array<() => Promise<unknown>> = [
-    // Auth pages (user might navigate to these)
-    () => import('./presentation/pages/auth/SignInPage'),
-    () => import('./presentation/pages/auth/SignupPage'),
-    () => import('./presentation/pages/auth/ForgotPasswordPage'),
-    () => import('./presentation/pages/auth/ResetPasswordPage'),
-];
-
-const publicImports: Array<() => Promise<unknown>> = [
-    () => import('./presentation/pages/landing/LandingPage'),
-    () => import('./presentation/pages/landing/FeaturesPage'),
-    () => import('./presentation/pages/ContactPage'),
-    () => import('./presentation/pages/NotFoundPage'),
-];
 
 const studentImports: Array<() => Promise<unknown>> = [
     () => import('./presentation/pages/dashboard/StudentLayout'),
@@ -117,38 +102,35 @@ async function prefetchSequentially(imports: Array<() => Promise<unknown>>): Pro
 /**
  * Prefetch route modules relevant to the current user role.
  *
- * - Unauthenticated: only shared + public pages (~8 chunks)
- * - Student: shared + student pages (~14 chunks)
- * - Admin: shared + admin pages (~30 chunks)
+ * - Unauthenticated: nothing (landing page loads its own deps)
+ * - Student: ~10 chunks
+ * - Admin: ~26 chunks
  *
  * Call once after the app has rendered its first paint.
  */
 export function prefetchAllRoutes(role: UserRole = null): void {
+    if (!role) {
+        // Not logged in: don't prefetch anything.
+        // The landing page loads what it needs; auth pages load lazily on navigate.
+        return;
+    }
+
     const start = () => {
-        // Build the import list based on role
         const imports: Array<() => Promise<unknown>> = [];
 
-        if (!role) {
-            // Not logged in: only prefetch public + auth pages
-            imports.push(...publicImports, ...sharedImports);
-        } else {
-            // Logged in: prefetch shared + role-specific routes
-            imports.push(...sharedImports);
-
-            switch (role) {
-                case 'student':
-                    imports.push(...studentImports);
-                    break;
-                case 'parent':
-                    imports.push(...parentImports);
-                    break;
-                case 'teacher':
-                    imports.push(...teacherImports);
-                    break;
-                case 'admin':
-                    imports.push(...adminImports);
-                    break;
-            }
+        switch (role) {
+            case 'student':
+                imports.push(...studentImports);
+                break;
+            case 'parent':
+                imports.push(...parentImports);
+                break;
+            case 'teacher':
+                imports.push(...teacherImports);
+                break;
+            case 'admin':
+                imports.push(...adminImports);
+                break;
         }
 
         prefetchSequentially(imports).catch(() => {

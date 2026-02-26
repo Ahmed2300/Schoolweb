@@ -1,4 +1,6 @@
-import { apiClient, endpoints, setTokens, clearTokens } from '../api';
+import apiClient from '../api/ApiClient';
+import { setTokens, clearTokens } from '../api/ApiClient';
+import { endpoints } from '../api/endpoints';
 import type {
     IAuthRepository,
     LoginCredentials,
