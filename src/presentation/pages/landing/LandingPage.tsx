@@ -1,9 +1,9 @@
-import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../hooks';
 import { ROUTES } from '../../../shared/constants';
 import { Footer } from '../../components/common/Footer';
 import { SEO } from '../../components/seo/SEO';
+import { Navbar } from '../../components/landing/Navbar';
 
 // Lucide Icons
 import {
@@ -21,9 +21,6 @@ import {
     Building2,
     BadgeCheck,
     UserPlus,
-    LogIn,
-    Menu,
-    X,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ParallaxHero } from '../../components/landing/ParallaxHero';
@@ -33,15 +30,10 @@ import { FloatingBadge } from '../../components/landing/FloatingBadge';
 import { BentoFeatureGrid } from '../../components/landing/BentoFeatureGrid';
 import { ExpandableCourseCard } from '../../components/landing/ExpandableCourseCard';
 import { RevealCTA } from '../../components/landing/RevealCTA';
-import { ThemeToggle } from '../../components/common/ThemeToggle';
 
 export function LandingPage() {
     const navigate = useNavigate();
     const { isRTL } = useLanguage();
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-    const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
-    const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
     return (
         <div className="min-h-screen bg-soft-cloud dark:bg-charcoal dark:text-slate-200 overflow-x-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -50,89 +42,7 @@ export function LandingPage() {
                 description="منصة تعليمية متكاملة تجمع بين الفصول التفاعلية والمتابعة الدقيقة لضمان أفضل تجربة تعليمية. انضم لآلاف الطلاب الناجحين الآن."
             />
             {/* Navigation */}
-            <header className="fixed top-0 left-0 right-0 z-[1000] bg-white/90 backdrop-blur-md border-b border-slate-200">
-                <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
-                    {/* Logo */}
-                    <div
-                        className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none transition-opacity hover:opacity-80"
-                        onDoubleClick={() => navigate(ROUTES.ADMIN_LOGIN)}
-                    >
-                        <img src="/images/subol-red.png" alt="سُبُل" className="w-6 h-6 sm:w-8 sm:h-8" width="32" height="32" loading="eager" />
-                        <span className="text-base sm:text-xl font-extrabold text-charcoal whitespace-nowrap">سُبُل</span>
-                    </div>
-
-                    {/* Desktop Navigation */}
-                    <ul className="hidden lg:flex items-center gap-6 xl:gap-8 font-bold text-slate-grey">
-                        <li><a href="#home" className="text-shibl-crimson border-b-2 border-shibl-crimson pb-1">الرئيسية</a></li>
-                        <li><a href="#stages" className="hover:text-shibl-crimson transition-colors">المراحل الدراسية</a></li>
-                        <li><a href="#features" className="hover:text-shibl-crimson transition-colors">المميزات</a></li>
-                        <li><a href="#contact" className="hover:text-shibl-crimson transition-colors">تواصل معنا</a></li>
-                    </ul>
-
-                    {/* Desktop Actions */}
-                    <div className="hidden md:flex items-center gap-2 lg:gap-3">
-                        <ThemeToggle />
-                        <Link to={ROUTES.LOGIN} className="btn-secondary-pro flex items-center gap-1.5 lg:gap-2 px-4 lg:px-6 text-sm lg:text-base">
-                            <LogIn size={18} />
-                            <span className="hidden sm:inline">تسجيل الدخول</span>
-                        </Link>
-                        <Link to={ROUTES.REGISTER} className="btn-primary-pro flex items-center gap-1.5 lg:gap-2 px-4 lg:px-6 text-sm lg:text-base">
-                            <UserPlus size={18} />
-                            <span className="hidden xl:inline">إنشاء حساب جديد</span>
-                            <span className="xl:hidden">حساب جديد</span>
-                        </Link>
-                    </div>
-
-                    {/* Mobile Menu Button */}
-                    <div className="flex md:hidden items-center gap-2">
-                        <ThemeToggle />
-                        <button
-                            className="p-2 rounded-xl hover:bg-slate-100 transition-colors"
-                            onClick={toggleMobileMenu}
-                            aria-label="Toggle menu"
-                        >
-                            {isMobileMenuOpen ? (
-                                <X size={28} className="text-slate-800" />
-                            ) : (
-                                <Menu size={28} className="text-slate-800" />
-                            )}
-                        </button>
-                    </div>
-                </nav>
-
-                {/* Mobile Menu Overlay */}
-                <div
-                    className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-                        }`}
-                    style={{ top: '64px' }}
-                    onClick={closeMobileMenu}
-                />
-
-                {/* Mobile Menu Panel */}
-                <div
-                    className={`fixed top-16 left-0 right-0 bg-white border-b border-slate-200 shadow-xl transition-all duration-300 md:hidden ${isMobileMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
-                        }`}
-                >
-                    <div className="px-4 py-6 flex flex-col gap-4">
-                        <ul className="flex flex-col gap-3 font-bold text-slate-grey">
-                            <li><a href="#home" onClick={closeMobileMenu} className="block py-3 px-4 rounded-xl hover:bg-red-50 text-shibl-crimson">الرئيسية</a></li>
-                            <li><a href="#stages" onClick={closeMobileMenu} className="block py-3 px-4 rounded-xl hover:bg-slate-100 transition-colors">المراحل الدراسية</a></li>
-                            <li><a href="#features" onClick={closeMobileMenu} className="block py-3 px-4 rounded-xl hover:bg-slate-100 transition-colors">المميزات</a></li>
-                            <li><a href="#contact" onClick={closeMobileMenu} className="block py-3 px-4 rounded-xl hover:bg-slate-100 transition-colors">تواصل معنا</a></li>
-                        </ul>
-                        <div className="border-t border-slate-200 pt-4 flex flex-col gap-3">
-                            <Link to={ROUTES.LOGIN} onClick={closeMobileMenu} className="btn-secondary-pro w-full flex items-center justify-center gap-2 py-3">
-                                <LogIn size={18} />
-                                تسجيل الدخول
-                            </Link>
-                            <Link to={ROUTES.REGISTER} onClick={closeMobileMenu} className="btn-primary-pro w-full flex items-center justify-center gap-2 py-3">
-                                <UserPlus size={18} />
-                                إنشاء حساب جديد
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            <Navbar />
 
             {/* Hero Banner Section — Multi-layered Parallax */}
             <section className="pt-16 sm:pt-20">
