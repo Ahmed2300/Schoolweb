@@ -7,7 +7,8 @@ import {
     LayoutDashboard,
     LogOut,
     ChevronRight,
-    Wallet
+    Wallet,
+    Settings
 } from 'lucide-react';
 import { Shield } from 'lucide-react';
 
@@ -24,6 +25,7 @@ export function InfluencerSidebar({ isCollapsed, onToggle, className = '' }: Sid
 
     const menuItems = [
         { icon: <LayoutDashboard size={22} />, label: 'لوحة القيادة', path: ROUTES.INFLUENCER_DASHBOARD },
+        { icon: <Settings size={22} />, label: 'الإعدادات', path: '/influencer/settings' },
     ];
 
     const handleLogout = () => {

@@ -71,6 +71,7 @@ import { AdminLayout } from './presentation/components/admin';
 import { TeacherLayout } from './presentation/components/teacher';
 import { InfluencerLayout } from './presentation/components/influencer/InfluencerLayout';
 import { InfluencerDashboardPage } from './presentation/pages/influencer/InfluencerDashboardPage';
+import { InfluencerSettingsPage } from './presentation/pages/influencer/InfluencerSettingsPage';
 import { ProtectedRoute } from './presentation/components/auth';
 import { MaintenanceWrapper } from './presentation/components/MaintenanceWrapper';
 import { ROUTES } from './shared/constants';
@@ -249,7 +250,6 @@ function App() {
               <Route path="class-schedules" element={<AdminClassSchedulesPage />} />
             </Route>
 
-            {/* Influencer Routes - Protected for influencer role only */}
             <Route
               path="/influencer"
               element={
@@ -259,6 +259,7 @@ function App() {
               }
             >
               <Route path="dashboard" element={<InfluencerDashboardPage />} />
+              <Route path="settings" element={<InfluencerSettingsPage />} />
             </Route>
 
             {/* 404 Catch-all Route */}

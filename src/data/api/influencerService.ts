@@ -120,5 +120,15 @@ export const influencerService = {
     getWithdrawals: async (page: number = 1): Promise<unknown> => {
         const response = await apiClient.get(`/api/v1/affiliate/withdrawals?page=${page}`);
         return response.data;
+    },
+
+    getProfile: async (): Promise<{ data: InfluencerData }> => {
+        const response = await apiClient.get('/api/v1/affiliate/profile');
+        return response.data;
+    },
+
+    updateProfile: async (data: { name?: string; phone?: string; password?: string }): Promise<{ message: string, data: InfluencerData }> => {
+        const response = await apiClient.put('/api/v1/affiliate/profile', data);
+        return response.data;
     }
 };
