@@ -333,7 +333,7 @@ export interface CreateInfluencerRequest {
 export interface WithdrawalData {
     id: number;
     amount: number;
-    status: 'pending' | 'approved' | 'rejected';
+    status: 'pending' | 'completed' | 'approved' | 'rejected';
     created_at: string;
     requestable?: {
         id: number;
@@ -2558,12 +2558,12 @@ export const adminService = {
     },
 
     approveWithdrawal: async (id: number): Promise<{ message: string; withdrawal: WithdrawalData }> => {
-        const response = await apiClient.patch(`/api/v1/admin/withdrawals/${id}/approve`);
+        const response = await apiClient.post(`/api/v1/admin/withdrawals/${id}/approve`);
         return response.data;
     },
 
     rejectWithdrawal: async (id: number, reason?: string): Promise<{ message: string; withdrawal: WithdrawalData }> => {
-        const response = await apiClient.patch(`/api/v1/admin/withdrawals/${id}/reject`, { reason });
+        const response = await apiClient.post(`/api/v1/admin/withdrawals/${id}/reject`, { reason });
         return response.data;
     },
 
