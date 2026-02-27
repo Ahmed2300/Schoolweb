@@ -7,7 +7,9 @@ import {
     CheckCircle2,
     Calendar,
     Loader2,
-    AlertCircle
+    AlertCircle,
+    Wifi,
+    WifiOff,
 } from 'lucide-react';
 import { Lecture } from '../../../../data/api/studentCourseService';
 import { BBBEmbedModal } from './BBBEmbedModal';
@@ -67,6 +69,13 @@ export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, 
         if (errorState.code === 'NOT_ENROLLED') return 'error';
         if (errorState.code === 'SESSION_ENDED') return 'ended';
         if (errorState.code === 'MEETING_NOT_RUNNING') return 'upcoming';
+
+        // CRITICAL: If a recording exists or meeting is marked completed,
+        // the session has definitively ended — regardless of scheduling times.
+        // This prevents "upcoming" status when the teacher already recorded it.
+        const hasRecording = lecture.has_recording || !!lecture.recording_url;
+        const isMeetingCompleted = lecture.meeting_status === 'completed';
+        if (hasRecording || isMeetingCompleted) return 'ended';
 
         if (!timeSlot) return 'live'; // No schedule = assume available to join
 
@@ -141,38 +150,40 @@ export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, 
     // Format date/time using timezone-aware utility
     const formatDateTime = (date: Date) => formatSessionTime(date, 'ar');
 
-    // Render based on state
+    // ─── Render based on state ───────────────────────────────────────────
     const renderContent = () => {
         switch (sessionState) {
             case 'error':
                 return (
-                    <div className="text-center">
-                        <div className="w-24 h-24 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <AlertCircle size={48} className="text-red-400" />
+                    <div className="text-center relative z-10">
+                        {/* Soft glow */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 sm:w-48 sm:h-48 bg-red-200/30 rounded-full blur-3xl pointer-events-none" />
+
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-red-50 to-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-5 shadow-sm border border-red-100/60">
+                            <AlertCircle className="text-red-500 w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10" />
                         </div>
-                        <h3 className="text-2xl font-black text-red-600 mb-2">
+                        <h3 className="text-base sm:text-lg lg:text-xl font-bold text-slate-800 mb-1.5">
                             {errorState.code === 'NOT_ENROLLED' ? 'غير مشترك في الدورة' : 'حدث خطأ'}
                         </h3>
-                        <p className="text-slate-500 font-medium mb-6">
+                        <p className="text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6 px-4 max-w-xs mx-auto leading-relaxed">
                             {errorState.code === 'NOT_ENROLLED'
                                 ? 'يجب الاشتراك في الدورة أولاً للانضمام للجلسة المباشرة'
                                 : errorState.message || 'يرجى المحاولة مرة أخرى'}
                         </p>
-                        {errorState.code === 'NOT_ENROLLED' && (
+                        {errorState.code === 'NOT_ENROLLED' ? (
                             <button
                                 onClick={() => window.location.href = '/student/courses'}
-                                className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-all"
+                                className="px-5 py-2.5 sm:px-6 sm:py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold transition-all text-xs sm:text-sm shadow-md shadow-slate-900/10 hover:shadow-lg active:scale-[0.98]"
                             >
                                 استعرض الدورات
                             </button>
-                        )}
-                        {errorState.code !== 'NOT_ENROLLED' && (
+                        ) : (
                             <button
                                 onClick={handleJoinSession}
                                 disabled={isJoining}
-                                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all disabled:opacity-50"
+                                className="px-5 py-2.5 sm:px-6 sm:py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all disabled:opacity-50 text-xs sm:text-sm shadow-md shadow-red-600/10 hover:shadow-lg active:scale-[0.98]"
                             >
-                                {isJoining ? <Loader2 size={20} className="animate-spin mx-auto" /> : 'إعادة المحاولة'}
+                                {isJoining ? <Loader2 size={18} className="animate-spin mx-auto" /> : 'إعادة المحاولة'}
                             </button>
                         )}
                     </div>
@@ -180,46 +191,55 @@ export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, 
 
             case 'not_scheduled':
                 return (
-                    <div className="text-center">
-                        <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <Calendar size={48} className="text-slate-300" />
+                    <div className="text-center relative z-10">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 sm:w-48 sm:h-48 bg-slate-200/30 rounded-full blur-3xl pointer-events-none" />
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-5 border border-slate-200/60">
+                            <Calendar className="text-slate-400 w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10" />
                         </div>
-                        <h3 className="text-2xl font-black text-slate-700 mb-2">جلسة مباشرة</h3>
-                        <p className="text-slate-400 font-medium">لم يتم جدولة هذه الجلسة بعد</p>
+                        <h3 className="text-base sm:text-lg lg:text-xl font-bold text-slate-700 mb-1.5">جلسة مباشرة</h3>
+                        <p className="text-xs sm:text-sm text-slate-400">لم يتم جدولة هذه الجلسة بعد</p>
                     </div>
                 );
 
             case 'pending':
-
                 return (
-                    <div className="text-center">
-                        <div className="w-24 h-24 bg-amber-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <Clock size={48} className="text-amber-500" />
+                    <div className="text-center relative z-10">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 sm:w-48 sm:h-48 bg-amber-200/20 rounded-full blur-3xl pointer-events-none" />
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-5 border border-amber-200/60">
+                            <Clock className="text-amber-500 w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 animate-[spin_6s_linear_infinite]" />
                         </div>
-                        <h3 className="text-2xl font-black text-amber-600 mb-2">قيد الموافقة</h3>
-                        <p className="text-slate-500 font-medium">الجلسة في انتظار موافقة الإدارة</p>
+                        <h3 className="text-base sm:text-lg lg:text-xl font-bold text-amber-700 mb-1.5">قيد الموافقة</h3>
+                        <p className="text-xs sm:text-sm text-slate-500">الجلسة في انتظار موافقة الإدارة</p>
                     </div>
                 );
 
             case 'upcoming':
                 return (
-                    <div className="text-center">
-                        <div className="w-24 h-24 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-6 relative">
-                            <Radio size={48} className="text-blue-500" />
-                        </div>
-                        <h3 className="text-2xl font-black text-slate-800 mb-3">جلسة مباشرة قادمة</h3>
+                    <div className="text-center relative z-10">
+                        {/* Soft ambient glow */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 sm:w-56 sm:h-56 bg-blue-200/25 rounded-full blur-3xl pointer-events-none" />
 
+                        {/* Icon */}
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-5 border border-blue-200/50 shadow-sm shadow-blue-100">
+                            <Wifi className="text-blue-500 w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10" />
+                        </div>
+
+                        <h3 className="text-base sm:text-lg lg:text-xl font-bold text-slate-800 mb-1">جلسة مباشرة قادمة</h3>
+                        <p className="text-[11px] sm:text-xs text-slate-400 mb-4 sm:mb-5">سيتم تفعيل الجلسة عند حلول الموعد</p>
+
+                        {/* Date info card */}
                         {startTime && (
-                            <div className="bg-white/80 backdrop-blur rounded-2xl p-4 mb-6 border border-slate-100 max-w-sm mx-auto">
-                                <p className="text-sm text-slate-500 font-bold mb-1">موعد البدء</p>
-                                <p className="text-lg font-black text-slate-800">{formatDateTime(startTime)}</p>
+                            <div className="bg-white/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 mb-4 sm:mb-5 border border-slate-200/50 max-w-[260px] sm:max-w-sm mx-auto shadow-sm">
+                                <p className="text-[10px] sm:text-xs text-slate-400 font-medium mb-1 tracking-wide">موعد البدء</p>
+                                <p className="text-sm sm:text-base font-bold text-slate-800">{formatDateTime(startTime)}</p>
                             </div>
                         )}
 
+                        {/* Countdown */}
                         {countdown && (
-                            <div className="space-y-2">
-                                <p className="text-sm text-slate-400 font-medium">تبدأ الجلسة خلال</p>
-                                <div className="text-4xl font-black text-blue-600 font-mono tracking-wider">
+                            <div className="space-y-1.5">
+                                <p className="text-[10px] sm:text-xs text-slate-400 font-medium tracking-wide">تبدأ الجلسة خلال</p>
+                                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-600 font-mono tracking-widest tabular-nums">
                                     {countdown}
                                 </div>
                             </div>
@@ -229,14 +249,20 @@ export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, 
 
             case 'starting_soon':
                 return (
-                    <div className="text-center">
-                        <div className="w-24 h-24 bg-emerald-50 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-pulse">
-                            <Radio size={48} className="text-emerald-500" />
-                        </div>
-                        <h3 className="text-2xl font-black text-emerald-600 mb-3">الجلسة تبدأ قريباً!</h3>
+                    <div className="text-center relative z-10">
+                        {/* Glow */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 sm:w-60 sm:h-60 bg-emerald-200/30 rounded-full blur-3xl pointer-events-none animate-pulse" />
 
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-5 border border-emerald-200/50 shadow-sm shadow-emerald-100 animate-pulse">
+                            <Radio className="text-emerald-500 w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10" />
+                        </div>
+
+                        <h3 className="text-base sm:text-lg lg:text-xl font-bold text-emerald-700 mb-1">الجلسة تبدأ قريباً!</h3>
+                        <p className="text-[11px] sm:text-xs text-slate-400 mb-3 sm:mb-4">المعلم في مرحلة التجهيز</p>
+
+                        {/* Countdown */}
                         {countdown && (
-                            <div className="text-5xl font-black text-emerald-600 font-mono tracking-wider mb-6">
+                            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-emerald-600 font-mono tracking-widest mb-4 sm:mb-6 tabular-nums">
                                 {countdown}
                             </div>
                         )}
@@ -244,12 +270,12 @@ export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, 
                         <button
                             onClick={handleJoinSession}
                             disabled={isJoining}
-                            className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-lg transition-all shadow-lg shadow-emerald-200 flex items-center gap-3 mx-auto disabled:opacity-50"
+                            className="group inline-flex items-center gap-2 sm:gap-2.5 px-5 py-2.5 sm:px-7 sm:py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 disabled:opacity-50 active:scale-[0.98]"
                         >
                             {isJoining ? (
-                                <Loader2 size={24} className="animate-spin" />
+                                <Loader2 className="animate-spin w-4 h-4 sm:w-5 sm:h-5" />
                             ) : (
-                                <Play size={24} />
+                                <Play className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
                             )}
                             انضم للجلسة
                         </button>
@@ -258,34 +284,40 @@ export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, 
 
             case 'live':
                 return (
-                    <div className="text-center">
-                        <div className="relative w-28 h-28 mx-auto mb-6">
-                            {/* Pulsing rings */}
-                            <div className="absolute inset-0 bg-red-500/20 rounded-full animate-ping" />
-                            <div className="absolute inset-2 bg-red-500/30 rounded-full animate-pulse" />
-                            <div className="absolute inset-0 w-28 h-28 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-xl shadow-red-200">
-                                <Video size={48} className="text-white" />
+                    <div className="text-center relative z-10">
+                        {/* Red ambient glow */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 sm:w-64 sm:h-64 bg-red-300/20 rounded-full blur-3xl pointer-events-none animate-pulse" />
+
+                        {/* Live indicator */}
+                        <div className="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto mb-4 sm:mb-5">
+                            {/* Outer pulse ring */}
+                            <div className="absolute inset-0 bg-red-500/15 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
+                            <div className="absolute inset-1 bg-red-500/20 rounded-full animate-pulse" />
+                            {/* Main circle */}
+                            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-500/30">
+                                <Video className="text-white w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10" />
                             </div>
-                            {/* Live badge */}
-                            <span className="absolute -top-2 -right-2 px-3 py-1 bg-red-600 text-white text-xs font-black rounded-full animate-pulse">
-                                🔴 مباشر
+                            {/* Badge */}
+                            <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 px-2 py-0.5 bg-red-600 text-white text-[9px] sm:text-[10px] font-bold rounded-full shadow-sm flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                                مباشر
                             </span>
                         </div>
 
-                        <h3 className="text-3xl font-black text-red-600 mb-2">الجلسة جارية الآن!</h3>
-                        <p className="text-slate-500 font-medium mb-8">انضم الآن للمشاركة في الجلسة المباشرة</p>
+                        <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-800 mb-1">الجلسة جارية الآن</h3>
+                        <p className="text-xs sm:text-sm text-slate-400 mb-5 sm:mb-6">انضم الآن للمشاركة في الجلسة المباشرة</p>
 
                         <button
                             onClick={handleJoinSession}
                             disabled={isJoining}
-                            className="group px-10 py-5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-2xl font-black text-xl transition-all shadow-xl shadow-red-200 hover:shadow-red-300 flex items-center gap-4 mx-auto disabled:opacity-50 transform hover:scale-105 active:scale-95"
+                            className="group inline-flex items-center gap-2.5 sm:gap-3 px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base lg:text-lg transition-all shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/30 disabled:opacity-50 active:scale-[0.98]"
                         >
                             {isJoining ? (
-                                <Loader2 size={28} className="animate-spin" />
+                                <Loader2 className="animate-spin w-5 h-5 sm:w-6 sm:h-6" />
                             ) : (
-                                <Play size={28} className="group-hover:scale-110 transition-transform" />
+                                <Play className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" />
                             )}
-                            انضم للجلسة المباشرة
+                            انضم للجلسة
                         </button>
                     </div>
                 );
@@ -295,15 +327,17 @@ export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, 
                 const isRecordingProcessing = lecture.meeting_status === 'completed' && !lecture.recording_url;
 
                 return (
-                    <div className="text-center">
-                        <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <CheckCircle2 size={48} className="text-emerald-500" />
+                    <div className="text-center relative z-10">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 sm:w-48 sm:h-48 bg-slate-200/20 rounded-full blur-3xl pointer-events-none" />
+
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-5 border border-emerald-200/50">
+                            <CheckCircle2 className="text-emerald-500 w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10" />
                         </div>
-                        <h3 className="text-2xl font-black text-slate-800 mb-2">انتهت الجلسة</h3>
+                        <h3 className="text-base sm:text-lg lg:text-xl font-bold text-slate-800 mb-1.5">انتهت الجلسة</h3>
 
                         {lecture.recording_url ? (
                             <>
-                                <p className="text-slate-500 font-medium mb-6">يمكنك مشاهدة التسجيل</p>
+                                <p className="text-xs sm:text-sm text-slate-400 mb-4 sm:mb-5">يمكنك مشاهدة التسجيل</p>
                                 <button
                                     onClick={() => {
                                         if (lecture.recording_url) {
@@ -311,35 +345,35 @@ export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, 
                                             setIsModalOpen(true);
                                         }
                                     }}
-                                    className="inline-flex items-center gap-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-lg transition-all shadow-lg shadow-blue-200"
+                                    className="inline-flex items-center gap-2 sm:gap-2.5 px-5 py-2.5 sm:px-6 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm lg:text-base transition-all shadow-md shadow-blue-600/15 hover:shadow-lg active:scale-[0.98]"
                                 >
-                                    <Video size={24} />
+                                    <Video className="w-4 h-4 sm:w-5 sm:h-5" />
                                     شاهد التسجيل
                                 </button>
                             </>
                         ) : isRecordingProcessing ? (
                             <>
-                                <div className="flex items-center justify-center gap-2 text-amber-600 mb-4">
-                                    <Loader2 size={20} className="animate-spin" />
-                                    <p className="font-medium">جاري تجهيز التسجيل...</p>
+                                <div className="flex items-center justify-center gap-2 text-amber-600 mb-3">
+                                    <Loader2 size={16} className="animate-spin" />
+                                    <p className="text-sm font-medium">جاري تجهيز التسجيل...</p>
                                 </div>
-                                <p className="text-slate-400 text-sm">
-                                    سيكون التسجيل متاحًا خلال دقائق، يرجى المحاولة لاحقًا
+                                <p className="text-slate-400 text-xs max-w-[220px] mx-auto">
+                                    سيكون التسجيل متاحًا خلال دقائق
                                 </p>
                             </>
                         ) : (
                             <>
-                                <p className="text-slate-400 font-medium mb-6">لا يوجد وتسجيل متاح لهذه الجلسة</p>
+                                <p className="text-xs sm:text-sm text-slate-400 mb-5">لا يوجد وتسجيل متاح لهذه الجلسة</p>
                                 {!isCompleted && onComplete && (
                                     <button
                                         onClick={onComplete}
                                         disabled={isCompleting}
-                                        className={`inline-flex items-center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-lg transition-all shadow-lg shadow-emerald-200 disabled:opacity-60 disabled:cursor-wait`}
+                                        className="inline-flex items-center gap-2 sm:gap-2.5 px-5 py-2.5 sm:px-6 sm:py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm lg:text-base transition-all shadow-md shadow-emerald-600/15 disabled:opacity-60 disabled:cursor-wait active:scale-[0.98]"
                                     >
                                         {isCompleting ? (
-                                            <Loader2 size={22} className="animate-spin" />
+                                            <Loader2 size={18} className="animate-spin" />
                                         ) : (
-                                            <CheckCircle2 size={22} />
+                                            <CheckCircle2 size={18} />
                                         )}
                                         {isCompleting ? 'جاري التحديد...' : 'تحديد كمكتمل والمتابعة'}
                                     </button>
@@ -348,13 +382,13 @@ export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, 
                                     lecture.quizzes && lecture.quizzes[0] && !lecture.quizzes[0].is_completed ? (
                                         <button
                                             onClick={() => navigate(`/dashboard/quizzes/${lecture.quizzes![0].id}`)}
-                                            className="inline-flex items-center gap-3 px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-black text-lg transition-all shadow-lg shadow-purple-200"
+                                            className="inline-flex items-center gap-2 sm:gap-2.5 px-5 py-2.5 sm:px-6 sm:py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm lg:text-base transition-all shadow-md shadow-purple-600/15 active:scale-[0.98]"
                                         >
-                                            <CheckCircle2 size={22} /> ابدأ الاختبار
+                                            <CheckCircle2 size={18} /> ابدأ الاختبار
                                         </button>
                                     ) : (
-                                        <div className="flex items-center gap-2 text-emerald-600 font-bold mt-2">
-                                            <CheckCircle2 size={20} />
+                                        <div className="inline-flex items-center gap-2 text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl font-medium text-sm border border-emerald-100">
+                                            <CheckCircle2 size={16} />
                                             <span>تم إكمال هذا الدرس</span>
                                         </div>
                                     )
@@ -366,9 +400,39 @@ export function LiveSessionContent({ lecture, onJoin, onSessionEnd, onComplete, 
         }
     };
 
+    // ─── Wrapper gradients per state ──────────────────────────────────────
+    const wrapperClass = useMemo(() => {
+        const base = 'min-h-[260px] sm:min-h-[300px] lg:min-h-[380px] relative overflow-hidden flex flex-col items-center justify-center p-5 sm:p-8 lg:p-12';
+
+        switch (sessionState) {
+            case 'live':
+                return `${base} bg-gradient-to-br from-rose-50 via-white to-red-50`;
+            case 'starting_soon':
+                return `${base} bg-gradient-to-br from-emerald-50 via-white to-teal-50`;
+            case 'upcoming':
+                return `${base} bg-gradient-to-br from-blue-50 via-white to-indigo-50`;
+            case 'ended':
+                return `${base} bg-gradient-to-br from-slate-50 via-white to-emerald-50/30`;
+            case 'error':
+                return `${base} bg-gradient-to-br from-red-50 via-white to-rose-50`;
+            case 'pending':
+                return `${base} bg-gradient-to-br from-amber-50 via-white to-orange-50/30`;
+            default:
+                return `${base} bg-gradient-to-br from-slate-50 via-white to-slate-100`;
+        }
+    }, [sessionState]);
+
     return (
         <>
-            <div className="aspect-video bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col items-center justify-center p-10 rounded-[2rem]">
+            <div className={wrapperClass}>
+                {/* Subtle grid pattern overlay */}
+                <div
+                    className="absolute inset-0 pointer-events-none opacity-[0.03]"
+                    style={{
+                        backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
+                        backgroundSize: '24px 24px',
+                    }}
+                />
                 {renderContent()}
             </div>
 

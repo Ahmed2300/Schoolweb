@@ -109,7 +109,7 @@ export function OtpVerificationModal({
                     <p className="text-sm text-gray-600">
                         لإتمام عملية تسجيل الدخول وإنهاء الجلسات الأخرى، يرجى إدخال رمز التحقق المرسل إلى:
                     </p>
-                    <p className="text-shibl-crimson font-bold mt-1 dir-ltr">{email}</p>
+                    <p className="text-shibl-crimson font-bold mt-1" dir="ltr">{email}</p>
                 </div>
 
                 {error && (
@@ -119,7 +119,7 @@ export function OtpVerificationModal({
                 )}
 
                 <form onSubmit={handleSubmit}>
-                    <div className="flex justify-center gap-2 mb-6 dir-ltr">
+                    <div className="flex justify-center gap-2 mb-6" dir="ltr">
                         {otp.map((digit, index) => (
                             <input
                                 key={index}

@@ -804,11 +804,10 @@ export const adminService = {
     login: async (data: AdminLoginRequest): Promise<AdminAuthResponse> => {
         const response = await apiClient.post(endpoints.adminAuth.login, data);
 
-        // Store token on successful login
         if (response.data.token) {
             setTokens(response.data.token, '');
             try {
-                await oneSignalService.registerDevice();
+                oneSignalService.registerDevice();
             } catch (error) {
                 console.error('OneSignal: Failed to register device', error);
             }
@@ -823,7 +822,7 @@ export const adminService = {
      */
     logout: async () => {
         try {
-            await oneSignalService.unregisterDevice();
+            oneSignalService.unregisterDevice();
         } catch (error) {
             console.error('OneSignal: Failed to unregister device', error);
         } finally {
@@ -1211,6 +1210,29 @@ export const adminService = {
      */
     getCourses: async (params: UserListParams = {}): Promise<PaginatedResponse<CourseData>> => {
         const response = await apiClient.get(endpoints.admin.courses.list, { params });
+        return response.data;
+    },
+
+    /**
+     * Get subscribers for a specific course.
+     */
+    getCourseSubscribers: async (courseId: number): Promise<{
+        data: Array<{
+            id: number;
+            student_id: number;
+            course_id: number;
+            status: string;
+            start_date: string | null;
+            end_date: string | null;
+            created_at: string;
+            student?: {
+                id: number;
+                name: string;
+                email: string;
+            };
+        }>;
+    }> => {
+        const response = await apiClient.get(`/api/v1/admin/courses/${courseId}/subscribers`);
         return response.data;
     },
 
@@ -1983,6 +2005,29 @@ export const adminService = {
      */
     deletePackage: async (id: number): Promise<void> => {
         await apiClient.delete(`/api/v1/admin/packages/${id}`);
+    },
+
+    /**
+     * Get subscribers for a specific package.
+     */
+    getPackageSubscribers: async (packageId: number): Promise<{
+        data: Array<{
+            id: number;
+            student_id: number;
+            package_id: number;
+            status: string;
+            start_date: string | null;
+            end_date: string | null;
+            created_at: string;
+            student?: {
+                id: number;
+                name: string;
+                email: string;
+            };
+        }>;
+    }> => {
+        const response = await apiClient.get(`/api/v1/admin/packages/${packageId}/subscribers`);
+        return response.data;
     },
 
     /**

@@ -1,5 +1,5 @@
 import { useState, Suspense } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { TeacherSidebar } from './TeacherSidebar';
 import { useLanguage } from '../../hooks';
 import { useAuthStore } from '../../store';
@@ -49,6 +49,7 @@ export function TeacherLayout({
 }: TeacherLayoutProps) {
     const { isRTL } = useLanguage();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user, logout: storeLogout } = useAuthStore();
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -163,7 +164,7 @@ export function TeacherLayout({
 
                 {/* Page Content - Only this changes on route navigation */}
                 <main className="p-8 flex-1">
-                    <Suspense fallback={<PageLoadingFallback />}>
+                    <Suspense key={location.pathname} fallback={<PageLoadingFallback />}>
                         <Outlet />
                     </Suspense>
                 </main>

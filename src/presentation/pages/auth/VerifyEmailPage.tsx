@@ -195,7 +195,7 @@ export function VerifyEmailPage() {
                             <p className="text-slate-grey">
                                 أرسلنا رمز تحقق مكون من 6 أرقام إلى
                             </p>
-                            <p className="text-shibl-crimson font-bold mt-1 dir-ltr">{email}</p>
+                            <p className="text-shibl-crimson font-bold mt-1" dir="ltr">{email}</p>
                         </div>
 
                         {/* Error/Success Messages */}
@@ -212,7 +212,7 @@ export function VerifyEmailPage() {
 
                         {/* OTP Form */}
                         <form onSubmit={handleSubmit}>
-                            <div className="flex justify-center gap-3 mb-8 dir-ltr">
+                            <div className="flex justify-center gap-3 mb-8" dir="ltr">
                                 {otp.map((digit, index) => (
                                     <input
                                         key={index}

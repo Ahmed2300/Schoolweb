@@ -181,18 +181,15 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
 
         const echo = getTeacherEcho();
         if (!echo) {
-            console.warn('⚠️ SlotRequestDialog: Echo not initialized');
             return;
         }
 
         const channelName = `grade.${gradeId}.schedule`;
         const channel = echo.private(channelName);
 
-        // Debug log
-        console.log(`🔌 SlotRequestDialog: Subscribing to ${channelName}`);
+
 
         channel.listen('.slot.status.changed', (e: any) => {
-            console.log('🔔 SlotRequestDialog: Slot status changed', e);
 
             // Invalidate queries to refetch data
             queryClient.invalidateQueries({ queryKey: slotRequestKeys.availableSlots(gradeId, selectedDate) });
@@ -200,7 +197,6 @@ export function SlotRequestDialog({ open, onClose, onSuccess }: SlotRequestDialo
         });
 
         return () => {
-            console.log(`🔌 SlotRequestDialog: Unsubscribing from ${channelName}`);
             channel.stopListening('.slot.status.changed');
         };
     }, [gradeId, selectedDate, queryClient]);

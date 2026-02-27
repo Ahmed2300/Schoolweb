@@ -20,15 +20,15 @@ import {
     TrendingUp,
     ArrowLeft,
     School,
-    PlayCircle
+
 } from 'lucide-react';
-import { VideoModal } from '../../components/common/VideoModal';
+
 import { SessionConflictModal } from '../../components/auth/SessionConflictModal';
 import { OtpVerificationModal } from '../../components/auth/OtpVerificationModal';
 
 type UserType = 'student' | 'parent' | 'teacher';
 
-import { TutorialThumbnail } from '../../components/common/TutorialThumbnail';
+
 
 export function SignInPage() {
     const { isRTL } = useLanguage();
@@ -39,7 +39,7 @@ export function SignInPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [showVideoModal, setShowVideoModal] = useState(false);
+
     const [showConflictModal, setShowConflictModal] = useState(false);
     const [showOtpModal, setShowOtpModal] = useState(false);
     const [otpError, setOtpError] = useState('');
@@ -108,6 +108,12 @@ export function SignInPage() {
                             role: 'teacher',
                         };
                         setUser(userWithRole as any);
+
+                        // Pre-warm teacher chunks so navigation is instant
+                        await Promise.allSettled([
+                            import('../../components/teacher'),
+                            import('../teacher/TeacherDashboardPage'),
+                        ]);
                         navigate(ROUTES.TEACHER_DASHBOARD);
                     }
                     return;
@@ -135,10 +141,19 @@ export function SignInPage() {
 
                     setUser(userWithRole as any);
 
-                    // Navigate based on user role
+                    // Pre-warm the destination chunks BEFORE navigating
+                    // so React Router's transition resolves instantly
                     if (userType === 'student') {
+                        await Promise.allSettled([
+                            import('../dashboard/StudentLayout'),
+                            import('../dashboard/StudentHomePage'),
+                        ]);
                         navigate(ROUTES.DASHBOARD);
                     } else if (userType === 'parent') {
+                        await Promise.allSettled([
+                            import('../dashboard/ParentLayout'),
+                            import('../dashboard/ParentHomePage'),
+                        ]);
                         navigate(ROUTES.PARENT_DASHBOARD);
                     }
                 }
@@ -159,6 +174,11 @@ export function SignInPage() {
                 setShowOtpModal(true);
                 // Clear any previous OTP errors when showing modal for the first time
                 if (!otp) setOtpError('');
+                return;
+            }
+
+            if (errorCode === 'invalid_otp') {
+                setOtpError(arabicMessage || 'رمز التحقق غير صحيح. يرجى المحاولة مرة أخرى.');
                 return;
             }
 
@@ -188,14 +208,13 @@ export function SignInPage() {
             } else if (!showOtpModal) {
                 // Only show main form error if OTP modal is not open
                 setError(err.response?.data?.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
-            }
-
-            // Handle OTP specific errors (including resend errors)
-            if (otp || showOtpModal) {
+                // Handle OTP specific errors that weren't caught by specific error codes above
+            } else if (otp || showOtpModal) {
                 setOtpError(arabicMessage || err.response?.data?.message || 'رمز التحقق غير صحيح');
             }
 
-        } finally {
+            // Clear loading on error paths — spinner stays visible on success
+            // because startTransition holds this page while the destination loads.
             setIsLoading(false);
             setIsForceLoginLoading(false);
             setIsOtpLoading(false);
@@ -402,13 +421,7 @@ export function SignInPage() {
                             <Link to={ROUTES.REGISTER} className="text-shibl-crimson font-bold hover:underline">أنشئ حساباً الآن</Link>
                         </p>
 
-                        <div className="mt-5 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-100 flex justify-center">
-                            <TutorialThumbnail
-                                videoUrl="https://youtu.be/8ux9wCb0iQs"
-                                onClick={() => setShowVideoModal(true)}
-                                layoutId="tutorial-video-card"
-                            />
-                        </div>
+
                     </div>
                 </div>
 
@@ -429,9 +442,10 @@ export function SignInPage() {
                         {/* Main Image - Changes based on user type */}
                         <div className="relative w-full max-w-[380px]">
                             <img
-                                src={userType === 'student' ? '/images/signin-student.png' : userType === 'parent' ? '/images/signin-parent.png' : '/images/hero-teacher.png'}
+                                src={userType === 'student' ? '/images/signin-student.webp' : userType === 'parent' ? '/images/signin-parent.webp' : '/images/hero-teacher.webp'}
                                 alt={userType === 'student' ? 'طالب' : userType === 'parent' ? 'ولي أمر' : 'معلم'}
                                 className="w-full h-auto rounded-3xl drop-shadow-2xl transition-all duration-500"
+                                fetchPriority="high"
                             />
                         </div>
 
@@ -463,14 +477,7 @@ export function SignInPage() {
                 </div>
             </div>
 
-            {/* Video Modal */}
-            <VideoModal
-                isOpen={showVideoModal}
-                onClose={() => setShowVideoModal(false)}
-                videoUrl="https://youtu.be/8ux9wCb0iQs"
-                title="كيف تسجل الدخول في منصة سُبُل"
-                layoutId="tutorial-video-card"
-            />
+
             {/* Session Conflict Modal */}
             <SessionConflictModal
                 isOpen={showConflictModal}

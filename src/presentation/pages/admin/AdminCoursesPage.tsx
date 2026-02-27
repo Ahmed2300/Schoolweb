@@ -15,6 +15,9 @@ import {
     Loader2,
     AlertCircle,
     Layers,
+    Mail,
+    Clock,
+    X,
 } from 'lucide-react';
 import { adminService, CourseData } from '../../../data/api/adminService';
 import { AddCourseModal } from '../../components/admin/AddCourseModal';
@@ -57,6 +60,7 @@ interface Course {
     subject?: { id: number; name: string | { ar?: string; en?: string } };
     teacher?: { id: number; name: string };
     image?: string;
+    subscriptions_count?: number;
 }
 
 interface CourseStats {
@@ -130,6 +134,18 @@ export function AdminCoursesPage() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingCourse, setEditingCourse] = useState<CourseData | null>(null);
     const [deletingCourse, setDeletingCourse] = useState<Course | null>(null);
+
+    // Subscriber Modal State
+    const [subscriberModalCourse, setSubscriberModalCourse] = useState<Course | null>(null);
+    const [subscribers, setSubscribers] = useState<Array<{
+        id: number;
+        status: string;
+        start_date: string | null;
+        end_date: string | null;
+        created_at: string;
+        student?: { id: number; name: string; email: string };
+    }>>([]);
+    const [subscribersLoading, setSubscribersLoading] = useState(false);
 
     const filteredSemesters = selectedGradeId
         ? semesters.filter(s => s.grade_id === selectedGradeId)
@@ -437,6 +453,7 @@ export function AdminCoursesPage() {
                                         <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكود</th>
                                         <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الساعات</th>
                                         <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">السعر</th>
+                                        <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">المشتركين</th>
                                         <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الحالة</th>
                                         <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الإجراءات</th>
                                     </tr>
@@ -444,7 +461,7 @@ export function AdminCoursesPage() {
                                 <tbody className="divide-y divide-slate-100 dark:divide-white/10">
                                     {courses.length === 0 ? (
                                         <tr>
-                                            <td colSpan={7} className="px-6 py-12 text-center">
+                                            <td colSpan={8} className="px-6 py-12 text-center">
                                                 <div className="flex flex-col items-center gap-3">
                                                     <BookOpen size={48} className="text-slate-300" />
                                                     <p className="text-slate-grey">لا توجد كورسات</p>
@@ -492,6 +509,32 @@ export function AdminCoursesPage() {
                                                         ) : (
                                                             <span className="text-slate-400">-</span>
                                                         )}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <button
+                                                            onClick={async () => {
+                                                                setSubscriberModalCourse(course);
+                                                                setSubscribersLoading(true);
+                                                                try {
+                                                                    const res = await adminService.getCourseSubscribers(course.id);
+                                                                    setSubscribers(res.data || []);
+                                                                } catch {
+                                                                    setSubscribers([]);
+                                                                } finally {
+                                                                    setSubscribersLoading(false);
+                                                                }
+                                                            }}
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors cursor-pointer group"
+                                                            title="عرض المشتركين"
+                                                        >
+                                                            <Users size={16} className="text-indigo-500 group-hover:scale-110 transition-transform" />
+                                                            <span className={`font-semibold ${(course.subscriptions_count || 0) > 0
+                                                                ? 'text-indigo-600 dark:text-indigo-400'
+                                                                : 'text-slate-400 dark:text-slate-500'
+                                                                }`}>
+                                                                {course.subscriptions_count || 0}
+                                                            </span>
+                                                        </button>
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${statusConfig[status]?.bgColor || 'bg-slate-100'} ${statusConfig[status]?.textColor || 'text-slate-600'}`}>
@@ -585,6 +628,109 @@ export function AdminCoursesPage() {
                 }}
                 onClose={() => setDeletingCourse(null)}
             />
+
+            {/* Subscriber List Modal */}
+            {subscriberModalCourse && (
+                <div
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200"
+                    onClick={() => { setSubscriberModalCourse(null); setSubscribers([]); }}
+                >
+                    <div
+                        className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[80vh] flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Modal Header */}
+                        <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 px-6 py-4 flex items-center justify-between shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                                    <Users size={22} className="text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-white">المشتركين</h3>
+                                    <p className="text-indigo-100 text-sm">{getCourseName(subscriberModalCourse)}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => { setSubscriberModalCourse(null); setSubscribers([]); }}
+                                className="p-1 hover:bg-white/20 rounded-full transition-colors"
+                            >
+                                <X size={20} className="text-white" />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="overflow-y-auto flex-1 p-4 overscroll-contain">
+                            {subscribersLoading ? (
+                                <div className="space-y-3">
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} className="animate-pulse flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-white/5">
+                                            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-white/10" />
+                                            <div className="flex-1 space-y-2">
+                                                <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-32" />
+                                                <div className="h-3 bg-slate-200 dark:bg-white/10 rounded w-48" />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : subscribers.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center">
+                                        <Users size={32} className="text-slate-300 dark:text-slate-600" />
+                                    </div>
+                                    <p className="text-slate-500 dark:text-slate-400 font-medium">لا يوجد مشتركين في هذا الكورس</p>
+                                    <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">سيظهر الطلاب هنا عند اشتراكهم</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between mb-3 px-1">
+                                        <span className="text-sm text-slate-500 dark:text-slate-400">
+                                            إجمالي المشتركين: <strong className="text-slate-700 dark:text-slate-200">{subscribers.length}</strong>
+                                        </span>
+                                    </div>
+                                    {subscribers.map(sub => (
+                                        <div
+                                            key={sub.id}
+                                            className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                                        >
+                                            <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm shrink-0">
+                                                {sub.student?.name?.charAt(0)?.toUpperCase() || '?'}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-semibold text-slate-800 dark:text-white text-sm truncate">
+                                                    {sub.student?.name || 'طالب غير معروف'}
+                                                </p>
+                                                <div className="flex items-center gap-1 mt-0.5">
+                                                    <Mail size={12} className="text-slate-400 shrink-0" />
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                                        {sub.student?.email || '—'}
+                                                    </p>
+                                                </div>
+                                                {sub.start_date && (
+                                                    <div className="flex items-center gap-1 mt-0.5">
+                                                        <Clock size={12} className="text-slate-400 shrink-0" />
+                                                        <p className="text-xs text-slate-400">
+                                                            {new Date(sub.start_date).toLocaleDateString('ar-SA')}
+                                                            {sub.end_date && ` — ${new Date(sub.end_date).toLocaleDateString('ar-SA')}`}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium shrink-0 ${sub.status === 'active'
+                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
+                                                : sub.status === 'pending'
+                                                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
+                                                    : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400'
+                                                }`}>
+                                                {sub.status === 'active' ? 'نشط' : sub.status === 'pending' ? 'معلق' : sub.status}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

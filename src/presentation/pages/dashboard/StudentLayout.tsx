@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useLanguage } from '../../hooks';
 import { useAuthStore } from '../../store';
@@ -288,7 +288,19 @@ export function StudentLayout() {
 
                 {/* Page Content */}
                 <div className="flex-1">
-                    <Outlet />
+                    <Suspense key={location.pathname} fallback={
+                        <div className="animate-pulse space-y-6 p-6">
+                            <div className="h-8 bg-slate-200 rounded-lg w-1/3" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="h-40 bg-white border border-slate-100 rounded-2xl shadow-sm" />
+                                ))}
+                            </div>
+                            <div className="h-64 bg-white border border-slate-100 rounded-2xl shadow-sm" />
+                        </div>
+                    }>
+                        <Outlet />
+                    </Suspense>
                 </div>
                 <Footer />
             </main>

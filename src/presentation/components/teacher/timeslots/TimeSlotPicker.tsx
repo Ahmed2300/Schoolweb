@@ -6,6 +6,7 @@ import { teacherTimeSlotKeys } from '../../../hooks/useTeacherTimeSlots';
 import type { TimeSlot } from '../../../../types/timeSlot';
 import { formatDate as formatDateArabic, formatTime } from '../../../../utils/timeUtils';
 import { frontendSettings } from '../../../../services/FrontendSettingsService';
+import { getEcho } from '../../../../services/websocket';
 
 interface TimeSlotPickerProps {
     onSelect: (slot: TimeSlot | null) => void;
@@ -30,13 +31,14 @@ export function TimeSlotPicker({ onSelect, selectedSlotId, bookedSlots = [], cur
     useEffect(() => {
         if (!selectedDate) return;
 
-        const channel = window.Echo?.channel('time-slots');
+        const echo = getEcho();
+        const channel = echo?.channel('time-slots');
         if (!channel) return;
 
-        console.log(`Listening for time-slots on date: ${selectedDate}`);
+
 
         const handleUpdate = (e: any) => {
-            console.log('Real-time slot update:', e);
+
             queryClient.invalidateQueries({ queryKey: teacherTimeSlotKeys.available(selectedDate) });
         };
 

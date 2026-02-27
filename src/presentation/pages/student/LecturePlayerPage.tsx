@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { studentCourseService, Lecture, Unit } from '../../../data/api/studentCourseService';
-import { Loader2, ArrowRight, CheckCircle2, FileText, ChevronRight, Menu, Clock, Radio, PlayCircle, Lock } from 'lucide-react';
+import { Loader2, ArrowRight, CheckCircle2, FileText, ChevronRight, Menu, Clock, Radio, PlayCircle, Lock, Wifi } from 'lucide-react';
 import { VideoPlayer } from '../../components/student/course/VideoPlayer';
 import { CourseContentSidebar } from '../../components/student/course/CourseContentSidebar';
 import { LiveSessionContent } from '../../components/student/course/LiveSessionContent';
@@ -216,55 +216,56 @@ export function LecturePlayerPage() {
     if (error || !currentLecture) return <div className="p-10 text-center text-slate-500">حدث خطأ أثناء تحميل المحتوى</div>;
 
     return (
-        <div className="flex h-screen bg-[#FDFDFD] overflow-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="flex h-dvh bg-[#FAFBFC] overflow-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Header */}
-                <div className="bg-white/80 backdrop-blur-md h-20 border-b border-slate-100 flex items-center justify-between px-6 lg:px-10 shrink-0 z-20 sticky top-0">
-                    <div className="flex items-center gap-6">
+                <div className="bg-white/90 backdrop-blur-xl h-14 sm:h-[60px] lg:h-16 border-b border-slate-200/60 flex items-center justify-between px-3 sm:px-4 lg:px-8 shrink-0 z-20 sticky top-0">
+                    <div className="flex items-center gap-2.5 sm:gap-3 lg:gap-4 min-w-0 flex-1">
                         <button
                             onClick={() => navigate(`/dashboard/courses/${courseId}`)}
-                            className="w-10 h-10 flex items-center justify-center bg-slate-50 hover:bg-[#AF0C15] text-slate-400 hover:text-white rounded-full transition-all duration-300 shadow-sm hover:shadow-[#AF0C15]/20"
+                            className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-slate-100/80 hover:bg-slate-200 text-slate-500 hover:text-slate-700 rounded-lg sm:rounded-xl transition-all duration-200 shrink-0"
                         >
-                            <ArrowRight size={20} className={isRTL ? '' : 'rotate-180'} strokeWidth={2.5} />
+                            <ArrowRight size={16} className={`sm:w-[18px] sm:h-[18px] ${isRTL ? '' : 'rotate-180'}`} strokeWidth={2} />
                         </button>
-                        <div>
-                            <div className="flex items-center gap-2 mb-1">
-                                <span className="text-[10px] font-bold tracking-wider text-[#AF0C15] bg-[#AF0C15]/5 px-2 py-0.5 rounded-full uppercase">
-                                    {course?.name}
+                        <div className="min-w-0 flex-1">
+                            <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider text-slate-400 uppercase truncate block max-w-[140px] sm:max-w-[220px] lg:max-w-none">
+                                {course?.name}
+                            </span>
+                            <h1 className="font-bold text-slate-900 text-[13px] sm:text-sm lg:text-base flex items-center gap-1.5 sm:gap-2">
+                                <span className="truncate max-w-[40vw] sm:max-w-[50vw] lg:max-w-none">
+                                    {getLocalizedName(currentLecture.title, 'Lecture')}
                                 </span>
-                            </div>
-                            <h1 className="font-black text-slate-900 line-clamp-1 text-lg flex items-center gap-2">
-                                {getLocalizedName(currentLecture.title, 'Lecture')}
                                 {/* Session Status Badge */}
                                 {currentLecture.session_status === 'upcoming' && (
-                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-                                        <Clock size={10} /> قريباً
+                                    <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md shrink-0 border border-amber-100/50">
+                                        <Clock size={8} /> قريباً
                                     </span>
                                 )}
                                 {currentLecture.session_status === 'live' && (
-                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider text-red-600 bg-red-50 px-2 py-0.5 rounded-full animate-pulse">
-                                        <Radio size={10} /> مباشر
+                                    <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-md shrink-0 border border-red-100/50">
+                                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+                                        مباشر
                                     </span>
                                 )}
                                 {currentLecture.session_status === 'ended' && currentLecture.has_recording && (
-                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                                        <PlayCircle size={10} /> تسجيل
+                                    <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md shrink-0 border border-emerald-100/50">
+                                        <PlayCircle size={8} /> تسجيل
                                     </span>
                                 )}
                             </h1>
                         </div>
                     </div>
-                    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="lg:hidden p-2 text-slate-500 hover:text-[#AF0C15]">
-                        <Menu size={28} />
+                    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all shrink-0">
+                        <Menu size={20} />
                     </button>
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-8">
-                    <div className="max-w-5xl mx-auto space-y-8 pb-20">
+                <div className="flex-1 overflow-y-auto p-2.5 sm:p-4 md:p-6 lg:p-8">
+                    <div className="max-w-5xl mx-auto space-y-4 sm:space-y-5 lg:space-y-6 pb-20">
                         {/* Video / Live / Content Viewer */}
-                        <div className="bg-black rounded-[2rem] overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] ring-1 ring-white/10 relative z-10">
+                        <div className="bg-slate-900 rounded-xl sm:rounded-2xl overflow-hidden shadow-xl shadow-slate-900/10 ring-1 ring-black/5 relative z-10">
                             {currentLecture.is_online ? (
                                 <LiveSessionContent
                                     lecture={currentLecture}
@@ -320,52 +321,62 @@ export function LecturePlayerPage() {
                         </div>
 
                         {/* Controls & Info */}
-                        <div className="flex flex-col lg:flex-row gap-8 items-start">
+                        <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row lg:gap-6 items-start">
+                            {/* Title & Desc — shown first on mobile */}
+                            <div className="flex-1 order-1 text-right">
+                                <h2 className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold text-slate-900 mb-1.5 sm:mb-2 leading-snug line-clamp-3">
+                                    {getLocalizedName(currentLecture.title, 'Lecture')}
+                                </h2>
+                                {currentLecture.description && (
+                                    <p className="text-xs sm:text-sm text-slate-500 leading-relaxed line-clamp-3">
+                                        {getLocalizedName(currentLecture.description, 'Lecture Desc')}
+                                    </p>
+                                )}
+                            </div>
+
                             {/* Actions */}
-                            <div className="w-full lg:w-auto lg:shrink-0 flex items-center gap-3 order-2 lg:order-1">
+                            <div className="w-full lg:w-auto lg:shrink-0 flex flex-wrap items-center gap-2 sm:gap-2.5 order-2">
                                 {prevItem ? (
                                     <button
                                         onClick={() => navigateToItem(prevItem)}
-                                        className="h-14 px-6 rounded-full border border-slate-200 bg-white text-slate-600 hover:border-[#AF0C15] hover:text-[#AF0C15] font-bold transition-all flex items-center gap-2"
+                                        className="h-9 sm:h-10 lg:h-11 px-3 sm:px-4 rounded-lg sm:rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 font-semibold transition-all flex items-center gap-1.5 text-xs sm:text-sm active:scale-[0.98]"
                                     >
-                                        <ChevronRight className={isRTL ? '' : 'rotate-180'} size={20} />
-                                        {prevItem.item_type === 'quiz' ? 'الاختبار السابق' : 'السابق'}
+                                        <ChevronRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRTL ? '' : 'rotate-180'}`} />
+                                        {prevItem.item_type === 'quiz' ? 'السابق' : 'السابق'}
                                     </button>
-                                ) : (
-                                    <div className="h-14 px-6"></div> // Spacer
-                                )}
+                                ) : null}
 
-                                <div className="flex items-center gap-3 flex-1 lg:flex-none justify-center">
+                                <div className="flex items-center gap-2 flex-1 lg:flex-none justify-center">
                                     {currentLecture.is_completed ? (
                                         currentLecture.quizzes && currentLecture.quizzes[0] && !currentLecture.quizzes[0].is_completed ? (
                                             <button
                                                 onClick={() => navigate(`/dashboard/quizzes/${currentLecture.quizzes![0].id}`)}
-                                                className="h-14 px-8 bg-purple-50 text-purple-600 border border-purple-100 hover:bg-purple-100 rounded-full font-black flex items-center gap-2 cursor-pointer transition-all"
+                                                className="h-9 sm:h-10 lg:h-11 px-4 sm:px-5 bg-purple-50 text-purple-600 border border-purple-100 hover:bg-purple-100 rounded-lg sm:rounded-xl font-semibold flex items-center gap-1.5 cursor-pointer transition-all text-xs sm:text-sm active:scale-[0.98]"
                                             >
-                                                <CheckCircle2 size={24} /> ابدأ الاختبار
+                                                <CheckCircle2 size={16} /> ابدأ الاختبار
                                             </button>
                                         ) : (
-                                            <button disabled className="h-14 px-8 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full font-black flex items-center gap-2 cursor-default">
-                                                <CheckCircle2 size={24} /> مكتمل
-                                            </button>
+                                            <span className="h-9 sm:h-10 lg:h-11 px-4 inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm">
+                                                <CheckCircle2 size={16} /> مكتمل
+                                            </span>
                                         )
                                     ) : currentLecture.session_status === 'upcoming' ? (
-                                        <button disabled className="h-14 px-8 bg-amber-50 text-amber-600 border border-amber-100 rounded-full font-black flex items-center gap-2 cursor-not-allowed">
-                                            <Clock size={20} /> الجلسة لم تبدأ بعد
-                                        </button>
+                                        <span className="h-9 sm:h-10 lg:h-11 px-4 inline-flex items-center gap-1.5 bg-amber-50 text-amber-600 border border-amber-100 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm">
+                                            <Clock size={14} /> الجلسة لم تبدأ بعد
+                                        </span>
                                     ) : currentLecture.session_status === 'live' && !currentLecture.can_complete ? (
-                                        <button disabled className="h-14 px-8 bg-red-50/50 text-red-400 border border-red-100 rounded-full font-black flex items-center gap-2 cursor-not-allowed">
-                                            <Radio size={20} /> انضم للجلسة أولاً
-                                        </button>
+                                        <span className="h-9 sm:h-10 lg:h-11 px-4 inline-flex items-center gap-1.5 bg-red-50 text-red-500 border border-red-100 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm">
+                                            <Radio size={14} /> انضم للجلسة أولاً
+                                        </span>
                                     ) : currentLecture.can_complete !== false ? (
                                         <button
                                             onClick={handleComplete}
                                             disabled={isCompleting}
-                                            className={`h-14 px-10 bg-[#AF0C15] text-white hover:bg-[#8E0A11] rounded-full font-black transition-all shadow-lg shadow-[#AF0C15]/25 hover:shadow-[#AF0C15]/40 active:scale-95 flex items-center gap-2 ${isCompleting ? 'opacity-70 cursor-wait' : ''}`}
+                                            className={`h-9 sm:h-10 lg:h-11 px-5 sm:px-6 bg-[#AF0C15] text-white hover:bg-[#8E0A11] rounded-lg sm:rounded-xl font-semibold transition-all shadow-md shadow-[#AF0C15]/15 hover:shadow-lg flex items-center gap-1.5 text-xs sm:text-sm active:scale-[0.98] ${isCompleting ? 'opacity-70 cursor-wait' : ''}`}
                                         >
                                             {isCompleting ? (
                                                 <>
-                                                    <Loader2 size={20} className="animate-spin" />
+                                                    <Loader2 size={16} className="animate-spin" />
                                                     جاري التحديد...
                                                 </>
                                             ) : (
@@ -373,9 +384,9 @@ export function LecturePlayerPage() {
                                             )}
                                         </button>
                                     ) : (
-                                        <button disabled className="h-14 px-8 bg-slate-50 text-slate-400 border border-slate-100 rounded-full font-black flex items-center gap-2 cursor-not-allowed">
+                                        <span className="h-9 sm:h-10 lg:h-11 px-4 inline-flex items-center gap-1.5 bg-slate-50 text-slate-400 border border-slate-100 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm">
                                             غير متاح
-                                        </button>
+                                        </span>
                                     )}
                                 </div>
 
@@ -384,15 +395,15 @@ export function LecturePlayerPage() {
                                         <div className="relative group/next">
                                             <button
                                                 disabled
-                                                className="h-14 px-6 rounded-full bg-slate-100 text-slate-400 border border-slate-200 font-bold transition-all flex items-center gap-2 cursor-not-allowed"
+                                                className="h-9 sm:h-10 lg:h-11 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-slate-100 text-slate-400 border border-slate-200 font-semibold transition-all flex items-center gap-1.5 cursor-not-allowed text-xs sm:text-sm"
                                             >
-                                                <Lock size={16} />
-                                                {nextItem.item_type === 'quiz' ? 'الاختبار التالي' : 'التالي'}
-                                                <ChevronRight className={isRTL ? 'rotate-180' : ''} size={20} />
+                                                <Lock size={12} />
+                                                التالي
+                                                <ChevronRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
                                             </button>
                                             {/* Tooltip */}
                                             <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/next:opacity-100 pointer-events-none transition-opacity duration-200 z-50">
-                                                <div className="bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-lg max-w-[250px] text-center">
+                                                <div className="bg-slate-900 text-white text-[10px] font-medium px-3 py-1.5 rounded-lg shadow-lg max-w-[200px] text-center whitespace-nowrap">
                                                     {!currentLecture.is_completed
                                                         ? 'أكمل الدرس الحالي أولاً'
                                                         : firstBlocker
@@ -405,24 +416,12 @@ export function LecturePlayerPage() {
                                     ) : (
                                         <button
                                             onClick={() => navigateToItem(nextItem)}
-                                            className="h-14 px-6 rounded-full bg-slate-900 text-white hover:bg-slate-800 font-bold transition-all flex items-center gap-2 shadow-lg shadow-slate-900/20"
+                                            className="h-9 sm:h-10 lg:h-11 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-semibold transition-all flex items-center gap-1.5 shadow-md shadow-slate-900/10 text-xs sm:text-sm active:scale-[0.98]"
                                         >
                                             {nextItem.item_type === 'quiz' ? 'ابدأ الاختبار' : 'التالي'}
-                                            <ChevronRight className={isRTL ? 'rotate-180' : ''} size={20} />
+                                            <ChevronRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
                                         </button>
                                     )
-                                )}
-                            </div>
-
-                            {/* Title & Desc */}
-                            <div className="flex-1 order-1 lg:order-2 text-right">
-                                <h2 className="text-2xl lg:text-3xl font-black text-slate-900 mb-4 leading-tight">
-                                    {getLocalizedName(currentLecture.title, 'Lecture')}
-                                </h2>
-                                {currentLecture.description && (
-                                    <div className="prose prose-slate prose-lg text-slate-500 leading-relaxed">
-                                        {getLocalizedName(currentLecture.description, 'Lecture Desc')}
-                                    </div>
                                 )}
                             </div>
                         </div>
@@ -430,10 +429,18 @@ export function LecturePlayerPage() {
                 </div>
             </div>
 
+            {/* Sidebar Backdrop (mobile) */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 lg:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
             <div className={`
-                fixed inset-y-0 right-0 lg:static w-[350px] bg-white border-r border-[#AF0C15]/5 lg:border-r-0 lg:border-l border-slate-100 shadow-2xl lg:shadow-none
-                transform transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) z-30
+                fixed inset-y-0 right-0 lg:static w-[300px] sm:w-[350px] bg-white border-r border-[#AF0C15]/5 lg:border-r-0 lg:border-l border-slate-100 shadow-2xl lg:shadow-none
+                transform transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) z-40
                 ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0 lg:w-0 lg:opacity-0 lg:overflow-hidden'}
             `}>
                 {course && (

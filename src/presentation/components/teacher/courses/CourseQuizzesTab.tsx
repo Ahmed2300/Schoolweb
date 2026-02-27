@@ -282,15 +282,15 @@ export function CourseQuizzesTab({ courseId, courseName, units, teacherId }: Cou
     useEffect(() => {
         const handleQuizStatusChange = (event: Event) => {
             const customEvent = event as CustomEvent;
-            console.log('CourseQuizzesTab: Quiz status changed via WebSocket:', customEvent.detail);
+
             // Refresh the quiz list to reflect the new status
             fetchQuizzes();
         };
 
-        console.log('CourseQuizzesTab: Adding quiz-status-change event listener');
+
         window.addEventListener('quiz-status-change', handleQuizStatusChange);
         return () => {
-            console.log('CourseQuizzesTab: Removing quiz-status-change event listener');
+
             window.removeEventListener('quiz-status-change', handleQuizStatusChange);
         };
     }, [fetchQuizzes]);

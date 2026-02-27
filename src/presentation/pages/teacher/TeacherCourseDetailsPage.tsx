@@ -1896,6 +1896,8 @@ export function TeacherCourseDetailsPage() {
                     onSuccess={handleLectureSaved}
                     units={units}
                     courseName={courseName}
+                    gradeId={course?.grade_id || course?.grade?.id}
+                    semesterId={course?.semester_id || course?.semester?.id}
                 />
             )}
 
