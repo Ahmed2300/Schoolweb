@@ -150,27 +150,46 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
         setError(null);
 
         try {
+            // Compare times against original to detect actual changes
+            const originalStartTime = lecture.start_time
+                ? new Date(lecture.start_time).toISOString().slice(0, 16)
+                : '';
+            const originalEndTime = lecture.end_time
+                ? new Date(lecture.end_time).toISOString().slice(0, 16)
+                : '';
+
             // Format start/end times from slot if selected
-            let formattedStartTime = formData.startTime || undefined;
-            let formattedEndTime = formData.endTime || undefined;
+            let formattedStartTime: string | undefined = formData.startTime || undefined;
+            let formattedEndTime: string | undefined = formData.endTime || undefined;
 
             if (selectedSlot && selectedDate) {
                 formattedStartTime = `${selectedDate} ${selectedSlot.start_time}`;
                 formattedEndTime = `${selectedDate} ${selectedSlot.end_time}`;
             }
 
-            const lectureData = {
+            const lectureData: Record<string, unknown> = {
                 title: { ar: formData.titleAr, en: formData.titleEn },
                 description: { ar: formData.descriptionAr, en: formData.descriptionEn },
                 course_id: parseInt(formData.courseId),
-                unit_id: formData.unitId ? parseInt(formData.unitId) : undefined,
                 teacher_id: parseInt(formData.teacherId),
-                start_time: formattedStartTime,
-                end_time: formattedEndTime,
                 is_online: formData.isOnline,
-                // If slot changed, pass the recurring slot ID
-                teacher_recurring_slot_id: selectedSlot?.type === 'recurring' ? selectedSlot.id : undefined,
             };
+
+            if (formData.unitId) {
+                lectureData.unit_id = parseInt(formData.unitId);
+            }
+
+            // Only send time fields if they actually changed (or a new slot was selected)
+            if (selectedSlot && selectedDate) {
+                lectureData.start_time = formattedStartTime;
+                lectureData.end_time = formattedEndTime;
+                if (selectedSlot.type === 'recurring') {
+                    lectureData.teacher_recurring_slot_id = selectedSlot.id;
+                }
+            } else if (formData.startTime !== originalStartTime) {
+                lectureData.start_time = formattedStartTime || null;
+                lectureData.end_time = formattedEndTime || null;
+            }
 
             if (newVideoPath) {
                 await teacherLectureService.updateLectureWithVideo(lecture.id, lectureData, newVideoPath);
@@ -325,12 +344,12 @@ export function TeacherEditLectureModal({ isOpen, onClose, onSuccess, lecture, c
                                         {/* Lecture Type — read-only indicator for edit */}
                                         <div className="col-span-full pt-2">
                                             <div className={`flex items-center gap-3 p-4 rounded-xl border-2 ${formData.isOnline
-                                                    ? 'border-blue-200 bg-blue-50 dark:bg-blue-900/10 dark:border-blue-800/30'
-                                                    : 'border-emerald-200 bg-emerald-50 dark:bg-emerald-900/10 dark:border-emerald-800/30'
+                                                ? 'border-blue-200 bg-blue-50 dark:bg-blue-900/10 dark:border-blue-800/30'
+                                                : 'border-emerald-200 bg-emerald-50 dark:bg-emerald-900/10 dark:border-emerald-800/30'
                                                 }`}>
                                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${formData.isOnline
-                                                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                                                        : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+                                                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                                                    : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
                                                     }`}>
                                                     {formData.isOnline ? <Radio size={20} /> : <Upload size={20} />}
                                                 </div>

@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, Check, Video, FileText, Calendar, Trash2, Loader2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Check, Video, FileText, Calendar, Trash2, Loader2, Radio, Upload } from 'lucide-react';
 import { lectureService } from '../../../data/api/lectureService';
 import { adminService } from '../../../data/api/adminService';
 import { VideoUploader } from './VideoUploader';
+import { ApprovedSlotSelector, type DatedSlot } from '../teacher/timeslots/ApprovedSlotSelector';
 
 interface CourseOption {
     id: number;
@@ -86,7 +87,14 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
     const [newVideoPath, setNewVideoPath] = useState<string | null>(null);
     const [units, setUnits] = useState<UnitOption[]>([]);
     const [loadingUnits, setLoadingUnits] = useState(false);
-    const [courseDates, setCourseDates] = useState<{ start: string; end: string } | null>(null);
+
+    // Course-derived IDs for slot filtering
+    const [gradeId, setGradeId] = useState<number | undefined>(undefined);
+    const [semesterId, setSemesterId] = useState<number | undefined>(undefined);
+
+    // Slot selection state for live sessions
+    const [selectedSlot, setSelectedSlot] = useState<DatedSlot | null>(null);
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
     // Helper to extract unit name
     const getUnitName = (unit: UnitOption): string => {
@@ -110,16 +118,19 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
                 endTime: lecture.end_time ? new Date(lecture.end_time).toISOString().slice(0, 16) : '',
                 isOnline: lecture.is_online,
             });
-            setNewVideoPath(null); // Reset new video path when opening for new lecture
+            setNewVideoPath(null);
+            setSelectedSlot(null);
+            setSelectedDate(null);
         }
     }, [lecture]);
 
-    // Fetch units and course details when course changes
+    // Fetch units and course details (including grade_id / semester_id) when course changes
     useEffect(() => {
         const fetchCourseData = async () => {
             if (!formData.courseId) {
                 setUnits([]);
-                setCourseDates(null);
+                setGradeId(undefined);
+                setSemesterId(undefined);
                 return;
             }
             setLoadingUnits(true);
@@ -128,12 +139,11 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
                 const unitsResponse = await adminService.getUnits(parseInt(formData.courseId));
                 setUnits(unitsResponse.data || unitsResponse || []);
 
-                // Fetch course details for dates and teacher
+                // Fetch course details for grade/semester/teacher
                 const courseDetails = await adminService.getCourse(parseInt(formData.courseId));
                 if (courseDetails) {
-                    const startDate = courseDetails.start_date ? courseDetails.start_date.split('T')[0] + 'T09:00' : '';
-                    const endDate = courseDetails.end_date ? courseDetails.end_date.split('T')[0] + 'T10:00' : '';
-                    setCourseDates({ start: startDate, end: endDate });
+                    setGradeId(courseDetails.grade_id);
+                    setSemesterId(courseDetails.semester_id);
 
                     // Auto-populate teacher from course if not already set
                     if (courseDetails.teacher_id && !formData.teacherId) {
@@ -146,7 +156,8 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
             } catch (err) {
                 console.error('Error fetching course data:', err);
                 setUnits([]);
-                setCourseDates(null);
+                setGradeId(undefined);
+                setSemesterId(undefined);
             } finally {
                 setLoadingUnits(false);
             }
@@ -157,6 +168,8 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
     const handleClose = useCallback(() => {
         if (!loading) {
             setStep(1);
+            setSelectedSlot(null);
+            setSelectedDate(null);
             onClose();
         }
     }, [loading, onClose]);
@@ -185,16 +198,48 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
         setError(null);
 
         try {
-            const lectureData = {
+            // Compare times against original to detect actual changes
+            const originalStartTime = lecture.start_time
+                ? new Date(lecture.start_time).toISOString().slice(0, 16)
+                : '';
+            const originalEndTime = lecture.end_time
+                ? new Date(lecture.end_time).toISOString().slice(0, 16)
+                : '';
+
+            // Format start/end times from slot if selected
+            let formattedStartTime: string | undefined = formData.startTime || undefined;
+            let formattedEndTime: string | undefined = formData.endTime || undefined;
+
+            if (selectedSlot && selectedDate) {
+                formattedStartTime = `${selectedDate} ${selectedSlot.start_time}`;
+                formattedEndTime = `${selectedDate} ${selectedSlot.end_time}`;
+            }
+
+            const lectureData: Record<string, unknown> = {
                 title: { ar: formData.titleAr, en: formData.titleEn },
                 description: { ar: formData.descriptionAr, en: formData.descriptionEn },
                 course_id: parseInt(formData.courseId),
-                unit_id: formData.unitId ? parseInt(formData.unitId) : undefined,
                 teacher_id: parseInt(formData.teacherId),
-                start_time: formData.startTime || undefined,
-                end_time: formData.endTime || undefined,
                 is_online: formData.isOnline,
             };
+
+            if (formData.unitId) {
+                lectureData.unit_id = parseInt(formData.unitId);
+            }
+
+            // Only send time fields if they actually changed (or a new slot was selected)
+            if (selectedSlot && selectedDate) {
+                lectureData.start_time = formattedStartTime;
+                lectureData.end_time = formattedEndTime;
+                if (selectedSlot.type === 'recurring') {
+                    lectureData.teacher_recurring_slot_id = selectedSlot.id;
+                }
+            } else if (formData.startTime !== originalStartTime) {
+                lectureData.start_time = formattedStartTime || null;
+            }
+            if (!selectedSlot && formData.endTime !== originalEndTime) {
+                lectureData.end_time = formattedEndTime || null;
+            }
 
             if (newVideoPath) {
                 await lectureService.updateLectureWithVideo(lecture.id, lectureData, newVideoPath);
@@ -216,10 +261,10 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
     const isRecordedLecture = !formData.isOnline;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" style={{ direction: 'rtl' }}>
+            <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-xl">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-none">
                     <div>
                         <h2 className="text-lg font-bold text-charcoal">تعديل المحاضرة</h2>
                         <p className="text-sm text-slate-500">{formData.titleAr || 'بدون عنوان'}</p>
@@ -231,7 +276,7 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
 
                 {/* Steps Indicator — only for recorded lectures */}
                 {isRecordedLecture && (
-                    <div className="px-6 py-4">
+                    <div className="px-6 py-4 flex-none">
                         <div className="flex items-center justify-between relative">
                             <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-100 -z-10" />
                             <div className={`flex flex-col items-center gap-2 bg-white px-2 ${step >= 1 ? 'text-blue-600' : 'text-slate-400'}`}>
@@ -250,7 +295,7 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
                     </div>
                 )}
 
-                <div className="p-6">
+                <div className="p-6 flex-1 overflow-y-auto">
                     {error && (
                         <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-2 text-sm">
                             <X size={18} />
@@ -339,54 +384,62 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
                                     />
                                 </div>
 
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal flex items-center gap-2">
-                                        وقت البدء
-                                        {!formData.isOnline && courseDates && (
-                                            <span className="text-xs text-slate-400">(من الكورس)</span>
-                                        )}
-                                    </label>
-                                    <div className="relative">
-                                        <Calendar size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                                        <input
-                                            type="datetime-local"
-                                            value={formData.startTime}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                                            disabled={!formData.isOnline}
-                                            className={`w-full h-10 pr-10 pl-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm ${!formData.isOnline ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-charcoal flex items-center gap-2">
-                                        وقت الانتهاء
-                                        {!formData.isOnline && courseDates && (
-                                            <span className="text-xs text-slate-400">(من الكورس)</span>
-                                        )}
-                                    </label>
-                                    <div className="relative">
-                                        <Calendar size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                                        <input
-                                            type="datetime-local"
-                                            value={formData.endTime}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-                                            disabled={!formData.isOnline}
-                                            className={`w-full h-10 pr-10 pl-3 rounded-lg border border-slate-200 focus:border-blue-500 outline-none transition-colors text-sm ${!formData.isOnline ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
-                                        />
+                                {/* Lecture Type Indicator — read-only, same as teacher */}
+                                <div className="col-span-full pt-2">
+                                    <div className={`flex items-center gap-3 p-4 rounded-xl border-2 ${formData.isOnline
+                                        ? 'border-blue-200 bg-blue-50'
+                                        : 'border-emerald-200 bg-emerald-50'
+                                        }`}>
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${formData.isOnline
+                                            ? 'bg-blue-100 text-blue-600'
+                                            : 'bg-emerald-100 text-emerald-600'
+                                            }`}>
+                                            {formData.isOnline ? <Radio size={20} /> : <Upload size={20} />}
+                                        </div>
+                                        <div>
+                                            <span className={`text-sm font-bold block ${formData.isOnline ? 'text-blue-700' : 'text-emerald-700'
+                                                }`}>
+                                                {formData.isOnline ? 'بث مباشر (أونلاين)' : 'فيديو مسجل'}
+                                            </span>
+                                            <span className="text-xs text-slate-500">
+                                                {formData.isOnline ? 'هذه محاضرة بث مباشر — اختر موعداً من الفترات المتاحة' : 'هذه محاضرة مسجلة — يمكنك تعديل الفيديو في الخطوة التالية'}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="col-span-full pt-2">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={formData.isOnline}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, isOnline: e.target.checked }))}
-                                            className="w-4 h-4 rounded text-blue-600 focus:ring-offset-0 focus:ring-0 cursor-pointer"
-                                        />
-                                        <span className="text-sm text-charcoal select-none">محاضرة أونلاين (بث مباشر)</span>
-                                    </label>
-                                </div>
+                                {/* Slot Selector for LIVE sessions */}
+                                {formData.isOnline && (
+                                    <div className="col-span-full border-t border-slate-100 pt-4">
+                                        <label className="text-sm font-medium text-charcoal mb-3 flex items-center gap-2">
+                                            <Calendar size={18} className="text-blue-600" />
+                                            تعديل فترة البث المباشر
+                                        </label>
+                                        {formData.startTime && !selectedSlot && (
+                                            <div className="mb-3 p-3 bg-slate-50 rounded-xl text-sm text-slate-600 flex items-center gap-2">
+                                                <Calendar size={16} className="text-slate-400" />
+                                                <span>الموعد الحالي: {new Date(formData.startTime).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                                            </div>
+                                        )}
+                                        {formData.teacherId ? (
+                                            <ApprovedSlotSelector
+                                                onSelect={(slot) => {
+                                                    setSelectedSlot(slot);
+                                                    setSelectedDate(slot?.dateString || null);
+                                                }}
+                                                selectedSlotId={selectedSlot?.id || null}
+                                                selectedDate={selectedDate}
+                                                gradeId={gradeId}
+                                                semesterId={semesterId}
+                                                teacherId={parseInt(formData.teacherId)}
+                                            />
+                                        ) : (
+                                            <div className="text-center py-6 text-slate-400 text-sm border-2 border-dashed border-slate-200 rounded-xl">
+                                                يرجى اختيار المدرس أولاً لعرض المواعيد المتاحة
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </form>
                     ) : (
@@ -474,7 +527,7 @@ export function EditLectureModal({ isOpen, onClose, onSuccess, lecture, courses,
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between flex-none">
                     {step === 1 ? (
                         <>
                             <button
