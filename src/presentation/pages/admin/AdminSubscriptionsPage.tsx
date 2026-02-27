@@ -104,7 +104,7 @@ export function AdminSubscriptionsPage() {
 
             // Refetch when subscription-related notifications arrive
             if (notification?.type?.includes('subscription')) {
-                console.log('Subscription data update received, refreshing list...');
+
                 fetchSubscriptions();
             }
         };

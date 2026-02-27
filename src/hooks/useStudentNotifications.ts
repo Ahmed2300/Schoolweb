@@ -100,7 +100,7 @@ export function useStudentNotifications(): UseStudentNotificationsReturn {
             initializeEcho(token);
             subscribeToStudentChannel(studentId, handleNotification as (event: unknown) => void);
             setIsConnected(true);
-            console.log('WebSocket connected for student:', studentId);
+
         } catch (err) {
             console.error('Failed to connect to WebSocket:', err);
             setIsConnected(false);

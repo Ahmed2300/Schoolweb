@@ -1,20 +1,111 @@
 <!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/png" href="/images/subol-red.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description"
+    content="سُبُل - منصة تعليمية متكاملة تجمع بين الفصول التفاعلية والمتابعة الدقيقة لضمان أفضل تجربة تعليمية. انضم لآلاف الطلاب الناجحين." />
+  <meta name="theme-color" content="#AF0C15" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="author" content="سُبُل (Subol)" />
+
+  <!-- Open Graph / SEO -->
+  <meta property="og:locale" content="ar_OM" />
+  <meta property="og:site_name" content="سُبُل - علم يوصل للمستقبل" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="سُبُل - علم يوصل للمستقبل" />
+  <meta property="og:description"
     content="منصة تعليمية متكاملة تجمع بين الفصول التفاعلية والمتابعة الدقيقة لضمان أفضل تجربة تعليمية." />
+  <meta property="og:image" content="https://www.soubul.net/images/subol-hero.webp" />
+  <meta property="og:url" content="https://www.soubul.net/" />
+
+  <link rel="canonical" href="https://soubul.net/" />
+
+  <!-- Preconnect: Google Fonts (TLS handshake ~100-200ms saved) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Preload LCP image — browser discovers it immediately instead of
+       waiting for JS to parse → mount → render the <img> tag. -->
+  <link rel="preload" as="image" type="image/webp" href="/images/hero-background.webp" fetchpriority="high" />
+
+  <!-- Inline Critical CSS — renders the above-the-fold skeleton
+       BEFORE the full 341KB CSS file finishes downloading. -->
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Cairo', 'Tajawal', sans-serif;
+      background: #F8F9FA;
+      color: #1F1F1F;
+      min-height: 100vh;
+    }
+
+    #root {
+      display: contents;
+    }
+
+    .parallax-hero {
+      background-color: #AF0C15;
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      height: clamp(200px, 50vw, 600px);
+    }
+  </style>
+  <link rel="dns-prefetch" href="https://api.dicebear.com" />
+
+  <!-- Google Fonts — non-render-blocking (saves ~930ms on mobile) -->
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap"
+    media="print" onload="this.media='all'" />
+  <noscript>
+    <link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" />
+  </noscript>
+
   <title>سُبُل - علم يوصل للمستقبل</title>
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <!-- OneSignal loaded dynamically via initOneSignal.ts — NOT blocking render -->
 </head>
 
 <body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
+  <div id="root">
+    <!-- Instant-paint skeleton: renders from HTML before ANY JS loads.
+         React.createRoot replaces this on mount. Eliminates white-screen. -->
+    <div
+      style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#F8F9FA;direction:rtl">
+      <img src="/images/subol-red.png" alt="" width="80" height="80"
+        style="animation:pulse 1.5s ease-in-out infinite" />
+      <p style="margin-top:16px;font-family:'Cairo','Tajawal',sans-serif;color:#636E72;font-size:14px">جاري التحميل...
+      </p>
+    </div>
+    <style>
+      @keyframes pulse {
 
+        0%,
+        100% {
+          opacity: 1
+        }
+
+        50% {
+          opacity: .5
+        }
+      }
+    </style>
+  </div>
+  <script type="module" src="/src/main.tsx"></script>
 </body>
 
 </html>

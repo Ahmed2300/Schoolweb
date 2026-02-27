@@ -331,20 +331,16 @@ export function AdminSubjectsPage(): React.ReactElement {
                 teacher_id: formData.teacher_id,
             };
 
-            console.log('[DEBUG] Submitting payload:', payload);
-            console.log('[DEBUG] Editing subject ID:', editingSubject?.id);
 
             if (editingSubject) {
-                const result = await adminService.updateSubject(editingSubject.id, payload);
-                console.log('[DEBUG] Update response:', result);
+                await adminService.updateSubject(editingSubject.id, payload);
             } else {
-                const result = await adminService.createSubject(payload);
-                console.log('[DEBUG] Create response:', result);
+                await adminService.createSubject(payload);
             }
 
             closeModal();
             await fetchSubjects();
-            console.log('[DEBUG] Subjects refetched');
+
         } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'فشل في حفظ المادة الدراسية';
             setFormError(errorMessage);

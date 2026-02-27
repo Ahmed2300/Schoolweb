@@ -1,443 +1,419 @@
-import Echo from 'laravel-echo';
-import Pusher from 'pusher-js';
-import { getToken } from '../data/api/ApiClient';
-
-// Make Pusher available globally for Laravel Echo
-declare global {
-    interface Window {
-        Pusher: typeof Pusher;
-        Echo: Echo<'reverb'>;
-    }
-}
-
-// Disable Pusher logging in production and suppress connection errors
-Pusher.logToConsole = false;
-
-window.Pusher = Pusher;
-
 /**
- * WebSocket Configuration - using Reverb
- * Set VITE_WEBSOCKET_ENABLED=false in .env to disable WebSocket
+ * Native TypeScript WebSocket Client for Laravel Reverb (Pusher Protocol)
+ * Replaces laravel-echo and pusher-js to provide exact control over ports/URIs
  */
+
 const WEBSOCKET_ENABLED = import.meta.env.VITE_WEBSOCKET_ENABLED !== 'false';
 
 const REVERB_CONFIG = {
     key: import.meta.env.VITE_REVERB_APP_KEY || 'school-reverb-key',
     host: import.meta.env.VITE_REVERB_HOST || 'localhost',
-    // Use env port or default to 443 (wss)
     port: parseInt(import.meta.env.VITE_REVERB_PORT ?? '443'),
     scheme: import.meta.env.VITE_REVERB_SCHEME || 'https',
 };
 
-// Track connection status to prevent spamming
-let connectionFailed = false;
+// Global Tracking
+let echoInstance: MockEcho | null = null;
+let studentEchoInstance: MockEcho | null = null;
+let parentEchoInstance: MockEcho | null = null;
+let teacherEchoInstance: MockEcho | null = null;
 
-let echoInstance: Echo<'reverb'> | null = null;
-let studentEchoInstance: Echo<'reverb'> | null = null;
-let parentEchoInstance: Echo<'reverb'> | null = null;
-let teacherEchoInstance: Echo<'reverb'> | null = null;
+class ReverbClient {
+    private ws: WebSocket | null = null;
+    private socketId: string | null = null;
+    // channelName => eventName => callbacks
+    private listeners: Record<string, Record<string, Function[]>> = {};
+    private pendingSubscriptions: Set<string> = new Set();
+    private subscribedChannels: Set<string> = new Set();
 
-/**
- * Initialize Laravel Echo with Reverb broadcaster (for Admin)
- * Returns null if WebSocket is disabled
- */
-export function initializeEcho(authToken: string): Echo<'reverb'> | null {
-    // Skip WebSocket if disabled via environment
-    if (!WEBSOCKET_ENABLED) {
-        return null;
+    constructor(
+        private authToken: string,
+        private authEndpointPath: string
+    ) {
+        this.connect();
     }
 
-    if (echoInstance) {
-        return echoInstance;
-    }
+    private connect() {
+        if (!WEBSOCKET_ENABLED) return;
 
-    const apiBaseUrl = (import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`).replace(/\/$/, '');
+        // Build connection URI based precisely on our env values
+        const wsScheme = REVERB_CONFIG.scheme === 'https' ? 'wss' : 'ws';
+        // Add port only if it's non-standard to prevent browser blocking
+        const portSuffix = (REVERB_CONFIG.port === 80 || REVERB_CONFIG.port === 443) ? '' : `:${REVERB_CONFIG.port}`;
 
-    echoInstance = new Echo({
-        broadcaster: 'reverb',
-        key: REVERB_CONFIG.key,
-        wsHost: REVERB_CONFIG.host,
-        wsPort: REVERB_CONFIG.port,
-        wssPort: REVERB_CONFIG.port,
-        forceTLS: REVERB_CONFIG.scheme === 'https',
-        enabledTransports: ['ws', 'wss'],
-        authEndpoint: `${apiBaseUrl}/api/broadcasting/auth`,
-        auth: {
-            headers: {
-                Authorization: `Bearer ${authToken}`,
-                Accept: 'application/json',
-            },
-        },
-    });
+        const uri = `${wsScheme}://${REVERB_CONFIG.host}${portSuffix}/app/${REVERB_CONFIG.key}?protocol=7&client=js&version=8.4.0&flash=false`;
 
-    window.Echo = echoInstance;
-    return echoInstance;
-}
 
-/**
- * Initialize Laravel Echo with Reverb broadcaster (for Student)
- */
-export function initializeStudentEcho(authToken: string): Echo<'reverb'> {
-    if (studentEchoInstance) {
-        return studentEchoInstance;
-    }
 
-    const apiBaseUrl = (import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`).replace(/\/$/, '');
-
-    studentEchoInstance = new Echo({
-        broadcaster: 'reverb',
-        key: REVERB_CONFIG.key,
-        wsHost: REVERB_CONFIG.host,
-        wsPort: REVERB_CONFIG.port,
-        wssPort: REVERB_CONFIG.port,
-        forceTLS: REVERB_CONFIG.scheme === 'https',
-        enabledTransports: ['ws', 'wss'],
-        authEndpoint: `${apiBaseUrl}/api/broadcasting/auth/student`,
-        auth: {
-            headers: {
-                Authorization: `Bearer ${authToken}`,
-                Accept: 'application/json',
-            },
-        },
-    });
-
-    return studentEchoInstance;
-}
-
-/**
- * Initialize Laravel Echo with Reverb broadcaster (for Parent)
- */
-export function initializeParentEcho(authToken: string): Echo<'reverb'> {
-    if (parentEchoInstance) {
-        return parentEchoInstance;
-    }
-
-    const apiBaseUrl = (import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`).replace(/\/$/, '');
-
-    parentEchoInstance = new Echo({
-        broadcaster: 'reverb',
-        key: REVERB_CONFIG.key,
-        wsHost: REVERB_CONFIG.host,
-        wsPort: REVERB_CONFIG.port,
-        wssPort: REVERB_CONFIG.port,
-        forceTLS: REVERB_CONFIG.scheme === 'https',
-        enabledTransports: ['ws', 'wss'],
-        authEndpoint: `${apiBaseUrl}/api/broadcasting/auth/parent`,
-        auth: {
-            headers: {
-                Authorization: `Bearer ${authToken}`,
-                Accept: 'application/json',
-            },
-        },
-    });
-
-    return parentEchoInstance;
-}
-
-/**
- * Get the Echo instance (admin)
- */
-export function getEcho(): Echo<'reverb'> | null {
-    return echoInstance;
-}
-
-/**
- * Get the student Echo instance
- */
-export function getStudentEcho(): Echo<'reverb'> | null {
-    return studentEchoInstance;
-}
-
-/**
- * Get the parent Echo instance
- */
-export function getParentEcho(): Echo<'reverb'> | null {
-    return parentEchoInstance;
-}
-
-/**
- * Disconnect and cleanup Echo (admin)
- */
-export function disconnectEcho(): void {
-    if (echoInstance) {
-        echoInstance.disconnect();
-        echoInstance = null;
-    }
-}
-
-/**
- * Disconnect and cleanup student Echo
- */
-export function disconnectStudentEcho(): void {
-    if (studentEchoInstance) {
-        studentEchoInstance.disconnect();
-        studentEchoInstance = null;
-    }
-}
-
-/**
- * Disconnect and cleanup parent Echo
- */
-export function disconnectParentEcho(): void {
-    if (parentEchoInstance) {
-        parentEchoInstance.disconnect();
-        parentEchoInstance = null;
-    }
-}
-
-/**
- * Subscribe to admin notification channel
- */
-export function subscribeToAdminChannel(
-    adminId: number,
-    onNotification: (event: unknown) => void
-): void {
-    const echo = getEcho();
-    if (!echo) {
-        console.error('Echo not initialized. Call initializeEcho first.');
-        return;
-    }
-
-    echo
-        .private(`admin.${adminId}`)
-        .listen('.notification', (event: unknown) => {
-            console.log('Received notification:', event);
-            onNotification(event);
-        });
-}
-
-/**
- * Unsubscribe from admin notification channel
- */
-export function unsubscribeFromAdminChannel(adminId: number): void {
-    const echo = getEcho();
-    if (echo) {
-        echo.leave(`admin.${adminId}`);
-    }
-}
-
-/**
- * Subscribe to global admins channel (for content approvals etc)
- * Self-initializing: will attempt to create Echo instance if token is available
- * Uses deferred execution to handle module loading timing issues
- */
-export function subscribeToAllAdminsChannel(
-    onNotification: (event: unknown) => void
-): void {
-    // Defer to next tick to ensure all modules are loaded
-    setTimeout(() => {
-        // Try to get existing instance
-        let echo = getEcho();
-
-        // If not initialized, try to initialize on demand
-        if (!echo) {
-            // Use direct localStorage access to avoid any import issues
-            const token = localStorage.getItem('auth_token');
-            console.log('WebSocket: Attempting init with token:', token ? 'present' : 'missing');
-
-            if (token) {
-                echo = initializeEcho(token);
-            }
-        }
-
-        if (!echo) {
-            // Token still not available - this is a genuine auth issue
-            console.warn('WebSocket: Cannot subscribe to admins channel - not authenticated');
+        try {
+            this.ws = new WebSocket(uri);
+        } catch (e) {
+            console.error('[ReverbClient] Failed to create WebSocket:', e);
             return;
         }
 
-        try {
-            echo
-                .private('admins')
-                .listen('.ContentChangeRequested', (event: unknown) => {
-                    console.log('Received global admin notification:', event);
-                    onNotification(event);
+        this.ws.onopen = () => {
+
+        };
+
+        this.ws.onmessage = (event) => {
+            try {
+                const message = JSON.parse(event.data);
+                this.handlePusherMessage(message);
+            } catch (err) {
+                console.error('[ReverbClient] Failed to parse message', err);
+            }
+        };
+
+        this.ws.onclose = () => {
+
+            this.socketId = null;
+        };
+
+        this.ws.onerror = (error) => {
+            console.error('[ReverbClient] WebSocket error:', error);
+        };
+    }
+
+    private handlePusherMessage(message: any) {
+        // 1. Connection Established (Handshake)
+        if (message.event === 'pusher:connection_established') {
+            const data = JSON.parse(message.data);
+            this.socketId = data.socket_id;
+
+
+            // Process any subscriptions that were queued while connecting
+            this.processPendingSubscriptions();
+            return;
+        }
+
+        // 2. Ping / Pong Heartbeat
+        if (message.event === 'pusher:ping') {
+            this.send({ event: 'pusher:pong', data: {} });
+            return;
+        }
+
+        // 3. User custom events or internal subscription successes
+        if (message.channel && message.event) {
+            // Laravel prepends namespaces. We trim the `App\\Events\\` if they use broadcasing
+            // Or just pass the raw event name to listeners
+            const channelListeners = this.listeners[message.channel];
+            if (channelListeners && channelListeners[message.event]) {
+                const payload = typeof message.data === 'string' ? JSON.parse(message.data) : message.data;
+                channelListeners[message.event].forEach(cb => cb(payload));
+            }
+        }
+    }
+
+    private send(payload: any) {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify(payload));
+        }
+    }
+
+    private async processPendingSubscriptions() {
+        if (!this.socketId) return;
+
+        for (const channel of this.pendingSubscriptions) {
+            await this.authenticateAndSubscribe(channel);
+        }
+        this.pendingSubscriptions.clear();
+    }
+
+    private async authenticateAndSubscribe(channel: string) {
+        if (this.subscribedChannels.has(channel)) return;
+
+        if (channel.startsWith('private-') || channel.startsWith('presence-')) {
+            // Must authenticate
+            try {
+                const apiBaseUrl = (import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`).replace(/\/$/, '');
+                const response = await fetch(`${apiBaseUrl}${this.authEndpointPath}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.authToken}`,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        socket_id: this.socketId,
+                        channel_name: channel
+                    })
                 });
 
-            console.log('WebSocket: Successfully subscribed to admins channel');
-        } catch (err) {
-            console.error('WebSocket: Error subscribing to admins channel:', err);
+                if (!response.ok) {
+                    console.error(`[ReverbClient] Auth failed for channel ${channel}`);
+                    return;
+                }
+
+                const data = await response.json();
+                this.send({
+                    event: 'pusher:subscribe',
+                    data: {
+                        auth: data.auth,
+                        channel: channel
+                    }
+                });
+                this.subscribedChannels.add(channel);
+
+
+            } catch (err) {
+                console.error(`[ReverbClient] Auth request failed for channel ${channel}`, err);
+            }
+        } else {
+            // Public channel
+            this.send({
+                event: 'pusher:subscribe',
+                data: {
+                    channel: channel
+                }
+            });
+            this.subscribedChannels.add(channel);
         }
-    }, 100); // Increase delay slightly
+    }
+
+    // Public API for MockChannel
+    public listen(channelName: string, eventName: string, callback: Function) {
+        // Let the caller pass the exact channel name ('time-slots' or 'private-time-slots')
+        const actualChannel = channelName;
+
+        if (!this.listeners[actualChannel]) this.listeners[actualChannel] = {};
+
+        // Laravel Echo maps '.event' to 'event' or prefixes namespace. We append namespace if it doesn't start with dot
+        let actualEvent = eventName;
+        if (actualEvent.startsWith('.')) {
+            actualEvent = actualEvent.substring(1); // Remove dot (custom event)
+        } else {
+            actualEvent = `App\\Events\\${actualEvent}`; // Default namespace
+        }
+
+        if (!this.listeners[actualChannel][actualEvent]) {
+            this.listeners[actualChannel][actualEvent] = [];
+        }
+        this.listeners[actualChannel][actualEvent].push(callback);
+
+        if (this.socketId) {
+            this.authenticateAndSubscribe(actualChannel);
+        } else {
+            this.pendingSubscriptions.add(actualChannel);
+        }
+    }
+
+    public stopListening(channelName: string, eventName: string, callback?: Function) {
+        const actualChannel = channelName;
+        let actualEvent = eventName;
+        if (actualEvent.startsWith('.')) {
+            actualEvent = actualEvent.substring(1);
+        } else {
+            actualEvent = `App\\Events\\${actualEvent}`;
+        }
+
+        if (this.listeners[actualChannel] && this.listeners[actualChannel][actualEvent]) {
+            if (callback) {
+                this.listeners[actualChannel][actualEvent] = this.listeners[actualChannel][actualEvent].filter(cb => cb !== callback);
+            } else {
+                delete this.listeners[actualChannel][actualEvent];
+            }
+        }
+    }
+
+    public leave(channelName: string) {
+        const actualChannel = channelName.startsWith('private-') ? channelName : `private-${channelName}`;
+        this.send({
+            event: 'pusher:unsubscribe',
+            data: { channel: actualChannel }
+        });
+        this.subscribedChannels.delete(actualChannel);
+        delete this.listeners[actualChannel];
+    }
+
+    public disconnect() {
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
+        }
+    }
 }
 
-/**
- * Unsubscribe from global admins channel
- */
+// ==========================================
+// MOCK ECHO API to prevent rewrites across app
+// ==========================================
+
+class MockChannel {
+    constructor(private channelName: string, private client: ReverbClient) { }
+
+    listen(event: string, callback: Function) {
+        this.client.listen(this.channelName, event, callback);
+        return this; // For chaining .listen().listen()
+    }
+
+    stopListening(event: string, callback?: Function) {
+        this.client.stopListening(this.channelName, event, callback);
+        return this;
+    }
+
+    /**
+     * No-op error handler for Laravel Echo API compatibility.
+     * Our WebSocket client handles errors internally via console.error.
+     */
+    error(_callback: (error: any) => void) {
+        // Stub — error handling is done in ReverbClient.authenticateAndSubscribe
+        return this;
+    }
+
+    /**
+     * No-op notification handler for Laravel Echo API compatibility.
+     */
+    notification(_callback: (notification: any) => void) {
+        return this;
+    }
+}
+
+export class MockEcho {
+    constructor(public client: ReverbClient) { }
+
+    private(channel: string) {
+        return new MockChannel(`private-${channel}`, this.client);
+    }
+
+    channel(channelName: string) {
+        return new MockChannel(channelName, this.client);
+    }
+
+    leave(channel: string) {
+        // We'd have to know if it was private or not, but Echo usually expects the un-prefixed name in leave() if it's public.
+        // Or prefixed if it's private. If someone calls leave('chat'), we assume they know the exact channel name or they use leaveChannel handling.
+        // For simplicity we just delegate.
+        this.client.leave(channel);
+    }
+
+    disconnect() {
+        this.client.disconnect();
+    }
+}
+
+
+// ==========================================
+// EXPORTED FUNCTIONS
+// ==========================================
+
+export function initializeEcho(authToken: string): MockEcho | null {
+    if (!WEBSOCKET_ENABLED) return null;
+    if (echoInstance) return echoInstance;
+
+    const client = new ReverbClient(authToken, '/api/broadcasting/auth');
+    echoInstance = new MockEcho(client);
+    return echoInstance;
+}
+
+export function initializeStudentEcho(authToken: string): MockEcho | null {
+    if (!WEBSOCKET_ENABLED) return null;
+    if (studentEchoInstance) return studentEchoInstance;
+
+    const client = new ReverbClient(authToken, '/api/broadcasting/auth/student');
+    studentEchoInstance = new MockEcho(client);
+    return studentEchoInstance;
+}
+
+export function initializeParentEcho(authToken: string): MockEcho | null {
+    if (!WEBSOCKET_ENABLED) return null;
+    if (parentEchoInstance) return parentEchoInstance;
+
+    const client = new ReverbClient(authToken, '/api/broadcasting/auth/parent');
+    parentEchoInstance = new MockEcho(client);
+    return parentEchoInstance;
+}
+
+export function initializeTeacherEcho(authToken: string): MockEcho | null {
+    if (!WEBSOCKET_ENABLED) return null;
+    if (teacherEchoInstance) return teacherEchoInstance;
+
+    const client = new ReverbClient(authToken, '/api/broadcasting/auth/teacher');
+    teacherEchoInstance = new MockEcho(client);
+    return teacherEchoInstance;
+}
+
+export function getEcho(): MockEcho | null { return echoInstance; }
+export function getStudentEcho(): MockEcho | null { return studentEchoInstance; }
+export function getParentEcho(): MockEcho | null { return parentEchoInstance; }
+export function getTeacherEcho(): MockEcho | null { return teacherEchoInstance; }
+
+export function disconnectEcho(): void {
+    if (echoInstance) { echoInstance.disconnect(); echoInstance = null; }
+}
+export function disconnectStudentEcho(): void {
+    if (studentEchoInstance) { studentEchoInstance.disconnect(); studentEchoInstance = null; }
+}
+export function disconnectParentEcho(): void {
+    if (parentEchoInstance) { parentEchoInstance.disconnect(); parentEchoInstance = null; }
+}
+export function disconnectTeacherEcho(): void {
+    if (teacherEchoInstance) { teacherEchoInstance.disconnect(); teacherEchoInstance = null; }
+}
+
+// Subscriptions
+export function subscribeToAdminChannel(adminId: number, onNotification: (event: unknown) => void): void {
+    const echo = getEcho();
+    if (!echo) return;
+    echo.private(`admin.${adminId}`).listen('.notification', onNotification);
+}
+export function unsubscribeFromAdminChannel(adminId: number): void {
+    const echo = getEcho();
+    if (echo) echo.leave(`admin.${adminId}`);
+}
+
+export function subscribeToAllAdminsChannel(onNotification: (event: unknown) => void): void {
+    setTimeout(() => {
+        let echo = getEcho();
+        if (!echo) {
+            const token = localStorage.getItem('auth_token');
+            if (token) echo = initializeEcho(token);
+        }
+        if (!echo) return;
+        echo.private('admins').listen('.ContentChangeRequested', onNotification);
+    }, 100);
+}
 export function unsubscribeFromAllAdminsChannel(): void {
     const echo = getEcho();
-    if (echo) {
-        echo.leave('admins');
-    }
+    if (echo) echo.leave('admins');
 }
 
-/**
- * Subscribe to student notification channel
- */
-export function subscribeToStudentChannel(
-    studentId: number,
-    onNotification: (event: unknown) => void
-): void {
+export function subscribeToStudentChannel(studentId: number, onNotification: (event: unknown) => void): void {
     const echo = getStudentEcho();
-    if (!echo) {
-        console.error('Student Echo not initialized. Call initializeStudentEcho first.');
-        return;
-    }
-
-    echo
-        .private(`student.${studentId}`)
-        .listen('.notification', (event: unknown) => {
-            console.log('Received student notification:', event);
-            onNotification(event);
-        });
+    if (!echo) return;
+    echo.private(`student.${studentId}`).listen('.notification', onNotification);
 }
-
-/**
- * Unsubscribe from student notification channel
- */
 export function unsubscribeFromStudentChannel(studentId: number): void {
     const echo = getStudentEcho();
-    if (echo) {
-        echo.leave(`student.${studentId}`);
-    }
+    if (echo) echo.leave(`student.${studentId}`);
 }
 
-/**
- * Subscribe to parent notification channel
- */
-export function subscribeToParentChannel(
-    parentId: number,
-    onNotification: (event: unknown) => void
-): void {
+export function subscribeToParentChannel(parentId: number, onNotification: (event: unknown) => void): void {
     const echo = getParentEcho();
-    if (!echo) {
-        console.error('Parent Echo not initialized. Call initializeParentEcho first.');
-        return;
-    }
-
-    echo
-        .private(`parent.${parentId}`)
-        .listen('.notification', (event: unknown) => {
-            console.log('Received parent notification:', event);
-            onNotification(event);
-        });
+    if (!echo) return;
+    echo.private(`parent.${parentId}`).listen('.notification', onNotification);
 }
-
-/**
- * Unsubscribe from parent notification channel
- */
 export function unsubscribeFromParentChannel(parentId: number): void {
     const echo = getParentEcho();
-    if (echo) {
-        echo.leave(`parent.${parentId}`);
-    }
+    if (echo) echo.leave(`parent.${parentId}`);
+}
+
+export function subscribeToTeacherChannel(teacherId: number, onNotification: (event: unknown) => void): void {
+    const echo = getTeacherEcho();
+    if (!echo) return;
+    echo.private(`teacher.${teacherId}`)
+        .listen('.notification', onNotification)
+        .listen('.content.decision', onNotification)
+        .listen('.slot.decision', onNotification);
+}
+export function unsubscribeFromTeacherChannel(teacherId: number): void {
+    const echo = getTeacherEcho();
+    if (echo) echo.leave(`teacher.${teacherId}`);
 }
 
 export default {
-    initializeEcho,
-    initializeStudentEcho,
-    getEcho,
-    getStudentEcho,
-    disconnectEcho,
-    disconnectStudentEcho,
-    subscribeToAdminChannel,
-    unsubscribeFromAdminChannel,
-    subscribeToStudentChannel,
-    unsubscribeFromStudentChannel,
-    initializeParentEcho,
-    getParentEcho,
-    disconnectParentEcho,
-    subscribeToParentChannel,
-    unsubscribeFromParentChannel,
-    initializeTeacherEcho,
-    getTeacherEcho,
-    disconnectTeacherEcho,
-    subscribeToTeacherChannel,
-    unsubscribeFromTeacherChannel,
-    subscribeToAllAdminsChannel,
-    unsubscribeFromAllAdminsChannel,
+    initializeEcho, initializeStudentEcho, getEcho, getStudentEcho, disconnectEcho, disconnectStudentEcho,
+    subscribeToAdminChannel, unsubscribeFromAdminChannel, subscribeToStudentChannel, unsubscribeFromStudentChannel,
+    initializeParentEcho, getParentEcho, disconnectParentEcho, subscribeToParentChannel, unsubscribeFromParentChannel,
+    initializeTeacherEcho, getTeacherEcho, disconnectTeacherEcho, subscribeToTeacherChannel, unsubscribeFromTeacherChannel,
+    subscribeToAllAdminsChannel, unsubscribeFromAllAdminsChannel,
 };
-
-/**
- * Initialize Laravel Echo with Reverb broadcaster (for Teacher)
- */
-export function initializeTeacherEcho(authToken: string): Echo<'reverb'> {
-    if (teacherEchoInstance) {
-        return teacherEchoInstance;
-    }
-
-    const apiBaseUrl = (import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8000`).replace(/\/$/, '');
-
-    teacherEchoInstance = new Echo({
-        broadcaster: 'reverb',
-        key: REVERB_CONFIG.key,
-        wsHost: REVERB_CONFIG.host,
-        wsPort: REVERB_CONFIG.port,
-        wssPort: REVERB_CONFIG.port,
-        forceTLS: REVERB_CONFIG.scheme === 'https',
-        enabledTransports: ['ws', 'wss'],
-        authEndpoint: `${apiBaseUrl}/api/broadcasting/auth/teacher`,
-        auth: {
-            headers: {
-                Authorization: `Bearer ${authToken}`,
-                Accept: 'application/json',
-            },
-        },
-    });
-
-    return teacherEchoInstance;
-}
-
-/**
- * Get the teacher Echo instance
- */
-export function getTeacherEcho(): Echo<'reverb'> | null {
-    return teacherEchoInstance;
-}
-
-/**
- * Disconnect and cleanup teacher Echo
- */
-export function disconnectTeacherEcho(): void {
-    if (teacherEchoInstance) {
-        teacherEchoInstance.disconnect();
-        teacherEchoInstance = null;
-    }
-}
-
-/**
- * Subscribe to teacher notification channel
- */
-export function subscribeToTeacherChannel(
-    teacherId: number,
-    onNotification: (event: unknown) => void
-): void {
-    const echo = getTeacherEcho();
-    if (!echo) {
-        console.error('Teacher Echo not initialized. Call initializeTeacherEcho first.');
-        return;
-    }
-
-    echo
-        .private(`teacher.${teacherId}`)
-        .listen('.notification', (event: unknown) => {
-            onNotification(event);
-        })
-        .listen('.content.decision', (event: unknown) => {
-            onNotification(event);
-        })
-        .listen('.slot.decision', (event: unknown) => {
-            onNotification(event);
-        });
-}
-
-/**
- * Unsubscribe from teacher notification channel
- */
-export function unsubscribeFromTeacherChannel(teacherId: number): void {
-    const echo = getTeacherEcho();
-    if (echo) {
-        echo.leave(`teacher.${teacherId}`);
-    }
-}
-

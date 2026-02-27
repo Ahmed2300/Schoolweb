@@ -71,6 +71,12 @@ export function AdminLoginPage() {
                         role: 'admin' as const,
                     };
                     setUser(adminUser as any);
+
+                    // Pre-warm admin chunks so navigation is instant
+                    await Promise.allSettled([
+                        import('../../components/admin'),
+                        import('../admin/AdminDashboard'),
+                    ]);
                     navigate(ROUTES.ADMIN_DASHBOARD);
                 }
             } else {
@@ -98,7 +104,8 @@ export function AdminLoginPage() {
             } else {
                 setError('حدث خطأ. يرجى المحاولة مرة أخرى');
             }
-        } finally {
+            // Clear loading only on error — keep spinner visible on success
+            // so the user sees feedback while startTransition loads the dashboard.
             setIsLoading(false);
         }
     };

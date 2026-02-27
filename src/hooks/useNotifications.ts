@@ -120,17 +120,17 @@ export function useNotifications(): UseNotificationsReturn {
             // Subscribe based on role
             if (user.role === 'student') {
                 subscribeToStudentChannel(Number(user.id), handleNotification as (event: unknown) => void);
-                console.log('WebSocket connected for student:', user.id);
+
             } else if (user.role === 'teacher') {
                 subscribeToTeacherChannel(Number(user.id), handleNotification as (event: unknown) => void);
-                console.log('WebSocket connected for teacher:', user.id);
+
             } else if (user.role === 'parent') {
                 subscribeToParentChannel(Number(user.id), handleNotification as (event: unknown) => void);
-                console.log('WebSocket connected for parent:', user.id);
+
             } else {
                 // Default to admin for now, or check explicit admin role
                 subscribeToAdminChannel(Number(user.id), handleNotification as (event: unknown) => void);
-                console.log('WebSocket connected for admin:', user.id);
+
             }
 
             setIsConnected(true);

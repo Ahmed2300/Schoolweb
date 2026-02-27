@@ -1,32 +1,12 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ROUTES } from '../../../shared/constants';
 import { ReportProblemModal } from '../ui/ReportProblemModal';
+import { useSettings } from '../../../hooks/useSettings';
 
 export const Footer = () => {
     const [showReportModal, setShowReportModal] = useState(false);
-    const [settings, setSettings] = useState<any>({});
-
-    useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                // We can import commonService here or just hardcode for valid MVP if imports are tricky circle-wise
-                // But let's try to do it right.
-                // Dynamic import or moving Footer might be needed if commonService depends on something that depends on Footer?
-                // commonService -> apiClient -> axios. No circular dependency likely.
-                const { commonService } = await import('../../../data/api/commonService');
-                const data = await commonService.getSettings();
-                const settingsMap: any = {};
-                if (data && Array.isArray(data)) {
-                    data.forEach((s: any) => { settingsMap[s.key] = s.value; });
-                }
-                setSettings(settingsMap);
-            } catch (error) {
-                console.error("Failed to fetch settings footer", error);
-            }
-        };
-        fetchSettings();
-    }, []);
+    const { data: settings = {} } = useSettings();
 
     return (
         <footer className="bg-charcoal pt-10 sm:pt-14 md:pt-16 lg:pt-20 pb-6 sm:pb-8 md:pb-10 px-4 sm:px-6 text-white" id="contact">
@@ -41,7 +21,7 @@ export const Footer = () => {
                             {settings.logo_path ? (
                                 <img src={settings.logo_path} alt={settings.platform_name || "سُبُل"} className="w-10 h-10 object-contain bg-white rounded-full p-1" />
                             ) : (
-                                <img src="/images/subol-white.png" alt="سُبُل" className="w-8 h-8 sm:w-10 sm:h-10" />
+                                <img src="/images/subol-white.webp" alt="سُبُل" className="w-8 h-8 sm:w-10 sm:h-10" />
                             )}
                             <span className="text-xl sm:text-2xl font-extrabold">{settings.platform_name || "سُبُل"}</span>
                         </div>

@@ -3,8 +3,9 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../hooks';
 import { useAuthStore } from '../../store';
 import { teacherAuthService } from '../../../data/api/teacherAuthService';
-import { commonService } from '../../../data/api/commonService';
+import { useSettings } from '../../../hooks/useSettings';
 import { ROUTES } from '../../../shared/constants';
+import Swal from 'sweetalert2';
 
 import {
     LayoutDashboard,
@@ -101,27 +102,24 @@ export function TeacherSidebar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
     const { isRTL } = useLanguage();
     const navigate = useNavigate();
     const { user, logout: storeLogout } = useAuthStore();
-    const [platformName, setPlatformName] = useState('شِبْل');
-
-    useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                const data = await commonService.getSettings();
-                const settingsMap: any = {};
-                if (data && Array.isArray(data)) {
-                    data.forEach((s: any) => { settingsMap[s.key] = s.value; });
-                }
-                if (settingsMap.platform_name) {
-                    setPlatformName(settingsMap.platform_name);
-                }
-            } catch (error) {
-                console.error("Failed to fetch settings sidebar", error);
-            }
-        };
-        fetchSettings();
-    }, []);
+    const { data: settings = {} } = useSettings();
+    const platformName = settings.platform_name || 'شِبْل';
 
     const handleLogout = async () => {
+        const result = await Swal.fire({
+            title: 'تسجيل الخروج',
+            text: 'هل أنت متأكد أنك تريد تسجيل الخروج؟',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#AF0C15',
+            cancelButtonColor: '#636E72',
+            confirmButtonText: 'نعم، تسجيل الخروج',
+            cancelButtonText: 'إلغاء',
+            reverseButtons: true,
+        });
+
+        if (!result.isConfirmed) return;
+
         try {
             await teacherAuthService.logout();
         } catch {

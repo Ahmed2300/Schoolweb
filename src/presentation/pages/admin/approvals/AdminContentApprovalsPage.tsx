@@ -75,7 +75,7 @@ export const AdminContentApprovalsPage = () => {
     // Real-time updates
     useEffect(() => {
         const handleNotification = (event: any) => {
-            console.log('Real-time request received:', event);
+
             // Refresh list to show new request
             fetchRequests();
         };

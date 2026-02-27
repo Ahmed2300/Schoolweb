@@ -114,16 +114,16 @@ export function StudentQuizzesPage() {
     }
 
     return (
-        <div className="p-6 md:p-10 max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-10">
+        <div className="p-4 sm:p-6 md:p-10 max-w-6xl mx-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-10">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-charcoal flex items-center gap-4 mb-2">
+                    <h1 className="text-xl sm:text-3xl font-extrabold text-charcoal flex items-center gap-3 sm:gap-4 mb-1 sm:mb-2">
                         <div className="w-12 h-12 bg-gradient-to-br from-shibl-crimson to-red-700 rounded-2xl flex items-center justify-center shadow-lg shadow-red-900/10 rotate-3 transition-transform hover:rotate-6">
                             <FileQuestion className="text-white" size={24} />
                         </div>
                         سجل الاختبارات
                     </h1>
-                    <p className="text-slate-500 font-medium mr-[4.5rem]">تتبع تقدمك ونتائج اختباراتك السابقة</p>
+                    <p className="text-sm sm:text-base text-slate-500 font-medium mr-0 sm:mr-[4.5rem]">تتبع تقدمك ونتائج اختباراتك السابقة</p>
                 </div>
                 <button
                     onClick={fetchAttempts}
@@ -147,7 +147,7 @@ export function StudentQuizzesPage() {
                     {attempts.map((attempt, index) => (
                         <div
                             key={attempt.id}
-                            className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:scale-[1.01] hover:border-slate-200 transition-all duration-300 cursor-pointer group relative overflow-hidden"
+                            className="bg-white rounded-2xl sm:rounded-[1.5rem] p-4 sm:p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:scale-[1.01] hover:border-slate-200 transition-all duration-300 cursor-pointer group relative overflow-hidden"
                             onClick={() => navigate(`/dashboard/quizzes/${attempt.quiz_id}`)}
                             style={{ animationDelay: `${index * 100}ms` }}
                         >
@@ -156,10 +156,10 @@ export function StudentQuizzesPage() {
                                 ${attempt.status === 'passed' ? 'bg-emerald-500' : attempt.status === 'failed' ? 'bg-red-500' : 'bg-amber-500'}`}>
                             </div>
 
-                            <div className="flex items-center justify-between flex-wrap gap-6 relative z-10">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 relative z-10">
                                 {/* Quiz Info */}
-                                <div className="flex items-center gap-5 flex-1 min-w-[240px]">
-                                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black text-xl shrink-0 shadow-inner
+                                <div className="flex items-center gap-3 sm:gap-5 flex-1 min-w-0">
+                                    <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-lg sm:text-xl shrink-0 shadow-inner
                                         ${attempt.status === 'passed' ? 'bg-emerald-50 text-emerald-600' :
                                             attempt.status === 'failed' ? 'bg-red-50 text-red-600' :
                                                 'bg-amber-50 text-amber-600'
@@ -167,7 +167,7 @@ export function StudentQuizzesPage() {
                                         {getScorePercentage(attempt)}<span className="text-xs opacity-60 font-bold">%</span>
                                     </div>
                                     <div className="flex flex-col gap-1">
-                                        <h3 className="font-bold text-slate-800 text-lg group-hover:text-shibl-crimson transition-colors">
+                                        <h3 className="font-bold text-slate-800 text-base sm:text-lg group-hover:text-shibl-crimson transition-colors truncate">
                                             {getLocalizedName(attempt.quiz_title)}
                                         </h3>
                                         <div className="flex items-center gap-2 text-sm text-slate-500">
@@ -179,7 +179,7 @@ export function StudentQuizzesPage() {
                                 </div>
 
                                 {/* Stats & Date */}
-                                <div className="flex items-center gap-8 md:gap-12 flex-wrap">
+                                <div className="flex items-center gap-4 sm:gap-8 md:gap-12 flex-wrap">
                                     <div className="text-right">
                                         <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">تاريخ الإتمام</p>
                                         <div className="flex items-center gap-1.5 text-slate-600 font-bold">

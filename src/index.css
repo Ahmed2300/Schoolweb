@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
+/* Fonts loaded via <link> in index.html for non-render-blocking performance */
 
 @tailwind base;
 @tailwind components;
@@ -26,10 +26,15 @@
 }
 
 /* Global Styles */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: 'Cairo', 'Tajawal', sans-serif;
   @apply bg-soft-cloud text-charcoal min-h-screen;
 }
+
 
 /* Text Selection */
 ::selection {
@@ -150,11 +155,17 @@ body {
     /* Chrome, Safari, Opera */
   }
 
+  /* Prevent scroll chaining - keeps scroll inside the element */
+  .overscroll-contain {
+    overscroll-behavior: contain;
+  }
+
   /* Minimal sleek scrollbar - appears on hover */
   .scrollbar-sleek {
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
-    transition: scrollbar-color 0.3s ease;
+    /* ⚠️ No transition on scrollbar-color — it's non-composited and triggers
+       forced reflow on every frame, flagged by Lighthouse as CLS source. */
   }
 
   .scrollbar-sleek:hover {
@@ -310,4 +321,148 @@ body {
 
 .animate-confetti-fall {
   animation: confetti-fall 3s ease-in forwards;
+}
+
+/* ============================================
+   PARALLAX HERO — Ambient Orb Styles
+   ============================================ */
+.parallax-hero {
+  background-color: #AF0C15;
+  /* Fallback while images load */
+}
+
+.parallax-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.45;
+  will-change: transform;
+}
+
+/* Orb 1: Large warm glow — drifts left-to-right */
+.parallax-orb-1 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255, 180, 120, 0.6) 0%, transparent 70%);
+  top: 10%;
+  left: 15%;
+  animation: orbDrift1 12s ease-in-out infinite alternate;
+}
+
+/* Orb 2: Smaller cool accent — drifts right-to-left */
+.parallax-orb-2 {
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.35) 0%, transparent 70%);
+  top: 30%;
+  right: 10%;
+  animation: orbDrift2 16s ease-in-out infinite alternate;
+}
+
+/* Orb 3: Subtle center shimmer */
+.parallax-orb-3 {
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(255, 100, 80, 0.4) 0%, transparent 70%);
+  bottom: 5%;
+  left: 40%;
+  animation: orbDrift3 20s ease-in-out infinite alternate;
+}
+
+@keyframes orbDrift1 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate(60px, -30px) scale(1.15);
+  }
+}
+
+@keyframes orbDrift2 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate(-50px, 40px) scale(1.1);
+  }
+}
+
+@keyframes orbDrift3 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate(30px, -50px) scale(1.2);
+  }
+}
+
+/* Responsive: smaller orbs on mobile */
+@media (max-width: 768px) {
+  .parallax-orb-1 {
+    width: 200px;
+    height: 200px;
+  }
+
+  .parallax-orb-2 {
+    width: 140px;
+    height: 140px;
+  }
+
+  .parallax-orb-3 {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+/* ─── Expandable Course Card — Preview Shimmer ─── */
+@keyframes shimmerPreview {
+
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmerSweep {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ============================================
+   BENTO CARD — Proximity Glow Border
+   ============================================ */
+.bento-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(600px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+      rgba(175, 12, 21, 0.35),
+      transparent 40%);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.bento-card:hover::before {
+  opacity: 1;
 }

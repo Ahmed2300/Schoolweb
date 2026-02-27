@@ -29,15 +29,28 @@ const apiClient: AxiosInstance = axios.create({
         'Content-Type': 'application/json',
         'Accept': 'application/json',
     },
-    timeout: 30000,
+    timeout: 15000,
 });
 
 // Request interceptor - add auth token and headers
 apiClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        const token = localStorage.getItem(TOKEN_KEY);
-        if (token && config.headers) {
-            config.headers.Authorization = `Bearer ${token}`;
+        // Skip adding the Authorization header for strictly public endpoints
+        // so the browser can utilize HTTP caching (ETags, Cache-Control).
+        // IMPORTANT: Only skip for truly public routes. Admin routes like
+        // /api/v1/admin/settings MUST include the token.
+        const isAdminRoute = config.url?.includes('/admin/');
+        const isPublicGet = config.method === 'get' && config.url && !isAdminRoute && (
+            config.url.includes('/v1/settings') ||
+            config.url.includes('/countries') ||
+            config.url.includes('/public')
+        );
+
+        if (!isPublicGet) {
+            const token = localStorage.getItem(TOKEN_KEY);
+            if (token && config.headers) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
         }
 
         // Add language header for i18n
@@ -87,6 +100,13 @@ apiClient.interceptors.response.use(
             '/auth/parents/resend-otp',
             '/auth/parents/forgot-password',
             '/auth/parents/reset-password',
+            '/auth/teachers/verify-email',
+            '/auth/teachers/login',
+            '/auth/teachers/register',
+            '/auth/teachers/resend-otp',
+            '/auth/teachers/forgot-password',
+            '/auth/teachers/reset-password',
+            '/admin/auth/login',
         ];
 
         const isPublicAuthEndpoint = publicAuthEndpoints.some(
