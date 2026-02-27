@@ -435,6 +435,22 @@ export function AdminSubscriptionsPage() {
                                             <p className="font-semibold text-charcoal dark:text-white">{getLocalizedName(selectedSubscription.course?.name)}</p>
                                         </div>
                                     </div>
+                                    {selectedSubscription.promo_code && (
+                                        <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-[10px]">
+                                            <div className="w-[18px] flex items-center justify-center">
+                                                <span className="text-shibl-crimson font-serif font-bold text-lg leading-none">%</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-slate-grey dark:text-slate-400">الكود الترويجي</p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="font-mono font-semibold text-charcoal dark:text-white uppercase">{selectedSubscription.promo_code}</p>
+                                                    {selectedSubscription.commission_amount && (
+                                                        <span className="text-xs text-shibl-crimson font-medium">({selectedSubscription.commission_amount} ر.ع عمولة مستحقة)</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                                 {selectedSubscription.status === 2 && (
                                     <div className="flex gap-3">
@@ -557,6 +573,19 @@ export function AdminSubscriptionsPage() {
                                         <div>
                                             <p className="text-xs text-slate-grey dark:text-slate-400">السعر</p>
                                             <p className="font-semibold text-charcoal dark:text-white">{selectedSubscription.course.price} ر.ع</p>
+                                        </div>
+                                    </div>
+                                )}
+                                {selectedSubscription.promo_code && (
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-[18px] flex items-center justify-center">
+                                            <span className="text-shibl-crimson font-serif font-bold text-lg leading-none">%</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-grey dark:text-slate-400">الكود الترويجي المستخدم</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="font-mono font-semibold text-charcoal dark:text-white uppercase">{selectedSubscription.promo_code}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 )}

@@ -11,7 +11,7 @@
  *  4. Only loads current role routes (nothing for unauthenticated)
  */
 
-type UserRole = 'student' | 'parent' | 'teacher' | 'admin' | null;
+type UserRole = 'student' | 'parent' | 'teacher' | 'admin' | 'influencer' | null;
 
 // ── Route imports grouped by role ─────────────────────────────
 
@@ -78,6 +78,11 @@ const adminImports: Array<() => Promise<unknown>> = [
     () => import('./presentation/pages/admin/AdminParentDetailsPage'),
 ];
 
+const influencerImports: Array<() => Promise<unknown>> = [
+    () => import('./presentation/components/influencer/InfluencerLayout'),
+    () => import('./presentation/pages/influencer/InfluencerDashboardPage'),
+];
+
 // ── Batch executor ──────────────────────────────────────────
 
 const BATCH_SIZE = 4;
@@ -130,6 +135,9 @@ export function prefetchAllRoutes(role: UserRole = null): void {
                 break;
             case 'admin':
                 imports.push(...adminImports);
+                break;
+            case 'influencer':
+                imports.push(...influencerImports);
                 break;
         }
 

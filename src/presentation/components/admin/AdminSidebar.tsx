@@ -98,6 +98,16 @@ const navGroups: NavGroup[] = [
         ],
     },
     {
+        id: 'affiliate',
+        label: 'نظام الشركاء',
+        icon: <Users size={18} />,
+        items: [
+            { icon: <Users size={18} />, label: 'المؤثرين والشركاء', path: ROUTES.ADMIN_INFLUENCERS },
+            { icon: <BarChart3 size={18} />, label: 'إحصائيات الأكواد', path: ROUTES.ADMIN_AFFILIATE_ANALYTICS },
+            { icon: <Banknote size={18} />, label: 'طلبات السحب', path: ROUTES.ADMIN_WITHDRAWALS },
+        ],
+    },
+    {
         id: 'system',
         label: 'النظام',
         icon: <Settings size={18} />,

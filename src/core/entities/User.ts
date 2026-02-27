@@ -16,7 +16,7 @@ export interface User {
   updatedAt: Date;
 }
 
-export type UserRole = 'student' | 'parent' | 'teacher' | 'admin';
+export type UserRole = 'student' | 'parent' | 'teacher' | 'admin' | 'influencer';
 
 export interface Student extends User {
   role: 'student';

@@ -68,6 +68,13 @@ export function StudentPackagesPage() {
     const [isPurchasing, setIsPurchasing] = useState(false);
     const [purchaseSuccess, setPurchaseSuccess] = useState(false);
 
+    // Promo code state
+    const [promoCode, setPromoCode] = useState('');
+    const [promoCodeStatus, setPromoCodeStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+    const [appliedDiscount, setAppliedDiscount] = useState<{ percentage: number } | null>(null);
+    const [promoError, setPromoError] = useState('');
+    const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
+
     // Dynamic Payment Settings
     const { data: settings = {}, isLoading: loadingSettings } = useSettings();
     const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -173,6 +180,53 @@ export function StudentPackagesPage() {
         }
     };
 
+    // Handle promo code validation
+    const handleValidatePromoCode = async () => {
+        if (!promoCode.trim() || !selectedPackage) return;
+
+        setPromoCodeStatus('checking');
+        setPromoError('');
+        setAppliedDiscount(null);
+        setDiscountedPrice(null);
+
+        const packagePrice = selectedPackage.final_price ?? selectedPackage.price;
+
+        try {
+            const result = await studentService.validatePromoCode(promoCode, selectedPackage.id, 'package');
+
+            setPromoCodeStatus('valid');
+            setAppliedDiscount({
+                percentage: result.data.discount_percentage,
+            });
+
+            // Calculate new price (Always percentage for now based on validated response)
+            const discountValue = packagePrice * (result.data.discount_percentage / 100);
+            const newPrice = Math.max(0, packagePrice - discountValue);
+
+            setDiscountedPrice(Number(newPrice.toFixed(2)));
+
+        } catch (err: unknown) {
+            setPromoCodeStatus('invalid');
+            if (err && typeof err === 'object' && 'response' in err) {
+                const axiosError = err as { response?: { data?: { message?: string } } };
+                setPromoError(axiosError.response?.data?.message || 'كود الخصم غير صالح أو منتهي الصلاحية');
+            } else {
+                setPromoError('حدث خطأ أثناء التحقق من الكود');
+            }
+        }
+    };
+
+    // Reset promo code when modal closes or package changes
+    useEffect(() => {
+        if (!showPurchaseModal) {
+            setPromoCode('');
+            setPromoCodeStatus('idle');
+            setAppliedDiscount(null);
+            setPromoError('');
+            setDiscountedPrice(null);
+        }
+    }, [showPurchaseModal, selectedPackage]);
+
     // Handle purchase
     const handlePurchase = async () => {
         if (!selectedPackage) return;
@@ -183,7 +237,11 @@ export function StudentPackagesPage() {
 
         setIsPurchasing(true);
         try {
-            await packageService.purchasePackage(selectedPackage.id, billImage);
+            await packageService.purchasePackage(
+                selectedPackage.id,
+                billImage,
+                appliedDiscount ? promoCode : undefined
+            );
             setPurchaseSuccess(true);
             setTimeout(() => {
                 setShowPurchaseModal(false);
@@ -755,11 +813,89 @@ export function StudentPackagesPage() {
                                 ) : (
                                     <>
                                         {/* Price Summary */}
-                                        <div className="bg-slate-50 rounded-xl p-4">
+                                        <div className="bg-slate-50 rounded-xl p-4 space-y-3 border border-slate-100">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-slate-600">إجمالي المبلغ</span>
-                                                <span className="font-bold text-xl text-charcoal">{selectedPackage.final_price ?? selectedPackage.price} ر.ع</span>
+                                                <span className="text-slate-600 font-medium">سعر الباقة</span>
+                                                <span className={`font-bold text-lg ${discountedPrice !== null ? 'line-through text-slate-400' : 'text-charcoal'}`}>
+                                                    {selectedPackage.final_price ?? selectedPackage.price} ر.ع
+                                                </span>
                                             </div>
+
+                                            {/* Promo Code Input */}
+                                            <div className="pt-3 border-t border-slate-200">
+                                                <label className="block text-xs font-bold text-slate-600 mb-2">كود الخصم (اختياري)</label>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={promoCode}
+                                                        onChange={(e) => {
+                                                            setPromoCode(e.target.value.toUpperCase());
+                                                            // Auto-reset status if user starts typing again
+                                                            if (promoCodeStatus !== 'idle') {
+                                                                setPromoCodeStatus('idle');
+                                                                setAppliedDiscount(null);
+                                                                setDiscountedPrice(null);
+                                                            }
+                                                        }}
+                                                        placeholder="أدخل كود الخصم هنا"
+                                                        className={`flex-1 px-3 py-2 bg-white rounded-lg border focus:ring-2 outline-none text-sm transition-colors text-left ${promoCodeStatus === 'valid'
+                                                            ? 'border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500/20 text-emerald-700 font-mono'
+                                                            : promoCodeStatus === 'invalid'
+                                                                ? 'border-red-200 focus:border-red-500 focus:ring-red-500/20 text-red-700'
+                                                                : 'border-slate-200 focus:border-shibl-crimson focus:ring-shibl-crimson/20'
+                                                            }`}
+                                                        dir="ltr"
+                                                    />
+                                                    <button
+                                                        onClick={handleValidatePromoCode}
+                                                        disabled={!promoCode.trim() || promoCodeStatus === 'checking' || promoCodeStatus === 'valid'}
+                                                        className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors whitespace-nowrap min-w-[80px] flex items-center justify-center ${promoCodeStatus === 'valid'
+                                                            ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                                                            : promoCodeStatus === 'checking'
+                                                                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                                                : !promoCode.trim()
+                                                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                                                    : 'bg-charcoal text-white hover:bg-slate-800'
+                                                            }`}
+                                                    >
+                                                        {promoCodeStatus === 'checking' ? (
+                                                            <Loader2 size={16} className="animate-spin" />
+                                                        ) : promoCodeStatus === 'valid' ? (
+                                                            <CheckCircle size={16} />
+                                                        ) : (
+                                                            'تطبيق'
+                                                        )}
+                                                    </button>
+                                                </div>
+
+                                                {/* Promo Message */}
+                                                {promoCodeStatus === 'valid' && appliedDiscount && (
+                                                    <div className="mt-2 flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
+                                                        <CheckCircle size={12} />
+                                                        تم تطبيق الخصم بنجاح
+                                                        ({appliedDiscount.percentage}%)
+                                                    </div>
+                                                )}
+                                                {promoCodeStatus === 'invalid' && (
+                                                    <div className="mt-2 flex items-center gap-1.5 text-xs text-red-500 font-medium">
+                                                        <AlertCircle size={12} />
+                                                        {promoError}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Final Total */}
+                                            {discountedPrice !== null && (
+                                                <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+                                                    <span className="text-shibl-crimson font-bold">الإجمالي بعد الخصم</span>
+                                                    <div className="flex items-baseline gap-1 py-1 px-3 bg-red-50 rounded-lg border border-red-100">
+                                                        <span className="font-extrabold text-2xl text-shibl-crimson leading-none">
+                                                            {discountedPrice}
+                                                        </span>
+                                                        <span className="text-sm font-bold text-red-600">ر.ع</span>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Bank Account Info */}

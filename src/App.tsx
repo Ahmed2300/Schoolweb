@@ -17,20 +17,6 @@ import './index.css';
 // the old page, and the app appears "stuck."
 //
 // Solution (3 layers):
-//  1. Retry the import up to 3× with 1-second intervals
-//  2. If all retries fail → force a full page reload to get
-//     fresh HTML with updated chunk references
-//  3. sessionStorage flag prevents infinite reload loops
-// ─────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────
-// lazyWithRetry — Production-grade lazy loader.
-//
-// Problem: After a new deployment, Vite generates new chunk
-// hashes. Users with stale HTML reference old chunk URLs that
-// now 404. React.lazy fails silently, startTransition holds
-// the old page, and the app appears "stuck."
-//
-// Solution (3 layers):
 //  1. Retry the import once with a 500ms delay
 //  2. If retry fails → force a cache-busting page reload
 //  3. URL param `_reload=1` prevents infinite reload loops
@@ -83,6 +69,7 @@ if (typeof window !== 'undefined') {
 // Layouts are lazy-loaded (each has its own internal <Suspense> + <Outlet>)
 const AdminLayout = lazyWithRetry(() => import('./presentation/components/admin').then(m => ({ default: m.AdminLayout })));
 const TeacherLayout = lazyWithRetry(() => import('./presentation/components/teacher').then(m => ({ default: m.TeacherLayout })));
+const InfluencerLayout = lazyWithRetry(() => import('./presentation/components/influencer/InfluencerLayout').then(m => ({ default: m.InfluencerLayout })));
 
 import { ProtectedRoute } from './presentation/components/auth';
 import { MaintenanceWrapper } from './presentation/components/MaintenanceWrapper';
@@ -175,6 +162,16 @@ const AdminSlotRequestsPage = lazyWithRetry(() => import('./presentation/pages/a
 const AdminClassSchedulesPage = lazyWithRetry(() => import('./presentation/pages/admin/AdminClassSchedulesPage').then(m => ({ default: m.AdminClassSchedulesPage })));
 const AdminStudentDetailsPage = lazyWithRetry(() => import('./presentation/pages/admin/AdminStudentDetailsPage'));
 const AdminParentDetailsPage = lazyWithRetry(() => import('./presentation/pages/admin/AdminParentDetailsPage'));
+
+// Admin — Influencer / Affiliate Management
+const AdminInfluencersPage = lazyWithRetry(() => import('./presentation/pages/admin/AdminInfluencersPage').then(m => ({ default: m.AdminInfluencersPage })));
+const AdminAffiliateAnalyticsPage = lazyWithRetry(() => import('./presentation/pages/admin/AdminAffiliateAnalyticsPage').then(m => ({ default: m.AdminAffiliateAnalyticsPage })));
+const AdminWithdrawalsPage = lazyWithRetry(() => import('./presentation/pages/admin/AdminWithdrawalsPage').then(m => ({ default: m.AdminWithdrawalsPage })));
+const AdminAddInfluencerPage = lazyWithRetry(() => import('./presentation/pages/admin').then(m => ({ default: m.AdminAddInfluencerPage })));
+const AdminEditInfluencerPage = lazyWithRetry(() => import('./presentation/pages/admin').then(m => ({ default: m.AdminEditInfluencerPage })));
+
+// Influencer Dashboard
+const InfluencerDashboardPage = lazyWithRetry(() => import('./presentation/pages/influencer/InfluencerDashboardPage').then(m => ({ default: m.InfluencerDashboardPage })));
 
 // Classroom (standalone route)
 const LiveClassroomPage = lazyWithRetry(() => import('./presentation/pages/classroom/LiveClassroomPage'));
@@ -327,12 +324,29 @@ function AppRoutes() {
           <Route path="package-subscriptions" element={<AdminPackageSubscriptionsPage />} />
           <Route path="academic-structure" element={<AdminAcademicGraphPage />} />
           <Route path="client-reports" element={<AdminClientReportsPage />} />
+          <Route path="influencers" element={<AdminInfluencersPage />} />
+          <Route path="affiliate-analytics" element={<AdminAffiliateAnalyticsPage />} />
+          <Route path="influencers/create" element={<AdminAddInfluencerPage />} />
+          <Route path="influencers/:id/edit" element={<AdminEditInfluencerPage />} />
+          <Route path="withdrawals" element={<AdminWithdrawalsPage />} />
           <Route path="content-approvals" element={<AdminContentApprovalsPage />} />
           <Route path="quizzes" element={<AdminQuizzesPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="schedule-config" element={<AdminScheduleConfigPage />} />
           <Route path="slot-requests" element={<AdminSlotRequestsPage />} />
           <Route path="class-schedules" element={<AdminClassSchedulesPage />} />
+        </Route>
+
+        {/* Influencer Routes - Protected for influencer role only */}
+        <Route
+          path="/influencer"
+          element={
+            <ProtectedRoute allowedRoles={['influencer']}>
+              <InfluencerLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="dashboard" element={<InfluencerDashboardPage />} />
         </Route>
 
         {/* 404 Catch-all Route */}
