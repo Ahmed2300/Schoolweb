@@ -95,10 +95,12 @@ export function InfluencerSettingsPage() {
         const fetchProfile = async () => {
             try {
                 const response = await influencerService.getProfile();
-                if (response.data) {
+                // response.data could be wrapped in another data key due to InfluencerResource
+                const profileData = (response.data as any).data || response.data;
+                if (profileData) {
                     resetProfile({
-                        name: response.data.name,
-                        phone: (response.data as any).phone || '',
+                        name: profileData.name,
+                        phone: profileData.mobile || '',
                     });
                 }
             } catch (error) {
@@ -114,16 +116,19 @@ export function InfluencerSettingsPage() {
             setIsLoading(true);
             const response = await influencerService.updateProfile({
                 name: data.name,
-                phone: data.phone || undefined,
+                mobile: data.phone || undefined,
             });
 
-            if (response.data) {
+            // response.data can be wrapped depending on Resource
+            const updatedProfile = (response.data as any).data || response.data;
+
+            if (updatedProfile) {
                 // Update specific fields on the user without wiping out `data.affiliate_code`
                 setUser({
                     ...user,
-                    name: response.data.name,
-                    email: response.data.email,
-                    phone: (response.data as any).phone
+                    name: updatedProfile.name,
+                    email: updatedProfile.email,
+                    mobile: updatedProfile.mobile
                 } as any);
                 toast.success('تم تحديث الملف الشخصي بنجاح');
             }

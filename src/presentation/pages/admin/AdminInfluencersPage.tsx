@@ -292,7 +292,7 @@ export function AdminInfluencersPage() {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
                                                 <Wallet size={16} />
-                                                <span>{influencer.total_balance} ر.ع</span>
+                                                <span>{influencer.balance ?? 0} ر.ع</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">

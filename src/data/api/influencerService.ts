@@ -124,11 +124,11 @@ export const influencerService = {
 
     getProfile: async (): Promise<{ data: InfluencerData }> => {
         const response = await apiClient.get('/api/v1/affiliate/profile');
-        return response.data;
+        return response.data; // Note: response.data is { data: {...} } from InfluencerResource
     },
 
-    updateProfile: async (data: { name?: string; phone?: string; password?: string }): Promise<{ message: string, data: InfluencerData }> => {
+    updateProfile: async (data: { name?: string; mobile?: string; password?: string }): Promise<{ message: string, data: InfluencerData }> => {
         const response = await apiClient.put('/api/v1/affiliate/profile', data);
-        return response.data;
+        return { message: response.data.message, data: response.data.data.data ? response.data.data.data : response.data.data };
     }
 };

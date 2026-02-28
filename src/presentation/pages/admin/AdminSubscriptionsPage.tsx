@@ -444,10 +444,19 @@ export function AdminSubscriptionsPage() {
                                                 <p className="text-xs text-slate-grey dark:text-slate-400">الكود الترويجي</p>
                                                 <div className="flex items-center gap-2">
                                                     <p className="font-mono font-semibold text-charcoal dark:text-white uppercase">{selectedSubscription.promo_code}</p>
-                                                    {selectedSubscription.commission_amount && (
-                                                        <span className="text-xs text-shibl-crimson font-medium">({selectedSubscription.commission_amount} ر.ع عمولة مستحقة)</span>
-                                                    )}
                                                 </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {selectedSubscription.course?.price && (
+                                        <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-[10px]">
+                                            <DollarSign size={18} className="text-slate-400" />
+                                            <div>
+                                                <p className="text-xs text-slate-grey dark:text-slate-400">الإجمالي {selectedSubscription.promo_code ? '(بعد الخصم)' : ''}</p>
+                                                <p className="font-semibold text-shibl-crimson">
+                                                    {/* If there's commission, the actual student paid price might be price - discount? The API doesn't return total_price or discount_amount directly here. So we show original price if no better info exists... wait! In Bug 3 image, he asked to show `subscription.total_price` instead of `subscription.price` if it exists. */}
+                                                    {selectedSubscription.total_price ?? selectedSubscription.course.price} ر.ع
+                                                </p>
                                             </div>
                                         </div>
                                     )}
@@ -571,8 +580,10 @@ export function AdminSubscriptionsPage() {
                                     <div className="flex items-center gap-3">
                                         <DollarSign size={18} className="text-slate-400" />
                                         <div>
-                                            <p className="text-xs text-slate-grey dark:text-slate-400">السعر</p>
-                                            <p className="font-semibold text-charcoal dark:text-white">{selectedSubscription.course.price} ر.ع</p>
+                                            <p className="text-xs text-slate-grey dark:text-slate-400">الإجمالي {selectedSubscription.promo_code ? '(بعد الخصم)' : ''}</p>
+                                            <p className="font-semibold text-charcoal dark:text-white">
+                                                {selectedSubscription.total_price ?? selectedSubscription.course.price} ر.ع
+                                            </p>
                                         </div>
                                     </div>
                                 )}
