@@ -58,6 +58,7 @@ export interface QuizReviewQuestion {
     correct_option_id?: number | null;
     // Essay specific
     is_graded?: boolean;
+    not_answered?: boolean; // true when student skipped this question entirely
     model_answer?: MultiLangString | string;
     model_answer_image_url?: string | null;
 }
@@ -134,7 +135,7 @@ export const studentQuizService = {
         attempt_id?: number;
         started_at?: string;
     }> => {
-        const response = await apiClient.get(`/api/v1/student/quizzes/${quizId}`);
+        const response = await apiClient.get(`/api/v1/student/quizzes/${quizId}`, { timeout: 30000 });
         const raw = response.data;
 
         // Backend returns { data: { quiz: {...}, attempt: {...}, next_item: {...} } } when already_completed
@@ -214,5 +215,32 @@ export const studentQuizService = {
     getMyAttempts: async (): Promise<QuizAttemptSummary[]> => {
         const response = await apiClient.get('/api/v1/student/attempts');
         return response.data.data || [];
+    },
+
+    /**
+     * Save quiz progress (answers so far) without submitting.
+     * Called periodically by the QuizPlayer to persist answers in case of refresh.
+     */
+    saveQuizProgress: async (quizId: number | string, answers: { question_id: number; selected_option_id?: number; essay_answer?: string }[], currentQuestionIndex: number = 0): Promise<{
+        success: boolean;
+        message: string;
+        remaining_seconds?: number;
+    }> => {
+        const response = await apiClient.post(`/api/v1/student/quizzes/${quizId}/save-progress`, { answers, current_question_index: currentQuestionIndex });
+        return response.data;
+    },
+
+    /**
+     * Check if the student has an active (in-progress) quiz.
+     * Used at app init to redirect students back to their active quiz.
+     */
+    checkActiveQuiz: async (): Promise<{
+        has_active_quiz: boolean;
+        active_quiz_id?: number;
+        remaining_seconds?: number;
+        quiz_name?: { ar?: string; en?: string };
+    }> => {
+        const response = await apiClient.get('/api/v1/student/active-quiz-check');
+        return response.data;
     },
 };
