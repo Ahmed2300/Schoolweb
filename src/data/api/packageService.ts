@@ -44,6 +44,7 @@ export interface PackageSubscription {
     status: 'pending' | 'active' | 'rejected' | 'expired';
     bill_image_url?: string;
     promo_code?: string;
+    discount_amount?: number;
     commission_amount?: number;
     rejection_reason?: string;
     start_date?: string;

@@ -172,6 +172,7 @@ const AdminEditInfluencerPage = lazyWithRetry(() => import('./presentation/pages
 
 // Influencer Dashboard
 const InfluencerDashboardPage = lazyWithRetry(() => import('./presentation/pages/influencer/InfluencerDashboardPage').then(m => ({ default: m.InfluencerDashboardPage })));
+const InfluencerSettingsPage = lazyWithRetry(() => import('./presentation/pages/influencer/InfluencerSettingsPage').then(m => ({ default: m.InfluencerSettingsPage })));
 
 // Classroom (standalone route)
 const LiveClassroomPage = lazyWithRetry(() => import('./presentation/pages/classroom/LiveClassroomPage'));
@@ -347,6 +348,7 @@ function AppRoutes() {
           }
         >
           <Route path="dashboard" element={<InfluencerDashboardPage />} />
+          <Route path="settings" element={<InfluencerSettingsPage />} />
         </Route>
 
         {/* 404 Catch-all Route */}

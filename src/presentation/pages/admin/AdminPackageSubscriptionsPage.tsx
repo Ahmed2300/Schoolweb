@@ -322,9 +322,24 @@ export function AdminPackageSubscriptionsPage() {
                                                 <span>{sub.package?.courses_count || sub.package?.courses?.length || 0} دورة</span>
                                             </div>
                                             {sub.package?.price && (
-                                                <div className="flex items-center gap-1 text-sm text-shibl-crimson font-bold mt-1">
-                                                    <DollarSign size={14} />
-                                                    <span>{sub.package.final_price ?? sub.package.price} ر.ع</span>
+                                                <div className="flex flex-col gap-1 mt-1">
+                                                    {(sub.discount_amount && sub.discount_amount > 0) ? (
+                                                        <>
+                                                            <div className="flex items-center gap-1 text-sm text-shibl-crimson font-bold">
+                                                                <DollarSign size={14} />
+                                                                <span>{sub.package.price - sub.discount_amount} ر.ع</span>
+                                                            </div>
+                                                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                                                                <span className="text-slate-400 line-through">{sub.package.price} ر.ع</span>
+                                                                <span className="text-green-600 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded font-medium">خطم {sub.discount_amount} ر.ع بالكود {sub.promo_code}</span>
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <div className="flex items-center gap-1 text-sm text-shibl-crimson font-bold">
+                                                            <DollarSign size={14} />
+                                                            <span>{sub.package.price} ر.ع</span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
@@ -493,30 +508,44 @@ export function AdminPackageSubscriptionsPage() {
                                     </div>
                                 </div>
                                 {selectedSubscription.package?.price && (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-[10px]">
-                                        <DollarSign size={18} className="text-slate-400" />
-                                        <div>
-                                            <p className="text-xs text-slate-grey dark:text-slate-400">السعر</p>
-                                            <p className="font-semibold text-shibl-crimson">{selectedSubscription.package.final_price ?? selectedSubscription.package.price} ر.ع</p>
-                                        </div>
-                                    </div>
-                                )}
-                                {selectedSubscription.promo_code && (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-[10px]">
-                                        <div className="w-[18px] flex items-center justify-center">
-                                            <span className="text-shibl-crimson font-serif font-bold text-lg leading-none">%</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-slate-grey dark:text-slate-400">الكود الترويجي</p>
-                                            <div className="flex items-center gap-2">
-                                                <p className="font-mono font-semibold text-charcoal dark:text-white uppercase">{selectedSubscription.promo_code}</p>
-                                                {selectedSubscription.commission_amount && (
-                                                    <span className="text-xs text-shibl-crimson font-medium">({selectedSubscription.commission_amount} ر.ع عمولة مستحقة)</span>
+                                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-[10px]">
+                                        <div className="flex items-center gap-3">
+                                            <DollarSign size={18} className="text-slate-400" />
+                                            <div>
+                                                <p className="text-xs text-slate-grey dark:text-slate-400">السعر المدفوع</p>
+                                                {selectedSubscription.discount_amount && selectedSubscription.discount_amount > 0 ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="font-semibold text-shibl-crimson text-lg">{selectedSubscription.package.price - selectedSubscription.discount_amount} ر.ع</p>
+                                                        <span className="text-sm text-slate-400 line-through">{selectedSubscription.package.price} ر.ع</span>
+                                                    </div>
+                                                ) : (
+                                                    <p className="font-semibold text-shibl-crimson text-lg">{selectedSubscription.package.price} ر.ع</p>
                                                 )}
                                             </div>
                                         </div>
                                     </div>
                                 )}
+                                {(selectedSubscription.promo_code || selectedSubscription.discount_amount) && (
+                                    <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/20 rounded-[10px]">
+                                        <div className="w-[18px] flex items-center justify-center">
+                                            <span className="text-green-600 font-serif font-bold text-lg leading-none">%</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-green-700 dark:text-green-400 font-medium">الخصم المطبق</p>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                {selectedSubscription.discount_amount && (
+                                                    <span className="font-bold text-green-700 dark:text-green-400">{selectedSubscription.discount_amount} ر.ع</span>
+                                                )}
+                                                {selectedSubscription.promo_code && (
+                                                    <span className="text-sm text-green-600 dark:text-green-300">
+                                                        باستخدام كود <strong className="font-mono bg-white dark:bg-black/20 px-1 rounded">{selectedSubscription.promo_code}</strong>
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                             </div>
                             {selectedSubscription.status === 'pending' && (
                                 <div className="flex gap-3">
@@ -626,12 +655,15 @@ export function AdminPackageSubscriptionsPage() {
                         <div className="p-6 space-y-6">
                             {/* Price */}
                             <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-xl">
-                                <span className="text-slate-600 dark:text-slate-300 font-medium">سعر الباقة</span>
-                                <div className="text-right">
-                                    {selectedSubscription.package.final_price && selectedSubscription.package.final_price < selectedSubscription.package.price ? (
+                                <span className="text-slate-600 dark:text-slate-300 font-medium">سعر الباقة المدفوع</span>
+                                <div className="text-right flex flex-col items-end">
+                                    {(selectedSubscription.discount_amount && selectedSubscription.discount_amount > 0) ? (
                                         <>
-                                            <span className="block text-2xl font-bold text-shibl-crimson">{selectedSubscription.package.final_price} ر.ع</span>
-                                            <span className="text-sm text-slate-400 line-through">{selectedSubscription.package.price} ر.ع</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm text-slate-400 line-through">{selectedSubscription.package.price} ر.ع</span>
+                                                <span className="block text-2xl font-bold text-shibl-crimson">{selectedSubscription.package.price - selectedSubscription.discount_amount} ر.ع</span>
+                                            </div>
+                                            <span className="text-xs text-green-600 font-medium mt-1">خصم {selectedSubscription.discount_amount} ر.ع بكود {selectedSubscription.promo_code}</span>
                                         </>
                                     ) : (
                                         <span className="text-2xl font-bold text-shibl-crimson">{selectedSubscription.package.price} ر.ع</span>
@@ -726,27 +758,42 @@ export function AdminPackageSubscriptionsPage() {
                                     </div>
                                 </div>
                                 {selectedSubscription.package?.price && (
-                                    <div className="flex items-center gap-3">
-                                        <DollarSign size={18} className="text-slate-400" />
-                                        <div>
-                                            <p className="text-xs text-slate-grey dark:text-slate-400">السعر</p>
-                                            <p className="font-semibold text-charcoal dark:text-white">{selectedSubscription.package.final_price ?? selectedSubscription.package.price} ر.ع</p>
-                                        </div>
-                                    </div>
-                                )}
-                                {selectedSubscription.promo_code && (
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-[18px] flex items-center justify-center">
-                                            <span className="text-shibl-crimson font-serif font-bold text-lg leading-none">%</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-slate-grey dark:text-slate-400">الكود الترويجي المستخدم</p>
-                                            <div className="flex items-center gap-2">
-                                                <p className="font-mono font-semibold text-charcoal dark:text-white uppercase">{selectedSubscription.promo_code}</p>
+                                    <div className="flex items-center justify-between bg-slate-50 dark:bg-white/5 p-3 rounded-lg border border-slate-100 dark:border-white/10">
+                                        <div className="flex items-center gap-3">
+                                            <DollarSign size={18} className="text-slate-400" />
+                                            <div>
+                                                <p className="text-xs text-slate-grey dark:text-slate-400">السعر المدفوع</p>
+                                                {(selectedSubscription.discount_amount && selectedSubscription.discount_amount > 0) ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="font-semibold text-charcoal dark:text-white text-lg leading-none">{selectedSubscription.package.price - selectedSubscription.discount_amount} ر.ع</p>
+                                                        <span className="text-xs text-slate-400 line-through">{selectedSubscription.package.price}</span>
+                                                    </div>
+                                                ) : (
+                                                    <p className="font-semibold text-charcoal dark:text-white leading-none">{selectedSubscription.package.price} ر.ع</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
                                 )}
+                                {(selectedSubscription.promo_code || selectedSubscription.discount_amount) && (
+                                    <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/20 rounded-[10px]">
+                                        <div className="w-[18px] flex items-center justify-center">
+                                            <span className="text-green-600 font-serif font-bold text-lg leading-none">%</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-green-700 dark:text-green-400 font-medium">كود تفصيلي</p>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                {selectedSubscription.promo_code && (
+                                                    <span className="font-mono text-charcoal dark:text-white uppercase font-bold text-sm bg-white dark:bg-black/20 px-2 py-0.5 rounded">{selectedSubscription.promo_code}</span>
+                                                )}
+                                                {selectedSubscription.discount_amount && (
+                                                    <span className="text-xs text-green-600 dark:text-green-400 font-medium">(خصم {selectedSubscription.discount_amount} ر.ع)</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                             </div>
                             <div className="flex gap-3">
                                 <button

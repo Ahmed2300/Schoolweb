@@ -313,8 +313,8 @@ export interface InfluencerData {
     status: 'active' | 'inactive';
     codes?: { id: number; code: string; is_active: boolean }[];
     fixed_commission_amount: number;
-    total_balance: number;
-    total_withdrawn: number;
+    balance: number;
+    total_withdrawn?: number;
     created_at: string;
 }
 
@@ -425,6 +425,7 @@ export interface AdminSubscription {
     bill_image_path?: string;
     promo_code?: string;
     commission_amount?: number;
+    total_price?: number;
     rejection_reason?: string;
     start_date?: string;
     end_date?: string;
@@ -2563,7 +2564,7 @@ export const adminService = {
     },
 
     rejectWithdrawal: async (id: number, reason?: string): Promise<{ message: string; withdrawal: WithdrawalData }> => {
-        const response = await apiClient.post(`/api/v1/admin/withdrawals/${id}/reject`, { reason });
+        const response = await apiClient.post(`/api/v1/admin/withdrawals/${id}/reject`, { rejection_reason: reason });
         return response.data;
     },
 

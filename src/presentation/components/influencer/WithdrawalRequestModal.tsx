@@ -75,26 +75,26 @@ export function WithdrawalRequestModal({ isOpen, onClose, currentBalance, onSucc
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" dir="rtl">
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative bg-[#18181A] border border-[#27272A] rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                <div className="px-6 py-5 border-b border-[#27272A] flex items-center justify-between">
-                    <h2 className="text-xl font-bold flex items-center gap-2 text-white">
-                        <Wallet className="text-indigo-400" />
+            <div className="absolute inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative bg-white dark:bg-[#18181A] border border-slate-200 dark:border-[#27272A] rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="px-6 py-5 border-b border-slate-200 dark:border-[#27272A] flex items-center justify-between">
+                    <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-white">
+                        <Wallet className="text-indigo-600 dark:text-indigo-400" />
                         طلب سحب رصيد
                     </h2>
-                    <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors text-[#888888] hover:text-white">
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors text-slate-500 dark:text-[#888888] hover:text-slate-800 dark:hover:text-white">
                         <X size={20} />
                     </button>
                 </div>
                 <div className="p-6">
-                    <div className="bg-[#27272A]/50 border border-[#27272A] rounded-2xl p-4 mb-6 flex justify-between items-center">
-                        <p className="text-sm text-[#888888] font-medium">الرصيد المتاح</p>
-                        <p className="text-lg font-bold text-white">{currentBalance} ر.ع</p>
+                    <div className="bg-slate-50 dark:bg-[#27272A]/50 border border-slate-200 dark:border-[#27272A] rounded-2xl p-4 mb-6 flex justify-between items-center">
+                        <p className="text-sm text-slate-500 dark:text-[#888888] font-medium">الرصيد المتاح</p>
+                        <p className="text-lg font-bold text-slate-800 dark:text-white">{currentBalance} ر.ع</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="space-y-1.5">
-                            <label className="block text-sm font-semibold text-[#888888] mb-1">
+                            <label className="block text-sm font-semibold text-slate-500 dark:text-[#888888] mb-1">
                                 المبلغ المطلوب (ر.ع)
                             </label>
                             <input
@@ -105,14 +105,14 @@ export function WithdrawalRequestModal({ isOpen, onClose, currentBalance, onSucc
                                     setAmount(e.target.value);
                                     setError(null);
                                 }}
-                                className="w-full h-12 px-4 rounded-xl border border-[#27272A] bg-black/20 text-white focus:border-indigo-500/50 focus:bg-[#1E1E1E] outline-none transition-all placeholder:text-[#555555]"
+                                className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-[#27272A] bg-slate-50 dark:bg-black/20 text-slate-800 dark:text-white focus:border-indigo-500/50 dark:focus:border-indigo-500/50 focus:bg-white dark:focus:bg-[#1E1E1E] outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-[#555555]"
                                 placeholder="0.00"
                                 required
                             />
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="block text-sm font-semibold text-[#888888] mb-1">
+                            <label className="block text-sm font-semibold text-slate-500 dark:text-[#888888] mb-1">
                                 طريقة الدفع
                             </label>
                             <select
@@ -121,11 +121,11 @@ export function WithdrawalRequestModal({ isOpen, onClose, currentBalance, onSucc
                                     setPaymentMethod(e.target.value);
                                     setError(null);
                                 }}
-                                className="w-full h-12 px-4 rounded-xl border border-[#27272A] bg-black/20 text-white focus:border-indigo-500/50 focus:bg-[#1E1E1E] outline-none transition-all appearance-none"
+                                className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-[#27272A] bg-slate-50 dark:bg-black/20 text-slate-800 dark:text-white focus:border-indigo-500/50 dark:focus:border-indigo-500/50 focus:bg-white dark:focus:bg-[#1E1E1E] outline-none transition-all appearance-none"
                                 required
                             >
                                 {PAYMENT_METHODS.map(method => (
-                                    <option key={method.id} value={method.id} className="bg-[#18181A] text-white">
+                                    <option key={method.id} value={method.id} className="bg-white text-slate-800 dark:bg-[#18181A] dark:text-white">
                                         {method.label}
                                     </option>
                                 ))}
@@ -134,7 +134,7 @@ export function WithdrawalRequestModal({ isOpen, onClose, currentBalance, onSucc
 
                         {paymentMethod !== 'Cash' && (
                             <div className="space-y-1.5">
-                                <label className="block text-sm font-semibold text-[#888888] mb-1">
+                                <label className="block text-sm font-semibold text-slate-500 dark:text-[#888888] mb-1">
                                     {paymentMethod === 'Bank Transfer' ? 'تفاصيل الحساب البنكي (الاسم، البنك، رقم الحساب)' : 'البريد الإلكتروني لحساب PayPal'}
                                 </label>
                                 <textarea
@@ -143,7 +143,7 @@ export function WithdrawalRequestModal({ isOpen, onClose, currentBalance, onSucc
                                         setPaymentDetails(e.target.value);
                                         setError(null);
                                     }}
-                                    className="w-full min-h-[80px] p-4 rounded-xl border border-[#27272A] bg-black/20 text-white focus:border-indigo-500/50 focus:bg-[#1E1E1E] outline-none transition-all resize-none placeholder:text-[#555555]"
+                                    className="w-full min-h-[80px] p-4 rounded-xl border border-slate-200 dark:border-[#27272A] bg-slate-50 dark:bg-black/20 text-slate-800 dark:text-white focus:border-indigo-500/50 dark:focus:border-indigo-500/50 focus:bg-white dark:focus:bg-[#1E1E1E] outline-none transition-all resize-none placeholder:text-slate-400 dark:placeholder:text-[#555555]"
                                     placeholder={paymentMethod === 'Bank Transfer' ? "أدخل تفاصيل حسابك البنكي هنا..." : "example@domain.com"}
                                     required={paymentMethod !== 'Cash'}
                                 />
@@ -151,7 +151,7 @@ export function WithdrawalRequestModal({ isOpen, onClose, currentBalance, onSucc
                         )}
 
                         {error && (
-                            <div className="flex items-center gap-2 text-red-500 bg-red-500/10 p-3 rounded-xl border border-red-500/20 text-sm">
+                            <div className="flex items-center gap-2 text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-500/10 p-3 rounded-xl border border-red-200 dark:border-red-500/20 text-sm">
                                 <AlertCircle size={16} className="shrink-0" />
                                 <p>{error}</p>
                             </div>
@@ -161,7 +161,7 @@ export function WithdrawalRequestModal({ isOpen, onClose, currentBalance, onSucc
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="flex-1 py-3 px-4 rounded-xl font-semibold text-[#888888] bg-[#27272A]/50 hover:bg-[#27272A] hover:text-white border border-[#27272A] transition-colors"
+                                className="flex-1 py-3 px-4 rounded-xl font-semibold text-slate-600 dark:text-[#888888] bg-slate-100 dark:bg-[#27272A]/50 hover:bg-slate-200 dark:hover:bg-[#27272A] hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-[#27272A] transition-colors"
                             >
                                 إلغاء
                             </button>

@@ -102,20 +102,20 @@ export function InfluencerDashboardPage() {
     }
 
     const StatCard = ({ title, value, icon, iconBgClass, iconTextClass, actionLabel, onAction }: StatCardProps) => (
-        <div className="bg-[#18181A] rounded-2xl p-6 border border-[#27272A] flex flex-col items-stretch h-full">
+        <div className="bg-white dark:bg-[#18181A] rounded-2xl p-6 border border-slate-200 dark:border-[#27272A] flex flex-col items-stretch h-full">
             <div className="flex items-start justify-between">
                 <div>
-                    <h3 className="text-[#888888] text-sm font-medium mb-3">{title}</h3>
-                    <div className="text-3xl font-bold text-white tracking-tight">{value}</div>
+                    <h3 className="text-slate-500 dark:text-[#888888] text-sm font-medium mb-3">{title}</h3>
+                    <div className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">{value}</div>
                 </div>
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center border border-white/5 shadow-inner ${iconBgClass} ${iconTextClass}`}>
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center border border-slate-100 dark:border-white/5 shadow-inner ${iconBgClass} ${iconTextClass}`}>
                     {icon}
                 </div>
             </div>
             {actionLabel && onAction && (
                 <button
                     onClick={onAction}
-                    className="mt-6 w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-[#27272A] text-[#888888] font-semibold hover:text-white hover:bg-[#27272A] transition-all"
+                    className="mt-6 w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-slate-200 dark:border-[#27272A] text-slate-500 dark:text-[#888888] font-semibold hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#27272A] transition-all"
                 >
                     <Plus size={18} />
                     {actionLabel}
@@ -125,11 +125,11 @@ export function InfluencerDashboardPage() {
     );
 
     return (
-        <div className="space-y-6 text-white" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="space-y-6 text-slate-800 dark:text-white" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-white mb-2">لوحة القيادة</h1>
-                    <p className="text-[#888888]">نظرة عامة على أرباحك واستخدامات الكود الخاص بك.</p>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">لوحة القيادة</h1>
+                    <p className="text-slate-500 dark:text-[#888888]">نظرة عامة على أرباحك واستخدامات الكود الخاص بك.</p>
                 </div>
             </div>
 
@@ -162,39 +162,39 @@ export function InfluencerDashboardPage() {
 
             <div className="grid grid-cols-1 gap-6">
                 {/* Top Codes Table */}
-                <div className="bg-[#18181A] rounded-2xl border border-[#27272A] overflow-hidden flex flex-col">
-                    <div className="p-6 border-b border-[#27272A] flex items-center gap-3">
+                <div className="bg-white dark:bg-[#18181A] rounded-2xl border border-slate-200 dark:border-[#27272A] overflow-hidden flex flex-col">
+                    <div className="p-6 border-b border-slate-200 dark:border-[#27272A] flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500">
                             {isRTL ? <ArrowUpLeft size={20} /> : <ArrowUpRight size={20} />}
                         </div>
-                        <h2 className="text-lg font-bold text-white">أعلى الأكواد استخداماً</h2>
+                        <h2 className="text-lg font-bold text-slate-800 dark:text-white">أعلى الأكواد استخداماً</h2>
                     </div>
                     <div className="overflow-x-auto flex-1">
                         <table className="w-full text-right" dir="rtl">
-                            <thead className="border-b border-[#27272A]">
+                            <thead className="border-b border-slate-200 dark:border-[#27272A]">
                                 <tr>
-                                    <th className="px-6 py-4 text-xs font-semibold text-[#888888]">الكود</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-[#888888] text-center">الاستخدام</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-[#888888] text-left">العمولة</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-[#888888]">الكود</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-[#888888] text-center">الاستخدام</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-[#888888] text-left">العمولة</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[#27272A]">
+                            <tbody className="divide-y divide-slate-100 dark:divide-[#27272A]">
                                 {data?.top_codes?.length === 0 ? (
                                     <tr>
-                                        <td colSpan={3} className="px-6 py-8 text-center text-[#888888] text-sm">
+                                        <td colSpan={3} className="px-6 py-8 text-center text-slate-500 dark:text-[#888888] text-sm">
                                             لا توجد بيانات متاحة
                                         </td>
                                     </tr>
                                 ) : (
                                     data?.top_codes?.map((code, index) => (
-                                        <tr key={index} className="hover:bg-white/[0.02] transition-colors">
-                                            <td className="px-6 py-4 text-sm font-medium text-white">
+                                        <tr key={index} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
+                                            <td className="px-6 py-4 text-sm font-medium text-slate-800 dark:text-white">
                                                 {code.code}
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-[#888888] text-center">
+                                            <td className="px-6 py-4 text-sm text-slate-500 dark:text-[#888888] text-center">
                                                 {code.usage_count}
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-emerald-500 font-medium text-left">
+                                            <td className="px-6 py-4 text-sm text-emerald-600 dark:text-emerald-500 font-medium text-left">
                                                 {code.total_commission} ر.ع
                                             </td>
                                         </tr>
@@ -207,54 +207,54 @@ export function InfluencerDashboardPage() {
             </div>
 
             {/* Usages Table */}
-            <div className="bg-[#18181A] rounded-2xl border border-[#27272A] overflow-hidden">
-                <div className="p-6 border-b border-[#27272A] flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <div className="bg-white dark:bg-[#18181A] rounded-2xl border border-slate-200 dark:border-[#27272A] overflow-hidden">
+                <div className="p-6 border-b border-slate-200 dark:border-[#27272A] flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 dark:text-indigo-400">
                         <Activity size={20} />
                     </div>
-                    <h2 className="text-lg font-bold text-white">سجل العمليات الأخيرة</h2>
+                    <h2 className="text-lg font-bold text-slate-800 dark:text-white">سجل العمليات الأخيرة</h2>
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-right" dir="rtl">
-                        <thead className="border-b border-[#27272A]">
+                        <thead className="border-b border-slate-200 dark:border-[#27272A]">
                             <tr>
-                                <th className="px-6 py-4 text-xs font-semibold text-[#888888]">اسم العميل</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-[#888888]">كود الخصم</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-[#888888] text-center">قيمة الخصم</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-[#888888] text-center">العمولة</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-[#888888] text-left">الحالة</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-[#888888]">اسم العميل</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-[#888888]">كود الخصم</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-[#888888] text-center">قيمة الخصم</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-[#888888] text-center">العمولة</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-[#888888] text-left">الحالة</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#27272A] relative">
+                        <tbody className="divide-y divide-slate-100 dark:divide-[#27272A] relative">
                             {isUsagesLoading && (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-8">
                                         <div className="flex justify-center items-center">
-                                            <Loader2 className="w-6 h-6 text-[#888888] animate-spin" />
+                                            <Loader2 className="w-6 h-6 text-slate-400 dark:text-[#888888] animate-spin" />
                                         </div>
                                     </td>
                                 </tr>
                             )}
                             {!isUsagesLoading && usagesData?.data?.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-8 text-center text-[#888888] text-sm">
+                                    <td colSpan={5} className="px-6 py-8 text-center text-slate-500 dark:text-[#888888] text-sm">
                                         لم يتم استخدام الكود الخاص بك حتى الآن
                                     </td>
                                 </tr>
                             ) : (
                                 !isUsagesLoading && usagesData?.data?.map((usage) => (
-                                    <tr key={usage.id} className="hover:bg-white/[0.02] transition-colors">
-                                        <td className="px-6 py-4 text-sm font-medium text-white">
+                                    <tr key={usage.id} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
+                                        <td className="px-6 py-4 text-sm font-medium text-slate-800 dark:text-white">
                                             {usage.student?.name || 'مستخدم غير معروف'}
                                         </td>
-                                        <td className="px-6 py-4 text-sm font-medium text-white">
+                                        <td className="px-6 py-4 text-sm font-medium text-slate-800 dark:text-white">
                                             {usage.code?.code}
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-center text-[#888888]">
+                                        <td className="px-6 py-4 text-sm text-center text-slate-500 dark:text-[#888888]">
                                             {usage.discount_amount} ر.ع
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-center text-emerald-500 font-medium">
+                                        <td className="px-6 py-4 text-sm text-center text-emerald-600 dark:text-emerald-500 font-medium">
                                             +{usage.commission_earned} ر.ع
                                         </td>
                                         <td className="px-6 py-4 text-left">
@@ -281,21 +281,21 @@ export function InfluencerDashboardPage() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="flex items-center justify-between px-6 py-4 border-t border-[#27272A]">
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-[#27272A]">
                         <button
                             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1 || isUsagesLoading}
-                            className="p-2 rounded-xl text-[#888888] hover:bg-white/5 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="p-2 rounded-xl text-slate-500 dark:text-[#888888] hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             <ChevronRight size={20} />
                         </button>
-                        <span className="text-sm text-[#888888]">
+                        <span className="text-sm text-slate-500 dark:text-[#888888]">
                             صفحة {currentPage} من {totalPages}
                         </span>
                         <button
                             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages || isUsagesLoading}
-                            className="p-2 rounded-xl text-[#888888] hover:bg-white/5 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="p-2 rounded-xl text-slate-500 dark:text-[#888888] hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             <ChevronLeft size={20} />
                         </button>
