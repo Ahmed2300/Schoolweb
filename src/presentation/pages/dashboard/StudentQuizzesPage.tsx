@@ -35,7 +35,11 @@ export function StudentQuizzesPage() {
 
     // If ID is present, show Quiz Player
     if (id) {
-        return <QuizPlayer quizId={id} onExit={() => navigate(-1)} />;
+        return (
+            <div className="fixed inset-0 z-[100] bg-[#FDFDFD] overflow-y-auto">
+                <QuizPlayer quizId={id} onExit={() => navigate(-1)} />
+            </div>
+        );
     }
 
     const getStatusBadge = (status: QuizAttemptSummary['status']) => {

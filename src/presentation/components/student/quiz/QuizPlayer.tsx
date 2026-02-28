@@ -43,12 +43,14 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
     const hasStartedRef = useRef(hasStarted);
     const answersRef = useRef(answers);
     const answerImagesRef = useRef(answerImages);
+    const currentQuestionIndexRef = useRef(currentQuestionIndex);
     const hasAutoSubmittedRef = useRef(false);
 
     useEffect(() => { quizStateRef.current = quizState; }, [quizState]);
     useEffect(() => { hasStartedRef.current = hasStarted; }, [hasStarted]);
     useEffect(() => { answersRef.current = answers; }, [answers]);
     useEffect(() => { answerImagesRef.current = answerImages; }, [answerImages]);
+    useEffect(() => { currentQuestionIndexRef.current = currentQuestionIndex; }, [currentQuestionIndex]);
 
     useEffect(() => {
         fetchQuiz();
@@ -109,6 +111,38 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                 });
                 setTimeLeft(remaining);
 
+                // Restore previously saved answers (if resuming after refresh)
+                const savedAnswers = (response as Record<string, unknown>).saved_answers as { question_id: number; selected_option_id?: number | null; essay_answer?: string | null }[] | undefined;
+                if (savedAnswers && savedAnswers.length > 0) {
+                    const restoredAnswers: Record<number, number | string> = {};
+                    for (const sa of savedAnswers) {
+                        if (sa.selected_option_id != null) {
+                            restoredAnswers[sa.question_id] = sa.selected_option_id;
+                        } else if (sa.essay_answer != null) {
+                            restoredAnswers[sa.question_id] = sa.essay_answer;
+                        }
+                    }
+                    setAnswers(restoredAnswers);
+                }
+
+                // Restore current question position (if resuming after refresh)
+                const savedQuestionIndex = (response as Record<string, unknown>).current_question_index as number | undefined;
+                if (isResuming && savedQuestionIndex != null && savedQuestionIndex > 0) {
+                    // Clamp to valid range (0 to questions.length - 1)
+                    const maxIndex = (quizData.questions?.length ?? 1) - 1;
+                    setCurrentQuestionIndex(Math.min(savedQuestionIndex, maxIndex));
+                } else if (isResuming && savedAnswers && savedAnswers.length > 0 && quizData.questions) {
+                    // Fallback: navigate to the last answered question's index
+                    const answeredQuestionIds = new Set(savedAnswers.map(sa => sa.question_id));
+                    let lastAnsweredIdx = 0;
+                    quizData.questions.forEach((q, idx) => {
+                        if (answeredQuestionIds.has(q.id)) {
+                            lastAnsweredIdx = idx;
+                        }
+                    });
+                    setCurrentQuestionIndex(lastAnsweredIdx);
+                }
+
                 // Auto-start if resuming an existing attempt
                 if (isResuming) {
                     setHasStarted(true);
@@ -122,9 +156,15 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                 }
             }
         } catch (err: any) {
+            // Ignore cancelled/aborted requests (React StrictMode double-mount or navigation)
+            if (err.code === 'ERR_CANCELED' || err.name === 'CanceledError' || err.name === 'AbortError') {
+                return;
+            }
             const responseData = err.response?.data;
             if (responseData?.quiz_unavailable) {
                 setQuizState({ status: 'error', message: responseData.message || 'الامتحان غير متاح حالياً أو لم يتم نشره بعد.' });
+            } else if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+                setQuizState({ status: 'error', message: 'انتهت مهلة الاتصال بالخادم. يرجى المحاولة مرة أخرى.' });
             } else {
                 setQuizState({ status: 'error', message: 'فشل في تحميل الاختبار' });
             }
@@ -200,30 +240,24 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
         handleSubmit();
     };
 
-    // Build submission payload from current answers (for fire-and-forget submit)
-    const buildPayload = (): QuizSubmission => {
+    // Build save-progress payload from current answers
+    const buildSaveProgressPayload = (): { question_id: number; selected_option_id?: number; essay_answer?: string }[] => {
         const currentAnswers = answersRef.current;
-        const currentImages = answerImagesRef.current;
         const state = quizStateRef.current;
         const questions = state.status === 'ready' ? state.quiz.questions : [];
 
-        return {
-            answers: Object.entries(currentAnswers).map(([qId, val]) => {
-                const question = questions?.find(q => q.id === Number(qId));
-                if (question?.question_type === 'mcq') {
-                    return { question_id: Number(qId), selected_option_id: val as number };
-                } else {
-                    return {
-                        question_id: Number(qId),
-                        essay_answer: val as string,
-                        answer_image: currentImages[Number(qId)] || undefined
-                    };
-                }
-            })
-        };
+        return Object.entries(currentAnswers).map(([qId, val]) => {
+            const question = questions?.find(q => q.id === Number(qId));
+            if (question?.question_type === 'mcq' || question?.question_type === 'true_false') {
+                return { question_id: Number(qId), selected_option_id: val as number };
+            } else {
+                return { question_id: Number(qId), essay_answer: val as string };
+            }
+        });
     };
 
-    // Auto-submit on component unmount (user navigates away within the app)
+    // Save progress on component unmount (user navigates away within the app)
+    // This does NOT submit the quiz — just persists answers so they survive a refresh
     useEffect(() => {
         return () => {
             if (
@@ -231,44 +265,69 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                 hasStartedRef.current &&
                 !hasAutoSubmittedRef.current
             ) {
-                hasAutoSubmittedRef.current = true;
-                const payload = buildPayload();
-                // Fire-and-forget: submit whatever answers exist
-                studentQuizService.submitQuiz(quizId, payload).catch(() => { });
+                const payload = buildSaveProgressPayload();
+                if (payload.length > 0) {
+                    // Fire-and-forget: save progress without submitting
+                    studentQuizService.saveQuizProgress(quizId, payload, currentQuestionIndexRef.current).catch(() => { });
+                }
             }
         };
     }, [quizId]);
 
-    // Auto-submit on browser close / tab close / refresh
+    // Save progress on browser close / tab close / refresh (using keepalive fetch)
+    // This does NOT submit — just saves answers so the student can resume
     useEffect(() => {
-        const handleBeforeUnload = () => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (
                 quizStateRef.current.status === 'ready' &&
                 hasStartedRef.current &&
                 !hasAutoSubmittedRef.current
             ) {
-                hasAutoSubmittedRef.current = true;
-                const payload = buildPayload();
-                // Use fetch with keepalive for reliable fire-and-forget with auth headers
-                const token = localStorage.getItem('auth_token');
-                const hostname = window.location.hostname;
-                const protocol = window.location.protocol;
-                const baseUrl = import.meta.env.VITE_API_URL || `${protocol}//${hostname}:8000`;
-                fetch(`${baseUrl}/api/v1/student/quizzes/${quizId}/submit`, {
-                    method: 'POST',
-                    keepalive: true,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-                    },
-                    body: JSON.stringify({ answers: payload.answers }),
-                }).catch(() => { });
+                const payload = buildSaveProgressPayload();
+                if (payload.length > 0) {
+                    // Use fetch with keepalive for reliable fire-and-forget
+                    const token = localStorage.getItem('auth_token');
+                    const hostname = window.location.hostname;
+                    const protocol = window.location.protocol;
+                    const baseUrl = import.meta.env.VITE_API_URL || `${protocol}//${hostname}:8000`;
+                    fetch(`${baseUrl}/api/v1/student/quizzes/${quizId}/save-progress`, {
+                        method: 'POST',
+                        keepalive: true,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+                        },
+                        body: JSON.stringify({ answers: payload, current_question_index: currentQuestionIndexRef.current }),
+                    }).catch(() => { });
+                }
+                // Show browser confirmation dialog
+                e.preventDefault();
             }
         };
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [quizId]);
+
+    // Auto-save progress every 30 seconds while quiz is active
+    useEffect(() => {
+        if (quizState.status !== 'ready' || !hasStarted) return;
+
+        const autoSaveInterval = setInterval(() => {
+            if (
+                quizStateRef.current.status === 'ready' &&
+                hasStartedRef.current &&
+                !hasAutoSubmittedRef.current
+            ) {
+                const payload = buildSaveProgressPayload();
+                if (payload.length > 0) {
+                    studentQuizService.saveQuizProgress(quizId, payload, currentQuestionIndexRef.current).catch(() => { });
+                }
+            }
+        }, 30_000);
+
+        return () => clearInterval(autoSaveInterval);
+    }, [quizState.status, hasStarted, quizId]);
 
 
     // ================= LOADING STATE =================
@@ -424,35 +483,48 @@ export function QuizPlayer({ quizId, onExit }: QuizPlayerProps) {
                                 <p className="text-xs text-slate-400 font-bold">اضغط للتنقل بين الأسئلة</p>
                             </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                             <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> صحيحة</span>
                             <span className="flex items-center gap-1 text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-lg"><div className="w-2 h-2 rounded-full bg-red-500"></div> خاطئة</span>
+                            <span className="flex items-center gap-1 text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg"><div className="w-2 h-2 rounded-full bg-slate-400"></div> لم تُجب</span>
                         </div>
                     </div>
                     <div className="flex flex-wrap gap-1.5 sm:gap-2.5">
-                        {results.map((q, idx) => (
-                            <button
-                                key={q.question_id}
-                                onClick={() => setReviewQuestionIndex(idx)}
-                                className={`
+                        {results.map((q, idx) => {
+                            const isUnanswered = q.not_answered === true;
+                            return (
+                                <button
+                                    key={q.question_id}
+                                    onClick={() => setReviewQuestionIndex(idx)}
+                                    className={`
                                     w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm transition-all duration-300 flex items-center justify-center
                                     hover:scale-110 active:scale-95 shadow-sm
                                     ${idx === reviewQuestionIndex
-                                        ? 'ring-4 ring-slate-100 z-10 scale-110 shadow-md'
-                                        : 'opacity-90 hover:opacity-100'
-                                    }
-                                    ${q.is_correct === null
-                                        ? 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                                        : q.is_correct
-                                            ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-emerald-200'
-                                            : 'bg-gradient-to-br from-red-400 to-red-600 text-white shadow-red-200'
-                                    }
+                                            ? 'ring-4 ring-slate-100 z-10 scale-110 shadow-md'
+                                            : 'opacity-90 hover:opacity-100'
+                                        }
+                                    ${isUnanswered
+                                            ? 'bg-slate-200 text-slate-500 hover:bg-slate-300'
+                                            : q.is_correct === null
+                                                ? 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                                                : q.is_correct
+                                                    ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-emerald-200'
+                                                    : 'bg-gradient-to-br from-red-400 to-red-600 text-white shadow-red-200'
+                                        }
                                 `}
-                                aria-label={`السؤال ${idx + 1}`}
-                            >
-                                {q.is_correct === null ? idx + 1 : q.is_correct ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
-                            </button>
-                        ))}
+                                    aria-label={`السؤال ${idx + 1}`}
+                                >
+                                    {isUnanswered
+                                        ? <span className="text-slate-400 font-bold">—</span>
+                                        : q.is_correct === null
+                                            ? idx + 1
+                                            : q.is_correct
+                                                ? <CheckCircle2 size={18} />
+                                                : <XCircle size={18} />
+                                    }
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -888,6 +960,7 @@ interface QuestionReviewCardProps {
 }
 
 function QuestionReviewCard({ question, questionNumber, totalQuestions }: QuestionReviewCardProps) {
+    const isUnanswered = question.not_answered === true;
     const isCorrect = question.is_correct;
     const isPending = question.is_correct === null;
 
@@ -907,14 +980,21 @@ function QuestionReviewCard({ question, questionNumber, totalQuestions }: Questi
                 {/* Status Badge */}
                 <div className={`
                     flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm
-                    ${isPending
-                        ? 'bg-amber-50 text-amber-600'
-                        : isCorrect
-                            ? 'bg-emerald-50 text-emerald-600'
-                            : 'bg-red-50 text-red-600'
+                    ${isUnanswered
+                        ? 'bg-slate-100 text-slate-600'
+                        : isPending
+                            ? 'bg-amber-50 text-amber-600'
+                            : isCorrect
+                                ? 'bg-emerald-50 text-emerald-600'
+                                : 'bg-red-50 text-red-600'
                     }
                 `}>
-                    {isPending ? (
+                    {isUnanswered ? (
+                        <>
+                            <AlertCircle size={16} />
+                            <span>لم تُجب (0 درجات)</span>
+                        </>
+                    ) : isPending ? (
                         <>
                             <Clock size={16} />
                             <span>قيد التصحيح</span>
@@ -932,6 +1012,19 @@ function QuestionReviewCard({ question, questionNumber, totalQuestions }: Questi
                     )}
                 </div>
             </div>
+
+            {/* Unanswered Warning Banner */}
+            {isUnanswered && (
+                <div className="mb-6 p-4 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-slate-200 flex items-center justify-center shrink-0">
+                        <AlertCircle size={20} className="text-slate-500" />
+                    </div>
+                    <div>
+                        <p className="font-bold text-slate-700 text-sm">لم تُجب على هذا السؤال</p>
+                        <p className="text-xs text-slate-400 mt-0.5">الإجابة الصحيحة موضحة أدناه</p>
+                    </div>
+                </div>
+            )}
 
             {/* Question Text */}
             <h2 className="text-xl md:text-2xl font-bold text-slate-800 leading-relaxed mb-6">

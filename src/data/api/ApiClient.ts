@@ -162,6 +162,21 @@ apiClient.interceptors.response.use(
             }
         }
 
+        // Handle 423 Locked - student has an active quiz they must complete
+        if (error.response?.status === 423) {
+            const data = error.response.data as Record<string, unknown>;
+            if (data?.error_code === 'ACTIVE_QUIZ_LOCKED' && data?.active_quiz_id) {
+                // Redirect to the active quiz page
+                const quizId = data.active_quiz_id;
+                const currentPath = window.location.pathname;
+                // Avoid redirect loop if already on the quiz page
+                if (!currentPath.includes(`/quizzes/${quizId}`)) {
+                    window.location.href = `/dashboard/quizzes/${quizId}`;
+                }
+                return Promise.reject(error);
+            }
+        }
+
         // Handle other errors - preserve the response for validation errors (422)
         if (error.response) {
             // Preserve the original axios error with response data for proper handling

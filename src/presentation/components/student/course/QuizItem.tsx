@@ -152,7 +152,7 @@ export function QuizItem({ quiz, isSubscribed = false, isUnitQuiz = false }: Qui
                                 ${isPendingGrading ? 'bg-amber-100 text-amber-700' : (isPassed ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700')}
                             `}>
                                 {isPendingGrading ? <Clock size={16} /> : (isPassed ? <CheckCircle2 size={16} /> : <XCircle size={16} />)}
-                                {isPendingGrading ? 'قيد التصحيح' : (isPassed ? 'ناجح' : 'أعِد المحاولة')}
+                                {isPendingGrading ? 'قيد التصحيح' : (isPassed ? 'ناجح' : 'راسب')}
                             </div>
                         ) : (
                             <button className="px-5 py-2.5 rounded-xl text-xs lg:text-sm font-black flex items-center justify-center gap-2 bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-md shadow-amber-200 w-full sm:w-auto">
