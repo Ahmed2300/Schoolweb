@@ -34,7 +34,7 @@ export function TechSupportPage() {
             delay: 0.1,
             email: "ahmed750@std.mans.edu.eg",
             linkedin: "https://www.linkedin.com/in/ahmed-azam-320a98200",
-            github: null,
+            github: "https://github.com/Ahmed2300",
             skills: ["فلاتر", "React", "Next.js", "TypeScript", "Tailwind"]
         },
         {
@@ -49,7 +49,7 @@ export function TechSupportPage() {
             delay: 0.2,
             email: "manarelnahty@gmail.com",
             linkedin: "https://www.linkedin.com/in/manar-e-6b21bb230",
-            github: null,
+            github: "https://github.com/manarelnahty",
             skills: ["فلاتر", "React", "Next.js", "TypeScript", "Tailwind"]
         },
         {
@@ -64,7 +64,7 @@ export function TechSupportPage() {
             delay: 0.3,
             email: "mohamedbadr4iti@gmail.com",
             linkedin: "https://www.linkedin.com/in/mhmdbadr4flutter/",
-            github: null,
+            github: "https://github.com/mohmdadl",
             skills: ["فلاتر", "دارت", "UI/UX"]
         },
         {
@@ -79,7 +79,7 @@ export function TechSupportPage() {
             delay: 0.4,
             email: "ahmedgits2001@gmail.com",
             linkedin: "https://www.linkedin.com/in/ahmed-farghly-879b09257",
-            github: null,
+            github: "https://github.com/Ahmedfargh",
             skills: ["Laravel", "Django", "Backend", "API"]
         },
         {
@@ -93,7 +93,7 @@ export function TechSupportPage() {
             delay: 0.5,
             email: "ahmedessam1.8.14@gmail.com",
             linkedin: "https://www.linkedin.com/in/ahmed-essam-465208232",
-            github: null,
+            github: "https://github.com/AhmedEssam88",
             skills: ["PHP", "Laravel", "Backend Development"]
         }
     ];
