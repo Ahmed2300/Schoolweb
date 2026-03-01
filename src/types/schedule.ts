@@ -14,7 +14,7 @@ import type { Lecture, Course } from '../data/api/studentService';
  * A scheduled lecture entry for a student's personal study plan.
  */
 export interface Schedule {
-    id: number;
+    id: number | string;
     student_id: number;
     lecture_id: number;
     scheduled_at: string; // ISO 8601 datetime

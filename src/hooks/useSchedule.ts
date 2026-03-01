@@ -72,10 +72,10 @@ export const useCompleteSchedule = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (id: number) => studentService.completeSchedule(id),
+        mutationFn: (id: number | string) => studentService.completeSchedule(id),
 
         // Optimistic update
-        onMutate: async (id: number) => {
+        onMutate: async (id: number | string) => {
             // Cancel any outgoing refetches
             await queryClient.cancelQueries({ queryKey: scheduleKeys.list() });
 
@@ -122,10 +122,10 @@ export const useDeleteSchedule = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (id: number) => studentService.deleteSchedule(id),
+        mutationFn: (id: number | string) => studentService.deleteSchedule(id),
 
         // Optimistic update
-        onMutate: async (id: number) => {
+        onMutate: async (id: number | string) => {
             await queryClient.cancelQueries({ queryKey: scheduleKeys.list() });
 
             const previousSchedules = queryClient.getQueryData<Schedule[]>(scheduleKeys.list());

@@ -153,6 +153,7 @@ export const endpoints = {
         lectures: {
             list: '/api/v1/lectures',
             create: '/api/v1/lectures',
+            immediate: '/api/v1/lectures/immediate',
             show: (id: number) => `/api/v1/lectures/${id}`,
             update: (id: number) => `/api/v1/lectures/${id}`,
             delete: (id: number) => `/api/v1/lectures/${id}`,
@@ -464,9 +465,9 @@ export const endpoints = {
     schedules: {
         list: '/api/v1/students/schedules',
         create: '/api/v1/students/schedules',
-        update: (id: number) => `/api/v1/students/schedules/${id}`,
-        complete: (id: number) => `/api/v1/students/schedules/${id}/complete`,
-        delete: (id: number) => `/api/v1/students/schedules/${id}`,
+        update: (id: number | string) => `/api/v1/students/schedules/${id}`,
+        complete: (id: number | string) => `/api/v1/students/schedules/${id}/complete`,
+        delete: (id: number | string) => `/api/v1/students/schedules/${id}`,
     },
 
 

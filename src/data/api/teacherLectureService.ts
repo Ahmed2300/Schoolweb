@@ -57,6 +57,11 @@ export const teacherLectureService = {
         return response.data;
     },
 
+    createImmediateLecture: async (data: { title: { ar: string; en?: string }; description: { ar: string; en?: string }; course_id: number; unit_id?: number; }) => {
+        const response = await apiClient.post(endpoints.teacher.lectures.immediate, data);
+        return response.data;
+    },
+
     createLectureWithVideo: async (data: LectureData, videoPath: string) => {
         const response = await apiClient.post(endpoints.teacher.lectures.chunkedCreate, {
             ...data,

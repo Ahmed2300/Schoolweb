@@ -74,6 +74,7 @@ import { CSS } from '@dnd-kit/utilities';
 // Components
 import { TeacherAddLectureModal } from '../../components/teacher/courses/modals/TeacherAddLectureModal';
 import { TeacherEditLectureModal } from '../../components/teacher/courses/modals/TeacherEditLectureModal';
+import { TeacherAddImmediateLectureModal } from '../../components/teacher/lectures/TeacherAddImmediateLectureModal';
 import { UnitFormModal } from '../../components/admin/units/UnitFormModal';
 import { DeleteConfirmModal } from '../../components/admin/DeleteConfirmModal';
 
@@ -244,6 +245,7 @@ function UnitCard({
     onEditUnit,
     onDeleteUnit,
     onAddLecture,
+    onAddImmediateLecture,
     onEditLecture,
     onDeleteLecture,
     onAddQuizToUnit,
@@ -263,9 +265,10 @@ function UnitCard({
     unit: Unit;
     isExpanded: boolean;
     onToggle: () => void;
-    onEditUnit: () => void;
-    onDeleteUnit: () => void;
-    onAddLecture: () => void;
+    onEditUnit: (unit: Unit) => void;
+    onDeleteUnit: (unit: Unit) => void;
+    onAddLecture: (unit: Unit) => void;
+    onAddImmediateLecture: (unit: Unit) => void;
     onEditLecture: (lecture: any) => void;
     onDeleteLecture: (lecture: any) => void;
     onAddQuizToUnit: () => void;
@@ -398,23 +401,30 @@ function UnitCard({
 
                 <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                     <button
-                        onClick={onAddLecture}
+                        onClick={() => onAddLecture(unit)}
                         className="p-2 text-slate-400 hover:text-shibl-crimson transition-colors"
                         title="إضافة محاضرة"
                     >
                         <Video size={18} />
                     </button>
                     <button
-                        onClick={onAddQuizToUnit}
+                        onClick={() => onAddImmediateLecture(unit)}
+                        className="p-2 text-slate-400 hover:text-shibl-crimson transition-colors"
+                        title="إضافة محاضرة فورية"
+                    >
+                        <PlayCircle size={18} />
+                    </button>
+                    <button
+                        onClick={() => onAddQuizToUnit()}
                         className="p-2 text-slate-400 hover:text-shibl-crimson transition-colors"
                         title="إضافة اختبار"
                     >
                         <HelpCircle size={18} />
                     </button>
-                    <button onClick={onEditUnit} className="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+                    <button onClick={() => onEditUnit(unit)} className="p-2 text-slate-400 hover:text-blue-600 transition-colors">
                         <Edit2 size={18} />
                     </button>
-                    <button onClick={onDeleteUnit} className="p-2 text-slate-400 hover:text-red-600 transition-colors">
+                    <button onClick={() => onDeleteUnit(unit)} className="p-2 text-slate-400 hover:text-red-600 transition-colors">
                         <Trash2 size={18} />
                     </button>
                     {isExpanded ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
@@ -722,6 +732,7 @@ export function TeacherCourseDetailsPage() {
 
     // Modal States
     const [showAddLecture, setShowAddLecture] = useState(false);
+    const [showAddImmediateLecture, setShowAddImmediateLecture] = useState(false);
     const [showEditLecture, setShowEditLecture] = useState(false);
     const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
     const [selectedLecture, setSelectedLecture] = useState<any | null>(null);
@@ -1402,6 +1413,18 @@ export function TeacherCourseDetailsPage() {
         setIsLiveSessionModalOpen(true);
     };
 
+    const handleAddImmediateLecture = (unit?: Unit) => {
+        setSelectedUnit(unit || null);
+        setShowAddImmediateLecture(true);
+    };
+
+    const handleImmediateLectureSuccess = (newLecture: any) => {
+        // Close modal
+        setShowAddImmediateLecture(false);
+        // Refresh data to show it in the list immediately (it doesn't need approval)
+        fetchCourseData();
+    };
+
     // Filter State
     const [lectureFilter, setLectureFilter] = useState<'all' | 'real' | 'trial'>('all');
 
@@ -1644,9 +1667,10 @@ export function TeacherCourseDetailsPage() {
                                         unit={unit}
                                         isExpanded={expandedUnits.includes(unit.id)}
                                         onToggle={() => handleToggleUnit(unit.id)}
-                                        onEditUnit={() => handleEditUnit(unit)}
-                                        onDeleteUnit={() => handleDeleteUnit(unit)}
-                                        onAddLecture={() => handleAddLecture(unit)}
+                                        onEditUnit={handleEditUnit}
+                                        onDeleteUnit={handleDeleteUnit}
+                                        onAddLecture={handleAddLecture}
+                                        onAddImmediateLecture={handleAddImmediateLecture}
                                         onEditLecture={handleEditLecture}
                                         onDeleteLecture={handleDeleteLecture}
                                         onAddQuizToUnit={() => {
@@ -1746,6 +1770,7 @@ export function TeacherCourseDetailsPage() {
                                                     onEditUnit={() => { }}
                                                     onDeleteUnit={() => { }}
                                                     onAddLecture={() => { }}
+                                                    onAddImmediateLecture={() => { }}
                                                     onEditLecture={() => { }}
                                                     onDeleteLecture={() => { }}
                                                     onAddQuizToUnit={() => { }}
@@ -1885,6 +1910,17 @@ export function TeacherCourseDetailsPage() {
                     initialUnitId={selectedUnit.id}
                     gradeId={course?.grade_id || course?.grade?.id}
                     semesterId={course?.semester_id || course?.semester?.id}
+                />
+            )}
+
+            {showAddImmediateLecture && (
+                <TeacherAddImmediateLectureModal
+                    isOpen={showAddImmediateLecture}
+                    onClose={() => setShowAddImmediateLecture(false)}
+                    onSuccess={handleImmediateLectureSuccess}
+                    courseId={Number(courseId)}
+                    units={units}
+                    initialUnitId={selectedUnit?.id}
                 />
             )}
 

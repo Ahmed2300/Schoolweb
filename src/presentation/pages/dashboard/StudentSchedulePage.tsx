@@ -16,6 +16,8 @@ import { Calendar as CalendarIcon, CalendarDays } from 'lucide-react';
 import { useSchedules } from '@/hooks/useSchedule';
 import { format, parseISO, startOfDay, isSameDay, addMinutes } from 'date-fns';
 import { WeekStrip, DayTimeline, UpcomingSchedules } from '@/presentation/components/student/schedule';
+import { ScheduleLectureModal } from '@/presentation/components/student/ScheduleLectureModal';
+import { Plus } from 'lucide-react';
 
 // ============================================================
 // Types
@@ -117,6 +119,7 @@ export function StudentSchedulePage() {
 
     // UI State
     const [selectedDate, setSelectedDate] = useState<Date>(startOfDay(new Date()));
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Filter out schedules with missing lectures (e.g., deleted by teacher)
     const validSchedules = useMemo(() => {
@@ -160,6 +163,13 @@ export function StudentSchedulePage() {
                         <p className="text-sm text-slate-500">نظّم وقتك وتابع تقدمك في الدورات</p>
                     </div>
                 </div>
+                <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="flex items-center gap-2 bg-shibl-crimson text-white px-4 py-2.5 rounded-xl font-bold hover:bg-[#8B0A12] hover:shadow-lg hover:shadow-shibl-crimson/30 transition-all active:scale-95"
+                >
+                    <Plus size={20} />
+                    <span className="hidden sm:inline">إضافة للجدول</span>
+                </button>
             </header>
 
             {/* Content */}
@@ -194,11 +204,20 @@ export function StudentSchedulePage() {
                         <DayTimeline
                             selectedDate={selectedDate}
                             schedules={daySchedules}
-                        // Callbacks for complete/delete have been removed as this list is auto-populated
                         />
                     ) : (
                         <EmptyState />
                     )}
+
+                    {/* Schedule Modal */}
+                    <ScheduleLectureModal
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                        onSuccess={() => {
+                            setIsModalOpen(false);
+                            refetch();
+                        }}
+                    />
                 </>
             )}
         </main>

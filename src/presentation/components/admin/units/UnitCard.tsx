@@ -39,6 +39,7 @@ interface UnitCardProps {
     onEditLecture?: (lecture: UnitLecture) => void;
     onDeleteLecture?: (lecture: UnitLecture) => void;
     onTogglePublishLecture?: (lecture: UnitLecture) => void;
+    onAddImmediateLecture?: (unit: Unit) => void;
     isDeleting?: boolean;
     isTogglingPublish?: boolean;
     isDropTarget?: boolean;
@@ -55,6 +56,7 @@ export function UnitCard({
     onEditLecture,
     onDeleteLecture,
     onTogglePublishLecture,
+    onAddImmediateLecture,
     isDeleting,
     isTogglingPublish,
     isDropTarget,
@@ -192,6 +194,7 @@ export function UnitCard({
                     unitId={unit.id}
                     lectures={unit.lectures || []}
                     onAddLecture={onAddLecture ? () => onAddLecture(unit) : undefined}
+                    onAddImmediateLecture={onAddImmediateLecture ? () => onAddImmediateLecture(unit) : undefined}
                     onEditLecture={onEditLecture}
                     onDeleteLecture={onDeleteLecture}
                     onTogglePublishLecture={onTogglePublishLecture}
