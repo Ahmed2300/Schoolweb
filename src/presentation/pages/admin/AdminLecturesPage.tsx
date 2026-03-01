@@ -113,23 +113,19 @@ export function AdminLecturesPage() {
 
     const fetchDropdowns = useCallback(async () => {
         try {
-            const [coursesRes, teachersRes] = await Promise.allSettled([
-                adminService.getCourses({ per_page: 100 }),
-                adminService.getTeachers({ per_page: 100 }),
-            ]);
+            // Await sequentially instead of Promise.allSettled to prevent SQLite 
+            // 'database is locked' errors during simultaneous concurrent queries.
+            const coursesRes = await adminService.getCourses({ per_page: 100 });
+            setCourses(coursesRes.data.map((c: any) => ({
+                id: c.id,
+                name: extractName(c.name),
+            })));
 
-            if (coursesRes.status === 'fulfilled') {
-                setCourses(coursesRes.value.data.map((c: any) => ({
-                    id: c.id,
-                    name: extractName(c.name),
-                })));
-            }
-            if (teachersRes.status === 'fulfilled') {
-                setTeachers(teachersRes.value.data.map((t: any) => ({
-                    id: t.id,
-                    name: t.name || t.email || `معلم ${t.id}`,
-                })));
-            }
+            const teachersRes = await adminService.getTeachers({ per_page: 100 });
+            setTeachers(teachersRes.data.map((t: any) => ({
+                id: t.id,
+                name: t.name || t.email || `معلم ${t.id}`,
+            })));
         } catch (err) {
             console.error('Failed to fetch dropdowns:', err);
         }

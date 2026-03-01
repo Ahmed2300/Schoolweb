@@ -45,11 +45,10 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
             setLoading(true);
             setError(null);
             try {
-                // Use the new service that fetches full details including units/quizzes
-                const [detailsData, syllabusData] = await Promise.all([
-                    studentCourseService.getStudentCourseDetails(courseId),
-                    studentCourseService.getSyllabusStatus(courseId)
-                ]);
+                // Await sequentially instead of Promise.all to prevent SQLite 'database is locked'
+                // errors caused by concurrent session updates during local development.
+                const detailsData = await studentCourseService.getStudentCourseDetails(courseId);
+                const syllabusData = await studentCourseService.getSyllabusStatus(courseId);
 
                 // Set state directly without logs
                 setCourse(detailsData);
@@ -153,16 +152,16 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
 
             {/* Hero Section - Clean Light Theme */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12 sm:pb-20">
-                <div className="flex flex-col lg:flex-row gap-8 sm:gap-12 lg:gap-24 items-center">
+                <div className="flex flex-col xl:flex-row gap-8 sm:gap-12 xl:gap-24 items-center">
                     {/* Course Image - Left Side */}
-                    <div className="w-full lg:w-[45%] xl:w-[540px] flex-shrink-0 order-1 lg:order-none">
+                    <div className="w-full xl:w-[45%] 2xl:w-[540px] flex-shrink-0 order-1 xl:order-none">
                         <div className="relative transform hover:scale-[1.01] transition-all duration-700">
                             {course.image_path ? (
                                 <div className="relative">
                                     <img
                                         src={course.image_path}
                                         alt={courseName}
-                                        className="w-full h-auto object-contain max-h-[300px] sm:max-h-[400px] lg:max-h-[500px] drop-shadow-[0_25px_50px_rgba(0,0,0,0.1)]"
+                                        className="w-full h-auto object-contain max-h-[300px] sm:max-h-[400px] xl:max-h-[500px] drop-shadow-[0_25px_50px_rgba(0,0,0,0.1)]"
                                     />
                                     {/* Sub-decoration */}
                                     <div className="absolute -bottom-6 -left-6 sm:-bottom-10 sm:-left-10 w-24 h-24 sm:w-40 sm:h-40 bg-red-50 rounded-full blur-2xl sm:blur-3xl opacity-50 -z-10"></div>
@@ -176,21 +175,21 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
                     </div>
 
                     {/* Course Titles & CTA - Right Side */}
-                    <div className="flex-1 text-center lg:text-right space-y-6 sm:space-y-8 lg:space-y-10 order-2 lg:order-none">
+                    <div className="flex-1 text-center xl:text-right space-y-6 sm:space-y-8 xl:space-y-10 order-2 xl:order-none">
                         <div className="space-y-4">
                             {/* Promoted/Featured badge - assume false for now if prop missing, or update interface */}
-                            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-slate-900 leading-[1.2] lg:leading-[1.15] tracking-tight">
+                            <h1 className="text-3xl sm:text-4xl md:text-5xl xl:text-7xl font-black text-slate-900 leading-[1.2] xl:leading-[1.15] tracking-tight">
                                 {getLocalizedName(course.name, 'مادة')}
                             </h1>
                         </div>
 
-                        <p className="text-slate-500 text-base sm:text-lg lg:text-2xl leading-relaxed max-w-2xl mx-auto lg:ml-auto lg:mr-0 font-medium opacity-90 text-center lg:text-right" dir="rtl">
+                        <p className="text-slate-500 text-base sm:text-lg xl:text-2xl leading-relaxed max-w-2xl mx-auto xl:ml-auto xl:mr-0 font-medium opacity-90 text-center xl:text-right" dir="rtl">
                             {courseDescription.length > 300
                                 ? courseDescription.substring(0, 300) + '...'
                                 : courseDescription || 'استكشف هذه الدورة التعليمية المتكاملة والمصممة خصيصاً لمساعدتك على التفوق في دراستك.'}
                         </p>
 
-                        <div className="pt-2 sm:pt-4 flex justify-center lg:justify-end">
+                        <div className="pt-2 sm:pt-4 flex justify-center xl:justify-end">
                             {!existingSubscription ? (
                                 <button
                                     onClick={async () => {
@@ -233,7 +232,7 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
                                             طلبك قيد المراجعة
                                         </div>
                                     ) : (
-                                        <div className="flex flex-col items-center lg:items-end gap-3 w-full sm:w-auto">
+                                        <div className="flex flex-col items-center xl:items-end gap-3 w-full sm:w-auto">
                                             <div className="w-full sm:w-auto px-6 sm:px-10 py-4 sm:py-5 bg-rose-50 text-rose-600 rounded-2xl sm:rounded-[2rem] border border-rose-100 font-black text-lg sm:text-xl flex items-center justify-center gap-3">
                                                 <XCircle size={28} className="sm:w-8 sm:h-8" />
                                                 لم تتم الموافقة على الطلب
@@ -267,10 +266,10 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
             {/* Main Content Area */}
             <div className="bg-[#F8FAFC]/50 border-t border-slate-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 sm:gap-16 lg:gap-24">
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-10 sm:gap-16 xl:gap-24">
 
                         {/* LEFT COLUMN: Pricing & Support (1/3) */}
-                        <div className="lg:col-span-1 space-y-6 sm:space-y-8 order-2 lg:order-1">
+                        <div className="xl:col-span-1 space-y-6 sm:space-y-8 order-2 xl:order-1">
                             {/* Detailed Pricing Card OR Progress Widget */}
                             {existingSubscription?.status === 1 && course.progress ? (
                                 <CourseProgressWidget
@@ -317,19 +316,19 @@ export function StudentCourseDetailsPage({ courseId, onBack }: CourseDetailsProp
                         </div>
 
                         {/* RIGHT COLUMN: Description & Content (2/3) */}
-                        <div className="lg:col-span-2 space-y-12 sm:space-y-16 order-1 lg:order-2">
+                        <div className="xl:col-span-2 space-y-12 sm:space-y-16 order-1 xl:order-2">
                             {/* Description Section */}
                             <div className="space-y-5 sm:space-y-6">
                                 <div className="flex items-center gap-3 sm:gap-4">
                                     <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-50 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0">
                                         <FileText size={24} className="text-[#C41E3A] sm:w-[30px] sm:h-[30px]" />
                                     </div>
-                                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900">وصف المادة</h2>
+                                    <h2 className="text-2xl sm:text-3xl xl:text-4xl font-black text-slate-900">وصف المادة</h2>
                                 </div>
-                                <div className="bg-white rounded-3xl sm:rounded-[3rem] p-6 sm:p-10 lg:p-14 shadow-sm border border-slate-50/50">
+                                <div className="bg-white rounded-3xl sm:rounded-[3rem] p-6 sm:p-10 xl:p-14 shadow-sm border border-slate-50/50">
                                     {course.description ? (
                                         <p
-                                            className="text-slate-600 text-base sm:text-xl lg:text-2xl leading-[1.8] whitespace-pre-line text-right"
+                                            className="text-slate-600 text-base sm:text-xl xl:text-2xl leading-[1.8] whitespace-pre-line text-right"
                                             dir="rtl"
                                         >
                                             {getLocalizedName(course.description, '')}
