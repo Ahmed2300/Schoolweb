@@ -12,7 +12,7 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { SortableLecture } from './SortableLecture';
-import { Video, Plus, ArrowDownToLine } from 'lucide-react';
+import { Video, Plus, ArrowDownToLine, Zap } from 'lucide-react';
 import type { UnitLecture } from '../../../../types/unit';
 
 interface DroppableLectureZoneProps {
@@ -22,6 +22,7 @@ interface DroppableLectureZoneProps {
     onEditLecture?: (lecture: UnitLecture) => void;
     onDeleteLecture?: (lecture: UnitLecture) => void;
     onTogglePublishLecture?: (lecture: UnitLecture) => void;
+    onAddImmediateLecture?: () => void;
     isOver?: boolean;
 }
 
@@ -32,6 +33,7 @@ export function DroppableLectureZone({
     onEditLecture,
     onDeleteLecture,
     onTogglePublishLecture,
+    onAddImmediateLecture,
     isOver,
 }: DroppableLectureZoneProps) {
     const { setNodeRef, isOver: dropIsOver } = useDroppable({
@@ -92,16 +94,27 @@ export function DroppableLectureZone({
                 </div>
             )}
 
-            {/* Add Lecture Button */}
-            {onAddLecture && (
-                <button
-                    onClick={onAddLecture}
-                    className="mt-3 w-full flex items-center justify-center gap-2 p-2 text-sm text-shibl-crimson hover:bg-shibl-crimson/5 rounded-lg border-2 border-dashed border-slate-200 hover:border-shibl-crimson/30 transition-colors"
-                >
-                    <Plus size={16} />
-                    إضافة محاضرة
-                </button>
-            )}
+            {/* Add Lecture Buttons */}
+            <div className="mt-3 flex gap-2">
+                {onAddLecture && (
+                    <button
+                        onClick={onAddLecture}
+                        className="flex-1 flex items-center justify-center gap-2 p-2 text-sm text-shibl-crimson hover:bg-shibl-crimson/5 rounded-lg border-2 border-dashed border-slate-200 hover:border-shibl-crimson/30 transition-colors"
+                    >
+                        <Plus size={16} />
+                        محاضرة مجدولة
+                    </button>
+                )}
+                {onAddImmediateLecture && (
+                    <button
+                        onClick={onAddImmediateLecture}
+                        className="flex-1 flex items-center justify-center gap-2 p-2 text-sm text-amber-500 hover:bg-amber-50 rounded-lg border-2 border-dashed border-slate-200 hover:border-amber-300 transition-colors"
+                    >
+                        <Zap size={16} />
+                        محاضرة فورية
+                    </button>
+                )}
+            </div>
         </div>
     );
 }

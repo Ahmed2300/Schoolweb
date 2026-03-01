@@ -9,11 +9,12 @@
  * - On desktop: full decorative timeline with dots and vertical line
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Clock, PlayCircle, CheckCircle, Trash2, Loader2, Calendar, Radio, Lock, AlertCircle } from 'lucide-react';
 import { format, getHours, isBefore, isAfter, isToday, parseISO, differenceInMinutes, addMinutes, startOfDay } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { getLocalizedName } from '@/data/api/studentService';
+import { useCompleteSchedule, useDeleteSchedule } from '@/hooks/useSchedule';
 
 // ============================================================
 // Types
@@ -60,9 +61,13 @@ const TIME_SLOTS = [
 
 interface TimelineCardProps {
     schedule: Schedule;
+    onComplete: (id: number | string) => void;
+    onDelete: (id: number | string) => void;
+    isCompleting: boolean;
+    isDeleting: boolean;
 }
 
-function TimelineCard({ schedule }: TimelineCardProps) {
+function TimelineCard({ schedule, onComplete, onDelete, isCompleting, isDeleting }: TimelineCardProps) {
     const lectureTitle = schedule.lecture
         ? getLocalizedName(schedule.lecture.title, 'محاضرة')
         : 'محاضرة';
@@ -216,9 +221,30 @@ function TimelineCard({ schedule }: TimelineCardProps) {
 
                 {/* View Button visible on hover (desktop), always-visible on mobile for touch */}
                 {!isExpired && (
-                    <div className="flex items-center gap-0.5 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                        <div className="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-shibl-crimson transition-colors" title="عرض التفاصيل">
-                            <PlayCircle size={14} />
+                    <div className="flex flex-col items-center gap-1 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        {!schedule.is_completed && (
+                            <button
+                                onClick={() => onComplete(schedule.id)}
+                                disabled={isCompleting}
+                                className="p-1.5 rounded-lg text-slate-400 hover:bg-green-50 hover:text-green-600 transition-colors"
+                                title="تحديد كمكتمل"
+                            >
+                                {isCompleting ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                            </button>
+                        )}
+                        {/* Only show delete for manually created schedules (numeric IDs) */}
+                        {typeof schedule.id === 'number' && (
+                            <button
+                                onClick={() => onDelete(schedule.id)}
+                                disabled={isDeleting}
+                                className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                                title="حذف"
+                            >
+                                {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                            </button>
+                        )}
+                        <div className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-shibl-crimson transition-colors" title="عرض التفاصيل">
+                            <PlayCircle size={16} />
                         </div>
                     </div>
                 )}
@@ -235,6 +261,10 @@ export function DayTimeline({
     selectedDate,
     schedules,
 }: DayTimelineProps) {
+    const completeSchedule = useCompleteSchedule();
+    const deleteSchedule = useDeleteSchedule();
+    const [actionId, setActionId] = useState<number | string | null>(null);
+
     // Group schedules by hour
     const schedulesByHour = useMemo(() => {
         const grouped: Record<number, Schedule[]> = {};
@@ -295,6 +325,18 @@ export function DayTimeline({
                                                 <TimelineCard
                                                     key={schedule.id}
                                                     schedule={schedule}
+                                                    onComplete={(id) => {
+                                                        setActionId(id);
+                                                        completeSchedule.mutate(id);
+                                                    }}
+                                                    onDelete={(id) => {
+                                                        if (window.confirm('هل أنت متأكد من حذف هذا الموعد؟')) {
+                                                            setActionId(id);
+                                                            deleteSchedule.mutate(id);
+                                                        }
+                                                    }}
+                                                    isCompleting={completeSchedule.isPending && actionId === schedule.id}
+                                                    isDeleting={deleteSchedule.isPending && actionId === schedule.id}
                                                 />
                                             ))}
                                         </div>

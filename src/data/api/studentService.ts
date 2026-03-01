@@ -584,7 +584,7 @@ export const studentService = {
      * Get all scheduled lectures for the current student
      */
     getSchedules: async (): Promise<{
-        id: number;
+        id: number | string;
         student_id: number;
         lecture_id: number;
         scheduled_at: string;
@@ -653,8 +653,8 @@ export const studentService = {
     /**
      * Mark a scheduled lecture as completed
      */
-    completeSchedule: async (id: number): Promise<{
-        id: number;
+    completeSchedule: async (id: number | string): Promise<{
+        id: number | string;
         is_completed: boolean;
     }> => {
         const response = await apiClient.patch(endpoints.schedules.complete(id));
@@ -664,7 +664,7 @@ export const studentService = {
     /**
      * Delete a scheduled lecture
      */
-    deleteSchedule: async (id: number): Promise<{ success: boolean }> => {
+    deleteSchedule: async (id: number | string): Promise<{ success: boolean }> => {
         const response = await apiClient.delete(endpoints.schedules.delete(id));
         return response.data;
     },

@@ -45,8 +45,8 @@ export function StudentLivePage() {
                 const isLive = diffInMinutes >= 0 && diffInMinutes < durationMinutes;
 
                 return {
-                    id: schedule.id,
-                    lectureId: schedule.lecture_id,
+                    id: Number(schedule.id),
+                    lectureId: Number(schedule.lecture_id),
                     title: lectureTitle,
                     teacher: teacherName,
                     date: isSameDay(scheduledDate, now)
@@ -55,7 +55,7 @@ export function StudentLivePage() {
                     time: format(scheduledDate, 'hh:mm a', { locale: ar }),
                     status: isLive ? 'live' as const : 'upcoming' as const,
                     isOnline: schedule.lecture?.id != null,
-                };
+                } as Session;
             });
 
             // Live sessions first
@@ -203,8 +203,8 @@ export function StudentLivePage() {
                                         disabled={!isLive || isJoining}
                                         aria-label={isLive ? `انضم لجلسة ${session.title}` : `جلسة ${session.title} لم تبدأ بعد`}
                                         className={`w-full py-3 rounded-xl font-bold text-sm mt-auto transition-colors flex items-center justify-center gap-2 ${isLive
-                                                ? 'bg-shibl-crimson text-white hover:bg-red-800 active:scale-[0.98]'
-                                                : 'bg-slate-100 text-slate-500 cursor-not-allowed'
+                                            ? 'bg-shibl-crimson text-white hover:bg-red-800 active:scale-[0.98]'
+                                            : 'bg-slate-100 text-slate-500 cursor-not-allowed'
                                             } ${isJoining ? 'opacity-80 cursor-wait' : ''}`}
                                     >
                                         {isJoining ? (
