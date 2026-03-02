@@ -19,6 +19,7 @@ import {
     Database,
     Code,
     Cpu,
+    BrainCircuit,
 } from 'lucide-react';
 
 const iconMap: Record<string, ReactNode> = {
@@ -45,6 +46,7 @@ const iconMap: Record<string, ReactNode> = {
     "API": <Code size={14} />,
     "Server Administrator": <Cpu size={14} />,
     "DevOps": <Database size={14} />,
+    "AI Tools": <BrainCircuit size={14} />,
 };
 
 export function getSkillIcon(skill: string): ReactNode | null {

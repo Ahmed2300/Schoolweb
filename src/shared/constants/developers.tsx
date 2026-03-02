@@ -24,7 +24,7 @@ export const developers = [
         github: "https://github.com/Ahmed2300",
         instagram: "https://www.instagram.com/ahmed_a_azam/",
         portfolio: "https://ahmedazamportfolio.netlify.app/",
-        skills: ["فلاتر", "دارت", "React", "Next.js", "TypeScript", "Tailwind"]
+        skills: ["فلاتر", "دارت", "React", "Next.js", "TypeScript", "Tailwind", "AI Tools"]
     },
     {
         id: 2,
@@ -43,7 +43,7 @@ export const developers = [
         linkedin: "https://www.linkedin.com/in/manar-e-6b21bb230",
         github: "https://github.com/manarelnahty",
         instagram: "https://www.instagram.com/manar_elnahty?igsh=M2VxdXRnaDRtMTRm&utm_source=qr",
-        skills: ["فلاتر", "دارت", "React", "Next.js", "TypeScript", "Tailwind"]
+        skills: ["فلاتر", "دارت", "React", "Next.js", "TypeScript", "Tailwind", "AI Tools"]
     },
     {
         id: 3,
@@ -62,7 +62,7 @@ export const developers = [
         linkedin: "https://www.linkedin.com/in/mhmdbadr4flutter/",
         github: "https://github.com/mohmdadl",
         instagram: "https://www.instagram.com/mohmd_adl/",
-        skills: ["فلاتر", "دارت", "UI/UX"]
+        skills: ["فلاتر", "دارت", "React", "JavaScript", "TypeScript", "UI/UX", "AI Tools"]
     },
     {
         id: 4,
@@ -80,7 +80,7 @@ export const developers = [
         email: "ahmedgits2001@gmail.com",
         linkedin: "https://www.linkedin.com/in/ahmed-farghly-879b09257",
         github: "https://github.com/Ahmedfargh",
-        skills: ["Laravel", "Django", "Backend", "API", "Golang", "Server Administrator", "DevOps"]
+        skills: ["Laravel", "Django", "Backend", "API", "Golang", "Server Administrator", "DevOps", "AI Tools"]
     },
     {
         id: 5,
@@ -97,6 +97,6 @@ export const developers = [
         email: "ahmedessam1.8.14@gmail.com",
         linkedin: "https://www.linkedin.com/in/ahmed-essam-465208232",
         github: "https://github.com/AhmedEssam88",
-        skills: ["PHP", "Laravel", "Backend Development", "ASP.NET"]
+        skills: ["PHP", "Laravel", "Backend Development", "ASP.NET", "AI Tools"]
     }
 ];
