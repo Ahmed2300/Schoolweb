@@ -49,7 +49,9 @@ export function ForgotPasswordPage() {
             await forgotFn(email);
             setSuccess(true);
         } catch (err: any) {
-            setError(err.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
+            const errorData = err.response?.data;
+            const arabicMessage = errorData?.message_ar;
+            setError(arabicMessage || errorData?.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
         } finally {
             setIsLoading(false);
         }

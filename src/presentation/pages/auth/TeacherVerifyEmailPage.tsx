@@ -147,10 +147,15 @@ export function TeacherVerifyEmailPage() {
                 }, 1500);
             }
         } catch (err: any) {
-            if (err.response?.status === 400 || err.response?.status === 401 || err.response?.data?.message?.includes('Invalid')) {
-                setError('رمز التحقق غير صحيح أو منتهي الصلاحية');
+            const errorData = err.response?.data;
+            const arabicMessage = errorData?.message_ar;
+
+            if (err.response?.status === 400 || err.response?.status === 401 || errorData?.message?.includes('Invalid')) {
+                setError(arabicMessage || 'رمز التحقق غير صحيح أو منتهي الصلاحية');
+            } else if (arabicMessage) {
+                setError(arabicMessage);
             } else {
-                setError(err.response?.data?.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
+                setError(errorData?.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
             }
             // Clear OTP on error
             setOtp(['', '', '', '', '', '']);
@@ -177,7 +182,17 @@ export function TeacherVerifyEmailPage() {
             // Clear success message after 3 seconds
             setTimeout(() => setSuccess(''), 3000);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'فشل إرسال رمز التحقق');
+            const errorData = err.response?.data;
+            const arabicMessage = errorData?.message_ar;
+            const englishMessage = errorData?.message;
+
+            if (arabicMessage) {
+                setError(arabicMessage);
+            } else if (englishMessage && !englishMessage.includes('status code')) {
+                setError(englishMessage);
+            } else {
+                setError('فشل إرسال رمز التحقق. يرجى المحاولة لاحقاً');
+            }
         } finally {
             setIsLoading(false);
         }

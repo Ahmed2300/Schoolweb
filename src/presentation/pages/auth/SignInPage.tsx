@@ -47,6 +47,7 @@ export function SignInPage() {
     const [isOtpLoading, setIsOtpLoading] = useState(false);
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+    const [conflictError, setConflictError] = useState('');
 
     const [formData, setFormData] = useState({
         email: '',
@@ -171,9 +172,26 @@ export function SignInPage() {
 
             if (errorCode === 'otp_required') {
                 setShowConflictModal(false);
+                setConflictError('');
                 setShowOtpModal(true);
                 // Clear any previous OTP errors when showing modal for the first time
                 if (!otp) setOtpError('');
+                return;
+            }
+
+            // Handle mail delivery failures — show error in whichever dialog is open
+            if (errorCode === 'email_send_failed' || errorCode === 'email_quota_exceeded') {
+                const mailErrorMsg = arabicMessage || 'نحن نواجه مشكلة في إرسال الأكواد يرجى المحاولة لاحقاً';
+                if (showOtpModal || otp) {
+                    setOtpError(mailErrorMsg);
+                } else if (showConflictModal) {
+                    setConflictError(mailErrorMsg);
+                } else {
+                    setError(mailErrorMsg);
+                }
+                setIsLoading(false);
+                setIsForceLoginLoading(false);
+                setIsOtpLoading(false);
                 return;
             }
 
@@ -481,9 +499,10 @@ export function SignInPage() {
             {/* Session Conflict Modal */}
             <SessionConflictModal
                 isOpen={showConflictModal}
-                onClose={() => setShowConflictModal(false)}
+                onClose={() => { setShowConflictModal(false); setConflictError(''); }}
                 onForceLogin={handleForceLogin}
                 isLoading={isForceLoginLoading}
+                error={conflictError}
             />
 
             {/* OTP Verification Modal */}

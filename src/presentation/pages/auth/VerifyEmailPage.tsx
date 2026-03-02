@@ -163,7 +163,17 @@ export function VerifyEmailPage() {
             setOtp(['', '', '', '', '', '']);
             setTimeout(() => setSuccess(''), 3000);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'فشل في إرسال الرمز');
+            const errorData = err.response?.data;
+            const arabicMessage = errorData?.message_ar;
+            const englishMessage = errorData?.message;
+
+            if (arabicMessage) {
+                setError(arabicMessage);
+            } else if (englishMessage && !englishMessage.includes('status code')) {
+                setError(englishMessage);
+            } else {
+                setError('فشل في إرسال الرمز. يرجى المحاولة لاحقاً');
+            }
         } finally {
             setIsResending(false);
         }

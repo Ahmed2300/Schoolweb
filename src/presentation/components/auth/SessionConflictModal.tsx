@@ -7,13 +7,15 @@ interface SessionConflictModalProps {
     onClose: () => void;
     onForceLogin: () => void;
     isLoading?: boolean;
+    error?: string;
 }
 
 export const SessionConflictModal: React.FC<SessionConflictModalProps> = ({
     isOpen,
     onClose,
     onForceLogin,
-    isLoading = false
+    isLoading = false,
+    error,
 }) => {
     const { isRTL } = useLanguage();
 
@@ -44,6 +46,12 @@ export const SessionConflictModal: React.FC<SessionConflictModalProps> = ({
                             : 'You are already logged in from another device. To continue, the other session must be ended. Do you want to log in here and end the previous session?'
                         }
                     </p>
+
+                    {error && (
+                        <div className="mb-4 sm:mb-5 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-center text-sm leading-relaxed">
+                            {error}
+                        </div>
+                    )}
 
                     <div className="flex flex-col gap-2.5 sm:gap-3 pb-2 sm:pb-0">
                         <button

@@ -343,7 +343,8 @@ export function SignupPage() {
             } else if (err.response?.data?.message?.includes('Duplicate')) {
                 setError('البيانات مسجلة بالفعل');
             } else {
-                setError(err.response?.data?.message || 'حدث خطأ غير متوقع');
+                const arabicMsg = err.response?.data?.message_ar;
+                setError(arabicMsg || err.response?.data?.message || 'حدث خطأ غير متوقع');
             }
         } finally {
             setIsLoading(false);
