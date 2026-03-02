@@ -95,31 +95,31 @@ export function OtpVerificationModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" dir={isRTL ? 'rtl' : 'ltr'}>
-            <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm" dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative animate-in fade-in slide-in-from-bottom-4 sm:zoom-in duration-300">
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
+                    className="absolute top-3 sm:top-4 ltr:right-3 ltr:sm:right-4 rtl:left-3 rtl:sm:left-4 text-slate-400 hover:text-slate-600 transition-colors p-1"
                 >
-                    <CloseIcon />
+                    <CloseIcon fontSize="small" />
                 </button>
 
-                <div className="text-center mb-6">
-                    <h2 className="text-xl font-bold text-gray-900 mb-2">التحقق من الهوية</h2>
-                    <p className="text-sm text-gray-600">
+                <div className="text-center mb-5 sm:mb-6 pt-1">
+                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">التحقق من الهوية</h2>
+                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed px-2 sm:px-0">
                         لإتمام عملية تسجيل الدخول وإنهاء الجلسات الأخرى، يرجى إدخال رمز التحقق المرسل إلى:
                     </p>
-                    <p className="text-shibl-crimson font-bold mt-1" dir="ltr">{email}</p>
+                    <p className="text-shibl-crimson font-bold mt-1 text-sm sm:text-base truncate px-4" dir="ltr">{email}</p>
                 </div>
 
                 {error && (
-                    <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm text-center">
+                    <div className="mb-4 sm:mb-6 p-2.5 sm:p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-xs sm:text-sm text-center">
                         {error}
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit}>
-                    <div className="flex justify-center gap-2 mb-6" dir="ltr">
+                    <div className="flex justify-center gap-1.5 sm:gap-2 mb-5 sm:mb-6" dir="ltr">
                         {otp.map((digit, index) => (
                             <input
                                 key={index}
@@ -131,14 +131,14 @@ export function OtpVerificationModal({
                                 onChange={(e) => handleOtpChange(index, e.target.value)}
                                 onKeyDown={(e) => handleKeyDown(index, e)}
                                 onPaste={handlePaste}
-                                className="w-10 h-12 text-center text-xl font-bold border-2 border-slate-200 rounded-lg focus:border-shibl-crimson focus:ring-2 focus:ring-shibl-crimson/20 outline-none transition-all"
+                                className="w-10 h-11 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-slate-200 rounded-lg sm:rounded-xl focus:border-shibl-crimson focus:ring-2 focus:ring-shibl-crimson/20 outline-none transition-all"
                             />
                         ))}
                     </div>
 
                     <button
                         type="submit"
-                        className="btn-primary-pro w-full gap-2 py-3 rounded-xl mb-4"
+                        className="btn-primary-pro w-full gap-2 py-2.5 sm:py-3 rounded-xl mb-3 sm:mb-4 text-sm sm:text-base"
                         disabled={isLoading || otp.join('').length !== 6}
                     >
                         {isLoading ? (
@@ -152,11 +152,11 @@ export function OtpVerificationModal({
                     </button>
                 </form>
 
-                <div className="text-center">
+                <div className="text-center pb-2 sm:pb-0">
                     <button
                         onClick={handleResendClick}
                         disabled={countdown > 0 || isResending || !onResend}
-                        className={`inline-flex items-center gap-1 text-sm font-bold ${countdown > 0 ? 'text-slate-400' : 'text-shibl-crimson hover:underline'
+                        className={`inline-flex items-center gap-1 text-xs sm:text-sm font-bold ${countdown > 0 ? 'text-slate-400' : 'text-shibl-crimson hover:underline'
                             }`}
                     >
                         {isResending ? (
