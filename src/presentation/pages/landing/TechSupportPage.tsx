@@ -2,6 +2,8 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../hooks';
 import { ROUTES } from '../../../shared/constants';
+import { developers } from '../../../shared/constants/developers';
+import { getSkillIcon } from '../../../shared/utils/skillIcons';
 import { Footer } from '../../components/common/Footer';
 import { SEO } from '../../components/seo/SEO';
 import { Navbar } from '../../components/landing/Navbar';
@@ -21,92 +23,6 @@ import {
 
 export function TechSupportPage() {
     const { isRTL } = useLanguage();
-
-    const developers = [
-        {
-            id: 1,
-            name: "أحمد عزام",
-            role: "قائد الفريق ومطور فلاتر وواجهات أمامية",
-            bio: "قائد الفريق ومطور فلاتر خبير يقود تطوير مشروع سُبُل. يركز على إنشاء تطبيقات محمولة عالية الجودة وتنسيق جهود الفريق. يمتلك خبرة ممتازة في تطوير الواجهات الأمامية باستخدام React, Next.js, TS, JS, Tailwind.",
-            icon: <Terminal size={32} />,
-            image_url: "https://i.ibb.co/bMpK8X8Y/Ahmed.png",
-            color: "text-shibl-crimson",
-            bg: "bg-red-50",
-            bgGlass: "bg-white/90",
-            delay: 0.1,
-            email: "ahmed750@std.mans.edu.eg",
-            linkedin: "https://www.linkedin.com/in/ahmed-azam-320a98200",
-            github: "https://github.com/Ahmed2300",
-            instagram: "https://www.instagram.com/ahmed_a_azam/",
-            portfolio: "https://ahmedazamportfolio.netlify.app/",
-            skills: ["فلاتر", "دارت", "React", "Next.js", "TypeScript", "Tailwind"]
-        },
-        {
-            id: 2,
-            name: "منار النحتي",
-            role: "مطور فلاتر وواجهات أمامية",
-            bio: "مطور فلاتر ومتدرب في ITI متخصص في تطوير تطبيقات الموبايل متعددة المنصات. بالإضافة إلى خبرة ممتازة في تطوير الواجهات الأمامية باستخدام React, Next.js, TS, JS, Tailwind.",
-            icon: <Server size={32} />,
-            image_url: "https://i.ibb.co/tP36BwQ9/manar.png",
-            color: "text-rose-600",
-            bg: "bg-rose-50",
-            bgGlass: "bg-white/80",
-            delay: 0.2,
-            email: "manarelnahty@gmail.com",
-            linkedin: "https://www.linkedin.com/in/manar-e-6b21bb230",
-            github: "https://github.com/manarelnahty",
-            instagram: "https://www.instagram.com/manar_elnahty?igsh=M2VxdXRnaDRtMTRm&utm_source=qr",
-            skills: ["فلاتر", "دارت", "React", "Next.js", "TypeScript", "Tailwind"]
-        },
-        {
-            id: 3,
-            name: "محمد بدر",
-            role: "مطور فلاتر",
-            bio: "مطور فلاتر ومتدرب في تطوير الواجهة الأمامية وتطبيقات الموبايل متعددة المنصات في ITI. شغوف بإنشاء تطبيقات محمولة جميلة وعالية الأداء باستخدام إطار عمل فلاتر.",
-            icon: <Code size={32} />,
-            image_url: "https://iili.io/KWL2vG1.jpg",
-            color: "text-red-700",
-            bg: "bg-red-50",
-            bgGlass: "bg-white/80",
-            delay: 0.3,
-            email: "mohamedbadr4iti@gmail.com",
-            linkedin: "https://www.linkedin.com/in/mhmdbadr4flutter/",
-            github: "https://github.com/mohmdadl",
-            instagram: "https://www.instagram.com/mohmd_adl/",
-            skills: ["فلاتر", "دارت", "UI/UX"]
-        },
-        {
-            id: 4,
-            name: "أحمد فرغلي",
-            role: "مهندس واجهات خلفية",
-            bio: "مهندس برمجيات متخصص في الواجهات الخلفية باستخدام Django و Laravel. يساهم في بناء أنظمة قوية وقابلة للتطوير لدعم العمليات المعقدة للمنصة بكفاءة عالية.",
-            icon: <Server size={32} />,
-            image_url: "https://avatars.githubusercontent.com/u/95584009?v=4",
-            color: "text-rose-700",
-            bg: "bg-rose-50",
-            bgGlass: "bg-white/80",
-            delay: 0.4,
-            email: "ahmedgits2001@gmail.com",
-            linkedin: "https://www.linkedin.com/in/ahmed-farghly-879b09257",
-            github: "https://github.com/Ahmedfargh",
-            skills: ["Laravel", "Django", "Backend", "API", "Golang", "Server Administrator", "DevOps"]
-        },
-        {
-            id: 5,
-            name: "أحمد عصام",
-            role: "مطور واجهات خلفية",
-            bio: "مطور واجهات خلفية متخصص في PHP و Laravel. يساهم في بناء هيكلية برمجية متينة وموثوقة، مع التركيز على جودة الأكواد وفعالية الأداء في المشاريع التقنية.",
-            icon: <Database size={32} />,
-            color: "text-shibl-crimson-dark",
-            bg: "bg-red-50",
-            bgGlass: "bg-white/80",
-            delay: 0.5,
-            email: "ahmedessam1.8.14@gmail.com",
-            linkedin: "https://www.linkedin.com/in/ahmed-essam-465208232",
-            github: "https://github.com/AhmedEssam88",
-            skills: ["PHP", "Laravel", "Backend Development", "ASP.NET"]
-        }
-    ];
 
     return (
         <div className="min-h-screen bg-soft-cloud dark:bg-slate-950 overflow-x-hidden transition-colors duration-300" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -191,12 +107,13 @@ export function TechSupportPage() {
                                 viewport={{ once: true, margin: "-50px" }}
                                 transition={{ delay: dev.delay * 0.5, duration: 0.6, ease: "easeOut" }}
                                 key={dev.id}
+                                onClick={() => window.location.href = `/developer/${dev.slug}`}
                                 className={`
                                     ${(dev as any).bgGlass || 'bg-white/80'} dark:bg-slate-900/60 backdrop-blur-xl 
                                     rounded-3xl p-6 sm:p-8 lg:p-10
                                     border border-white/40 dark:border-slate-800/60
                                     transition-all duration-500 
-                                    w-full group 
+                                    w-full group cursor-pointer 
                                     hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(175,12,21,0.15)] dark:hover:shadow-[0_20px_40px_-15px_rgba(255,255,255,0.05)]
                                     shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none
                                     flex flex-col lg:flex-row items-center justify-between text-center lg:text-right
@@ -212,7 +129,7 @@ export function TechSupportPage() {
                                             )}
                                         </div>
                                     </div>
-                                    <h3 className="text-2xl font-bold text-charcoal dark:text-white mb-1 tracking-tight">{dev.name}</h3>
+                                    <h3 className="text-2xl font-bold text-charcoal dark:text-white mb-1 tracking-tight group-hover:text-shibl-crimson transition-colors">{dev.name}</h3>
                                     <p className={`text-sm font-semibold ${dev.color} dark:text-rose-400 px-3 py-1 bg-white/50 dark:bg-slate-800/50 rounded-full inline-block backdrop-blur-sm border border-white/20 dark:border-slate-700/50`}>{dev.role}</p>
                                 </div>
 
@@ -224,7 +141,8 @@ export function TechSupportPage() {
                                     {(dev as any).skills && (
                                         <div className={`flex flex-wrap gap-2 mb-8 lg:justify-start justify-center content-start`}>
                                             {(dev as any).skills.map((skill: string, idx: number) => (
-                                                <span key={idx} className={`text-xs px-3 py-1.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium whitespace-nowrap transition-all duration-300 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm hover:!text-shibl-crimson dark:hover:!text-rose-400 hover:border-shibl-crimson/30 cursor-default`}>
+                                                <span key={idx} className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium whitespace-nowrap transition-all duration-300 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm hover:!text-shibl-crimson dark:hover:!text-rose-400 hover:border-shibl-crimson/30 cursor-default`}>
+                                                    {getSkillIcon(skill) && <span className="opacity-70">{getSkillIcon(skill)}</span>}
                                                     {skill}
                                                 </span>
                                             ))}
@@ -232,31 +150,9 @@ export function TechSupportPage() {
                                     )}
 
                                     <div className={`flex items-center gap-3 pt-6 border-t border-slate-100/50 dark:border-slate-800/80 w-full lg:justify-start justify-center`}>
-                                        {(dev as any).github !== null && (
-                                            <a href={(dev as any).github || '#'} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-2xl bg-white/60 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 hover:bg-slate-800 hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-1 backdrop-blur-sm border border-white/40 dark:border-slate-700/50">
-                                                <Github size={18} />
-                                            </a>
-                                        )}
-                                        {(dev as any).linkedin !== null && (
-                                            <a href={(dev as any).linkedin || '#'} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-2xl bg-white/60 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 hover:bg-[#0077b5] hover:text-white dark:hover:bg-[#0077b5] dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-1 backdrop-blur-sm border border-white/40 dark:border-slate-700/50">
-                                                <Linkedin size={18} />
-                                            </a>
-                                        )}
-                                        {(dev as any).instagram && (
-                                            <a href={(dev as any).instagram} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-2xl bg-white/60 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 hover:bg-gradient-to-tr hover:from-yellow-400 hover:via-pink-500 hover:to-purple-500 hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-1 backdrop-blur-sm border border-white/40 dark:border-slate-700/50 group/ig">
-                                                <Instagram size={18} className="group-hover/ig:text-white transition-colors" />
-                                            </a>
-                                        )}
-                                        {(dev as any).email !== null && (
-                                            <a href={(dev as any).email ? `mailto:${(dev as any).email}` : '#'} className="p-2.5 rounded-2xl bg-white/60 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 hover:bg-shibl-crimson hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-1 backdrop-blur-sm border border-white/40 dark:border-slate-700/50">
-                                                <Mail size={18} />
-                                            </a>
-                                        )}
-                                        {(dev as any).portfolio && (
-                                            <a href={(dev as any).portfolio} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-2xl bg-white/60 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 hover:bg-shibl-crimson hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-1 backdrop-blur-sm border border-white/40 dark:border-slate-700/50 text-sm font-medium flex items-center gap-2">
-                                                <Globe size={18} />
-                                            </a>
-                                        )}
+                                        <button className="text-sm font-medium text-slate-500 group-hover:text-shibl-crimson transition-colors flex items-center gap-2">
+                                            عرض الملف التعريفي <div className="rtl:-scale-x-100">&rarr;</div>
+                                        </button>
                                     </div>
                                 </div>
                             </motion.div>

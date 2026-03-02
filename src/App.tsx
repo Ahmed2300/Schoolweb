@@ -93,6 +93,7 @@ const FeaturesPage = lazyWithRetry(() => import('./presentation/pages/landing/Fe
 const PrivacyPolicyPage = lazyWithRetry(() => import('./presentation/pages/landing/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })));
 const TermsAndConditionsPage = lazyWithRetry(() => import('./presentation/pages/landing/TermsAndConditionsPage').then(m => ({ default: m.TermsAndConditionsPage })));
 const TechSupportPage = lazyWithRetry(() => import('./presentation/pages/landing/TechSupportPage').then(m => ({ default: m.TechSupportPage })));
+const DeveloperProfilePage = lazyWithRetry(() => import('./presentation/pages/landing/DeveloperProfilePage').then(m => ({ default: m.DeveloperProfilePage })));
 const ContactPage = lazyWithRetry(() => import('./presentation/pages/ContactPage').then(m => ({ default: m.ContactPage })));
 const NotFoundPage = lazyWithRetry(() => import('./presentation/pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 
@@ -218,6 +219,7 @@ function AppRoutes() {
         <Route path={ROUTES.FEATURES} element={<FeaturesPage />} />
         <Route path={ROUTES.CONTACT} element={<ContactPage />} />
         <Route path={ROUTES.TECH_SUPPORT} element={<TechSupportPage />} />
+        <Route path={ROUTES.DEVELOPER_PROFILE} element={<DeveloperProfilePage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
         <Route path={ROUTES.LOGIN} element={<SignInPage />} />

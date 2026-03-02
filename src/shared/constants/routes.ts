@@ -8,6 +8,7 @@ export const ROUTES = {
     FEATURES: '/features',
     CONTACT: '/contact',
     TECH_SUPPORT: '/tech-support',
+    DEVELOPER_PROFILE: '/developer/:slug',
     VERIFY_EMAIL: '/verify-email',
     FORGOT_PASSWORD: '/forgot-password',
     RESET_PASSWORD: '/reset-password',
