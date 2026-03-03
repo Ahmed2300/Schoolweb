@@ -86,8 +86,6 @@ import { useMutation } from '@tanstack/react-query';
 import { CourseDetailsSkeleton } from '../../components/ui/skeletons/CourseDetailsSkeleton';
 import { formatTime, formatShortDate } from '../../../utils/timeUtils';
 import { LiveSessionEmbedModal } from '../../components/shared/LiveSessionEmbedModal';
-import { VideoModal } from '../../components/common/VideoModal';
-import { TutorialThumbnail } from '../../components/common/TutorialThumbnail';
 
 
 // ==================== HELPER COMPONENTS ====================
@@ -754,8 +752,7 @@ export function TeacherCourseDetailsPage() {
     // Live Session Modal States
     const [liveSessionEmbedUrl, setLiveSessionEmbedUrl] = useState<string | null>(null);
     const [isLiveSessionModalOpen, setIsLiveSessionModalOpen] = useState(false);
-    const [showTutorialModal, setShowTutorialModal] = useState(false);
-    const [showLectureTutorialModal, setShowLectureTutorialModal] = useState(false);
+
 
     // Student State
     const [students, setStudents] = useState<TeacherCourseStudent[]>([]);
@@ -1515,18 +1512,6 @@ export function TeacherCourseDetailsPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <TutorialThumbnail
-                            videoUrl="https://youtu.be/YHLgHVoinYQ"
-                            onClick={() => setShowTutorialModal(true)}
-                            layoutId="tutorial-video-teacher"
-                            title="كيف تبدأ جلستك التجريبية الأولى؟"
-                        />
-                        <TutorialThumbnail
-                            videoUrl="https://youtu.be/JZqNkJkoNg0"
-                            onClick={() => setShowLectureTutorialModal(true)}
-                            layoutId="lecture-tutorial-video-teacher"
-                            title="كيف تضيف أول محاضرة؟"
-                        />
 
                         <button
                             onClick={handleStartTestSession}
@@ -2016,23 +2001,7 @@ export function TeacherCourseDetailsPage() {
                 title="جلستك المباشرة"
             />
 
-            {/* Tutorial Video Modal */}
-            <VideoModal
-                isOpen={showTutorialModal}
-                onClose={() => setShowTutorialModal(false)}
-                videoUrl="https://youtu.be/YHLgHVoinYQ"
-                title="كيف تبدأ جلستك التجريبية الأولى؟"
-                layoutId="tutorial-video-teacher"
-            />
 
-            {/* Lecture Tutorial Video Modal */}
-            <VideoModal
-                isOpen={showLectureTutorialModal}
-                onClose={() => setShowLectureTutorialModal(false)}
-                videoUrl="https://youtu.be/JZqNkJkoNg0"
-                title="كيف تضيف أول محاضرة؟"
-                layoutId="lecture-tutorial-video-teacher"
-            />
 
         </div>
     );
