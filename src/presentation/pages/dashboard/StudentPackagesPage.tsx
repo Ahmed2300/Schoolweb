@@ -752,7 +752,7 @@ export function StudentPackagesPage() {
                                             {/* Button for rejected/expired - allow re-subscribe */}
                                             {(subscriptionStatus === 'rejected' || subscriptionStatus === 'expired') && (
                                                 <button
-                                                    onClick={() => setShowPurchaseModal(true)}
+                                                    onClick={() => { setError(null); setShowPurchaseModal(true); }}
                                                     className="w-full bg-shibl-crimson text-white py-4 rounded-full font-bold text-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-3 shadow-lg shadow-shibl-crimson/25"
                                                 >
                                                     <CheckCircle size={22} />
@@ -775,7 +775,7 @@ export function StudentPackagesPage() {
                                 // Not subscribed - show purchase button
                                 return (
                                     <button
-                                        onClick={() => setShowPurchaseModal(true)}
+                                        onClick={() => { setError(null); setShowPurchaseModal(true); }}
                                         className="w-full mt-8 bg-shibl-crimson text-white py-4 rounded-full font-bold text-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-3 shadow-lg shadow-shibl-crimson/25"
                                     >
                                         <CheckCircle size={22} />
@@ -795,7 +795,7 @@ export function StudentPackagesPage() {
                             <div className="bg-gradient-to-br from-shibl-crimson to-red-700 p-6 text-white">
                                 <div className="flex items-center justify-between">
                                     <h3 className="font-bold text-lg">إتمام الاشتراك</h3>
-                                    <button onClick={() => setShowPurchaseModal(false)} className="text-white/80 hover:text-white">
+                                    <button onClick={() => { setError(null); setShowPurchaseModal(false); }} className="text-white/80 hover:text-white">
                                         <X size={20} />
                                     </button>
                                 </div>
@@ -803,6 +803,17 @@ export function StudentPackagesPage() {
                             </div>
 
                             <div className="p-4 sm:p-6 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
+                                {/* Error State */}
+                                {error && (
+                                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+                                        <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={20} />
+                                        <p className="text-red-600 text-sm font-medium leading-relaxed">{error}</p>
+                                        <button onClick={() => setError(null)} className="mr-auto text-red-400 hover:text-red-600 shrink-0">
+                                            <X size={18} />
+                                        </button>
+                                    </div>
+                                )}
+
                                 {/* Success State */}
                                 {purchaseSuccess ? (
                                     <div className="text-center py-8">
