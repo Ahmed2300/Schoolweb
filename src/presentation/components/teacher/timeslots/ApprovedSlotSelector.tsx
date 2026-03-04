@@ -205,10 +205,12 @@ interface ApprovedSlotSelectorProps {
     semesterId?: number;
     /** Callback to open add slot request dialog */
     onRequestNewSlot?: () => void;
-    /** Array of already booked date strings (lectures that exist) */
-    bookedDates?: string[];
+    /** Array of already booked slot strings (YYYY-MM-DD_HH:MM) */
+    bookedSlots?: string[];
     /** Optional: Filter slots for a specific teacher (Admin context) */
     teacherId?: number;
+    /** Optional: Loading state passed from the parent */
+    isLoadingExternal?: boolean;
 }
 
 // ==================== Main Component ====================
@@ -220,8 +222,9 @@ export function ApprovedSlotSelector({
     gradeId,
     semesterId,
     onRequestNewSlot,
-    bookedDates = [],
+    bookedSlots = [],
     teacherId,
+    isLoadingExternal = false,
 }: ApprovedSlotSelectorProps) {
     const recurringQuery = useMyRecurringSchedule(teacherId);
     const oneTimeQuery = useApprovedOneTimeSlots(teacherId);
@@ -232,7 +235,7 @@ export function ApprovedSlotSelector({
 
     const oneTimeSlots = oneTimeQuery.data || [];
 
-    const isLoading = recurringQuery.isLoading || oneTimeQuery.isLoading;
+    const isLoading = recurringQuery.isFetching || oneTimeQuery.isFetching || isLoadingExternal;
     const error = recurringQuery.error || oneTimeQuery.error;
 
     // Week navigation state
@@ -379,7 +382,6 @@ export function ApprovedSlotSelector({
         weekDates.forEach((date, index) => {
             const dayName = DAY_ORDER[index];
             const dateString = toDateString(date);
-            const isBooked = bookedDates.includes(dateString);
 
             // Helper to check if a slot is in the past
             const checkIsPast = (endTime: string) => {
@@ -395,6 +397,9 @@ export function ApprovedSlotSelector({
             );
 
             recurringForDay.forEach(slot => {
+                const timeString = typeof slot.start_time === 'string' ? slot.start_time.substring(0, 5) : '';
+                const isBooked = bookedSlots.includes(`${dateString}_${timeString}`);
+
                 result.push({
                     ...slot,
                     date,
@@ -415,6 +420,9 @@ export function ApprovedSlotSelector({
             );
 
             exceptionsForDate.forEach(slot => {
+                const timeString = typeof slot.start_time === 'string' ? slot.start_time.substring(0, 5) : '';
+                const isBooked = bookedSlots.includes(`${dateString}_${timeString}`);
+
                 result.push({
                     id: slot.id, // Use request ID
                     teacher_id: slot.teacher?.id || 0,
@@ -437,7 +445,7 @@ export function ApprovedSlotSelector({
         });
 
         return result;
-    }, [weekDates, filteredSlots, bookedDates, effectiveNow]);
+    }, [weekDates, filteredSlots, bookedSlots, effectiveNow]);
 
     // Slots for the selected day
     const slotsForSelectedDay = useMemo(() => {
@@ -485,9 +493,26 @@ export function ApprovedSlotSelector({
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center py-8 text-slate-400">
-                <Loader2 className="animate-spin mr-2" size={20} />
-                <span>جارِ تحميل المواعيد...</span>
+            <div className="space-y-4 w-full animate-pulse transition-all duration-300">
+                {/* Week Navigation Skeleton */}
+                <div className="h-14 bg-slate-200 dark:bg-slate-700/50 rounded-xl w-full border border-slate-200 dark:border-white/5"></div>
+
+                {/* Grid skeleton */}
+                <div className="grid grid-cols-7 gap-1">
+                    {[...Array(7)].map((_, i) => (
+                        <div key={i} className="flex flex-col items-center">
+                            <div className="h-8 w-full bg-slate-200 dark:bg-slate-700/50 rounded-t-lg mb-1"></div>
+                            <div className="h-10 w-full bg-slate-200 dark:bg-slate-700/50 rounded-b-lg"></div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Slots Skeleton */}
+                <div className="mt-4 space-y-2">
+                    {[...Array(3)].map((_, i) => (
+                        <div key={`slot-skel-${i}`} className="h-16 w-full bg-slate-200 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-white/5"></div>
+                    ))}
+                </div>
             </div>
         );
     }

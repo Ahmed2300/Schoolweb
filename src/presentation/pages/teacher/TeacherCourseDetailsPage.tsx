@@ -82,7 +82,7 @@ import { DeleteConfirmModal } from '../../components/admin/DeleteConfirmModal';
 import { CourseQuizzesTab } from '../../components/teacher/courses/CourseQuizzesTab';
 import { CourseGradingTab } from '../../components/teacher/courses/CourseGradingTab';
 import { CreateQuizModal } from '../../components/teacher/CreateQuizModal';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { CourseDetailsSkeleton } from '../../components/ui/skeletons/CourseDetailsSkeleton';
 import { formatTime, formatShortDate } from '../../../utils/timeUtils';
 import { LiveSessionEmbedModal } from '../../components/shared/LiveSessionEmbedModal';
@@ -706,6 +706,7 @@ export function TeacherCourseDetailsPage() {
     const courseId = parseInt(id || '0');
     const navigate = useNavigate();
     const { user } = useAuth();
+    const queryClient = useQueryClient();
     const { isRTL } = useLanguage();
 
     // State
@@ -1115,6 +1116,11 @@ export function TeacherCourseDetailsPage() {
             } else {
                 await teacherLectureService.deleteLecture(lectureId);
                 toast.success('تم حذف المحاضرة بنجاح');
+            }
+
+            // Invalidate the teacherLectures query so the slot booking reflects immediately
+            if (user?.teacher_id) {
+                queryClient.invalidateQueries({ queryKey: ['teacherLectures', user.teacher_id] });
             }
         } catch (error) {
             console.error('Delete lecture error:', error);

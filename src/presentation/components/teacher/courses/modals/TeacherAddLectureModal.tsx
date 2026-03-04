@@ -1,15 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Check, Video, FileText, Calendar, Loader2, Radio, Upload, AlertCircle } from 'lucide-react';
 import { teacherLectureService } from '../../../../../data/api/teacherLectureService';
-import { teacherContentApprovalService } from '../../../../../data/api/teacherContentApprovalService';
 import { TeacherVideoUploader } from './TeacherVideoUploader';
-import { TimeSlotPicker } from '../../timeslots/TimeSlotPicker';
 import { ApprovedSlotSelector, type DatedSlot } from '../../timeslots/ApprovedSlotSelector';
-import type { SlotRequest } from '../../../../../types/slotRequest';
 import type { Unit } from '../../../../../types/unit';
-import { useMyRequests } from '../../../../hooks/useTeacherTimeSlots';
 
 // Helper to get localized name
 const getLocalizedName = (name: { ar?: string; en?: string } | string | undefined): string => {
@@ -77,6 +74,37 @@ export function TeacherAddLectureModal({
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
 
+    // Fetch existing lectures to determine which date+slot combos are already booked
+    const { data: existingLectures, isFetching: isFetchingBookedSlots } = useQuery({
+        queryKey: ['teacherLectures', 'booked', teacherId],
+        queryFn: () => teacherLectureService.getLectures({ teacher_id: teacherId, per_page: 200 }),
+        enabled: isOpen,
+        select: (res: any) => res?.data || res || [],
+    });
+
+    // Extract booked slot strings (YYYY-MM-DD_HH:MM) from existing online lectures
+    // We MUST parse the UTC date string into a Date object to get the local day,
+    // otherwise 22:00 UTC might be parsed as the previous/next day locally.
+    const bookedSlots = useMemo(() => {
+        if (!existingLectures || !Array.isArray(existingLectures)) return [];
+        return existingLectures
+            .filter((l: any) => l.is_online && l.start_time)
+            .map((l: any) => {
+                const date = new Date(l.start_time);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+
+                // For the time, the backend returns UTC like "2026-03-08T22:00:00.000000Z"
+                // The slots from the API are usually local time, e.g. "10:00:00"
+                // Let's rely on the date object's local time methods so they align perfectly
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+
+                return `${year}-${month}-${day}_${hours}:${minutes}`;
+            });
+    }, [existingLectures]);
+
     const initialFormData: FormData = {
         titleAr: '',
         titleEn: '',
@@ -99,6 +127,8 @@ export function TeacherAddLectureModal({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [uploadedVideoPath, setUploadedVideoPath] = useState<string | null>(null);
+
+    const queryClient = useQueryClient();
 
     const resetForm = useCallback(() => {
         setFormData(initialFormData);
@@ -180,36 +210,20 @@ export function TeacherAddLectureModal({
                 time_slot_id: undefined,
             };
 
-            // Switch to Approval Request Flow
-            const response = await teacherContentApprovalService.submitApprovalRequest({
-                approvable_type: 'course',
-                approvable_id: parseInt(formData.courseId),
-                action: 'create_lecture',
-                payload: lectureData,
-            });
+            // Create lecture directly — no admin approval needed
+            if (uploadedVideoPath) {
+                await teacherLectureService.createLectureWithVideo(lectureData, uploadedVideoPath);
+            } else {
+                await teacherLectureService.createLecture(lectureData);
+            }
 
-            // if (uploadedVideoPath) {
-            //     await teacherLectureService.createLectureWithVideo(lectureData, uploadedVideoPath);
-            // } else {
-            //     await teacherLectureService.createLecture(lectureData);
-            // }
+            // Invalidate the teacherLectures query so the slot booking reflects immediately
+            queryClient.invalidateQueries({ queryKey: ['teacherLectures', teacherId] });
 
-            // Construct a "pending" lecture object for optimistic UI
-            // CRITICAL FIX: Use the ACTUAL ID from the response, not a timestamp
-            // The response.data is the ContentApprovalRequest, which has an 'id'
-            const pendingLecture = {
-                id: `pending-${response.data.id}`, // Use real DB ID from approval request
-                ...lectureData,
-                type: 'lecture',
-                sortType: 'lecture',
-                is_pending_approval: true,
-                order: 9999 // Put at end
-            };
-
-            onSuccess(pendingLecture);
+            onSuccess();
             resetForm();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'فشل إرسال طلب المحاضرة');
+            setError(err instanceof Error ? err.message : 'فشل إنشاء المحاضرة');
             setLoading(false);
         }
     };
@@ -350,6 +364,9 @@ export function TeacherAddLectureModal({
                                                         type="button"
                                                         onClick={() => {
                                                             setFormData(prev => ({ ...prev, isOnline: true }));
+                                                            // Force cache refetch to always show the loading shimmer
+                                                            queryClient.invalidateQueries({ queryKey: ['teacherLectures', 'booked', teacherId] });
+                                                            queryClient.invalidateQueries({ queryKey: ['teacherTimeSlots'] });
                                                         }}
                                                         className={`flex items-center gap-3 p-4 rounded-xl border-2 text-right transition-all duration-300 ${formData.isOnline === true
                                                             ? 'border-shibl-crimson bg-rose-50 dark:bg-shibl-crimson/10 ring-1 ring-shibl-crimson/30 shadow-crimson'
@@ -427,6 +444,8 @@ export function TeacherAddLectureModal({
                                                         selectedDate={selectedDate}
                                                         gradeId={gradeId}
                                                         semesterId={semesterId}
+                                                        bookedSlots={bookedSlots}
+                                                        isLoadingExternal={isFetchingBookedSlots}
                                                         onRequestNewSlot={() => {
                                                             navigate('/teacher/weekly-schedule');
                                                         }}
