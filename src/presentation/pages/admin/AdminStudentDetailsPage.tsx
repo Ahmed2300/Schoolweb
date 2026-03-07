@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { adminService } from '../../../data/api/adminService';
 import {
     ArrowLeft,
+    ArrowRight,
     User,
     Mail,
     Phone,
@@ -58,17 +59,41 @@ export default function AdminStudentDetailsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={() => navigate('/admin/users')}
-                    className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-                    aria-label="العودة للمستخدمين"
-                >
-                    <ArrowLeft size={20} className="text-slate-600" />
-                </button>
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800">تفاصيل الطالب</h1>
-                    <p className="text-slate-500 text-sm">عرض شامل لمعلومات الطالب وولي الأمر</p>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => navigate('/admin/users')}
+                        className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                        aria-label="العودة للمستخدمين"
+                    >
+                        <ArrowLeft size={20} className="text-slate-600 rtl:rotate-180" />
+                    </button>
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-800">تفاصيل الطالب</h1>
+                        <p className="text-slate-500 text-sm">عرض شامل لمعلومات الطالب وولي الأمر</p>
+                    </div>
+                </div>
+
+                {/* User Navigation */}
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => student?.next_id && navigate(`/admin/users/students/${student.next_id}`)}
+                        disabled={!student?.next_id}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                        aria-label="الطالب التالي"
+                    >
+                        التالي
+                        <ArrowRight size={16} className="rtl:rotate-180" />
+                    </button>
+                    <button
+                        onClick={() => student?.prev_id && navigate(`/admin/users/students/${student.prev_id}`)}
+                        disabled={!student?.prev_id}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                        aria-label="الطالب السابق"
+                    >
+                        <ArrowLeft size={16} className="rtl:rotate-180" />
+                        السابق
+                    </button>
                 </div>
             </div>
 
@@ -80,11 +105,8 @@ export default function AdminStudentDetailsPage() {
                             <GraduationCap className="text-primary" size={20} />
                             <h2 className="text-lg font-semibold text-slate-800">الملف الشخصي للطالب</h2>
                         </div>
-                        <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${student.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
-                            student.status === 'inactive' ? 'bg-slate-100 text-slate-700' :
-                                'bg-amber-100 text-amber-700'
-                            }`}>
-                            {student.status === 'active' ? 'نشط' : student.status === 'inactive' ? 'غير نشط' : 'في إجازة'}
+                        <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full border ${student.is_enrolled ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
+                            {student.is_enrolled ? 'مشترك في كورس' : 'غير مشترك'}
                         </span>
                     </div>
                     <div className="p-6 space-y-4 flex-1">

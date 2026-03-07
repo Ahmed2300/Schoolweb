@@ -42,6 +42,7 @@ export interface UserData {
     city_id?: number;
     parent_phone?: string;
     how_do_you_know_us?: string;
+    is_enrolled?: boolean;
     // Parent-specific
     relationship?: string;
     address?: string;
@@ -61,6 +62,9 @@ export interface UserData {
     grade_ids?: number[];
     // Include nested students for Parent relationships
     students?: UserData[];
+    // Pagination meta
+    next_id?: number | null;
+    prev_id?: number | null;
 }
 
 export interface PaginatedResponse<T> {
@@ -856,7 +860,12 @@ export const adminService = {
      */
     getStudent: async (id: number): Promise<UserData> => {
         const response = await apiClient.get(endpoints.admin.students.show(id));
-        return { ...response.data.data, role: 'student' as UserRole };
+        return {
+            ...response.data.data,
+            role: 'student' as UserRole,
+            next_id: response.data.meta?.next_id,
+            prev_id: response.data.meta?.prev_id
+        };
     },
 
     /**
@@ -899,7 +908,12 @@ export const adminService = {
      */
     getParent: async (id: number): Promise<UserData> => {
         const response = await apiClient.get(endpoints.admin.parents.show(id));
-        return { ...response.data.data, role: 'parent' as UserRole };
+        return {
+            ...response.data.data,
+            role: 'parent' as UserRole,
+            next_id: response.data.meta?.next_id,
+            prev_id: response.data.meta?.prev_id
+        };
     },
 
     /**
@@ -1086,6 +1100,7 @@ export const adminService = {
             totalParents: number;
             total: number;
         };
+        meta: any;
     }> => {
         // Use allSettled to handle partial failures
         const results = await Promise.allSettled([
@@ -1094,8 +1109,8 @@ export const adminService = {
         ]);
 
         // Extract successful results, use empty arrays for failures
-        const studentsRes = results[0].status === 'fulfilled' ? results[0].value : { data: [], meta: { total: 0 } };
-        const parentsRes = results[1].status === 'fulfilled' ? results[1].value : { data: [], meta: { total: 0 } };
+        const studentsRes = results[0].status === 'fulfilled' ? results[0].value : { data: [], meta: { total: 0, last_page: 1 } };
+        const parentsRes = results[1].status === 'fulfilled' ? results[1].value : { data: [], meta: { total: 0, last_page: 1 } };
 
         // Log any failures for debugging
         results.forEach((result, index) => {
@@ -1113,10 +1128,15 @@ export const adminService = {
         return {
             users: allUsers,
             stats: {
-                totalStudents: studentsRes.meta.total,
-                totalParents: parentsRes.meta.total,
-                total: studentsRes.meta.total + parentsRes.meta.total,
+                totalStudents: studentsRes.meta?.total || 0,
+                totalParents: parentsRes.meta?.total || 0,
+                total: (studentsRes.meta?.total || 0) + (parentsRes.meta?.total || 0),
             },
+            meta: {
+                current_page: params.page || 1,
+                last_page: Math.max(studentsRes.meta?.last_page || 1, parentsRes.meta?.last_page || 1),
+                total: (studentsRes.meta?.total || 0) + (parentsRes.meta?.total || 0),
+            }
         };
     },
 

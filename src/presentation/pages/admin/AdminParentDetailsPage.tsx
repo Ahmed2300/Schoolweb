@@ -12,7 +12,8 @@ import {
     Calendar,
     Loader2,
     GraduationCap,
-    AlertCircle
+    AlertCircle,
+    ArrowRight
 } from 'lucide-react';
 import { adminService } from '../../../data/api/adminService';
 
@@ -57,17 +58,41 @@ export default function AdminParentDetailsPage() {
     return (
         <div className="space-y-6">
             {/* Header / Navigation */}
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={() => navigate('/admin/users')}
-                    className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-                    aria-label="العودة للمستخدمين"
-                >
-                    <ArrowLeft size={20} className="text-slate-600" />
-                </button>
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800">تفاصيل ولي الأمر</h1>
-                    <p className="text-slate-500 text-sm">عرض شامل لمعلومات ولي الأمر والطلاب المرتبطين به</p>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => navigate('/admin/users')}
+                        className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                        aria-label="العودة للمستخدمين"
+                    >
+                        <ArrowLeft size={20} className="text-slate-600 rtl:rotate-180" />
+                    </button>
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-800">تفاصيل ولي الأمر</h1>
+                        <p className="text-slate-500 text-sm">عرض شامل لمعلومات ولي الأمر والطلاب المرتبطين به</p>
+                    </div>
+                </div>
+
+                {/* User Navigation */}
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => parent?.next_id && navigate(`/admin/users/parents/${parent.next_id}`)}
+                        disabled={!parent?.next_id}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                        aria-label="ولي الأمر التالي"
+                    >
+                        التالي
+                        <ArrowRight size={16} className="rtl:rotate-180" />
+                    </button>
+                    <button
+                        onClick={() => parent?.prev_id && navigate(`/admin/users/parents/${parent.prev_id}`)}
+                        disabled={!parent?.prev_id}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                        aria-label="ولي الأمر السابق"
+                    >
+                        <ArrowLeft size={16} className="rtl:rotate-180" />
+                        السابق
+                    </button>
                 </div>
             </div>
 
@@ -79,11 +104,8 @@ export default function AdminParentDetailsPage() {
                             <Users className="text-indigo-600" size={20} />
                             <h2 className="text-lg font-semibold text-slate-800">الملف الشخصي</h2>
                         </div>
-                        <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${parent.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
-                            parent.status === 'inactive' ? 'bg-slate-100 text-slate-700' :
-                                'bg-amber-100 text-amber-700'
-                            }`}>
-                            {parent.status === 'active' ? 'نشط' : parent.status === 'inactive' ? 'غير نشط' : 'غير معروف'}
+                        <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${parent.status === 'inactive' ? 'bg-slate-100 text-slate-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                            {parent.status === 'inactive' ? 'غير نشط' : 'نشط'}
                         </span>
                     </div>
                     <div className="p-6 space-y-4">
