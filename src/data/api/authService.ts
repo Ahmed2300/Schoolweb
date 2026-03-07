@@ -19,6 +19,7 @@ export interface LoginRequest {
     password: string;
     force_login?: boolean;
     otp?: string;
+    device_fingerprint?: string;
 }
 
 export interface StudentRegisterRequest {

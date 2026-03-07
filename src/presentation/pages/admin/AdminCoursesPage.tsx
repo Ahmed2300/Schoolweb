@@ -159,18 +159,29 @@ export function AdminCoursesPage() {
                 adminService.getSemesters({ per_page: 100 }),
             ]);
 
+            console.error('DEBUG_GRADES_RES:', JSON.stringify(gradesRes));
+            console.error('DEBUG_SEMESTERS_RES:', JSON.stringify(semestersRes));
+
             if (gradesRes.status === 'fulfilled') {
-                setGrades(gradesRes.value.data.map(g => ({
+                const data = gradesRes.value.data;
+                const gradesData = Array.isArray(data) ? data : (data?.data || []);
+                setGrades(gradesData.map(g => ({
                     id: g.id,
                     name: extractName((g as any).name) || `صف ${g.id}`,
                 })));
+            } else {
+                console.error("DEBUG_GRADES_FAILED:", gradesRes.reason);
             }
             if (semestersRes.status === 'fulfilled') {
-                setSemesters(semestersRes.value.data.map(s => ({
+                const data = semestersRes.value.data;
+                const semestersData = Array.isArray(data) ? data : (data?.data || []);
+                setSemesters(semestersData.map(s => ({
                     id: s.id,
-                    name: extractName(s.name),
+                    name: extractName(s.name) || `فصل ${s.id}`,
                     grade_id: s.grade_id,
                 })));
+            } else {
+                console.error("DEBUG_SEMESTERS_FAILED:", semestersRes.reason);
             }
         } catch (err) {
             console.error('Error fetching dropdown options:', err);
@@ -389,61 +400,10 @@ export function AdminCoursesPage() {
                 </div>
             )}
 
-            {/* Loading State - Shimmer Skeleton */}
-            {loading && (
-                <div className="bg-white dark:bg-[#1E1E1E] rounded-[16px] shadow-card border border-slate-100 dark:border-white/10 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="bg-slate-50 dark:bg-[#2A2A2A] border-b border-slate-100 dark:border-white/10">
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكورس</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الكود</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الساعات</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">السعر</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الحالة</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-slate-grey uppercase">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-white/10">
-                                {[...Array(6)].map((_, index) => (
-                                    <tr key={index}>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" />
-                                                <div className="h-4 w-32 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100}ms` }} />
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="h-4 w-16 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 50}ms` }} />
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="h-4 w-12 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 100}ms` }} />
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="h-4 w-20 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 150}ms` }} />
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="h-6 w-14 rounded-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 200}ms` }} />
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 250}ms` }} />
-                                                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 300}ms` }} />
-                                                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 350}ms` }} />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-
             {/* Courses Table */}
-            {!loading && !error && (
+            {!error && (
                 <>
-                    <div className="bg-white dark:bg-[#1E1E1E] rounded-[16px] shadow-card border border-slate-100 dark:border-white/10 overflow-hidden">
+                    <div className="bg-white dark:bg-[#1E1E1E] rounded-[16px] shadow-card border border-slate-100 dark:border-white/10 overflow-hidden relative min-h-[400px]">
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead>
@@ -459,12 +419,48 @@ export function AdminCoursesPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-white/10">
-                                    {courses.length === 0 ? (
+                                    {loading ? (
+                                        [...Array(Math.max(courses.length || 6, 6))].map((_, index) => (
+                                            <tr key={`shimmer-${index}`}>
+                                                <td className="px-6 py-4">
+                                                    <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-white/5 dark:via-white/10 dark:to-white/5 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100}ms` }} />
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-col gap-2">
+                                                        <div className="h-4 w-32 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-white/5 dark:via-white/10 dark:to-white/5 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 50}ms` }} />
+                                                        <div className="h-3 w-16 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-white/5 dark:via-white/10 dark:to-white/5 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 100}ms` }} />
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="h-4 w-16 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-white/5 dark:via-white/10 dark:to-white/5 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 150}ms` }} />
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="h-4 w-12 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-white/5 dark:via-white/10 dark:to-white/5 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 200}ms` }} />
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="h-4 w-20 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-white/5 dark:via-white/10 dark:to-white/5 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 250}ms` }} />
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="h-4 w-10 rounded-md bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-white/5 dark:via-white/10 dark:to-white/5 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 300}ms` }} />
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="h-6 w-14 rounded-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-white/5 dark:via-white/10 dark:to-white/5 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 350}ms` }} />
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-white/5 dark:via-white/10 dark:to-white/5 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 400}ms` }} />
+                                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-white/5 dark:via-white/10 dark:to-white/5 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 450}ms` }} />
+                                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-white/5 dark:via-white/10 dark:to-white/5 animate-shimmer bg-[length:200%_100%]" style={{ animationDelay: `${index * 100 + 500}ms` }} />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : courses.length === 0 ? (
                                         <tr>
                                             <td colSpan={8} className="px-6 py-12 text-center">
                                                 <div className="flex flex-col items-center gap-3">
-                                                    <BookOpen size={48} className="text-slate-300" />
-                                                    <p className="text-slate-grey">لا توجد كورسات</p>
+                                                    <BookOpen size={48} className="text-slate-300 dark:text-slate-600" />
+                                                    <p className="text-slate-grey dark:text-slate-400">لا توجد كورسات</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -474,7 +470,7 @@ export function AdminCoursesPage() {
                                             return (
                                                 <tr key={course.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                                                     <td className="px-6 py-4">
-                                                        <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden border border-slate-200">
+                                                        <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-white/5 overflow-hidden border border-slate-200 dark:border-white/10">
                                                             {course.image ? (
                                                                 <img
                                                                     src={course.image}
@@ -482,7 +478,7 @@ export function AdminCoursesPage() {
                                                                     className="w-full h-full object-cover"
                                                                 />
                                                             ) : (
-                                                                <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                                                <div className="w-full h-full flex items-center justify-center text-slate-400 dark:text-slate-500">
                                                                     <BookOpen size={20} className="opacity-50" />
                                                                 </div>
                                                             )}
@@ -492,22 +488,22 @@ export function AdminCoursesPage() {
                                                         <div className="flex items-center gap-3">
                                                             <div>
                                                                 <span className="font-semibold text-charcoal dark:text-white block">{getCourseName(course)}</span>
-                                                                <span className="text-xs text-slate-400">{course.credits} ساعات معتمدة</span>
+                                                                <span className="text-xs text-slate-400 dark:text-slate-500">{course.credits} ساعات معتمدة</span>
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-4 text-sm text-slate-grey font-mono">{course.code}</td>
+                                                    <td className="px-6 py-4 text-sm text-slate-grey dark:text-slate-400 font-mono">{course.code}</td>
                                                     <td className="px-6 py-4 text-sm text-charcoal dark:text-white">{course.duration_hours || '-'}</td>
                                                     <td className="px-6 py-4">
                                                         {course.price ? (
                                                             <div>
                                                                 <span className="font-bold text-shibl-crimson">{course.price} ر.ع</span>
                                                                 {course.old_price && course.old_price > course.price && (
-                                                                    <span className="text-xs text-slate-400 line-through mr-2">{course.old_price}</span>
+                                                                    <span className="text-xs text-slate-400 dark:text-slate-500 line-through mr-2">{course.old_price}</span>
                                                                 )}
                                                             </div>
                                                         ) : (
-                                                            <span className="text-slate-400">-</span>
+                                                            <span className="text-slate-400 dark:text-slate-500">-</span>
                                                         )}
                                                     </td>
                                                     <td className="px-6 py-4">
@@ -527,7 +523,7 @@ export function AdminCoursesPage() {
                                                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors cursor-pointer group"
                                                             title="عرض المشتركين"
                                                         >
-                                                            <Users size={16} className="text-indigo-500 group-hover:scale-110 transition-transform" />
+                                                            <Users size={16} className="text-indigo-500 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
                                                             <span className={`font-semibold ${(course.subscriptions_count || 0) > 0
                                                                 ? 'text-indigo-600 dark:text-indigo-400'
                                                                 : 'text-slate-400 dark:text-slate-500'
@@ -543,26 +539,26 @@ export function AdminCoursesPage() {
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-2">
-                                                            <button className="w-8 h-8 rounded-[8px] bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors" title="عرض">
+                                                            <button className="w-8 h-8 rounded-[8px] bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors" title="عرض">
                                                                 <Eye size={16} />
                                                             </button>
                                                             <button
                                                                 onClick={() => navigate(`/admin/courses/${course.id}/units`)}
-                                                                className="w-8 h-8 rounded-[8px] bg-purple-100 hover:bg-purple-200 flex items-center justify-center text-purple-600 transition-colors"
+                                                                className="w-8 h-8 rounded-[8px] bg-purple-100 dark:bg-purple-500/20 hover:bg-purple-200 dark:hover:bg-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-400 transition-colors"
                                                                 title="إدارة الوحدات"
                                                             >
                                                                 <Layers size={16} />
                                                             </button>
                                                             <button
                                                                 onClick={() => setEditingCourse(course as unknown as CourseData)}
-                                                                className="w-8 h-8 rounded-[8px] bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 transition-colors"
+                                                                className="w-8 h-8 rounded-[8px] bg-blue-100 dark:bg-blue-500/20 hover:bg-blue-200 dark:hover:bg-blue-500/30 flex items-center justify-center text-blue-600 dark:text-blue-400 transition-colors"
                                                                 title="تعديل"
                                                             >
                                                                 <Edit2 size={16} />
                                                             </button>
                                                             <button
                                                                 onClick={() => setDeletingCourse(course)}
-                                                                className="w-8 h-8 rounded-[8px] bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 transition-colors"
+                                                                className="w-8 h-8 rounded-[8px] bg-red-100 dark:bg-red-500/20 hover:bg-red-200 dark:hover:bg-red-500/30 flex items-center justify-center text-red-600 dark:text-red-400 transition-colors"
                                                                 title="حذف"
                                                             >
                                                                 <Trash2 size={16} />
@@ -578,16 +574,18 @@ export function AdminCoursesPage() {
                         </div>
                     </div>
                     {/* Pagination */}
-                    <div className="mt-6 flex justify-center">
-                        <Pagination
-                            currentPage={page}
-                            totalPages={meta?.last_page || 1}
-                            onPageChange={setPage}
-                            onNext={() => setPage((p) => Math.min(p + 1, meta?.last_page || 1))}
-                            onPrev={() => setPage((p) => Math.max(p - 1, 1))}
-                            isLoading={loading}
-                        />
-                    </div>
+                    {(!loading || courses.length > 0) && (
+                        <div className="mt-6 flex justify-center">
+                            <Pagination
+                                currentPage={page}
+                                totalPages={meta?.last_page || 1}
+                                onPageChange={(val) => setPage(Number(val) || 1)}
+                                onNext={() => setPage((p) => Math.min(Number(p) + 1, Number(meta?.last_page) || 1))}
+                                onPrev={() => setPage((p) => Math.max(Number(p) - 1, 1))}
+                                isLoading={loading}
+                            />
+                        </div>
+                    )}
                 </>
             )}
 

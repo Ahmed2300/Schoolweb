@@ -6,6 +6,7 @@ import { AuthNavbar } from '../../components';
 import { ROUTES } from '../../../shared/constants';
 import { authService } from '../../../data/api';
 import { teacherAuthService } from '../../../data/api/teacherAuthService';
+import { generateDeviceFingerprint } from '../../../utils/deviceFingerprint';
 
 // Lucide Icons
 import {
@@ -71,11 +72,13 @@ export function SignInPage() {
 
         try {
             let response;
+            const deviceFingerprint = await generateDeviceFingerprint();
             const loginData = {
                 email: formData.email,
                 password: formData.password,
                 force_login: forceLogin,
-                otp: otp
+                otp: otp,
+                device_fingerprint: deviceFingerprint
             };
 
             if (userType === 'student') {

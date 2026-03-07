@@ -428,9 +428,16 @@ export function AdminUsersPage() {
 
                                         {/* Role Badge */}
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold border ${roleConfig[user.role].bgColor} ${roleConfig[user.role].textColor} ${roleConfig[user.role].borderColor}`}>
-                                                {roleConfig[user.role].label}
-                                            </span>
+                                            <div className="flex flex-col items-start gap-2">
+                                                <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold border ${roleConfig[user.role].bgColor} ${roleConfig[user.role].textColor} ${roleConfig[user.role].borderColor}`}>
+                                                    {roleConfig[user.role].label}
+                                                </span>
+                                                {user.role === 'student' && (
+                                                    <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold border ${user.is_enrolled ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
+                                                        {user.is_enrolled ? 'مشترك في كورس' : 'غير مشترك'}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
 
                                         {/* Status Badge */}

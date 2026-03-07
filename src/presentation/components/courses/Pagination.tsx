@@ -1,5 +1,5 @@
-// src/presentation/components/courses/Pagination.tsx
 import { useLanguage } from '../../hooks';
+import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 
 interface PaginationProps {
     currentPage: number;
@@ -20,45 +20,72 @@ export function Pagination({
 }: PaginationProps) {
     const { isRTL } = useLanguage();
 
-    if (totalPages <= 1) return null;
+    // Ensure valid numbers
+    const current = Math.max(1, Number(currentPage) || 1);
+    const total = Math.max(1, Number(totalPages) || 1);
 
-    const pages = generatePageNumbers(currentPage, totalPages);
+    // Generate page numbers
+    const getPageNumbers = () => {
+        const pages: (number | string)[] = [];
+
+        if (total <= 7) {
+            for (let i = 1; i <= total; i++) pages.push(i);
+        } else {
+            if (current <= 4) {
+                pages.push(1, 2, 3, 4, 5, '...', total);
+            } else if (current >= total - 3) {
+                pages.push(1, '...', total - 4, total - 3, total - 2, total - 1, total);
+            } else {
+                pages.push(1, '...', current - 1, current, current + 1, '...', total);
+            }
+        }
+        return pages;
+    };
+
+    const pages = getPageNumbers();
 
     return (
-        <nav className="flex items-center justify-center gap-2 py-4" aria-label="Courses pagination" dir="ltr">
+        <nav
+            className="flex items-center justify-center gap-1.5 md:gap-2 py-6 w-full"
+            aria-label="Pagination"
+            dir="ltr"
+        >
             <button
                 type="button"
                 onClick={onPrev}
-                disabled={currentPage === 1 || isLoading}
-                className={`p-2 rounded-lg border border-slate-200 transition-all duration-200 
-                    ${currentPage === 1 || isLoading
-                        ? 'text-slate-300 cursor-not-allowed bg-slate-50'
-                        : 'text-slate-600 hover:text-shibl-crimson hover:bg-red-50 hover:border-red-100 hover:shadow-sm'
+                disabled={current <= 1 || isLoading}
+                className={`flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 transition-all duration-300
+                    ${current <= 1 || isLoading
+                        ? 'text-slate-300 bg-slate-50 cursor-not-allowed opacity-70'
+                        : 'text-slate-600 bg-white hover:border-shibl-crimson hover:text-shibl-crimson hover:shadow-md hover:-translate-y-0.5'
                     }`}
                 aria-label={isRTL ? 'الصفحة السابقة' : 'Previous page'}
             >
-                {/* Always point left for 'Previous' in LTR layout */}
-                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
-                </svg>
+                {/* LTR arrow is default. If RTL context, we visually point it 'Next' (right) for 'Previous' depending on design, 
+                    but here we always keep LTR direction for pagination numbers so arrow directions stay fixed */}
+                <ChevronLeft size={20} />
             </button>
 
-            <div className="flex items-center gap-1.5 bg-white px-2 py-1 rounded-xl shadow-sm border border-slate-100">
+            <div className="flex items-center gap-1 bg-white px-2 py-1.5 rounded-xl shadow-sm border border-slate-100">
                 {pages.map((page, index) => (
                     page === '...' ? (
-                        <span key={`ellipsis-${index}`} className="w-9 h-9 flex items-center justify-center text-slate-400 font-medium select-none">...</span>
+                        <div key={`ellipsis-${index}`} className="w-10 h-10 flex items-center justify-center text-slate-400">
+                            <MoreHorizontal size={18} />
+                        </div>
                     ) : (
                         <button
-                            key={page}
+                            key={`page-${page}`}
                             type="button"
-                            onClick={() => onPageChange(page as number)}
+                            onClick={() => onPageChange(Number(page))}
                             disabled={isLoading}
-                            className={`w-9 h-9 rounded-[10px] text-sm font-bold transition-all duration-200 flex items-center justify-center
-                                ${currentPage === page
-                                    ? 'bg-shibl-crimson text-white shadow-md shadow-red-200 scale-105'
-                                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                                }`}
-                            aria-current={currentPage === page ? 'page' : undefined}
+                            className={`w-10 h-10 rounded-[10px] text-sm font-bold transition-all duration-300 flex items-center justify-center
+                                ${current === page
+                                    ? 'bg-shibl-crimson text-white shadow-lg shadow-shibl-crimson/25 scale-105'
+                                    : 'text-slate-600 hover:bg-slate-100 hover:text-shibl-crimson'
+                                }
+                                ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}
+                            `}
+                            aria-current={current === page ? 'page' : undefined}
                         >
                             {page}
                         </button>
@@ -69,52 +96,16 @@ export function Pagination({
             <button
                 type="button"
                 onClick={onNext}
-                disabled={currentPage === totalPages || isLoading}
-                className={`p-2 rounded-lg border border-slate-200 transition-all duration-200 
-                    ${currentPage === totalPages || isLoading
-                        ? 'text-slate-300 cursor-not-allowed bg-slate-50'
-                        : 'text-slate-600 hover:text-shibl-crimson hover:bg-red-50 hover:border-red-100 hover:shadow-sm'
+                disabled={current >= total || isLoading}
+                className={`flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 transition-all duration-300
+                    ${current >= total || isLoading
+                        ? 'text-slate-300 bg-slate-50 cursor-not-allowed opacity-70'
+                        : 'text-slate-600 bg-white hover:border-shibl-crimson hover:text-shibl-crimson hover:shadow-md hover:-translate-y-0.5'
                     }`}
                 aria-label={isRTL ? 'الصفحة التالية' : 'Next page'}
             >
-                {/* Always point right for 'Next' in LTR layout */}
-                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
-                </svg>
+                <ChevronRight size={20} />
             </button>
         </nav>
     );
-}
-
-function generatePageNumbers(current: number, total: number): (number | '...')[] {
-    if (total <= 7) {
-        return Array.from({ length: total }, (_, i) => i + 1);
-    }
-
-    const pages: (number | '...')[] = [];
-
-    pages.push(1);
-
-    if (current > 3) {
-        pages.push('...');
-    }
-
-    const start = Math.max(2, current - 1);
-    const end = Math.min(total - 1, current + 1);
-
-    for (let i = start; i <= end; i++) {
-        if (!pages.includes(i)) {
-            pages.push(i);
-        }
-    }
-
-    if (current < total - 2) {
-        pages.push('...');
-    }
-
-    if (!pages.includes(total)) {
-        pages.push(total);
-    }
-
-    return pages;
 }
