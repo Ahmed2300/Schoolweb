@@ -43,6 +43,7 @@ import {
     type RecurringSlot,
     type AvailableSlot,
 } from '../../../hooks/useRecurringSchedule';
+import { useCancelSlotRequest } from '../../hooks/useTeacherTimeSlots';
 
 // ==================== CONSTANTS ====================
 
@@ -357,7 +358,7 @@ function TimeSlotCardSkeleton() {
 interface ScheduleSummaryProps {
     slots: RecurringSlot[];
     isLoading: boolean;
-    onCancel: (slotId: number) => void;
+    onCancel: (slot: RecurringSlot) => void;
     cancellingSlotId?: number | null;
 }
 
@@ -444,7 +445,7 @@ function ScheduleSummary({ slots, isLoading, onCancel, cancellingSlotId }: Sched
                     </div>
 
                     <button
-                        onClick={() => onCancel(slot.id)}
+                        onClick={() => onCancel(slot)}
                         disabled={cancellingSlotId === slot.id}
                         className="p-2 text-gray-400 dark:text-gray-500 hover:text-[#AF0C15] dark:hover:text-[#E11D48] hover:bg-[#FEF2F2] dark:hover:bg-red-900/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="إلغاء الحجز"
@@ -498,6 +499,7 @@ export function TeacherWeeklySchedulePage() {
     // Mutations
     const submitSlotMutation = useSubmitRecurringSlot();
     const cancelSlotMutation = useCancelRecurringSlot();
+    const cancelTimeSlotMutation = useCancelSlotRequest();
 
     // Derived data
     const grades = gradesData?.data ?? [];
@@ -611,10 +613,14 @@ export function TeacherWeeklySchedulePage() {
         }
     };
 
-    const handleCancelSlot = async (slotId: number) => {
+    const handleCancelSlot = async (slotId: number, slotType: 'recurring' | 'time_slot' = 'recurring') => {
         setCancellingSlotId(slotId);
         try {
-            await cancelSlotMutation.mutateAsync(slotId);
+            if (slotType === 'time_slot') {
+                await cancelTimeSlotMutation.mutateAsync(slotId);
+            } else {
+                await cancelSlotMutation.mutateAsync(slotId);
+            }
 
             // Refetch data
             await Promise.all([
@@ -798,12 +804,15 @@ export function TeacherWeeklySchedulePage() {
 
                 {/* My Schedule Summary */}
                 <div className="lg:col-span-1">
-                    <div className="rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-[#1E1E1E] p-5 shadow-sm sticky top-6">
-                        <h2 className="mb-5 text-lg font-bold text-charcoal dark:text-white">حجوزاتي</h2>
+                    <div className="rounded-2xl border border-gray-100 dark:border-white/5 bg-[#F8F9FA] dark:bg-[#1E1E1E]/80 p-5 shadow-inner sticky top-6">
+                        <div className="flex items-center gap-2 mb-5">
+                            <CalendarPlus className="h-5 w-5 text-charcoal dark:text-white" />
+                            <h2 className="text-lg font-bold text-charcoal dark:text-white">جدولي القادم</h2>
+                        </div>
                         <ScheduleSummary
                             slots={mySchedule}
-                            isLoading={isLoadingMySchedule}
-                            onCancel={handleCancelSlot}
+                            isLoading={isFetchingSlots}
+                            onCancel={(slot) => handleCancelSlot(slot.id, slot.slot_type)}
                             cancellingSlotId={cancellingSlotId}
                         />
                     </div>

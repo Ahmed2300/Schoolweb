@@ -169,6 +169,7 @@ export type RecurringSlot = {
     start_time: string;
     end_time: string;
     status: 'pending' | 'approved' | 'rejected';
+    slot_type?: 'recurring' | 'time_slot';
     grade?: { id: number; name: string };
     semester?: { id: number; name: string };
     lecture?: { id: number; title: string };
