@@ -182,6 +182,22 @@ apiClient.interceptors.response.use(
             // Preserve the original axios error with response data for proper handling
             return Promise.reject(error);
         }
+
+        // Handle Network/Timeout Errors
+        if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+            const timeoutError = new Error('اتصال الإنترنت بطيء. يرجى المحاولة مرة أخرى.');
+            (timeoutError as any).message_ar = 'اتصال الإنترنت بطيء. يرجى المحاولة مرة أخرى.';
+            (timeoutError as any).response = { data: { message_ar: 'اتصال الإنترنت بطيء. يرجى المحاولة مرة أخرى.' } };
+            return Promise.reject(timeoutError);
+        }
+
+        if (!error.response && (error.message === 'Network Error' || error.code === 'ERR_NETWORK')) {
+            const networkError = new Error('لا يوجد اتصال بالإنترنت.');
+            (networkError as any).message_ar = 'لا يوجد اتصال بالإنترنت.';
+            (networkError as any).response = { data: { message_ar: 'لا يوجد اتصال بالإنترنت.' } };
+            return Promise.reject(networkError);
+        }
+
         const message = error.message;
         return Promise.reject(new Error(message));
     }

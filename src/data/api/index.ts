@@ -8,6 +8,8 @@ export { quizService, getQuizName, getQuizTypeLabel, getQuizStatusStyle } from '
 export { commonService } from './commonService';
 export { packageService } from './packageService';
 export { parentService } from './parentService';
+export { adminService } from './adminService';
+export { influencerService } from './influencerService';
 export { clientReportingService } from './clientReportingService';
 export type * from './authService';
 export type * from './studentService';

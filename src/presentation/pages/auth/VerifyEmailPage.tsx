@@ -132,6 +132,26 @@ export function VerifyEmailPage() {
             const errorData = err.response?.data;
             const arabicMessage = errorData?.message_ar;
             const englishMessage = errorData?.message;
+            const errorCode = errorData?.error_code || errorData?.error;
+
+            if (err.response?.status === 409 || errorCode === 'already_verified') {
+                setSuccess('بريدك الإلكتروني مُفعّل بالفعل. جاري التوجيه لتسجيل الدخول...');
+                setTimeout(() => {
+                    navigate(ROUTES.LOGIN, { replace: true });
+                }, 2000);
+                return;
+            }
+
+            if (errorCode === 'not_found') {
+                setError('لم يتم العثور على رمز التحقق. سيتم إرسال رمز جديد.');
+                setOtp(['', '', '', '', '', '']); // Clear OTP input
+                
+                // Auto-trigger resend after a short delay so user can read the message
+                setTimeout(() => {
+                    handleResendOtp();
+                }, 1500);
+                return;
+            }
 
             if (arabicMessage) {
                 setError(arabicMessage);
@@ -157,15 +177,39 @@ export function VerifyEmailPage() {
                 ? authService.studentResendOtp
                 : authService.parentResendOtp;
 
-            await resendFn(email);
+            const response: any = await resendFn(email);
             setSuccess('تم إرسال رمز تحقق جديد');
-            setCountdown(60);
+            setCountdown(response?.retry_after_seconds || response?.data?.retry_after_seconds || 60);
             setOtp(['', '', '', '', '', '']);
             setTimeout(() => setSuccess(''), 3000);
         } catch (err: any) {
+            const status = err.response?.status;
             const errorData = err.response?.data;
             const arabicMessage = errorData?.message_ar;
             const englishMessage = errorData?.message;
+            
+            if (status === 404) {
+                setError('لم يتم العثور على هذا البريد الإلكتروني.');
+                return;
+            }
+
+            if (status === 409) {
+                setSuccess('بريدك الإلكتروني مُفعّل بالفعل.');
+                setTimeout(() => {
+                    navigate(ROUTES.LOGIN);
+                }, 2000);
+                return;
+            }
+
+            if (status === 500 || status === 503 || errorData?.error_code === 'mail_delivery_failed') {
+                setError('فشل في إرسال البريد الإلكتروني. يرجى المحاولة لاحقا.');
+                setIsResending(false);
+                return;
+            }
+
+            if (errorData?.retry_after_seconds) {
+                setCountdown(errorData.retry_after_seconds);
+            }
 
             if (arabicMessage) {
                 setError(arabicMessage);

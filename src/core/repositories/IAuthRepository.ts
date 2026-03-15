@@ -3,6 +3,8 @@ import type { User, Student, Teacher, Parent, Admin } from '../entities';
 export interface LoginCredentials {
     emailOrPhone: string;
     password: string;
+    device_fingerprint?: string;
+    force_login?: boolean;
 }
 
 export interface RegisterData {

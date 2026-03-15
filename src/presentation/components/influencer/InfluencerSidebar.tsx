@@ -28,8 +28,8 @@ export function InfluencerSidebar({ isCollapsed, onToggle, className = '' }: Sid
         { icon: <Settings size={22} />, label: 'الإعدادات', path: '/influencer/settings' },
     ];
 
-    const handleLogout = () => {
-        logout();
+    const handleLogout = async () => {
+        await logout();
         window.location.href = ROUTES.ADMIN_LOGIN;
     };
 

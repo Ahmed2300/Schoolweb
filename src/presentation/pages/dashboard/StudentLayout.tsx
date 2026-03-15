@@ -100,12 +100,10 @@ export function StudentLayout() {
     // Handle logout with API call
     const handleLogout = async () => {
         try {
-            const userType = user?.role === 'parent' ? 'parent' : 'student';
-            await authService.logout(userType);
+            await logout();
         } catch (error) {
             console.error('Logout API error:', error);
         } finally {
-            clearAuthStore();
             navigate(ROUTES.LOGIN);
         }
     };

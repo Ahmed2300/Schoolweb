@@ -154,12 +154,39 @@ export function ResetPasswordPage() {
             }
 
             // Re-call forgot password to generate new token
-            await forgotFn(email);
+            const response: any = await forgotFn(email);
 
             setResendSuccess('تم إعادة إرسال الرمز بنجاح');
-            setCountdown(60);
+            setCountdown(response?.retry_after_seconds || response?.data?.retry_after_seconds || 60);
             setTimeout(() => setResendSuccess(''), 3000);
         } catch (err: any) {
+            const status = err.response?.status;
+            const errorData = err.response?.data;
+            
+            if (status === 404) {
+                setError('لم يتم العثور على هذا البريد الإلكتروني.');
+                setIsResending(false);
+                return;
+            }
+
+            if (status === 409) {
+                setResendSuccess('بريدك الإلكتروني مُفعّل بالفعل.');
+                setTimeout(() => {
+                    navigate(ROUTES.LOGIN);
+                }, 2000);
+                setIsResending(false);
+                return;
+            }
+
+            if (status === 500 || status === 503 || errorData?.error_code === 'mail_delivery_failed') {
+                setError('فشل في إرسال البريد الإلكتروني. يرجى المحاولة لاحقا.');
+                setIsResending(false);
+                return;
+            }
+
+            if (errorData?.retry_after_seconds) {
+                setCountdown(errorData.retry_after_seconds);
+            }
             setError(getArabicErrorMessage(err));
         } finally {
             setIsResending(false);

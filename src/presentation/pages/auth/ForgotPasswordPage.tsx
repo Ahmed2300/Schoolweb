@@ -49,7 +49,21 @@ export function ForgotPasswordPage() {
             await forgotFn(email);
             setSuccess(true);
         } catch (err: any) {
+            if (err.response?.status === 404) {
+                setError('لم يتم العثور على حساب بهذا البريد الإلكتروني.');
+                return;
+            }
+
             const errorData = err.response?.data;
+
+            if (err.response?.status === 422 && errorData?.errors?.email) {
+                const emailErrors = errorData.errors.email;
+                if (emailErrors.some((e: string) => e.includes('invalid') || e.includes('غير صالح'))) {
+                    setError('البريد الإلكتروني المحدد غير صالح.');
+                    return;
+                }
+            }
+
             const arabicMessage = errorData?.message_ar;
             setError(arabicMessage || errorData?.message || 'حدث خطأ. يرجى المحاولة مرة أخرى');
         } finally {

@@ -15,13 +15,40 @@ export function LoginPage() {
         password: '',
     });
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const [showForceLogin, setShowForceLogin] = useState(false);
+
+    const getDeviceFingerprint = () => {
+        let fp = localStorage.getItem('device_fingerprint');
+        if (!fp) {
+            fp = typeof crypto !== 'undefined' && crypto.randomUUID 
+                ? crypto.randomUUID() 
+                : Math.random().toString(36).substring(2) + Date.now().toString(36);
+            localStorage.setItem('device_fingerprint', fp);
+        }
+        return fp;
+    };
+
+    const handleSubmit = async (e: React.FormEvent, force = false) => {
         e.preventDefault();
         try {
-            await login(formData);
+            await login({ 
+                ...formData, 
+                device_fingerprint: getDeviceFingerprint(),
+                force_login: force 
+            });
             navigate(ROUTES.DASHBOARD);
-        } catch {
-            // Error is handled in the hook
+        } catch (err: any) {
+            // Check for 409 Conflict (Active Session)
+            if (err?.response?.status === 409 || err?.response?.data?.error_code === 'ACTIVE_SESSION') {
+                setShowForceLogin(true);
+            } else if (err?.response?.data?.error_code === 'email_not_verified') {
+                navigate(ROUTES.VERIFY_EMAIL, {
+                    state: {
+                        email: formData.emailOrPhone,
+                        userType: 'student'
+                    }
+                });
+            }
         }
     };
 
@@ -78,6 +105,36 @@ export function LoginPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Force Login Modal */}
+            {showForceLogin && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h2>{isRTL ? 'جلسة نشطة' : 'Active Session'}</h2>
+                        <p style={{ margin: '15px 0' }}>
+                            {isRTL 
+                                ? 'لديك جلسة نشطة على جهاز آخر. هل تريد تسجيل الخروج من الجهاز الآخر وتسجيل الدخول هنا؟' 
+                                : 'You have an active session on another device. Do you want to log out from the other device and log in here?'}
+                        </p>
+                        <div className="modal-actions" style={{ display: 'flex', gap: '10px' }}>
+                            <button 
+                                className="btn btn-secondary" 
+                                onClick={() => setShowForceLogin(false)}
+                                disabled={isLoading}
+                            >
+                                {isRTL ? 'إلغاء' : 'Cancel'}
+                            </button>
+                            <button 
+                                className="btn btn-primary" 
+                                onClick={(e) => handleSubmit(e, true)}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? t('common.loading') : (isRTL ? 'تسجيل الدخول' : 'Force Login')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

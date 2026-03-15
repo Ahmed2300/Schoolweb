@@ -18,7 +18,11 @@
         "previous": "Previous",
         "close": "Close",
         "yes": "Yes",
-        "no": "No"
+        "no": "No",
+        "noInternet": "No internet connection.",
+        "slowInternet": "Slow internet connection. Please try again.",
+        "serverTimeout": "The server took too long to respond. Please try again later.",
+        "serverError": "A server error occurred. Please try again later."
     },
     "auth": {
         "login": "Login",

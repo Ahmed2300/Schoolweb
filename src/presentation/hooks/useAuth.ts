@@ -27,9 +27,22 @@ export function useAuth() {
             setUser(response.user);
             navigate(ROUTES.DASHBOARD);
             return response;
-        } catch (err) {
-            const message = err instanceof Error ? err.message : 'Login failed';
-            setError(message);
+        } catch (err: any) {
+            let message = 'Login failed';
+            
+            if (err?.response?.status === 409 || err?.response?.data?.error_code === 'ACTIVE_SESSION') {
+                message = ''; // Handled by component modal
+            } else if (err?.response?.data?.error_code === 'email_not_verified') {
+                message = ''; // Handled by component redirection to verify email
+            } else if (err?.response?.data?.message_ar) {
+                message = err.response.data.message_ar;
+            } else if (err?.response?.data?.message) {
+                message = err.response.data.message;
+            } else if (err instanceof Error) {
+                message = err.message;
+            }
+            
+            if (message) setError(message);
             throw err;
         }
     }, [authRepository, navigate, setUser, setLoading, setError]);
@@ -44,9 +57,25 @@ export function useAuth() {
             setUser(response.user);
             navigate(ROUTES.DASHBOARD);
             return response;
-        } catch (err) {
-            const message = err instanceof Error ? err.message : 'Registration failed';
-            setError(message);
+        } catch (err: any) {
+            let message = 'Registration failed';
+            const hasFieldErrors = !!err?.response?.data?.errors;
+
+            if (err?.response?.data?.message_ar) {
+                message = err.response.data.message_ar;
+            } else if (err?.response?.data?.message) {
+                message = err.response.data.message;
+            } else if (err instanceof Error) {
+                message = err.message;
+            }
+
+            // Only set global error if there are no field-specific errors to show inline
+            if (hasFieldErrors) {
+                setError(null);
+            } else {
+                setError(message);
+            }
+            
             throw err;
         }
     }, [authRepository, navigate, setUser, setLoading, setError]);

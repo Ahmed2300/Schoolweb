@@ -189,8 +189,18 @@ export function TeacherSettingsPage() {
             }
         } catch (error: any) {
             console.error('Change password error:', error);
-            const msg = error.response?.data?.message || 'فشل تغيير كلمة المرور';
-            toast.error(msg);
+            const errorData = error.response?.data;
+            const arabicMessage = errorData?.message_ar;
+            const englishMessage = errorData?.message || error.message;
+
+            if (arabicMessage) {
+                toast.error(arabicMessage);
+            } else if (englishMessage?.toLowerCase().includes('password') || 
+                       englishMessage?.toLowerCase().includes('credentials')) {
+                toast.error('كلمة المرور الحالية غير صحيحة');
+            } else {
+                toast.error('فشل تغيير كلمة المرور');
+            }
         }
     };
 

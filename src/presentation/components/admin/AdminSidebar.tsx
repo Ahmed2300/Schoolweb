@@ -145,8 +145,8 @@ export function AdminSidebar({ isCollapsed, onToggle, className = '' }: AdminSid
         });
     }, []);
 
-    const handleLogout = useCallback(() => {
-        logout();
+    const handleLogout = useCallback(async () => {
+        await logout();
         navigate(ROUTES.ADMIN_LOGIN);
     }, [logout, navigate]);
 

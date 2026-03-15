@@ -78,11 +78,10 @@ export function TeacherLayout({
 
     const handleLogout = async () => {
         try {
-            await teacherAuthService.logout();
+            await logout();
         } catch {
             // Continue with logout even if API fails
         } finally {
-            storeLogout();
             navigate(ROUTES.TEACHER_LOGIN);
         }
     };

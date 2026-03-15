@@ -308,16 +308,30 @@ export function SignupPage() {
         } catch (err: any) {
             setIsThinking(false);
             const apiErrors = err.response?.data?.errors;
-            if (apiErrors) {
-                let errorField = null;
-                if (apiErrors.email) {
-                    setFieldErrors(prev => ({ ...prev, email: 'البريد مسجل بالفعل' }));
-                    errorField = 'email';
-                }
-                if (apiErrors.parent_email) {
-                    setFieldErrors(prev => ({ ...prev, parentEmail: 'بريد ولي الأمر مسجل' }));
-                    if (!errorField) errorField = 'parentEmail';
-                }
+            if (apiErrors && Object.keys(apiErrors).length > 0) {
+                let errorField: string | null = null;
+                const newFieldErrors: Record<string, string> = {};
+                
+                const fieldMapping: Record<string, string> = {
+                    email: 'email',
+                    phone: 'phone',
+                    password: 'password',
+                    name: 'name',
+                    parent_email: 'parentEmail',
+                    parent_phone: 'parentPhone',
+                    parent_name: 'parentName',
+                    country_id: 'countryId',
+                    city_id: 'cityId',
+                    how_do_you_know_us: 'howDidYouKnowUs'
+                };
+
+                Object.keys(apiErrors).forEach((key) => {
+                    const mappedKey = fieldMapping[key] || key;
+                    newFieldErrors[mappedKey] = Array.isArray(apiErrors[key]) ? apiErrors[key][0] : apiErrors[key];
+                    if (!errorField) errorField = mappedKey;
+                });
+                
+                setFieldErrors(prev => ({ ...prev, ...newFieldErrors }));
 
                 if (errorField) {
                     const targetStep = getStepForField(errorField);
@@ -339,12 +353,17 @@ export function SignupPage() {
                     }
                 }
 
-                setError('يوجد خطأ في إدخال البيانات، يرجى التوجه للحقول المحددة باللون الأحمر وتصحيحها');
+                const messageAr = err.response?.data?.message_ar;
+                const messageEn = err.response?.data?.message;
+                const rootError = isRTL ? (messageAr || messageEn) : (messageEn || messageAr);
+                setError(rootError || 'يوجد خطأ في إدخال البيانات، يرجى التوجه للحقول المحددة باللون الأحمر وتصحيحها');
             } else if (err.response?.data?.message?.includes('Duplicate')) {
                 setError('البيانات مسجلة بالفعل');
             } else {
-                const arabicMsg = err.response?.data?.message_ar;
-                setError(arabicMsg || err.response?.data?.message || 'حدث خطأ غير متوقع');
+                const messageAr = err.response?.data?.message_ar;
+                const messageEn = err.response?.data?.message;
+                const genericError = isRTL ? (messageAr || messageEn) : (messageEn || messageAr);
+                setError(genericError || 'حدث خطأ غير متوقع');
             }
         } finally {
             setIsLoading(false);

@@ -54,11 +54,10 @@ export function ParentLayout() {
 
     const handleLogout = async () => {
         try {
-            await authService.logout('parent');
+            await logout();
         } catch (error) {
             console.error('Logout API error:', error);
         } finally {
-            clearAuthStore();
             navigate(ROUTES.LOGIN);
         }
     };

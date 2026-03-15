@@ -118,7 +118,7 @@ export function TeacherVerifyEmailPage() {
         const otpCode = otp.join('');
 
         if (otpCode.length !== 6) {
-            setError('يرجى إدخال رمز التحقق كاملاً');
+            setError('يرجى إدخل رمز التحقق كاملاً');
             return;
         }
 
@@ -147,8 +147,17 @@ export function TeacherVerifyEmailPage() {
                 }, 1500);
             }
         } catch (err: any) {
+            const status = err.response?.status;
             const errorData = err.response?.data;
             const arabicMessage = errorData?.message_ar;
+
+            if (status === 409 || errorData?.error_code === 'already_verified') {
+                setSuccess('بريدك الإلكتروني مُفعّل بالفعل. جاري التوجيه لتسجيل الدخول...');
+                setTimeout(() => {
+                    navigate(ROUTES.TEACHER_LOGIN, { replace: true });
+                }, 2000);
+                return;
+            }
 
             if (err.response?.status === 400 || err.response?.status === 401 || errorData?.message?.includes('Invalid')) {
                 setError(arabicMessage || 'رمز التحقق غير صحيح أو منتهي الصلاحية');
@@ -182,9 +191,23 @@ export function TeacherVerifyEmailPage() {
             // Clear success message after 3 seconds
             setTimeout(() => setSuccess(''), 3000);
         } catch (err: any) {
+            const status = err.response?.status;
             const errorData = err.response?.data;
             const arabicMessage = errorData?.message_ar;
             const englishMessage = errorData?.message;
+
+            if (status === 404) {
+                setError('لم يتم العثور على هذا البريد الإلكتروني.');
+                return;
+            }
+
+            if (status === 409) {
+                setSuccess('بريدك الإلكتروني مُفعّل بالفعل.');
+                setTimeout(() => {
+                    navigate(ROUTES.TEACHER_LOGIN);
+                }, 2000);
+                return;
+            }
 
             if (arabicMessage) {
                 setError(arabicMessage);

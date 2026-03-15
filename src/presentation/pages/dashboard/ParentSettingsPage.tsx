@@ -178,8 +178,20 @@ export function ParentSettingsPage() {
                 setPasswordSuccess('تم تغيير كلمة المرور بنجاح');
                 setPasswordForm({ old_password: '', new_password: '', new_password_confirmation: '' });
             }
-        } catch (error) {
-            setPasswordError(error instanceof Error ? error.message : 'حدث خطأ أثناء تغيير كلمة المرور');
+        } catch (error: any) {
+            console.error('Password change error:', error);
+            const errorData = error.response?.data;
+            const arabicMessage = errorData?.message_ar;
+            const englishMessage = errorData?.message || error.message;
+            
+            if (arabicMessage) {
+                setPasswordError(arabicMessage);
+            } else if (englishMessage?.toLowerCase().includes('password') || 
+                       englishMessage?.toLowerCase().includes('credentials')) {
+                setPasswordError('كلمة المرور الحالية غير صحيحة');
+            } else {
+                setPasswordError('حدث خطأ أثناء تغيير كلمة المرور');
+            }
         } finally {
             setPasswordLoading(false);
         }

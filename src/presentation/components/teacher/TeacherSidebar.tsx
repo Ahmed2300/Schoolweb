@@ -118,15 +118,14 @@ export function TeacherSidebar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
             reverseButtons: true,
         });
 
-        if (!result.isConfirmed) return;
-
-        try {
-            await teacherAuthService.logout();
-        } catch {
-            // Continue with logout even if API fails
-        } finally {
-            storeLogout();
-            navigate(ROUTES.TEACHER_LOGIN);
+        if (result.isConfirmed) {
+            try {
+                await logout();
+            } catch (error) {
+                console.error('Logout failed:', error);
+            } finally {
+                navigate(ROUTES.TEACHER_LOGIN);
+            }
         }
     };
 
