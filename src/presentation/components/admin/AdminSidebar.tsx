@@ -114,6 +114,7 @@ const navGroups: NavGroup[] = [
         items: [
             { icon: <MessageSquare size={18} />, label: 'بلاغات الدعم', path: '/admin/client-reports' },
             { icon: <Calendar size={18} />, label: 'إعدادات الجدولة', path: '/admin/schedule-config' },
+            { icon: <PlayCircle size={18} />, label: 'تجربة بث تيليجرام', path: '/admin/telegram-test' },
             { icon: <Settings size={18} />, label: 'الإعدادات', path: ROUTES.ADMIN_SETTINGS },
         ],
     },
