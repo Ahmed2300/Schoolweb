@@ -163,6 +163,7 @@ const AdminSlotRequestsPage = lazyWithRetry(() => import('./presentation/pages/a
 const AdminClassSchedulesPage = lazyWithRetry(() => import('./presentation/pages/admin/AdminClassSchedulesPage').then(m => ({ default: m.AdminClassSchedulesPage })));
 const AdminStudentDetailsPage = lazyWithRetry(() => import('./presentation/pages/admin/AdminStudentDetailsPage'));
 const AdminParentDetailsPage = lazyWithRetry(() => import('./presentation/pages/admin/AdminParentDetailsPage'));
+const AdminTelegramVideoTestPage = lazyWithRetry(() => import('./presentation/pages/admin/AdminTelegramVideoTestPage').then(m => ({ default: m.AdminTelegramVideoTestPage })));
 
 // Admin — Influencer / Affiliate Management
 const AdminInfluencersPage = lazyWithRetry(() => import('./presentation/pages/admin/AdminInfluencersPage').then(m => ({ default: m.AdminInfluencersPage })));
@@ -338,6 +339,7 @@ function AppRoutes() {
           <Route path="schedule-config" element={<AdminScheduleConfigPage />} />
           <Route path="slot-requests" element={<AdminSlotRequestsPage />} />
           <Route path="class-schedules" element={<AdminClassSchedulesPage />} />
+          <Route path="telegram-test" element={<AdminTelegramVideoTestPage />} />
         </Route>
 
         {/* Influencer Routes - Protected for influencer role only */}

@@ -344,6 +344,7 @@ export const endpoints = {
             complete: '/api/v1/admin/videos/complete',
             progress: '/api/v1/admin/videos/progress',
             cancel: '/api/v1/admin/videos/cancel',
+            telegramList: '/api/v1/admin/videos/telegram-list',
         },
         // Student-Parent Assignment
         studentParent: {

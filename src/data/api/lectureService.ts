@@ -113,12 +113,14 @@ export const lectureService = {
     completeVideoUpload: async (
         uploadId: string,
         totalChunks: number,
-        originalFilename: string
+        originalFilename: string,
+        lectureId?: number
     ): Promise<VideoCompleteResult> => {
         const response = await apiClient.post(endpoints.admin.videos.complete, {
             uploadId,
             totalChunks,
             originalFilename,
+            ...(lectureId != null && { lectureId }),
         });
         return response.data;
     },
@@ -136,7 +138,8 @@ export const lectureService = {
 
     uploadVideo: async (
         file: File,
-        onProgress?: (progress: number, status: string) => void
+        onProgress?: (progress: number, status: string) => void,
+        lectureId?: number
     ): Promise<{ videoPath: string; videoUrl: string }> => {
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
@@ -169,7 +172,8 @@ export const lectureService = {
         const completeResult = await lectureService.completeVideoUpload(
             uploadId,
             totalChunks,
-            file.name
+            file.name,
+            lectureId
         );
 
         return {
